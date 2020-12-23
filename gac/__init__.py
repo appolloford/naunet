@@ -1,3 +1,3 @@
-import gac.initialize
+from .settings import initialize
 
-gac.initialize.initialize()
+initialize()

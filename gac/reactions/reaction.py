@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from enum import Enum
-from gac.species import Species
-from gac.singleton import pseudo_element_list
+from ..species import Species
+from ..settings import pseudo_element_list
 
 # If the reaction types have the same formalism, they share the same value in the enum class
 class ReactionType(Enum):

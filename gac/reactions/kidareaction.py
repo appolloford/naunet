@@ -1,6 +1,6 @@
-from gac.species import Species
-from gac.reaction import Reaction, ReactionType
-from gac.singleton import pseudo_element_list, user_symbols
+from ..species import Species
+from ..settings import pseudo_element_list, user_symbols
+from .reaction import Reaction, ReactionType
 from sympy.codegen.cfunctions import exp
 
 
@@ -58,7 +58,6 @@ class KIDAReaction(Reaction):
                 rlen + plen :
             ].split()
 
-            print(form)
             self.alpha = float(a)
             self.beta = float(b)
             self.gamma = float(c)

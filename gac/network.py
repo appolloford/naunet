@@ -2,11 +2,9 @@ import logging
 import sympy as sym
 from operator import mul
 from functools import reduce
-from gac import species
-from gac.species import Species
-from gac.reaction import Reaction
-from gac.reaction import Reaction
-from gac.kidareaction import KIDAReaction
+from .species import Species
+from .reactions.reaction import Reaction
+from .reactions.kidareaction import KIDAReaction
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger()
@@ -37,8 +35,6 @@ class Network:
         ]
         self.reactants_in_network.extend(new_reactants)
         self.products_in_network.extend(new_products)
-        print("Here is the print message")
-        logger.info("Here is a logggggggggggggggggg")
         if len(self.reaction_list) % 100 == 0:
             print("Processing: {} reactions...".format(len(self.reaction_list)))
         return new_reactants + new_products

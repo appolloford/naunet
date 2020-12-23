@@ -2,8 +2,7 @@ import logging
 from math import sin
 import re
 from collections import Counter
-from gac import singleton
-from gac.singleton import (
+from .settings import (
     element_list,
     pseudo_element_list,
     surface_symbol,
