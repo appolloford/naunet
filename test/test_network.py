@@ -7,4 +7,5 @@ def test_init_network():
     # network = Network("test/deuspin.kida.uva.2017.in", "kida")
     network = Network("test/simple_test.dat", "kida")
     network.check_duplicate_reaction()
-    network.to_ccode()
+    network.collect_infos()
+    network.fex_to_ccode(to_file=True, prefix="test/test_output/fex", header=True)

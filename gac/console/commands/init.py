@@ -25,7 +25,14 @@ class InitCommand(Command):
         src_parent_path = Path(gac.__file__).parent
         csrc_path = str(src_parent_path) + "/cxx_src"
 
-        target_path = str(Path.cwd())
+        dest_path = str(Path.cwd())
 
         for file in os.listdir(csrc_path):
-            shutil.copyfile("/".join([csrc_path, file]), "/".join([target_path, file]))
+            src = "/".join([csrc_path, file])
+            dest = "/".join([dest_path, file])
+            if os.path.isdir(src):
+                shutil.copytree(src, dest)
+            elif os.path.isfile(src):
+                shutil.copyfile(src, dest)
+            # else:
+            #     raise TypeError

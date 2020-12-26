@@ -1,5 +1,7 @@
 import logging
-import sympy as sym
+from sympy import symbols, MatrixSymbol, Idx, ccode
+from sympy.codegen.ast import Assignment
+from sympy.utilities.codegen import codegen
 from operator import mul
 from functools import reduce
 from .species import Species
@@ -20,6 +22,9 @@ class Network:
         self.reaction_list = []
         self.reactants_in_network = []
         self.products_in_network = []
+        self.net_species = []
+        self.nspecies = 0
+        self.info_updated = False
 
         if fname and database:
             self.add_reaction_from_file(fname, database)
@@ -42,6 +47,7 @@ class Network:
     def add_reaction(self, react_string: str, database: str) -> None:
         new_species = self._add_reaction(react_string, database)
         logger.info("New species are added: {}".format(new_species))
+        self.info_updated = False
 
     def add_reaction_from_file(self, filename: str, database: str) -> None:
         if not database:
@@ -54,6 +60,8 @@ class Network:
                 new_species.extend(self._add_reaction(line, database))
             for x in new_species:
                 print(x)
+
+        self.info_updated = False
 
     def check_duplicate_reaction(self):
         dupes = [
@@ -79,19 +87,74 @@ class Network:
         elif sink != []:
             print("Found sinks: ", sink)
 
-    def to_ccode(self):
+    def collect_infos(self):
+        if self.info_updated:
+            return
+
         reacprod = self.reactants_in_network + self.products_in_network
-        species_in_network = [
-            x for n, x in enumerate(reacprod) if x not in reacprod[:n]
-        ]
-        nspec = len(species_in_network)
-        ydot = sym.MatrixSymbol("ydot", nspec, 1)
-        y = sym.MatrixSymbol("y", nspec, 1)
-        rhs = [0.0] * nspec
+        self.net_species = [x for n, x in enumerate(reacprod) if x not in reacprod[:n]]
+        self.nspecies = len(self.net_species)
+        logging.info(
+            "{} species in the network: {}".format(
+                self.nspecies, ", ".join([x.name for x in self.net_species])
+            )
+        )
+        self.info_updated = True
+
+    def fex(self):
+        rhs = self.rhs()
+        ydot = MatrixSymbol("ydot", self.nspecies, 1)
+
+        fex = [Assignment(l, r) for l, r in zip(ydot, rhs)]
+        return fex
+
+    def fex_to_ccode(
+        self, to_file=False, prefix="fex", ext="c", header=False, h_ext="h"
+    ):
+
+        tab = "    "
+
+        if to_file:
+
+            cfunc = (
+                "static int fex(realtype t, N_Vector y, N_Vector ydot, void *user_data)"
+            )
+
+            with open(f"{prefix}.{ext}", "w") as cfile:
+                if not header:
+                    cfile.write("#include <cvode/cvode.h>\n")
+                    cfile.write("#include <nvector/nvector_serial.h>\n\n")
+                else:
+                    cfile.write(f'#include "{prefix}.{h_ext}"\n\n')
+                cfile.write(f"{cfunc}")
+                cfile.write("{\n\n")
+                cfile.write(f"{tab}UserData *u_data = (UserData*) user_data;\n")
+                cfile.write(f"{tab}realtype Tgas = u_data->Tgas;\n\n")
+                cfile.write("\n".join([tab + ccode(f) for f in self.fex()]))
+                cfile.write("\n\n}")
+
+            if header:
+                with open(f"{prefix}.{h_ext}", "w") as hfile:
+                    hfile.write("#ifndef __FEX_H__\n")
+                    hfile.write("#define __FEX_H__\n\n")
+                    hfile.write("#include <cvode/cvode.h>\n")
+                    hfile.write("#include <nvector/nvector_serial.h>\n\n")
+                    hfile.write(f"{cfunc};\n\n")
+                    hfile.write("#endif\n")
+        else:
+            print("\n".join([ccode(f) for f in self.fex()]))
+
+    def rhs(self):
+        if not self.info_updated:
+            self.collect_infos()
+
+        y = MatrixSymbol("y", self.nspecies, 1)
+        rhs = [0.0] * self.nspecies
+
         for react in self.reaction_list:
             rate = react.rate_func()
-            ridx = [species_in_network.index(r) for r in react.reactants]
-            pidx = [species_in_network.index(p) for p in react.products]
+            ridx = [self.net_species.index(r) for r in react.reactants]
+            pidx = [self.net_species.index(p) for p in react.products]
             rsym = [y[idx] for idx in ridx]
             # psym = [y[idx] for idx in pidx]
             rsym_product = reduce(mul, rsym)
@@ -101,5 +164,4 @@ class Network:
             for idx in pidx:
                 rhs[idx] += rate * rsym_product
 
-        for left, right in zip(ydot, rhs):
-            print(sym.ccode(right, assign_to=left))
+        return rhs
