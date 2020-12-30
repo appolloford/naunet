@@ -16,10 +16,13 @@ element_list = element_list + pseudo_element_list
 class Species:
     def __init__(self, name):
         self.name = name
+        self.alias = None
         self.element_count = dict()
+        self.charge = 0
         self.is_surface = False
 
         self._parse_molecule_name()
+        self.set_alias()
 
     def __eq__(self, o: object) -> bool:
         if isinstance(o, Species):
@@ -63,12 +66,12 @@ class Species:
             specname = specname.replace(surface_symbol, "")
 
         if self._is_charged(specname):
-            pcharge = "".join(re.findall(".+$", specname)).count("+")
-            ncharge = "".join(re.findall(".-$", specname)).count("-")
+            pcharge = "".join(re.findall(r"\+*$", specname)).count("+")
+            ncharge = "".join(re.findall(r"-*$", specname)).count("-")
             self.charge = pcharge - ncharge
             # remove the charge symbols
-            specname = re.sub(".+$", "", specname)
-            specname = re.sub(".-$", "", specname)
+            specname = re.sub(r"\+*$", "", specname)
+            specname = re.sub(r"-*$", "", specname)
 
         lastelement = None
         while len(specname) > 0:
@@ -92,6 +95,28 @@ class Species:
                     raise RuntimeError(
                         'Unrecongnized name: "{}" in "{}"'.format(specname, self.name)
                     )
+
+    def basename(self):
+        # TODO: generalize the way to check surface and count charge
+        basename = self.name
+        if self.is_surface:
+            basename = basename.replace(surface_symbol, "")
+
+        if self.charge > 0:
+            basename = re.sub(r"\+*$", "", basename)
+        elif self.charge < 0:
+            basename = re.sub(r"-*$", "", basename)
+
+        return basename
+
+    def set_alias(self, alias=None):
+        if alias:
+            self.alias = alias
+        else:
+            basename = self.basename()
+            self.alias = "{}{}{}".format(
+                "G" if self.is_surface else "", basename, "I" * (self.charge + 1)
+            )
 
 
 def top_abundant_species(species_list, abundances, element=None, rank=-1):

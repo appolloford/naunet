@@ -1,6 +1,6 @@
 import logging
-from sympy import symbols, MatrixSymbol, Idx, ccode
-from sympy.codegen.ast import Assignment
+from sympy import symbols, Symbol, Function, MatrixSymbol, Idx, ccode
+from sympy.codegen.ast import Assignment, CodeBlock, Declaration, Variable, real
 from sympy.utilities.codegen import codegen
 from operator import mul
 from functools import reduce
@@ -101,67 +101,298 @@ class Network:
         )
         self.info_updated = True
 
-    def fex(self):
-        rhs = self.rhs()
-        ydot = MatrixSymbol("ydot", self.nspecies, 1)
+    # TODO: complete the function
+    def constants_header(self):
+        if not self.info_updated:
+            self.collect_infos()
 
-        fex = [Assignment(l, r) for l, r in zip(ydot, rhs)]
-        return fex
+        with open("test/test_output/constants.h", "w") as hfile:
+            hfile.write("#ifndef __CONSTANT_H__\n")
+            hfile.write("#define __CONSTANT_H__\n\n")
+            hfile.write(f"#define NSPECIES {self.nspecies}\n\n")
+            hfile.write(
+                "\n".join(
+                    f"#define IDX_{x.alias} {i}" for i, x in enumerate(self.net_species)
+                )
+            )
+            hfile.write("\n\n")
+            hfile.write("#endif\n")
+
+    def fex(self, symbol_form=False):
+        rate_declare, rate_assign, rhs = self.rhs(symbol_form)
+
+        # TODO: Return a pure sympy object list when it is possible, make it can be handle by ccode()
+        # * Sympy doesn't generate semicolons after declaration, neither support the if statement.
+        # * Therefore, fex() return the declaration and assignment with the final function.
+        # * fex_to_code() will do further processing to generate the correct code.
+        # fex_result = rate_declare
+        # fex_result += rate_assign
+
+        ydot = MatrixSymbol("ydot", self.nspecies, 1)
+        fex_result = [Assignment(l, r) for l, r in zip(ydot, rhs)]
+        return rate_declare, rate_assign, fex_result
 
     def fex_to_ccode(
-        self, to_file=False, prefix="fex", ext="c", header=False, h_ext="h"
+        self,
+        *args,
+        to_file=False,
+        prefix="",
+        fname="fex",
+        ext="c",
+        header=False,
+        h_ext="h",
+        **kwargs,
     ):
 
         tab = "    "
 
         if to_file:
 
-            cfunc = (
-                "static int fex(realtype t, N_Vector y, N_Vector ydot, void *user_data)"
-            )
+            cfunc = "int fex(realtype t, N_Vector u, N_Vector u_dot, void *user_data)"
+            rate_declare, rate_assign, fex = self.fex(*args, **kwargs)
 
-            with open(f"{prefix}.{ext}", "w") as cfile:
-                if not header:
+            with open(f"{prefix + fname}.{ext}", "w") as cfile:
+                if header:
+                    cfile.write(f'#include "{fname}.{h_ext}"\n\n')
+                    with open(f"{prefix + fname}.{h_ext}", "w") as hfile:
+                        hfile.write("#ifndef __JAC_H__\n")
+                        hfile.write("#define __JAC_H__\n\n")
+                        hfile.write("#include <cvode/cvode.h>\n")
+                        hfile.write("#include <nvector/nvector_serial.h>\n\n")
+                        hfile.write(f"{cfunc};\n\n")
+                        hfile.write("#endif\n")
+                else:
                     cfile.write("#include <cvode/cvode.h>\n")
                     cfile.write("#include <nvector/nvector_serial.h>\n\n")
-                else:
-                    cfile.write(f'#include "{prefix}.{h_ext}"\n\n')
+
+                cfile.write(
+                    f"// Simple function that calculates the differential equation.\n"
+                )
                 cfile.write(f"{cfunc}")
                 cfile.write("{\n\n")
+                cfile.write(f"{tab}realtype *y = N_VGetArrayPointer(u);\n")
+                cfile.write(f"{tab}realtype *ydot = N_VGetArrayPointer(u_dot);\n")
                 cfile.write(f"{tab}UserData *u_data = (UserData*) user_data;\n")
                 cfile.write(f"{tab}realtype Tgas = u_data->Tgas;\n\n")
-                cfile.write("\n".join([tab + ccode(f) for f in self.fex()]))
+                cfile.write(
+                    "\n".join([f"{tab}{ccode(dec)} = 0.0;" for dec in rate_declare])
+                )
+                cfile.write("\n\n")
+                cfile.write(
+                    "\n".join(
+                        [
+                            f"{tab}if (Tgas>{react.temp_min} && Tgas<{react.temp_max}) {ccode(assign)}"
+                            for react, assign in zip(self.reaction_list, rate_assign)
+                        ]
+                    )
+                )
+                cfile.write("\n\n")
+                cfile.write("\n".join([tab + ccode(f) for f in fex]))
+                # cfile.write(ccode(CodeBlock(*fex)))
+                cfile.write("\n\n")
+                cfile.write(f"{tab}return 0;")
                 cfile.write("\n\n}")
 
-            if header:
-                with open(f"{prefix}.{h_ext}", "w") as hfile:
-                    hfile.write("#ifndef __FEX_H__\n")
-                    hfile.write("#define __FEX_H__\n\n")
-                    hfile.write("#include <cvode/cvode.h>\n")
-                    hfile.write("#include <nvector/nvector_serial.h>\n\n")
-                    hfile.write(f"{cfunc};\n\n")
-                    hfile.write("#endif\n")
         else:
             print("\n".join([ccode(f) for f in self.fex()]))
 
-    def rhs(self):
+    def jac(self, symbol_form=False):
+
+        y = MatrixSymbol("y", self.nspecies, 1)
+        jac_result = [0.0] * self.nspecies * self.nspecies
+        rate_declare = []
+        rate_assign = []
+
+        for r, react in enumerate(self.reaction_list):
+            if symbol_form:
+                rate_symbol = Symbol(f"rate_react{r}")
+                rate_declare.append(Declaration(Variable(rate_symbol, type=real)))
+                rate_assign.append(Assignment(rate_symbol, react.rate_func()))
+            else:
+                rate_symbol = react.rate_func()
+            ridx = [self.net_species.index(r) for r in react.reactants]
+            pidx = [self.net_species.index(p) for p in react.products]
+
+            for idx in ridx:
+                for ri in ridx:
+                    rsym = [y[i] for i in ridx if i != ri]
+                    rsym_product = reduce(mul, rsym)
+                    jac_result[idx * self.nspecies + ri] -= rate_symbol * rsym_product
+            for idx in pidx:
+                for ri in ridx:
+                    rsym = [y[i] for i in ridx if i != ri]
+                    rsym_product = reduce(mul, rsym)
+                    jac_result[idx * self.nspecies + ri] += rate_symbol * rsym_product
+
+        return rate_declare, rate_assign, jac_result
+
+    def jac_to_ccode(
+        self,
+        *args,
+        to_file=False,
+        prefix="",
+        fname="jac",
+        ext="c",
+        header=False,
+        h_ext="h",
+        **kwargs,
+    ):
+        tab = "    "
+
+        if to_file:
+
+            cfunc = "int jac(realtype t, N_Vector u, N_Vector fu, SUNMatrix Jac, void *user_data, N_Vector tmp1, N_Vector tmp2, N_Vector tmp3)"
+
+            rate_declare, rate_assign, jac = self.jac(*args, **kwargs)
+
+            with open(f"{prefix + fname}.{ext}", "w") as cfile:
+                if header:
+                    cfile.write(f'#include "{fname}.{h_ext}"\n\n')
+                    with open(f"{prefix + fname}.{h_ext}", "w") as hfile:
+                        hfile.write("#ifndef __FEX_H__\n")
+                        hfile.write("#define __FEX_H__\n\n")
+                        hfile.write("#include <cvode/cvode.h>\n")
+                        hfile.write("#include <nvector/nvector_serial.h>\n\n")
+                        hfile.write(f"{cfunc};\n\n")
+                        hfile.write("#endif\n")
+                else:
+                    cfile.write("#include <cvode/cvode.h>\n")
+                    cfile.write("#include <nvector/nvector_serial.h>\n\n")
+
+                cfile.write(f"{cfunc}")
+                cfile.write("{\n\n")
+                cfile.write(f"{tab}realtype *y = N_VGetArrayPointer(u);\n")
+                cfile.write(f"{tab}UserData *u_data = (UserData*) user_data;\n")
+                cfile.write(f"{tab}realtype Tgas = u_data->Tgas;\n\n")
+                cfile.write(
+                    "\n".join([f"{tab}{ccode(dec)} = 0.0;" for dec in rate_declare])
+                )
+                cfile.write("\n\n")
+                cfile.write(
+                    "\n".join(
+                        [
+                            f"{tab}if (Tgas>{react.temp_min} && Tgas<{react.temp_max}) {ccode(assign)}"
+                            for react, assign in zip(self.reaction_list, rate_assign)
+                        ]
+                    )
+                )
+                cfile.write("\n\n")
+                cfile.write(
+                    "\n".join(
+                        [
+                            f"{tab}IJth(Jac, {idx//self.nspecies}, {idx%self.nspecies}) = {ccode(j)};"
+                            for idx, j in enumerate(jac)
+                        ]
+                    )
+                )
+                # cfile.write(ccode(CodeBlock(*fex)))
+                cfile.write("\n\n")
+                cfile.write(f"{tab}return 0;")
+                cfile.write("\n\n}")
+
+    # TODO: combine with fex
+    def jtv(self, symbol_form=False):
+        rate_declare, rate_assign, rhs = self.rhs(symbol_form)
+
+        ydot = MatrixSymbol("jv", self.nspecies, 1)
+        fex_result = [Assignment(l, r) for l, r in zip(ydot, rhs)]
+        return rate_declare, rate_assign, fex_result
+
+    def jtv_to_ccode(
+        self,
+        *args,
+        to_file=False,
+        prefix="",
+        fname="jtv",
+        ext="c",
+        header=False,
+        h_ext="h",
+        **kwargs,
+    ):
+
+        tab = "    "
+
+        if to_file:
+
+            cfunc = "int jtv(N_Vector v, N_Vector Jv, realtype t, N_Vector u, N_Vector fu, void *user_data, N_Vector tmp)"
+            rate_declare, rate_assign, jtv = self.jtv(*args, **kwargs)
+
+            with open(f"{prefix + fname}.{ext}", "w") as cfile:
+                if header:
+                    cfile.write(f'#include "{fname}.{h_ext}"\n\n')
+                    with open(f"{prefix + fname}.{h_ext}", "w") as hfile:
+                        hfile.write("#ifndef __JTV_H__\n")
+                        hfile.write("#define __JTV_H__\n\n")
+                        hfile.write("#include <cvode/cvode.h>\n")
+                        hfile.write("#include <nvector/nvector_serial.h>\n\n")
+                        hfile.write(f"{cfunc};\n\n")
+                        hfile.write("#endif\n")
+                else:
+                    cfile.write("#include <cvode/cvode.h>\n")
+                    cfile.write("#include <nvector/nvector_serial.h>\n\n")
+
+                cfile.write("// Jacobian function vector routine.\n")
+                cfile.write(f"{cfunc}")
+                cfile.write("{\n\n")
+                cfile.write(f"{tab}realtype *x  = N_VGetArrayPointer(u);\n")
+                cfile.write(f"{tab}realtype *y  = N_VGetArrayPointer(v);\n")
+                cfile.write(f"{tab}realtype *jv = N_VGetArrayPointer(Jv);\n")
+                cfile.write(f"{tab}realtype *fx = N_VGetArrayPointer(fu);\n")
+                cfile.write(f"{tab}UserData *u_data = (UserData*) user_data;\n")
+                cfile.write(f"{tab}realtype Tgas = u_data->Tgas;\n\n")
+                cfile.write(
+                    "\n".join([f"{tab}{ccode(dec)} = 0.0;" for dec in rate_declare])
+                )
+                cfile.write("\n\n")
+                cfile.write(
+                    "\n".join(
+                        [
+                            f"{tab}if (Tgas>{react.temp_min} && Tgas<{react.temp_max}) {ccode(assign)}"
+                            for react, assign in zip(self.reaction_list, rate_assign)
+                        ]
+                    )
+                )
+                cfile.write("\n\n")
+                cfile.write("\n".join([tab + ccode(f) for f in jtv]))
+                # cfile.write(ccode(CodeBlock(*fex)))
+                cfile.write("\n\n")
+                cfile.write(
+                    "\n".join(f"{tab} fx[{i}] = 0.0;" for i in range(self.nspecies))
+                )
+                cfile.write("\n\n")
+                cfile.write(f"{tab}return 0;")
+                cfile.write("\n\n}")
+
+        else:
+            print("\n".join([ccode(f) for f in self.fex()]))
+
+    def rhs(self, symbol_form=False):
         if not self.info_updated:
             self.collect_infos()
 
         y = MatrixSymbol("y", self.nspecies, 1)
-        rhs = [0.0] * self.nspecies
+        rhs_result = [0.0] * self.nspecies
 
-        for react in self.reaction_list:
-            rate = react.rate_func()
+        rate_declare = []
+        rate_assign = []
+
+        for r, react in enumerate(self.reaction_list):
+            if symbol_form:
+                # rate_symbol = symbols(f"rate_react{r}", cls=Function)()
+                rate_symbol = Symbol(f"rate_react{r}")
+                rate_declare.append(Declaration(Variable(rate_symbol, type=real)))
+                rate_assign.append(Assignment(rate_symbol, react.rate_func()))
+            else:
+                rate_symbol = react.rate_func()
             ridx = [self.net_species.index(r) for r in react.reactants]
             pidx = [self.net_species.index(p) for p in react.products]
             rsym = [y[idx] for idx in ridx]
-            # psym = [y[idx] for idx in pidx]
             rsym_product = reduce(mul, rsym)
+            # psym = [y[idx] for idx in pidx]
             # psym_product = reduce(mul, psym)
             for idx in ridx:
-                rhs[idx] -= rate * rsym_product
+                rhs_result[idx] -= rate_symbol * rsym_product
             for idx in pidx:
-                rhs[idx] += rate * rsym_product
+                rhs_result[idx] += rate_symbol * rsym_product
 
-        return rhs
+        return rate_declare, rate_assign, rhs_result

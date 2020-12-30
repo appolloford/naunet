@@ -8,4 +8,13 @@ def test_init_network():
     network = Network("test/simple_test.dat", "kida")
     network.check_duplicate_reaction()
     network.collect_infos()
-    network.fex_to_ccode(to_file=True, prefix="test/test_output/fex", header=True)
+    network.constants_header()
+    network.fex_to_ccode(
+        to_file=True, prefix="test/test_output/", header=True, symbol_form=True
+    )
+    network.jac_to_ccode(
+        to_file=True, prefix="test/test_output/", header=True, symbol_form=True
+    )
+    network.jtv_to_ccode(
+        to_file=True, prefix="test/test_output/", header=True, symbol_form=True
+    )

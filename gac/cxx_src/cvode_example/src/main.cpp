@@ -1,30 +1,36 @@
-// Reference: https://github.com/basilwong/simple-sundials/
 /*
 A simple example using the CVODE library to solve a simple 2d ODE, treating it
-as a stiff system. This version utilizes CVODE's implementation of a direct
-solver using dense matrices.
+as a stiff system. Added the use of user pointer which is a critical building
+block for solving more complex problems.
 */
 
 #include <iostream>
+#include <vector>
 #include <cvode/cvode.h>               // prototypes for CVODE fcts., consts.
 #include <nvector/nvector_serial.h>    // access to serial N_Vector
-#include <sunmatrix/sunmatrix_dense.h> // access to dense SUNMatrix
-#include <sunlinsol/sunlinsol_dense.h> // access to dense SUNLinearSolver
-#include <cvode/cvode_direct.h>        // access to CVDls interface
+#include <sunlinsol/sunlinsol_spgmr.h> //access to SPGMR SUNLinearSolver
+#include <cvode/cvode_spils.h>         // access to CVSpils interface
+#include <sundials/sundials_dense.h>   // use generic dense solver in precond
 #include <sundials/sundials_types.h>   // defs. of realtype, sunindextype
 #include <sundials/sundials_math.h>    // contains the macros ABS, SUNSQR, EXP
 
-// These macro gives access to the individual components of the data array of an
-// N Vector (NV_Ith_S) and SUNMatrix (IJth).
-#define IJth(A, i, j) SM_ELEMENT_D(A, i, j)
+#include "userdata.h"
+#include "constants.h"
+#include "fex.h"
+#include "jtv.h"
 
-static int f(realtype t, N_Vector u, N_Vector u_dot, void *user_data);
-static int jtv(realtype t, N_Vector y, N_Vector fy, SUNMatrix Jac,
-               void *user_data, N_Vector tmp1, N_Vector tmp2, N_Vector tmp3);
+// This macro gives access to the individual components of the data array of an
+// N Vector.
+#define NV_Ith_S(v, i) (NV_DATA_S(v)[i])
+
 static int check_flag(void *flagvalue, const char *funcname, int opt);
+UserData *alloc_user_data();
 
 int main()
 {
+    // Setup User Data Pointer
+    UserData *data = alloc_user_data();
+
     int flag;               // For checking if functions have run properly
     realtype abstol = 1e-5; // real tolerance of system
     realtype reltol = 1e-5; // absolute tolerance of system
@@ -35,15 +41,17 @@ int main()
 
     // 2. Defining the length of the problem.
     // ---------------------------------------------------------------------------
-    sunindextype N = 2;
+    sunindextype N = NSPECIES;
     // ---------------------------------------------------------------------------
 
     // 3. Set vector of initial values.
     // ---------------------------------------------------------------------------
     N_Vector y; // Problem vector.
     y = N_VNew_Serial(N);
-    NV_Ith_S(y, 0) = 2.0;
-    NV_Ith_S(y, 1) = 1.0;
+    NV_Ith_S(y, 0) = 0.4;
+    NV_Ith_S(y, 1) = 0.4;
+    NV_Ith_S(y, 2) = 0.1;
+    NV_Ith_S(y, 3) = 0.1;
     // ---------------------------------------------------------------------------
 
     // 4. Create CVODE Object.
@@ -55,7 +63,7 @@ int main()
     // 5. Initialize CVODE solver.
     // ---------------------------------------------------------------------------
     realtype t0 = 0; // Initiale value of time.
-    flag = CVodeInit(cvode_mem, f, t0, y);
+    flag = CVodeInit(cvode_mem, fex, t0, y);
     if (check_flag(&flag, "CVodeSetUserData", 1))
         return (1);
     // ---------------------------------------------------------------------------
@@ -69,22 +77,23 @@ int main()
 
     // 7. Set Optional inputs.
     // ---------------------------------------------------------------------------
+    /* Set the pointer to user-defined data */
+    flag = CVodeSetUserData(cvode_mem, data);
     // ---------------------------------------------------------------------------
 
     // 8. Create Matrix Object.
     // ---------------------------------------------------------------------------
-    // Need to create a dense matrix for the dense solver.
-    SUNMatrix A = SUNDenseMatrix(N, N);
-    if (check_flag((void *)A, "SUNDenseMatrix", 0))
-        return (1);
     // ---------------------------------------------------------------------------
 
     // 9. Create Linear Solver Object.
     // ---------------------------------------------------------------------------
-    // Dense linear solver object instead of the iterative one in the original
-    // simple example.
-    SUNLinearSolver LS = SUNDenseLinearSolver(y, A);
-    if (check_flag((void *)LS, "SUNDenseLinearSolver", 0))
+    SUNLinearSolver LS;
+    // Here we chose one of the possible linear solver modules. SUNSPMR is an
+    // iterative solver that is designed to be compatible with any nvector
+    // implementation (serial, threaded, parallel,
+    // user-supplied)that supports a minimal subset of operations.
+    LS = SUNSPGMR(y, 0, 0);
+    if (check_flag((void *)LS, "SUNSPGMR", 0))
         return (1);
     // ---------------------------------------------------------------------------
 
@@ -94,19 +103,19 @@ int main()
 
     // 11. Attach linear solver module.
     // ---------------------------------------------------------------------------
-    // Call CVDlsSetLinearSolver to attach the matrix and linear solver this
-    // function is different for direct solvers.
-    flag = CVDlsSetLinearSolver(cvode_mem, LS, A);
-    if (check_flag(&flag, "CVDlsSetLinearSolver", 1))
-        return (1);
+    // CVSpilsSetLinearSolver is for iterative linear solvers.
+    flag = CVSpilsSetLinearSolver(cvode_mem, LS);
+    if (check_flag(&flag, "CVSpilsSetLinearSolver", 1))
+        return 1;
     // ---------------------------------------------------------------------------
 
     // 12. Set linear solver interface optional inputs.
     // ---------------------------------------------------------------------------
     // Sets the jacobian-times-vector function.
-    flag = CVDlsSetJacFn(cvode_mem, jtv);
-    if (check_flag(&flag, "CVDlsSetJacFn", 1))
+    flag = CVSpilsSetJacTimes(cvode_mem, NULL, jtv);
+    if (check_flag(&flag, "CVSpilsSetJacTimes", 1))
         return (1);
+
     // ---------------------------------------------------------------------------
 
     // 13. Specify rootfinding problem.
@@ -150,35 +159,10 @@ int main()
     // 18. Free linear solver and matrix memory.
     // ---------------------------------------------------------------------------
     SUNLinSolFree(LS);
-    // ---------------------------------------------------------------------------
+    delete data; // Remember to free the user data memory.
+                 // ---------------------------------------------------------------------------
 
     // return(0);
-}
-
-// Simple function that calculates the differential equation.
-static int f(realtype t, N_Vector u, N_Vector u_dot, void *user_data)
-{
-    // N_VGetArrayPointer returns a pointer to the data in the N_Vector class.
-    realtype *udata = N_VGetArrayPointer(u);      // pointer u vector data
-    realtype *dudata = N_VGetArrayPointer(u_dot); // pointer to udot vector data
-
-    dudata[0] = -101.0 * udata[0] - 100.0 * udata[1];
-    dudata[1] = udata[0];
-
-    return (0);
-}
-
-// Jacobian function vector routine.
-static int jtv(realtype t, N_Vector y, N_Vector fy, SUNMatrix Jac,
-               void *user_data, N_Vector tmp1, N_Vector tmp2, N_Vector tmp3)
-{
-
-    IJth(Jac, 0, 0) = -101.0;
-    IJth(Jac, 0, 1) = -100.0;
-    IJth(Jac, 1, 0) = 1.0;
-    IJth(Jac, 1, 1) = 0.0;
-
-    return (0);
 }
 
 // check_flag function is from the cvDiurnals_ky.c example from the CVODE
@@ -223,4 +207,17 @@ static int check_flag(void *flagvalue, const char *funcname, int opt)
     }
 
     return (0);
+}
+
+// Initalizes the coefficients for the user data pointer.
+UserData *alloc_user_data()
+{
+    // Setup User Data.
+    UserData *data;
+    data = new UserData();
+
+    // Using class functions to initialize values.
+    data->Tgas = 15.0;
+
+    return data;
 }
