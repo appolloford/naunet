@@ -20,8 +20,8 @@ def reaction_factory(react_string: str, database: str) -> Reaction:
 class Network:
     def __init__(self, fname: str = None, database: str = None) -> None:
         self.reaction_list = []
-        self.reactants_in_network = []
-        self.products_in_network = []
+        self.reactants_in_network = set()
+        self.products_in_network = set()
         self.net_species = []
         self.nspecies = 0
         self.info_updated = False
@@ -32,17 +32,13 @@ class Network:
     def _add_reaction(self, react_string: str, database: str) -> list:
         reaction = reaction_factory(react_string, database)
         self.reaction_list.append(reaction)
-        new_reactants = [
-            spec for spec in reaction.reactants if spec not in self.reactants_in_network
-        ]
-        new_products = [
-            spec for spec in reaction.products if spec not in self.products_in_network
-        ]
-        self.reactants_in_network.extend(new_reactants)
-        self.products_in_network.extend(new_products)
+        new_reactants = reaction.reactants.difference(self.reactants_in_network)
+        new_products = reaction.products.difference(self.products_in_network)
+        self.reactants_in_network.update(new_reactants)
+        self.products_in_network.update(new_products)
         if len(self.reaction_list) % 100 == 0:
             print("Processing: {} reactions...".format(len(self.reaction_list)))
-        return new_reactants + new_products
+        return new_reactants | new_products
 
     def add_reaction(self, react_string: str, database: str) -> None:
         new_species = self._add_reaction(react_string, database)
@@ -55,44 +51,60 @@ class Network:
                 'Try to read in file but database is not assigned. Try again by "add_reaction_from_file"'
             )
         with open(filename, "r") as networkfile:
-            new_species = []
+            new_species = set()
             for line in networkfile.readlines():
-                new_species.extend(self._add_reaction(line, database))
+                new_species.update(self._add_reaction(line, database))
             for x in new_species:
                 print(x)
 
         self.info_updated = False
 
-    def check_duplicate_reaction(self):
-        dupes = [
-            x for n, x in enumerate(self.reaction_list) if x in self.reaction_list[:n]
-        ]
-        logger.info(
-            "The following reactions are duplicate: {}".format("\n".join(dupes))
+    def check_duplicate_reaction(self, full_check: bool = True):
+
+        seen = {}
+        dupes = []
+
+        check_list = (
+            self.reaction_list
+            if full_check
+            else [str(react) for react in self.reaction_list]
         )
-        print("The following reactions are duplicate:", dupes)
+
+        for x in check_list:
+            if x not in seen:
+                seen[x] = 1
+            else:
+                if seen[x] == 1:
+                    dupes.append(x)
+                seen[x] += 1
+
+        logger.info(
+            "The following reactions are duplicate:\n{}".format(
+                "\n".join([repr(x) for x in dupes])
+            )
+        )
+        print(
+            "The following reactions are duplicate:\n{}".format(
+                "\n".join([repr(x) for x in dupes])
+            )
+        )
         return dupes
 
     def check_source_sink(self):
-        source = [
-            x for x in self.reactants_in_network if x not in self.products_in_network
-        ]
-        sink = [
-            x for x in self.products_in_network if x not in self.reactants_in_network
-        ]
-        if source == [] and sink == []:
+        source = self.reactants_in_network.difference(self.products_in_network)
+        sink = self.products_in_network.difference(self.reactants_in_network)
+        if len(source) == 0 and len(sink) == 0:
             print("Found no source or sink")
-        elif source != []:
+        elif len(source) != 0:
             print("Found sources: ", source)
-        elif sink != []:
+        elif len(sink) != 0:
             print("Found sinks: ", sink)
 
     def collect_infos(self):
         if self.info_updated:
             return
 
-        reacprod = self.reactants_in_network + self.products_in_network
-        self.net_species = [x for n, x in enumerate(reacprod) if x not in reacprod[:n]]
+        self.net_species = list(self.reactants_in_network | self.products_in_network)
         self.nspecies = len(self.net_species)
         logging.info(
             "{} species in the network: {}".format(

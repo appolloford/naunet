@@ -1,3 +1,4 @@
+import logging
 from ..species import Species
 from ..settings import pseudo_element_list, user_symbols
 from .reaction import Reaction, ReactionType
@@ -44,16 +45,20 @@ class KIDAReaction(Reaction):
             plen = 56  # length of the string containing products
             # print(react_string[:rlen].split())
             # print(react_string[rlen : rlen + plen].split())
-            self.reactants = [
-                Species(r)
-                for r in react_string[:rlen].split()
-                if r not in pseudo_element_list
-            ]
-            self.products = [
-                Species(p)
-                for p in react_string[rlen : rlen + plen].split()
-                if p not in pseudo_element_list
-            ]
+            self.reactants = set(
+                [
+                    Species(r)
+                    for r in react_string[:rlen].split()
+                    if r not in pseudo_element_list
+                ]
+            )
+            self.products = set(
+                [
+                    Species(p)
+                    for p in react_string[rlen : rlen + plen].split()
+                    if p not in pseudo_element_list
+                ]
+            )
             a, b, c, _, _, _, itype, lt, ut, form, _, _, _ = react_string[
                 rlen + plen :
             ].split()
@@ -65,4 +70,9 @@ class KIDAReaction(Reaction):
             self.temp_min = float(lt)
             self.temp_max = float(ut)
             self.formula = int(form)
+            if self.formula < 1 or self.formula > 6:
+                logging.warning(
+                    f"Formula {form} is not valid in reaction {self}, change to formula = 3."
+                )
+                self.formula = 3
             self.reaction_type = ReactionType(self.formula)

@@ -29,6 +29,9 @@ class Species:
             return self.name == o.name
         return NotImplemented
 
+    def __hash__(self) -> int:
+        return hash(self.name)
+
     def __str__(self) -> str:
         return "Species({})".format(self.name)
 

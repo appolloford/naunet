@@ -33,8 +33,8 @@ class ReactionType(Enum):
 
 class Reaction(ABC):
     def __init__(self, react_string) -> None:
-        self.reactants = []
-        self.products = []
+        self.reactants = set()
+        self.products = set()
         self.temp_min = 1.0
         self.temp_max = -1.0
         self.reaction_type = None
@@ -44,9 +44,10 @@ class Reaction(ABC):
 
     def __str__(self) -> str:
         verbose = "{} -> {}".format(
-            " + ".join(self.reactants), " + ".join(self.products)
+            " + ".join([x.name for x in self.reactants]),
+            " + ".join([x.name for x in self.products]),
         )
-        return super().__str__() + verbose
+        return verbose
 
     def __eq__(self, o: object) -> bool:
         return (
@@ -55,6 +56,26 @@ class Reaction(ABC):
             and self.temp_min == o.temp_min
             and self.temp_max == o.temp_max
         )
+
+    def __hash__(self) -> int:
+        return hash((frozenset(self.reactants), frozenset(self.products)))
+
+    def __repr__(self) -> str:
+        verbose = (
+            (
+                "{:16} -> {:32}, {:7.1f} < T < {:7.1f}, Type: {:25}, Database: {}".format(
+                    " + ".join([x.name for x in self.reactants]),
+                    " + ".join([x.name for x in self.products]),
+                    self.temp_min,
+                    self.temp_max,
+                    self.reaction_type,
+                    self.database,
+                )
+            )
+            if len(self.reactants | self.products) > 0
+            else " -> "
+        )
+        return verbose
 
     @abstractmethod
     def _parse_string(self, react_string) -> None:
@@ -86,13 +107,7 @@ class Reaction(ABC):
         :return: True if two reactions have the same reactants and products
         :rtype: bool
         """
-        req = sorted(self.reactants, key=lambda p: p.name) == sorted(
-            o.reactants, key=lambda p: p.name
-        )
-        peq = sorted(self.products, key=lambda p: p.name) == sorted(
-            o.products, key=lambda p: p.name
-        )
-        return req and peq
+        return self.reactants == o.reactants and self.products == o.products
 
     @abstractmethod
     def rate_func(self) -> str:

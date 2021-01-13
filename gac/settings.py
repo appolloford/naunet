@@ -88,6 +88,7 @@ default_pseudo_element_list = [
     "X",
     "p",
     "o",
+    "m",
     "c-",
     "l-",
 ]

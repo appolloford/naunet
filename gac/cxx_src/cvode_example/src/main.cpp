@@ -159,10 +159,11 @@ int main()
     // 18. Free linear solver and matrix memory.
     // ---------------------------------------------------------------------------
     SUNLinSolFree(LS);
-    delete data; // Remember to free the user data memory.
-                 // ---------------------------------------------------------------------------
+    delete data;
+    // Remember to free the user data memory.
+    // ---------------------------------------------------------------------------
 
-    // return(0);
+    return 0;
 }
 
 // check_flag function is from the cvDiurnals_ky.c example from the CVODE
