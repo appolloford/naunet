@@ -1,4 +1,4 @@
-from gac.settings import (
+from naunet.settings import (
     element_list,
     default_element_list,
     add_element,

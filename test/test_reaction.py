@@ -1,5 +1,5 @@
 import pathlib
-from gac.reactions.kidareaction import KIDAReaction
+from naunet.reactions.kidareaction import KIDAReaction
 
 
 def test_init_kidareaction():

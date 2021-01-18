@@ -1,5 +1,5 @@
 """
-This module is provided as a singleton. Modify gac.settings.xxx to share the values globally
+This module is provided as a singleton. Modify naunet.settings.xxx to share the values globally
 """
 import sympy as sym
 import logging

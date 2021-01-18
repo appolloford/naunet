@@ -20,9 +20,9 @@ class InitCommand(Command):
 
     def handle(self):
         from pathlib import Path
-        import gac
+        import naunet
 
-        src_parent_path = Path(gac.__file__).parent
+        src_parent_path = Path(naunet.__file__).parent
         csrc_path = str(src_parent_path) + "/cxx_src"
 
         dest_path = str(Path.cwd())

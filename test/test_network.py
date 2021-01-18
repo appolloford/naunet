@@ -1,6 +1,6 @@
 from types import new_class
-from gac import network
-from gac.network import Network
+from naunet import network
+from naunet.network import Network
 
 
 def test_init_network():

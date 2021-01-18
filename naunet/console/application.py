@@ -9,7 +9,7 @@ from .commands.init import InitCommand
 
 class Application(BaseApplication):
     def __init__(self):
-        super(Application, self).__init__("gac", __version__)
+        super(Application, self).__init__("naunet", __version__)
 
         for command in self.get_default_commands():
             self.add(command)
