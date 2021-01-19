@@ -1,0 +1,31 @@
+{% if header %}
+#include "{{ file_name }}.{{ h_ext }}"
+{% else %}
+#include <cvode/cvode.h>
+#include <nvector/nvector_serial.h>
+#include "naunet_constants.h"
+{% endif %}
+
+// Simple function that calculates the differential equation.
+{{ func }}{
+
+    realtype *{{ vector }} = N_VGetArrayPointer(u);
+    realtype *{{ lhs }} = N_VGetArrayPointer(u_dot);
+    UserData *u_data = (UserData*) user_data;
+    realtype Tgas = u_data->Tgas;
+
+    {% for declare in rate_declare -%}
+        {{ declare }} = 0.0;
+    {% endfor %}
+
+    {% for assign in rate_assign -%}
+        {{ assign }}
+    {% endfor %}
+
+    {% for eq in eqns -%}
+        {{ eq }};
+    {% endfor %}
+
+    return 0;
+
+}

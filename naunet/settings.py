@@ -22,6 +22,14 @@ user_symbols = {
     "UVPHOT": sym.symbols("uv"),
 }
 
+ode_symbols = {
+    "ode_vector": "y",
+    "fex_lhs": "ydot",
+    "jtv_lhs": "jv",
+    "jac_lhs": "",  # dummy, LHS of jac() is hard coded
+    "rate": "rate_react",
+}
+
 default_element_list = [
     "e",
     "H",

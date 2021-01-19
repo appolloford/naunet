@@ -18,12 +18,12 @@ def test_generate_ccode():
     network.check_duplicate_reaction()
     network.collect_infos()
     network.constants_header()
-    network.fex_to_ccode(
-        to_file=True, prefix="test/test_output/", header=True, symbol_form=True
-    )
-    network.jac_to_ccode(
-        to_file=True, prefix="test/test_output/", header=True, symbol_form=True
-    )
-    network.jtv_to_ccode(
-        to_file=True, prefix="test/test_output/", header=True, symbol_form=True
-    )
+    for func in ["fex", "jtv", "jac"]:
+        network.create_ode_expression().to_ccode(
+            function=func,
+            use_template=True,
+            to_file=True,
+            file_name=func,
+            prefix="./",
+            header=True,
+        )

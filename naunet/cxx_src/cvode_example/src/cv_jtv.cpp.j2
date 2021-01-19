@@ -1,0 +1,37 @@
+{% if header %}
+#include "{{ file_name }}.{{ h_ext }}"
+{% else %}
+#include <cvode/cvode.h>
+#include <nvector/nvector_serial.h>
+#include "naunet_constants.h"
+{% endif %}
+
+// Jacobian function vector routine.
+{{ func }}{
+
+    realtype *x  = N_VGetArrayPointer(u);
+    realtype *{{ vector }}  = N_VGetArrayPointer(v);
+    realtype *{{ lhs }} = N_VGetArrayPointer(Jv);
+    realtype *fx = N_VGetArrayPointer(fu);
+    UserData *u_data = (UserData*) user_data;
+    realtype Tgas = u_data->Tgas;
+
+    {% for declare in rate_declare -%}
+        {{ declare }} = 0.0;
+    {% endfor %}
+
+    {% for assign in rate_assign -%}
+        {{ assign }}
+    {% endfor %}
+
+    {% for eq in eqns -%}
+        {{ eq }};
+    {% endfor %}
+
+    for (int i=0; i<NSPECIES; i++) {
+        fx[i] = 0.0;
+    }
+
+    return 0;
+
+}
