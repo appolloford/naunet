@@ -14,9 +14,65 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger()
 
 
+supported_reaction_class = {"kida": KIDAReaction}
+
+
 def reaction_factory(react_string: str, database: str) -> Reaction:
-    if database == "kida":
-        return KIDAReaction(react_string)
+    initializer = supported_reaction_class.get(database)
+    return initializer(react_string)
+
+
+class TemplateLoader:
+    def __init__(self) -> None:
+        rpath = "cxx_src/cvode_example"
+        self.loader = PackageLoader("naunet", rpath)
+        self.env = Environment(loader=self.loader)
+        self.env.trim_blocks = True
+        # env.lstrip_blocks = True
+        self.env.rstrip_blocks = True
+
+
+class Info(TemplateLoader):
+    def __init__(self, speclist: list) -> None:
+
+        super().__init__()
+
+        self.net_species = speclist
+        self.n_spec = len(speclist)
+
+    # ? create the to_code() interface in TemplateLoader
+    def to_ccode(
+        self,
+        use_template: bool = True,
+        to_file: bool = True,
+        prefix: str = None,
+    ) -> None:
+
+        spec_idx = [
+            f"#define IDX_{x.alias} {i}" for i, x in enumerate(self.net_species)
+        ]
+
+        if use_template:
+            template = self.env.get_template(f"include/naunet_constants.h.j2")
+
+            if to_file:
+                template.stream(nspec=self.n_spec, spec_idx=spec_idx).dump(
+                    f"{prefix}naunet_constants.h"
+                )
+
+            else:
+                result = template.render()
+                print(result)
+
+        else:
+
+            if to_file:
+                with open(f"{prefix}naunet_constants.h", "w") as hfile:
+                    hfile.write(f"#define NSPECIES {self.n_spec}\n\n")
+                    hfile.write("\n".join(spec_idx))
+
+            else:
+                print("\n".join(spec_idx))
 
 
 class Network:
@@ -24,9 +80,7 @@ class Network:
         self.reaction_list = []
         self.reactants_in_network = set()
         self.products_in_network = set()
-        self.net_species = []
-        self.nspecies = 0
-        self.info_updated = False
+        self.info = None
         self.ode_expression = None
 
         if fname and database:
@@ -46,7 +100,9 @@ class Network:
     def add_reaction(self, react_string: str, database: str) -> None:
         new_species = self._add_reaction(react_string, database)
         logger.info("New species are added: {}".format(new_species))
-        self.info_updated = False
+
+        # reset network information if content is changed
+        self.info = None
 
     def add_reaction_from_file(self, filename: str, database: str) -> None:
         if not database:
@@ -60,7 +116,7 @@ class Network:
             for x in new_species:
                 print(x)
 
-        self.info_updated = False
+        self.info = None
 
     def check_duplicate_reaction(self, full_check: bool = True):
 
@@ -103,130 +159,35 @@ class Network:
         elif len(sink) != 0:
             print("Found sinks: ", sink)
 
-    def collect_infos(self):
-        if self.info_updated:
-            return
+    def get_info(self):
+        if self.info:
+            return self.info
 
-        self.net_species = list(self.reactants_in_network | self.products_in_network)
-        self.nspecies = len(self.net_species)
+        speclist = list(self.reactants_in_network | self.products_in_network)
+        self.info = Info(speclist)
+        # self.net_species = list(self.reactants_in_network | self.products_in_network)
+        # self.nspecies = len(self.net_species)
         logging.info(
             "{} species in the network: {}".format(
-                self.nspecies, ", ".join([x.name for x in self.net_species])
+                self.info.n_spec, ", ".join([x.name for x in self.info.net_species])
             )
         )
-        self.info_updated = True
+
         # if information is re-collected, ode system must be reset
         self.ode_expression = None
-
-    # TODO: complete the function
-    def constants_header(self):
-        if not self.info_updated:
-            self.collect_infos()
-
-        with open("test/test_output/constants.h", "w") as hfile:
-            hfile.write("#ifndef __CONSTANT_H__\n")
-            hfile.write("#define __CONSTANT_H__\n\n")
-            hfile.write(f"#define NSPECIES {self.nspecies}\n\n")
-            hfile.write(
-                "\n".join(
-                    f"#define IDX_{x.alias} {i}" for i, x in enumerate(self.net_species)
-                )
-            )
-            hfile.write("\n\n")
-            hfile.write("#endif\n")
-
-    # def ode_expr_func(self, form: str, var_rate: bool = True):
-    #     if not self.info_updated:
-    #         self.collect_infos()
-
-    #     y = MatrixSymbol("y", self.nspecies, 1)
-    #     if form == "rhs":
-    #         expr_func = [0.0] * self.nspecies
-    #     elif form == "jac":
-    #         expr_func = [0.0] * self.nspecies * self.nspecies
-    #     else:
-    #         raise ValueError(f"Unknown value of form: {form}")
-
-    #     rate_declare = []
-    #     rate_assign = []
-
-    #     for r, react in enumerate(self.reaction_list):
-    #         if var_rate:
-    #             # rate_symbol = symbols(f"rate_react{r}", cls=Function)()
-    #             rate_symbol = Symbol(f"rate_react{r}")
-    #             rate_declare.append(Declaration(Variable(rate_symbol, type=real)))
-    #             rate_assign.append(Assignment(rate_symbol, react.rate_func()))
-    #         else:
-    #             rate_symbol = react.rate_func()
-
-    #         ridx = [self.net_species.index(r) for r in react.reactants]
-    #         pidx = [self.net_species.index(p) for p in react.products]
-
-    #         if form == "rhs":
-
-    #             rsym = [y[idx] for idx in ridx]
-    #             rsym_product = reduce(mul, rsym)
-    #             # psym = [y[idx] for idx in pidx]
-    #             # psym_product = reduce(mul, psym)
-    #             for idx in ridx:
-    #                 expr_func[idx] -= rate_symbol * rsym_product
-    #             for idx in pidx:
-    #                 expr_func[idx] += rate_symbol * rsym_product
-
-    #         elif form == "jac":
-
-    #             for idx in ridx:
-    #                 for ri in ridx:
-    #                     rsym = [y[i] for i in ridx if i != ri]
-    #                     rsym_product = reduce(mul, rsym)
-    #                     expr_func[idx * self.nspecies + ri] -= (
-    #                         rate_symbol * rsym_product
-    #                     )
-    #             for idx in pidx:
-    #                 for ri in ridx:
-    #                     rsym = [y[i] for i in ridx if i != ri]
-    #                     rsym_product = reduce(mul, rsym)
-    #                     expr_func[idx * self.nspecies + ri] += (
-    #                         rate_symbol * rsym_product
-    #                     )
-
-    #     return rate_declare, rate_assign, expr_func
-
-    # def ode_expression(self, func_name: str, *args, **kwargs):
-
-    #     # TODO: Return a pure sympy object list when it is possible, make it can be handle by ccode()
-    #     # * Sympy doesn't generate semicolons after declaration, neither support the if statement.
-    #     # * Therefore, ode_expression() return the declaration and assignment with the final function.
-    #     # * expr_to_code() will do further processing to generate the correct code.
-    #     # fex_result = rate_declare
-    #     # fex_result += rate_assign
-
-    #     rate_declare, rate_assign, ode_expr_func = self.ode_expr_func(*args, **kwargs)
-
-    #     if func_name == "fex":
-    #         lhs = MatrixSymbol("ydot", self.nspecies, 1)
-    #         expression = [Assignment(l, r) for l, r in zip(lhs, ode_expr_func)]
-    #     elif func_name == "jtv":
-    #         lhs = MatrixSymbol("jv", self.nspecies, 1)
-    #         expression = [Assignment(l, r) for l, r in zip(lhs, ode_expr_func)]
-    #     elif func_name == "jac":
-    #         expression = ode_expr_func
-    #     else:
-    #         raise ValueError(f"Unknown value func_name: {func_name}")
-
-    #     return rate_declare, rate_assign, expression
+        return self.info
 
     def create_ode_expression(self):
 
         # return the saved ode system if it has been updated
-        if self.info_updated and self.ode_expression:
+        if self.info and self.ode_expression:
             return self.ode_expression
 
-        if not self.info_updated:
-            self.collect_infos()
+        if not self.info:
+            self.get_info()
 
         # renew an ode system
-        self.ode_expression = ODESystem(self.nspecies, len(self.reaction_list))
+        self.ode_expression = ODESystem(self.info.n_spec, len(self.reaction_list))
 
         y = self.ode_expression.y
         rate_sym = self.ode_expression.rate_sym
@@ -237,8 +198,8 @@ class Network:
             self.ode_expression.rate_mintemp.append(react.temp_min)
             self.ode_expression.rate_maxtemp.append(react.temp_max)
 
-            ridx = [self.net_species.index(r) for r in react.reactants]
-            pidx = [self.net_species.index(p) for p in react.products]
+            ridx = [self.info.net_species.index(r) for r in react.reactants]
+            pidx = [self.info.net_species.index(p) for p in react.products]
 
             rsym = [y[idx] for idx in ridx]
             rsym_mul = reduce(mul, rsym)
@@ -251,27 +212,21 @@ class Network:
                 for ri in ridx:
                     rsym = [y[i] for i in ridx if i != ri]
                     rsym_mul = reduce(mul, rsym)
-                    self.ode_expression.jac[idx * self.nspecies + ri] -= (
+                    self.ode_expression.jac[idx * self.info.n_spec + ri] -= (
                         rate_sym[rl] * rsym_mul
                     )
             for idx in pidx:
                 for ri in ridx:
                     rsym = [y[i] for i in ridx if i != ri]
                     rsym_mul = reduce(mul, rsym)
-                    self.ode_expression.jac[idx * self.nspecies + ri] += (
+                    self.ode_expression.jac[idx * self.info.n_spec + ri] += (
                         rate_sym[rl] * rsym_mul
                     )
 
         return self.ode_expression
 
 
-class ODESystem:
-
-    file_loader = PackageLoader("naunet", "cxx_src/cvode_example")
-    env = Environment(loader=file_loader)
-    env.trim_blocks = True
-    # env.lstrip_blocks = True
-    env.rstrip_blocks = True
+class ODESystem(TemplateLoader):
 
     cpp_func_collect = {
         "cvode_fex": "int fex(realtype t, N_Vector u, N_Vector u_dot, void *user_data)",
@@ -280,6 +235,9 @@ class ODESystem:
     }
 
     def __init__(self, n_spec: int, n_react: int) -> None:
+
+        super().__init__()
+
         self.neq = n_spec
         self.nreact = n_react
 

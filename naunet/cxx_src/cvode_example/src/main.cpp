@@ -15,7 +15,7 @@ block for solving more complex problems.
 #include <sundials/sundials_math.h>    // contains the macros ABS, SUNSQR, EXP
 
 #include "userdata.h"
-#include "constants.h"
+#include "naunet_constants.h"
 #include "fex.h"
 #include "jtv.h"
 

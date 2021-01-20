@@ -50,11 +50,16 @@ class Reaction(ABC):
         return verbose
 
     def __eq__(self, o: object) -> bool:
+        # ignore reaction_type if there is no this information e.g. krome
         return (
             self.rpeq(o)
-            and self.reaction_type == o.reaction_type
             and self.temp_min == o.temp_min
             and self.temp_max == o.temp_max
+            and (
+                self.reaction_type == o.reaction_type
+                or not self.reaction_type
+                or not o.reaction_type
+            )
         )
 
     def __hash__(self) -> int:
