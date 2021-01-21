@@ -45,8 +45,8 @@ class Reaction(ABC):
 
     def __str__(self) -> str:
         verbose = "{} -> {}".format(
-            " + ".join(x.name for x in self.reactants),
-            " + ".join(x.name for x in self.products),
+            " + ".join(x.name for x in sorted(self.reactants)),
+            " + ".join(x.name for x in sorted(self.products)),
         )
         return verbose
 
@@ -64,7 +64,9 @@ class Reaction(ABC):
         )
 
     def __hash__(self) -> int:
-        return hash("_".join(str(x) for x in self.reactants + self.products))
+        return hash(
+            "_".join(str(x) for x in sorted(self.reactants) + sorted(self.products))
+        )
 
     def __repr__(self) -> str:
         verbose = (
