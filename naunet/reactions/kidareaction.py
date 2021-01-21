@@ -22,20 +22,19 @@ class KIDAReaction(Reaction):
         a = self.alpha
         b = self.beta
         c = self.gamma
+        formula = self.formula
         zeta = user_symbols["CRIR"]
         Tgas = user_symbols["Temperature"]
         Av = user_symbols["VisualExtinction"]
-        if self.reaction_type == ReactionType.KIDA_CR:
+        if formula == 1:
             return a * zeta
-        elif self.reaction_type == ReactionType.KIDA_PD:
+        elif formula == 2:
             return a * exp(-c * Av)
-        elif self.reaction_type == ReactionType.KIDA_MA:
+        elif formula == 3:
             return a * (Tgas / 300.0) ** b * exp(-c / Tgas)
         else:
             raise RuntimeError(
-                "Reaction rate formula could not be generated for reaction type: ".format(
-                    ReactionType(self.reaction_type)
-                )
+                f"Formula {formula} has not been defined! Please extend the definition"
             )
 
     def _parse_string(self, react_string) -> None:
@@ -45,20 +44,17 @@ class KIDAReaction(Reaction):
             plen = 56  # length of the string containing products
             # print(react_string[:rlen].split())
             # print(react_string[rlen : rlen + plen].split())
-            self.reactants = set(
-                [
-                    Species(r)
-                    for r in react_string[:rlen].split()
-                    if r not in pseudo_element_list
-                ]
-            )
-            self.products = set(
-                [
-                    Species(p)
-                    for p in react_string[rlen : rlen + plen].split()
-                    if p not in pseudo_element_list
-                ]
-            )
+            self.reactants = [
+                Species(r)
+                for r in react_string[:rlen].split()
+                if r not in pseudo_element_list
+            ]
+            self.products = [
+                Species(p)
+                for p in react_string[rlen : rlen + plen].split()
+                if p not in pseudo_element_list
+            ]
+
             a, b, c, _, _, _, itype, lt, ut, form, _, _, _ = react_string[
                 rlen + plen :
             ].split()

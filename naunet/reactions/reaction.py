@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from enum import Enum
+from collections import Counter
 from ..species import Species
 from ..settings import pseudo_element_list
 
@@ -33,8 +34,8 @@ class ReactionType(Enum):
 
 class Reaction(ABC):
     def __init__(self, react_string) -> None:
-        self.reactants = set()
-        self.products = set()
+        self.reactants = []
+        self.products = []
         self.temp_min = 1.0
         self.temp_max = -1.0
         self.reaction_type = None
@@ -44,8 +45,8 @@ class Reaction(ABC):
 
     def __str__(self) -> str:
         verbose = "{} -> {}".format(
-            " + ".join([x.name for x in self.reactants]),
-            " + ".join([x.name for x in self.products]),
+            " + ".join(x.name for x in self.reactants),
+            " + ".join(x.name for x in self.products),
         )
         return verbose
 
@@ -63,21 +64,21 @@ class Reaction(ABC):
         )
 
     def __hash__(self) -> int:
-        return hash((frozenset(self.reactants), frozenset(self.products)))
+        return hash("_".join(str(x) for x in self.reactants + self.products))
 
     def __repr__(self) -> str:
         verbose = (
             (
                 "{:16} -> {:32}, {:7.1f} < T < {:7.1f}, Type: {:25}, Database: {}".format(
-                    " + ".join([x.name for x in self.reactants]),
-                    " + ".join([x.name for x in self.products]),
+                    " + ".join(x.name for x in self.reactants),
+                    " + ".join(x.name for x in self.products),
                     self.temp_min,
                     self.temp_max,
-                    self.reaction_type,
+                    self.reaction_type if self.reaction_type else "Unknown",
                     self.database,
                 )
             )
-            if len(self.reactants | self.products) > 0
+            if len(self.reactants + self.products) > 0
             else " -> "
         )
         return verbose
@@ -112,7 +113,9 @@ class Reaction(ABC):
         :return: True if two reactions have the same reactants and products
         :rtype: bool
         """
-        return self.reactants == o.reactants and self.products == o.products
+        return Counter(self.reactants) == Counter(o.reactants) and Counter(
+            self.products
+        ) == Counter(o.products)
 
     @abstractmethod
     def rate_func(self) -> str:

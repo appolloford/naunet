@@ -92,13 +92,16 @@ default_element_list = [
 default_pseudo_element_list = [
     "CR",
     "CRP",
+    "XRAY",
     "Photon",
     "X",
+    "M",
     "p",
     "o",
     "m",
     "c-",
     "l-",
+    "*",
 ]
 
 

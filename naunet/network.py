@@ -9,12 +9,13 @@ from .settings import ode_symbols
 from .species import Species
 from .reactions.reaction import Reaction
 from .reactions.kidareaction import KIDAReaction
+from .reactions.leedsreaction import LEEDSReaction
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger()
 
 
-supported_reaction_class = {"kida": KIDAReaction}
+supported_reaction_class = {"kida": KIDAReaction, "leeds": LEEDSReaction}
 
 
 def reaction_factory(react_string: str, database: str) -> Reaction:
@@ -89,8 +90,8 @@ class Network:
     def _add_reaction(self, react_string: str, database: str) -> list:
         reaction = reaction_factory(react_string, database)
         self.reaction_list.append(reaction)
-        new_reactants = reaction.reactants.difference(self.reactants_in_network)
-        new_products = reaction.products.difference(self.products_in_network)
+        new_reactants = set(reaction.reactants).difference(self.reactants_in_network)
+        new_products = set(reaction.products).difference(self.products_in_network)
         self.reactants_in_network.update(new_reactants)
         self.products_in_network.update(new_products)
         if len(self.reaction_list) % 100 == 0:
@@ -209,18 +210,18 @@ class Network:
                 self.ode_expression.rhs[idx] += rate_sym[rl] * rsym_mul
 
             for idx in ridx:
+                rsym_mul = reduce(mul, rsym)
                 for ri in ridx:
-                    rsym = [y[i] for i in ridx if i != ri]
-                    rsym_mul = reduce(mul, rsym)
+                    residue = rsym_mul / y[ri]
                     self.ode_expression.jac[idx * self.info.n_spec + ri] -= (
-                        rate_sym[rl] * rsym_mul
+                        rate_sym[rl] * residue
                     )
             for idx in pidx:
+                rsym_mul = reduce(mul, rsym)
                 for ri in ridx:
-                    rsym = [y[i] for i in ridx if i != ri]
-                    rsym_mul = reduce(mul, rsym)
+                    residue = rsym_mul / y[ri]
                     self.ode_expression.jac[idx * self.info.n_spec + ri] += (
-                        rate_sym[rl] * rsym_mul
+                        rate_sym[rl] * residue
                     )
 
         return self.ode_expression
