@@ -17,6 +17,14 @@
     UserData *u_data = (UserData*) user_data;
     realtype Tgas = u_data->Tgas;
 
+
+    realtype Te = Tgas*8.617343e-5; //Tgas in eV (eV)
+    realtype lnTe = log(Te); //ln of Te (#)
+    realtype T32 = Tgas*0.0033333333333333335; //Tgas/(300 K) (#)
+    realtype invT = 1.0/Tgas; //inverse of T (1/K)
+    realtype invTe = 1.0/Te; //inverse of T (1/eV)
+    realtype sqrTgas = sqrt(Tgas); //Tgas rootsquare (K**0.5)
+
     {% for declare in rate_declare -%}
         {{ declare }} = 0.0;
     {% endfor %}

@@ -123,7 +123,9 @@ class Species:
         else:
             basename = self.basename()
             self.alias = "{}{}{}".format(
-                "G" if self.is_surface else "", basename, "I" * (self.charge + 1)
+                "G" if self.is_surface else "",
+                basename,
+                "I" * (self.charge + 1) if self.charge >= 0 else "M" * abs(self.charge),
             )
 
 

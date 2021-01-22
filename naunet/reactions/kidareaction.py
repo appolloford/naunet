@@ -6,7 +6,7 @@ from sympy.codegen.cfunctions import exp
 
 
 class KIDAReaction(Reaction):
-    def __init__(self, react_string) -> None:
+    def __init__(self, react_string, *args, **kwargs) -> None:
         super().__init__(react_string)
 
         self.database = "KIDA"

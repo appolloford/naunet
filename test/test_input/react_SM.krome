@@ -1,0 +1,14 @@
+#slow manifold network from Reinhardt et al. 2008
+@format:idx,R,R,P,P,rate
+1,H2,,H,H,2d0
+2,H,H,H2,,216d0
+3,O2,,O,O,1.d0
+4,O,O,O2,,337.5d0
+5,H2O,,H,OH,1.d0
+6,H,OH,H2O,,1400d0
+7,H2,O,H,OH,1d3
+8,OH,H,H2,O,1.08d4
+9,O2,H,O,OH,1d3
+10,OH,O,O2,H,3.375d4
+11,H2,O,H2O,,1d2
+12,H2O,,H2,O,.7714d0

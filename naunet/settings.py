@@ -15,7 +15,9 @@ surface_symbol = "#"
 
 charge_symbols = ["+", "-"]
 
-user_symbols = {
+user_symbols = {}
+
+default_user_symbols = {
     "CRIR": sym.symbols("zeta"),
     "Temperature": sym.symbols("Tgas"),
     "VisualExtinction": sym.symbols("Av"),
@@ -32,6 +34,7 @@ ode_symbols = {
 
 default_element_list = [
     "e",
+    "E",
     "H",
     "D",
     "He",
@@ -51,6 +54,7 @@ default_element_list = [
     "Fe",
     "Ni",
     "GRAIN",
+    "g",
 ]
 
 # default_element_list = [
@@ -148,6 +152,10 @@ def initialize_species(input_species_list):
     species_list.extend(input_species_list)
 
 
+def initialize_user_symbols(input_user_symbols):
+    user_symbols.update(input_user_symbols)
+
+
 def initialize_from_file(filename):
     with open(filename):
         pass
@@ -159,6 +167,7 @@ def initialize(filename=None):
         # print(default_pseudo_element_list, default_element_list)
         initialize_element(default_element_list)
         initialize_pseudo_element(default_pseudo_element_list)
+        initialize_user_symbols(default_user_symbols)
         # initialize_species(default_species_list)
     else:
         initialize_from_file(filename)

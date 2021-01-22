@@ -12,7 +12,7 @@ class LEEDSReaction(Reaction):
     The name can be changed anytime
     """
 
-    def __init__(self, react_string) -> None:
+    def __init__(self, react_string, *args, **kwargs) -> None:
         super().__init__(react_string)
 
         self.database = "LEEDS"

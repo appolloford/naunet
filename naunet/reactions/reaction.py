@@ -33,7 +33,7 @@ class ReactionType(Enum):
 
 
 class Reaction(ABC):
-    def __init__(self, react_string) -> None:
+    def __init__(self, react_string, *args, **kwargs) -> None:
         self.reactants = []
         self.products = []
         self.temp_min = 1.0
@@ -41,7 +41,7 @@ class Reaction(ABC):
         self.reaction_type = None
         self.database = None
 
-        self._parse_string(react_string)
+        # self._parse_string(react_string)
 
     def __str__(self) -> str:
         verbose = "{} -> {}".format(

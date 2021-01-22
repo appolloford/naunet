@@ -5,22 +5,43 @@ from sympy import symbols, Symbol, Function, MatrixSymbol, Idx, ccode
 from sympy.codegen.ast import Assignment, CodeBlock, Declaration, Variable, real
 from sympy.utilities.codegen import codegen
 from jinja2 import Environment, FileSystemLoader, PackageLoader
-from .settings import ode_symbols
+from .settings import ode_symbols, user_symbols
 from .species import Species
 from .reactions.reaction import Reaction
 from .reactions.kidareaction import KIDAReaction
 from .reactions.leedsreaction import LEEDSReaction
+from .reactions.kromereaction import KROMEReaction
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger()
 
 
-supported_reaction_class = {"kida": KIDAReaction, "leeds": LEEDSReaction}
+supported_reaction_class = {
+    "kida": KIDAReaction,
+    "leeds": LEEDSReaction,
+    "krome": KROMEReaction,
+}
+
+
+krome_globals = {
+    "format": "idx,r,r,r,p,p,p,p,tmin,tmax,rate",
+}
+
+
+def krome_parser(line):
+    if line.startswith(("#", "//")):
+        return ""
+    elif line.startswith("@format:"):
+        krome_globals["format"] = line.replace("@format:", "")
+        return ""
+    else:
+        return line.strip()
 
 
 def reaction_factory(react_string: str, database: str) -> Reaction:
     initializer = supported_reaction_class.get(database)
-    return initializer(react_string)
+    format = krome_globals.get("format")
+    return initializer(react_string, format)
 
 
 class TemplateLoader:
@@ -84,8 +105,7 @@ class Network:
         self.info = None
         self.ode_expression = None
 
-        if fname and database:
-            self.add_reaction_from_file(fname, database)
+        self.add_reaction_from_file(fname, database)
 
     def _add_reaction(self, react_string: str, database: str) -> list:
         reaction = reaction_factory(react_string, database)
@@ -107,15 +127,20 @@ class Network:
 
     def add_reaction_from_file(self, filename: str, database: str) -> None:
         if not database:
-            logger.warning(
+            logger.critical(
                 'Try to read in file but database is not assigned. Try again by "add_reaction_from_file"'
             )
+        new_species = set()
         with open(filename, "r") as networkfile:
-            new_species = set()
             for line in networkfile.readlines():
-                new_species.update(self._add_reaction(line, database))
-            for x in new_species:
-                print(x)
+                if database == "krome":
+                    react_string = krome_parser(line)
+                    if react_string:
+                        new_species.update(self._add_reaction(line, "krome"))
+                else:
+                    new_species.update(self._add_reaction(line, database))
+
+            print("New species: \n{}".format("\n".join(str(x) for x in new_species)))
 
         self.info = None
 
