@@ -29,7 +29,7 @@ ode_symbols = {
     "fex_lhs": "ydot",
     "jtv_lhs": "jv",
     "jac_lhs": "",  # dummy, LHS of jac() is hard coded
-    "rate": "rate_react",
+    "rate": "k",
 }
 
 default_element_list = [

@@ -13,6 +13,7 @@ Jinja2 = "^2.11.2"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.0"
+coverage = "^5.4"
 
 [tool.poetry.scripts]
 naunet = "naunet.console:main"

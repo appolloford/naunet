@@ -1,5 +1,5 @@
 {% if header %}
-#include "{{ file_name }}.{{ h_ext }}"
+#include "{{ header_file }}"
 {% else %}
 #include <cvode/cvode.h>
 #include <nvector/nvector_serial.h>
@@ -29,12 +29,15 @@
         {{ declare }} = 0.0;
     {% endfor %}
 
+    {% set wrap = "\n        " -%}
+    {% set bclose = wrap + "}" -%}
     {% for assign in rate_assign -%}
-        {{ assign }}
+        {{ assign | wordwrap(80) | replace("\n", wrap) | replace(bclose, '\n    }') }}
+        {{ "" }}
     {% endfor %}
 
     {% for eq in eqns -%}
-        {{ eq }};
+        {{ eq | wordwrap(80) | replace('\n', wrap) }}
     {% endfor %}
 
     for (int i=0; i<NSPECIES; i++) {

@@ -53,6 +53,53 @@ class TemplateLoader:
         # env.lstrip_blocks = True
         self.env.rstrip_blocks = True
 
+    def _write_code(
+        self,
+        template_prefix: str,
+        template_file: str,
+        kw_write: list,
+        *args,
+        use_template: bool = True,
+        to_file: bool = True,
+        file_name: str = None,
+        prefix: str = None,
+        **kwargs,
+    ):
+
+        if use_template:
+            template = self.env.get_template(template_prefix + template_file)
+
+            if to_file:
+                template.stream(**kwargs).dump(prefix + file_name)
+
+            else:
+                result = template.render()
+                print(result)
+
+        else:
+
+            if len(kw_write):
+
+                if to_file:
+                    with open(prefix + file_name, "w") as hfile:
+                        for kw in kw_write:
+                            value = kwargs.get(kw)
+                            if isinstance(value, list):
+                                outstr = "\n".join(str(x) for x in value)
+                            else:
+                                outstr = str(value)
+
+                            hfile.write(f"{outstr}\n")
+
+                else:
+                    for kw in kw_write:
+                        value = kwargs.get(kw)
+                        if isinstance(value, list):
+                            outstr = "\n".join(str(x) for x in value)
+                        else:
+                            outstr = str(value)
+                        print(f"{outstr}\n")
+
 
 class Info(TemplateLoader):
     def __init__(self, speclist: list) -> None:
@@ -63,38 +110,67 @@ class Info(TemplateLoader):
         self.n_spec = len(speclist)
 
     # ? create the to_code() interface in TemplateLoader
-    def to_ccode(
-        self,
-        use_template: bool = True,
-        to_file: bool = True,
-        prefix: str = None,
-    ) -> None:
+    def to_ccode(self, *args, **kwargs) -> None:
+
+        nspec_def = f"#define NSPECIES {self.n_spec}\n"
 
         spec_idx = [
             f"#define IDX_{x.alias} {i}" for i, x in enumerate(self.net_species)
         ]
 
-        if use_template:
-            template = self.env.get_template(f"include/naunet_constants.h.j2")
+        template_prefix = "include/"
+        template_file = "naunet_constants.h.j2"
+        kw_write = ["nspec_def", "spec_idx"]
 
-            if to_file:
-                template.stream(nspec=self.n_spec, spec_idx=spec_idx).dump(
-                    f"{prefix}naunet_constants.h"
-                )
+        self._write_code(
+            template_prefix,
+            template_file,
+            kw_write,
+            **kwargs,
+            nspec_def=nspec_def,
+            spec_idx=spec_idx,
+        )
 
-            else:
-                result = template.render()
-                print(result)
+        # if use_template:
+        #     template = self.env.get_template(f"include/naunet_constants.h.j2")
 
-        else:
+        #     if to_file:
+        #         template.stream(nspec_def=nspec_def, spec_idx=spec_idx).dump(
+        #             f"{prefix}{filename}"
+        #         )
 
-            if to_file:
-                with open(f"{prefix}naunet_constants.h", "w") as hfile:
-                    hfile.write(f"#define NSPECIES {self.n_spec}\n\n")
-                    hfile.write("\n".join(spec_idx))
+        #     else:
+        #         result = template.render()
+        #         print(result)
 
-            else:
-                print("\n".join(spec_idx))
+        # else:
+
+        #     if to_file:
+        #         with open(f"{prefix}{filename}", "w") as hfile:
+        #             hfile.write(f"#define NSPECIES {self.n_spec}\n\n")
+        #             hfile.write("\n".join(spec_idx))
+
+        #     else:
+        #         print("\n".join(spec_idx))
+
+
+class UserData(TemplateLoader):
+    def __init__(self) -> None:
+        super().__init__()
+
+    def to_ccode(self, *args, **kwargs) -> None:
+
+        variables = [
+            ccode(Declaration(Variable(v, type=real))) for v in user_symbols.values()
+        ]
+
+        template_prefix = "include/"
+        template_file = "naunet_userdata.h.j2"
+        kw_write = ["variables"]
+
+        self._write_code(
+            template_prefix, template_file, kw_write, **kwargs, variables=variables
+        )
 
 
 class Network:
@@ -103,6 +179,7 @@ class Network:
         self.reactants_in_network = set()
         self.products_in_network = set()
         self.info = None
+        self.userdata = UserData()
         self.ode_expression = None
 
         self.add_reaction_from_file(fname, database)
@@ -254,7 +331,7 @@ class Network:
 
 class ODESystem(TemplateLoader):
 
-    cpp_func_collect = {
+    cpp_func_names = {
         "cvode_fex": "int fex(realtype t, N_Vector u, N_Vector u_dot, void *user_data)",
         "cvode_jtv": "int jtv(N_Vector v, N_Vector Jv, realtype t, N_Vector u, N_Vector fu, void *user_data, N_Vector tmp)",
         "cvode_jac": "int jac(realtype t, N_Vector u, N_Vector fu, SUNMatrix Jac, void *user_data, N_Vector tmp1, N_Vector tmp2, N_Vector tmp3)",
@@ -279,26 +356,23 @@ class ODESystem(TemplateLoader):
     def to_ccode(
         self,
         function: str,
+        *args,
         var_rate: bool = True,
-        use_template: bool = True,
-        to_file: bool = True,
-        file_name: str = None,
-        prefix: str = None,
-        ext: str = "cpp",
         header: bool = True,
-        h_ext: str = "h",
+        header_file: str = None,
         solver: str = "cvode",
         device: str = "cpu",
+        **kwargs,
     ):
 
-        cpp_func = self.cpp_func_collect[f"{solver}_{function}"]
+        cpp_func = self.cpp_func_names[f"{solver}_{function}"]
 
         rate_declare = [
             ccode(Declaration(Variable(s, type=real))) for s in self.rate_sym
         ]
 
         rate_assign = [
-            f"if (Tgas>{tmin} && Tgas<{tmax}) {ccode(Assignment(sym, func))}"
+            f"if (Tgas>{tmin} && Tgas<{tmax}) {{\n{ccode(Assignment(sym, func))} \n}}"
             if tmin < tmax
             else ccode(Assignment(sym, func))
             for tmin, tmax, sym, func in zip(
@@ -315,48 +389,88 @@ class ODESystem(TemplateLoader):
             lhs = MatrixSymbol(ode_symbols[f"{function}_lhs"], self.neq, 1)
             eqns = [ccode(Assignment(l, r)) for l, r in zip(lhs, self.rhs)]
 
-        if use_template:
+        template_prefix = "src/"
+        template_file = f"cv_{function}.cpp.j2"
+        kw_write = ["rate_declare", "rate_assign", "eqns"]
 
-            template = self.env.get_template(f"src/cv_{function}.cpp.j2")
-            if to_file:
-                template.stream(
-                    header=header,
-                    file_name=file_name,
-                    h_ext=h_ext,
-                    func=cpp_func,
-                    vector=ode_symbols["ode_vector"],
-                    lhs=ode_symbols[f"{function}_lhs"],
-                    rate_declare=rate_declare,
-                    rate_assign=rate_assign,
-                    eqns=eqns,
-                ).dump(f"{prefix + file_name}.{ext}")
-            else:
-                output = template.render(
-                    header=header,
-                    func=cpp_func,
-                    vector=ode_symbols["ode_vector"],
-                    lhs=ode_symbols[f"{function}_lhs"],
-                    rate_declare=rate_declare,
-                    rate_assign=rate_assign,
-                    eqns=eqns,
+        self._write_code(
+            template_prefix,
+            template_file,
+            kw_write,
+            **kwargs,
+            header=header,
+            header_file=header_file,
+            func=cpp_func,
+            vector=ode_symbols["ode_vector"],
+            lhs=ode_symbols[f"{function}_lhs"],
+            rate_declare=rate_declare,
+            rate_assign=rate_assign,
+            eqns=eqns,
+        )
+
+        if header:
+            if not header_file:
+                logger.warning(
+                    'Header is used but file name is not assigned, "use header_file="'
                 )
-                print(output)
 
-            if header:
-                template = self.env.get_template(f"include/cv_{function}.h.j2")
-                if to_file:
-                    template.stream(func=cpp_func).dump(f"{prefix + file_name}.{h_ext}")
-                else:
-                    output = template.render(fex_func_name=cpp_func)
-                    print(output)
-        else:
+            template_prefix = "include/"
+            template_file = f"cv_{function}.h.j2"
+            kw_write = []
 
-            if to_file:
-                with open(f"{prefix + file_name}.{ext}", "w") as cfile:
-                    cfile.write("\n".join(ccode(dec) for dec in rate_declare))
-                    cfile.write("\n".join(ccode(assign) for assign in rate_declare))
-                    cfile.write("\n".join(ccode(eq) for eq in eqns))
-            else:
-                print(ccode(dec) for dec in rate_declare)
-                print(ccode(assign) for assign in rate_declare)
-                print("\n".join(ccode(eq) for eq in eqns))
+            self._write_code(
+                template_prefix,
+                template_file,
+                kw_write,
+                to_file=kwargs.get("to_file"),
+                file_name=header_file,
+                prefix=kwargs.get("prefix"),
+                header=header,
+                func=cpp_func,
+            )
+
+        # if use_template:
+
+        #     template = self.env.get_template(f"src/cv_{function}.cpp.j2")
+        #     if to_file:
+        #         template.stream(
+        #             header=header,
+        #             file_name=file_name,
+        #             h_ext=h_ext,
+        #             func=cpp_func,
+        #             vector=ode_symbols["ode_vector"],
+        #             lhs=ode_symbols[f"{function}_lhs"],
+        #             rate_declare=rate_declare,
+        #             rate_assign=rate_assign,
+        #             eqns=eqns,
+        #         ).dump(f"{prefix + file_name}.{ext}")
+        #     else:
+        #         output = template.render(
+        #             header=header,
+        #             func=cpp_func,
+        #             vector=ode_symbols["ode_vector"],
+        #             lhs=ode_symbols[f"{function}_lhs"],
+        #             rate_declare=rate_declare,
+        #             rate_assign=rate_assign,
+        #             eqns=eqns,
+        #         )
+        #         print(output)
+
+        #     if header:
+        #         template = self.env.get_template(f"include/cv_{function}.h.j2")
+        #         if to_file:
+        #             template.stream(func=cpp_func).dump(f"{prefix + file_name}.{h_ext}")
+        #         else:
+        #             output = template.render(fex_func_name=cpp_func)
+        #             print(output)
+        # else:
+
+        #     if to_file:
+        #         with open(f"{prefix + file_name}.{ext}", "w") as cfile:
+        #             cfile.write("\n".join(ccode(dec) for dec in rate_declare))
+        #             cfile.write("\n".join(ccode(assign) for assign in rate_declare))
+        #             cfile.write("\n".join(ccode(eq) for eq in eqns))
+        #     else:
+        #         print(ccode(dec) for dec in rate_declare)
+        #         print(ccode(assign) for assign in rate_declare)
+        #         print("\n".join(ccode(eq) for eq in eqns))
