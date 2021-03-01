@@ -120,7 +120,7 @@ class Reaction(ABC):
         ) == Counter(o.products)
 
     @abstractmethod
-    def rate_func(self) -> str:
+    def rate_func(self):
         """
         Abstract method. It should be implemented by child class.
         Return the rate function string.

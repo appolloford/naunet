@@ -16,19 +16,17 @@ def test_check_duplicate():
 def test_generate_ccode_from_kida():
     network = Network("test/test_input/simple_test.dat", "kida")
     network.check_duplicate_reaction()
-    network.get_info().to_ccode(
-        use_template=True,
+    network.info.to_ccode(
         to_file=True,
         prefix="test/test_output/",
         file_name="naunet_constants.h",
     )
     for func in ["fex", "jtv", "jac"]:
-        network.create_ode_expression().to_ccode(
+        network.ode_expression.to_ccode(
             function=func,
-            use_template=True,
             to_file=True,
-            file_name=f"{func}.cpp",
             prefix="test/test_output/",
+            file_name=f"{func}.cpp",
             header=True,
             header_file=f"{func}.h",
         )
@@ -37,19 +35,17 @@ def test_generate_ccode_from_kida():
 def test_generate_ccode_from_leeds():
     network = Network("test/test_input/rate12_twobody_HO.rates", "leeds")
     network.check_duplicate_reaction()
-    network.get_info().to_ccode(
-        use_template=True,
+    network.info.to_ccode(
         to_file=True,
         prefix="test/test_output/",
         file_name="naunet_constants.h",
     )
     for func in ["fex", "jtv", "jac"]:
-        network.create_ode_expression().to_ccode(
+        network.ode_expression.to_ccode(
             function=func,
-            use_template=True,
             to_file=True,
-            file_name=f"{func}.cpp",
             prefix="test/test_output/",
+            file_name=f"{func}.cpp",
             header=True,
             header_file=f"{func}.h",
         )
@@ -57,25 +53,22 @@ def test_generate_ccode_from_leeds():
 
 def test_generate_ccode_from_krome():
     network = Network("test/test_input/react_primordial.krome", "krome")
-    network.get_info().to_ccode(
-        use_template=True,
+    network.info.to_ccode(
         to_file=True,
         prefix="test/test_output/",
         file_name="naunet_constants.h",
     )
     network.userdata.to_ccode(
-        use_template=True,
         to_file=True,
         prefix="test/test_output/",
         file_name="naunet_userdata.h",
     )
     for func in ["fex", "jtv", "jac"]:
-        network.create_ode_expression().to_ccode(
+        network.ode_expression.to_ccode(
             function=func,
-            use_template=True,
             to_file=True,
-            file_name=f"{func}.cpp",
             prefix="test/test_output/",
+            file_name=f"{func}.cpp",
             header=True,
             header_file=f"{func}.h",
         )

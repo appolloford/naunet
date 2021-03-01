@@ -49,6 +49,7 @@ class TemplateLoader:
         rpath = "cxx_src/cvode_example"
         self.loader = PackageLoader("naunet", rpath)
         self.env = Environment(loader=self.loader)
+        self.env.globals.update(zip=zip)
         self.env.trim_blocks = True
         # env.lstrip_blocks = True
         self.env.rstrip_blocks = True
@@ -57,48 +58,20 @@ class TemplateLoader:
         self,
         template_prefix: str,
         template_file: str,
-        kw_write: list,
-        *args,
-        use_template: bool = True,
         to_file: bool = True,
-        file_name: str = None,
         prefix: str = None,
+        file_name: str = None,
         **kwargs,
     ):
 
-        if use_template:
-            template = self.env.get_template(template_prefix + template_file)
+        template = self.env.get_template(template_prefix + template_file)
 
-            if to_file:
-                template.stream(**kwargs).dump(prefix + file_name)
-
-            else:
-                result = template.render()
-                print(result)
+        if to_file:
+            template.stream(**kwargs).dump(prefix + file_name)
 
         else:
-
-            if len(kw_write):
-
-                if to_file:
-                    with open(prefix + file_name, "w") as hfile:
-                        for kw in kw_write:
-                            value = kwargs.get(kw)
-                            if isinstance(value, list):
-                                outstr = "\n".join(str(x) for x in value)
-                            else:
-                                outstr = str(value)
-
-                            hfile.write(f"{outstr}\n")
-
-                else:
-                    for kw in kw_write:
-                        value = kwargs.get(kw)
-                        if isinstance(value, list):
-                            outstr = "\n".join(str(x) for x in value)
-                        else:
-                            outstr = str(value)
-                        print(f"{outstr}\n")
+            result = template.render()
+            print(result)
 
 
 class Info(TemplateLoader):
@@ -120,38 +93,14 @@ class Info(TemplateLoader):
 
         template_prefix = "include/"
         template_file = "naunet_constants.h.j2"
-        kw_write = ["nspec_def", "spec_idx"]
 
         self._write_code(
             template_prefix,
             template_file,
-            kw_write,
             **kwargs,
             nspec_def=nspec_def,
             spec_idx=spec_idx,
         )
-
-        # if use_template:
-        #     template = self.env.get_template(f"include/naunet_constants.h.j2")
-
-        #     if to_file:
-        #         template.stream(nspec_def=nspec_def, spec_idx=spec_idx).dump(
-        #             f"{prefix}{filename}"
-        #         )
-
-        #     else:
-        #         result = template.render()
-        #         print(result)
-
-        # else:
-
-        #     if to_file:
-        #         with open(f"{prefix}{filename}", "w") as hfile:
-        #             hfile.write(f"#define NSPECIES {self.n_spec}\n\n")
-        #             hfile.write("\n".join(spec_idx))
-
-        #     else:
-        #         print("\n".join(spec_idx))
 
 
 class UserData(TemplateLoader):
@@ -166,10 +115,12 @@ class UserData(TemplateLoader):
 
         template_prefix = "include/"
         template_file = "naunet_userdata.h.j2"
-        kw_write = ["variables"]
 
         self._write_code(
-            template_prefix, template_file, kw_write, **kwargs, variables=variables
+            template_prefix,
+            template_file,
+            **kwargs,
+            variables=variables,
         )
 
 
@@ -178,9 +129,9 @@ class Network:
         self.reaction_list = []
         self.reactants_in_network = set()
         self.products_in_network = set()
-        self.info = None
-        self.userdata = UserData()
-        self.ode_expression = None
+        self._info = None
+        self._userdata = UserData()
+        self._ode_expression = None
 
         self.add_reaction_from_file(fname, database)
 
@@ -200,7 +151,7 @@ class Network:
         logger.info("New species are added: {}".format(new_species))
 
         # reset network information if content is changed
-        self.info = None
+        self._info = None
 
     def add_reaction_from_file(self, filename: str, database: str) -> None:
         if not database:
@@ -219,7 +170,7 @@ class Network:
 
             print("New species: \n{}".format("\n".join(str(x) for x in new_species)))
 
-        self.info = None
+        self._info = None
 
     def check_duplicate_reaction(self, full_check: bool = True):
 
@@ -262,44 +213,43 @@ class Network:
         elif len(sink) != 0:
             print("Found sinks: ", sink)
 
-    def get_info(self):
-        if self.info:
-            return self.info
+    @property
+    def info(self):
+        if self._info:
+            return self._info
 
         speclist = list(self.reactants_in_network | self.products_in_network)
-        self.info = Info(speclist)
+        self._info = Info(speclist)
         # self.net_species = list(self.reactants_in_network | self.products_in_network)
         # self.nspecies = len(self.net_species)
         logging.info(
             "{} species in the network: {}".format(
-                self.info.n_spec, ", ".join([x.name for x in self.info.net_species])
+                self._info.n_spec, ", ".join([x.name for x in self._info.net_species])
             )
         )
 
         # if information is re-collected, ode system must be reset
-        self.ode_expression = None
-        return self.info
+        self._ode_expression = None
+        return self._info
 
-    def create_ode_expression(self):
+    @property
+    def ode_expression(self):
 
         # return the saved ode system if it has been updated
-        if self.info and self.ode_expression:
-            return self.ode_expression
-
-        if not self.info:
-            self.get_info()
+        if self._info and self._ode_expression:
+            return self._ode_expression
 
         # renew an ode system
-        self.ode_expression = ODESystem(self.info.n_spec, len(self.reaction_list))
+        self._ode_expression = ODESystem(self.info.n_spec, len(self.reaction_list))
 
-        y = self.ode_expression.y
-        rate_sym = self.ode_expression.rate_sym
+        y = self._ode_expression.y
+        rate_sym = self._ode_expression.rate_sym
 
         for rl, react in enumerate(self.reaction_list):
-            # self.ode_expression.rate_func[rl] = react.rate_func()
-            self.ode_expression.rate_func.append(react.rate_func())
-            self.ode_expression.rate_mintemp.append(react.temp_min)
-            self.ode_expression.rate_maxtemp.append(react.temp_max)
+            # self._ode_expression.rate_func[rl] = react.rate_func()
+            self._ode_expression.rate_func.append(react.rate_func())
+            self._ode_expression.rate_mintemp.append(react.temp_min)
+            self._ode_expression.rate_maxtemp.append(react.temp_max)
 
             ridx = [self.info.net_species.index(r) for r in react.reactants]
             pidx = [self.info.net_species.index(p) for p in react.products]
@@ -307,26 +257,30 @@ class Network:
             rsym = [y[idx] for idx in ridx]
             rsym_mul = reduce(mul, rsym)
             for idx in ridx:
-                self.ode_expression.rhs[idx] -= rate_sym[rl] * rsym_mul
+                self._ode_expression.rhs[idx] -= rate_sym[rl] * rsym_mul
             for idx in pidx:
-                self.ode_expression.rhs[idx] += rate_sym[rl] * rsym_mul
+                self._ode_expression.rhs[idx] += rate_sym[rl] * rsym_mul
 
             for idx in ridx:
                 rsym_mul = reduce(mul, rsym)
                 for ri in ridx:
                     residue = rsym_mul / y[ri]
-                    self.ode_expression.jac[idx * self.info.n_spec + ri] -= (
+                    self._ode_expression.jac[idx * self.info.n_spec + ri] -= (
                         rate_sym[rl] * residue
                     )
             for idx in pidx:
                 rsym_mul = reduce(mul, rsym)
                 for ri in ridx:
                     residue = rsym_mul / y[ri]
-                    self.ode_expression.jac[idx * self.info.n_spec + ri] += (
+                    self._ode_expression.jac[idx * self.info.n_spec + ri] += (
                         rate_sym[rl] * residue
                     )
 
-        return self.ode_expression
+        return self._ode_expression
+
+    @property
+    def userdata(self):
+        return self._userdata
 
 
 class ODESystem(TemplateLoader):
@@ -355,8 +309,7 @@ class ODESystem(TemplateLoader):
 
     def to_ccode(
         self,
-        function: str,
-        *args,
+        function: str = "fex",
         var_rate: bool = True,
         header: bool = True,
         header_file: str = None,
@@ -391,13 +344,10 @@ class ODESystem(TemplateLoader):
 
         template_prefix = "src/"
         template_file = f"cv_{function}.cpp.j2"
-        kw_write = ["rate_declare", "rate_assign", "eqns"]
 
         self._write_code(
             template_prefix,
             template_file,
-            kw_write,
-            **kwargs,
             header=header,
             header_file=header_file,
             func=cpp_func,
@@ -406,6 +356,7 @@ class ODESystem(TemplateLoader):
             rate_declare=rate_declare,
             rate_assign=rate_assign,
             eqns=eqns,
+            **kwargs,
         )
 
         if header:
@@ -416,61 +367,13 @@ class ODESystem(TemplateLoader):
 
             template_prefix = "include/"
             template_file = f"cv_{function}.h.j2"
-            kw_write = []
 
             self._write_code(
                 template_prefix,
                 template_file,
-                kw_write,
                 to_file=kwargs.get("to_file"),
                 file_name=header_file,
                 prefix=kwargs.get("prefix"),
                 header=header,
                 func=cpp_func,
             )
-
-        # if use_template:
-
-        #     template = self.env.get_template(f"src/cv_{function}.cpp.j2")
-        #     if to_file:
-        #         template.stream(
-        #             header=header,
-        #             file_name=file_name,
-        #             h_ext=h_ext,
-        #             func=cpp_func,
-        #             vector=ode_symbols["ode_vector"],
-        #             lhs=ode_symbols[f"{function}_lhs"],
-        #             rate_declare=rate_declare,
-        #             rate_assign=rate_assign,
-        #             eqns=eqns,
-        #         ).dump(f"{prefix + file_name}.{ext}")
-        #     else:
-        #         output = template.render(
-        #             header=header,
-        #             func=cpp_func,
-        #             vector=ode_symbols["ode_vector"],
-        #             lhs=ode_symbols[f"{function}_lhs"],
-        #             rate_declare=rate_declare,
-        #             rate_assign=rate_assign,
-        #             eqns=eqns,
-        #         )
-        #         print(output)
-
-        #     if header:
-        #         template = self.env.get_template(f"include/cv_{function}.h.j2")
-        #         if to_file:
-        #             template.stream(func=cpp_func).dump(f"{prefix + file_name}.{h_ext}")
-        #         else:
-        #             output = template.render(fex_func_name=cpp_func)
-        #             print(output)
-        # else:
-
-        #     if to_file:
-        #         with open(f"{prefix + file_name}.{ext}", "w") as cfile:
-        #             cfile.write("\n".join(ccode(dec) for dec in rate_declare))
-        #             cfile.write("\n".join(ccode(assign) for assign in rate_declare))
-        #             cfile.write("\n".join(ccode(eq) for eq in eqns))
-        #     else:
-        #         print(ccode(dec) for dec in rate_declare)
-        #         print(ccode(assign) for assign in rate_declare)
-        #         print("\n".join(ccode(eq) for eq in eqns))
