@@ -1,20 +1,7 @@
 import logging
 import re
 from collections import Counter
-from .settings import (
-    setting_initialized,
-    element_list,
-    pseudo_element_list,
-    surface_symbol,
-    charge_symbols,
-    initialize,
-)
-
-if not setting_initialized:
-    initialize()
-
-# modify the local copy to contain the pseudo elements
-element_list = element_list + pseudo_element_list
+from . import settings
 
 
 class Species:
@@ -24,6 +11,11 @@ class Species:
         self.element_count = dict()
         self.charge = 0
         self.is_surface = False
+
+        # initialize the default elements list if it is not
+        # initialized when the fist species is instanciated
+        if not settings.setting_initialized:
+            settings.initialize()
 
         self._parse_molecule_name()
         self.set_alias()
@@ -45,7 +37,7 @@ class Species:
         return "Species({})".format(self.name)
 
     def _add_element_count(self, element, count):
-        if element in pseudo_element_list:
+        if element in settings.pseudo_element_list:
             return
         if count < 0:
             logging.warning(
@@ -61,21 +53,23 @@ class Species:
 
     @staticmethod
     def _is_surface(name):
-        return name[0] == surface_symbol
+        return name[0] == settings.surface_symbol
 
     @staticmethod
     def _is_charged(name):
-        return any([x in name[-1] for x in charge_symbols])
+        return any([x in name[-1] for x in settings.charge_symbols])
 
     def _parse_molecule_name(self):
-        element_sorted = sorted(element_list, key=len, reverse=True)
+        element_sorted = sorted(
+            settings.element_list + settings.pseudo_element_list, key=len, reverse=True
+        )
         element_len = list(map(lambda x: len(x), element_sorted))
 
         specname = self.name
         # TODO: generalize the way to check surface and count charge
         if self._is_surface(specname):
             self.is_surface = True
-            specname = specname.replace(surface_symbol, "")
+            specname = specname.replace(settings.surface_symbol, "")
 
         if self._is_charged(specname):
             pcharge = "".join(re.findall(r"\+*$", specname)).count("+")
@@ -112,7 +106,7 @@ class Species:
         # TODO: generalize the way to check surface and count charge
         basename = self.name
         if self.is_surface:
-            basename = basename.replace(surface_symbol, "")
+            basename = basename.replace(settings.surface_symbol, "")
 
         if self.charge > 0:
             basename = re.sub(r"\+*$", "", basename)
