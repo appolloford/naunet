@@ -1,4 +1,5 @@
 import logging
+import os
 from operator import mul
 from functools import reduce
 from sympy import symbols, Symbol, Function, MatrixSymbol, Idx, ccode
@@ -64,10 +65,10 @@ class TemplateLoader:
         **kwargs,
     ):
 
-        template = self.env.get_template(template_prefix + template_file)
+        template = self.env.get_template(os.path.join(template_prefix, template_file))
 
         if to_file:
-            template.stream(**kwargs).dump(prefix + file_name)
+            template.stream(**kwargs).dump(os.path.join(prefix, file_name))
 
         else:
             result = template.render()

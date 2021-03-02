@@ -5,6 +5,10 @@ import sympy as sym
 import logging
 from .auxiliary import request_user_check
 
+setting_initialized = False
+
+species_initialized = False
+
 element_list = []
 
 pseudo_element_list = []
@@ -123,7 +127,7 @@ def add_element(elements: list):
             element_list.append(ele)
 
 
-def add_pseudo_element_list(elements):
+def add_pseudo_element(elements: list):
     for ele in elements:
         if ele in pseudo_element_list:
             logging.warning("{} exists in pseudo element list, skip!".format(ele))
@@ -137,40 +141,61 @@ def add_pseudo_element_list(elements):
             pseudo_element_list.append(ele)
 
 
-def initialize_element(input_element_list):
+def _initialize_element(input_element_list):
     element_list.clear()
     element_list.extend(input_element_list)
 
 
-def initialize_pseudo_element(input_pseudo_element_list):
+def _initialize_pseudo_element(input_pseudo_element_list):
     pseudo_element_list.clear()
     pseudo_element_list.extend(input_pseudo_element_list)
 
 
-def initialize_species(input_species_list):
+def _initialize_species(input_species_list):
     species_list.clear()
     species_list.extend(input_species_list)
 
 
-def initialize_user_symbols(input_user_symbols):
+def _initialize_user_symbols(input_user_symbols):
     user_symbols.update(input_user_symbols)
 
 
-def initialize_from_file(filename):
+def _initialize_from_file(filename):
     with open(filename):
         pass
 
 
-def initialize(filename=None):
-    if not filename:
-        logging.warning("No file assigned. Set Default species")
-        # print(default_pseudo_element_list, default_element_list)
-        initialize_element(default_element_list)
-        initialize_pseudo_element(default_pseudo_element_list)
-        initialize_user_symbols(default_user_symbols)
-        # initialize_species(default_species_list)
+def initialize(
+    element: list = [],
+    pseudo_element: list = [],
+    species: list = [],
+    filename: str = None,
+):
+
+    global species_initialized, setting_initialized
+
+    if filename:
+
+        _initialize_from_file(filename)
+
+    elif len(element) or len(pseudo_element):
+
+        _initialize_element(element)
+        _initialize_pseudo_element(pseudo_element)
+
+        if len(species):
+            _initialize_species(species)
+            species_initialized = True
+
     else:
-        initialize_from_file(filename)
+
+        logging.warning("No assigned data. Use default elements")
+
+        # print(default_pseudo_element_list, default_element_list)
+        _initialize_element(default_element_list)
+        _initialize_pseudo_element(default_pseudo_element_list)
+        _initialize_user_symbols(default_user_symbols)
+        # initialize_species(default_species_list)
 
     all_element = element_list + pseudo_element_list
 
@@ -183,6 +208,10 @@ def initialize(filename=None):
             ),
             "N",
         )
+
+    user_symbols.update(default_user_symbols)
+
+    setting_initialized = True
 
 
 def remove_element(elements):

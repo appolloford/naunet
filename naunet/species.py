@@ -1,13 +1,17 @@
 import logging
-from math import sin
 import re
 from collections import Counter
 from .settings import (
+    setting_initialized,
     element_list,
     pseudo_element_list,
     surface_symbol,
     charge_symbols,
+    initialize,
 )
+
+if not setting_initialized:
+    initialize()
 
 # modify the local copy to contain the pseudo elements
 element_list = element_list + pseudo_element_list
