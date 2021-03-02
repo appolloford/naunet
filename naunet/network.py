@@ -6,12 +6,13 @@ from sympy import symbols, Symbol, Function, MatrixSymbol, Idx, ccode
 from sympy.codegen.ast import Assignment, CodeBlock, Declaration, Variable, real
 from sympy.utilities.codegen import codegen
 from jinja2 import Environment, FileSystemLoader, PackageLoader
-from .settings import ode_symbols, user_symbols
+from . import settings
 from .species import Species
 from .reactions.reaction import Reaction
 from .reactions.kidareaction import KIDAReaction
 from .reactions.leedsreaction import LEEDSReaction
 from .reactions.kromereaction import KROMEReaction
+
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger()
@@ -111,7 +112,8 @@ class UserData(TemplateLoader):
     def to_ccode(self, *args, **kwargs) -> None:
 
         variables = [
-            ccode(Declaration(Variable(v, type=real))) for v in user_symbols.values()
+            ccode(Declaration(Variable(v, type=real)))
+            for v in settings.user_symbols.values()
         ]
 
         template_prefix = "include/"
@@ -299,12 +301,14 @@ class ODESystem(TemplateLoader):
         self.neq = n_spec
         self.nreact = n_react
 
-        self.rate_sym = [Symbol(f"{ode_symbols['rate']}{r}") for r in range(n_react)]
+        odesym = settings.ode_symbols
+
+        self.rate_sym = [Symbol(f"{odesym['rate']}{r}") for r in range(n_react)]
         self.rate_func = []
         self.rate_mintemp = []
         self.rate_maxtemp = []
 
-        self.y = MatrixSymbol(ode_symbols["ode_vector"], n_spec, 1)
+        self.y = MatrixSymbol(odesym["ode_vector"], n_spec, 1)
         self.rhs = [0.0] * n_spec
         self.jac = [0.0] * n_spec * n_spec
 
@@ -318,6 +322,8 @@ class ODESystem(TemplateLoader):
         device: str = "cpu",
         **kwargs,
     ):
+
+        odesym = settings.ode_symbols
 
         cpp_func = self.cpp_func_names[f"{solver}_{function}"]
 
@@ -340,7 +346,7 @@ class ODESystem(TemplateLoader):
                 for idx, j in enumerate(self.jac)
             ]
         else:
-            lhs = MatrixSymbol(ode_symbols[f"{function}_lhs"], self.neq, 1)
+            lhs = MatrixSymbol(odesym[f"{function}_lhs"], self.neq, 1)
             eqns = [ccode(Assignment(l, r)) for l, r in zip(lhs, self.rhs)]
 
         template_prefix = "src/"
@@ -352,8 +358,8 @@ class ODESystem(TemplateLoader):
             header=header,
             header_file=header_file,
             func=cpp_func,
-            vector=ode_symbols["ode_vector"],
-            lhs=ode_symbols[f"{function}_lhs"],
+            vector=odesym["ode_vector"],
+            lhs=odesym[f"{function}_lhs"],
             rate_declare=rate_declare,
             rate_assign=rate_assign,
             eqns=eqns,

@@ -1,7 +1,7 @@
 import logging
 from sympy.codegen.cfunctions import exp
+from .. import settings
 from ..species import Species
-from ..settings import pseudo_element_list, user_symbols
 from .reaction import Reaction, ReactionType
 
 
@@ -28,9 +28,9 @@ class LEEDSReaction(Reaction):
         b = self.beta
         c = self.gamma
         rtype = self.rtype
-        zeta = user_symbols["CRIR"]
-        Tgas = user_symbols["Temperature"]
-        Av = user_symbols["VisualExtinction"]
+        zeta = settings.user_symbols["CRIR"]
+        Tgas = settings.user_symbols["Temperature"]
+        Av = settings.user_symbols["VisualExtinction"]
 
         # TODO: finish the remaining type of reactions
         if rtype == 1:
@@ -73,14 +73,10 @@ class LEEDSReaction(Reaction):
                 if label == "idx":
                     pass
                 elif label == "reac":
-                    self.reactants = [
-                        Species(r) for r in clip.split() if r not in pseudo_element_list
-                    ]
+                    self.reactants = [self.create_species(r) for r in clip.split()]
 
                 elif label == "prod":
-                    self.products = [
-                        Species(p) for p in clip.split() if p not in pseudo_element_list
-                    ]
+                    self.products = [self.create_species(p) for p in clip.split()]
 
                 elif label == "a":
                     self.alpha = float(clip)

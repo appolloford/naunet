@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
 from enum import Enum
 from collections import Counter
+from .. import settings
 from ..species import Species
-from ..settings import pseudo_element_list
 
 # If the reaction types have the same formalism, they share the same value in the enum class
 class ReactionType(Enum):
@@ -103,7 +103,7 @@ class Reaction(ABC):
         :return: Species object
         :rtype: object
         """
-        if species_name not in pseudo_element_list:
+        if species_name not in settings.pseudo_element_list:
             return Species(species_name)
 
     def rpeq(self, o: object) -> bool:

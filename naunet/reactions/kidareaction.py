@@ -1,6 +1,6 @@
 import logging
+from .. import settings
 from ..species import Species
-from ..settings import pseudo_element_list, user_symbols
 from .reaction import Reaction, ReactionType
 from sympy.codegen.cfunctions import exp
 
@@ -23,9 +23,9 @@ class KIDAReaction(Reaction):
         b = self.beta
         c = self.gamma
         formula = self.formula
-        zeta = user_symbols["CRIR"]
-        Tgas = user_symbols["Temperature"]
-        Av = user_symbols["VisualExtinction"]
+        zeta = settings.user_symbols["CRIR"]
+        Tgas = settings.user_symbols["Temperature"]
+        Av = settings.user_symbols["VisualExtinction"]
         if formula == 1:
             return a * zeta
         elif formula == 2:
@@ -45,14 +45,10 @@ class KIDAReaction(Reaction):
             # print(react_string[:rlen].split())
             # print(react_string[rlen : rlen + plen].split())
             self.reactants = [
-                Species(r)
-                for r in react_string[:rlen].split()
-                if r not in pseudo_element_list
+                self.create_species(r) for r in react_string[:rlen].split()
             ]
             self.products = [
-                Species(p)
-                for p in react_string[rlen : rlen + plen].split()
-                if p not in pseudo_element_list
+                self.create_species(p) for p in react_string[rlen : rlen + plen].split()
             ]
 
             a, b, c, _, _, _, itype, lt, ut, form, _, _, _ = react_string[

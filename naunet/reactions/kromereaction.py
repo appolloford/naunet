@@ -3,7 +3,6 @@ import re
 from sympy import sympify
 from sympy.codegen.cfunctions import exp
 from ..species import Species
-from ..settings import pseudo_element_list, user_symbols
 from .reaction import Reaction, ReactionType
 
 
