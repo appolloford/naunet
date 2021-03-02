@@ -6,6 +6,7 @@ from sympy import symbols, Symbol, Function, MatrixSymbol, Idx, ccode
 from sympy.codegen.ast import Assignment, CodeBlock, Declaration, Variable, real
 from sympy.utilities.codegen import codegen
 from jinja2 import Environment, FileSystemLoader, PackageLoader
+from tqdm import tqdm
 from . import settings
 from .species import Species
 from .reactions.reaction import Reaction
@@ -145,8 +146,8 @@ class Network:
         new_products = set(reaction.products).difference(self.products_in_network)
         self.reactants_in_network.update(new_reactants)
         self.products_in_network.update(new_products)
-        if len(self.reaction_list) % 100 == 0:
-            print("Processing: {} reactions...".format(len(self.reaction_list)))
+        # if len(self.reaction_list) % 100 == 0:
+        #     print("Processing: {} reactions...".format(len(self.reaction_list)))
         return new_reactants | new_products
 
     def add_reaction(self, react_string: str, database: str) -> None:
@@ -163,7 +164,7 @@ class Network:
             )
         new_species = set()
         with open(filename, "r") as networkfile:
-            for line in networkfile.readlines():
+            for _, line in enumerate(tqdm(networkfile.readlines())):
                 if database == "krome":
                     react_string = krome_parser(line)
                     if react_string:
@@ -171,7 +172,7 @@ class Network:
                 else:
                     new_species.update(self._add_reaction(line, database))
 
-            print("New species: \n{}".format("\n".join(str(x) for x in new_species)))
+            # print("New species: \n{}".format("\n".join(str(x) for x in new_species)))
 
         self._info = None
 

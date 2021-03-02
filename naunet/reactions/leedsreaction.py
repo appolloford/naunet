@@ -73,10 +73,18 @@ class LEEDSReaction(Reaction):
                 if label == "idx":
                     pass
                 elif label == "reac":
-                    self.reactants = [self.create_species(r) for r in clip.split()]
+                    self.reactants = [
+                        Species(r)
+                        for r in clip.split()
+                        if r not in settings.pseudo_element_list
+                    ]
 
                 elif label == "prod":
-                    self.products = [self.create_species(p) for p in clip.split()]
+                    self.products = [
+                        Species(p)
+                        for p in clip.split()
+                        if p not in settings.pseudo_element_list
+                    ]
 
                 elif label == "a":
                     self.alpha = float(clip)
