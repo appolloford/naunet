@@ -5,7 +5,6 @@ import os
 import re
 import sys
 import urllib.parse
-import shutil
 
 import tomlkit
 
@@ -25,22 +24,30 @@ class InitCommand(Command):
     init
         {--name= : Name of the project}
         {--description= : Description of the project}
-        {--solver=cvode : ODE solver}
-        {--device=cpu : Device}
         {--elements=* : List of elements}
         {--pseudo-elements=* : List of pseudo elements}
         {--species=* : List of species}
         {--network= : Source of chemical network file}
         {--database= : The database/format of the chemical network}
+        {--solver=cvode : ODE solver}
+        {--device=cpu : Device}
+        {--required=* : List of required functions}
     """
 
     def __init__(self):
         super(InitCommand, self).__init__()
 
     def handle(self):
+
         from pathlib import Path
 
         config_file = os.path.join(Path.cwd(), "naunet_config.toml")
+
+        if os.path.exists(config_file):
+            overwrite = self.confirm("Project configure file exists. Overwrite?", False)
+
+            if not overwrite:
+                sys.exit()
 
         # current date and time
         now = datetime.now()
@@ -72,23 +79,6 @@ class InitCommand(Command):
             description = self.ask(question)
 
         general.add("description", description)
-
-        solver = self.option("solver")
-        question = self.create_question(
-            "Chemical solver [<comment>{}</comment>]:".format(solver), default=solver
-        )
-        solver = self.ask(question)
-
-        general.add("solver", solver)
-
-        device = self.option("device")
-        question = self.create_question(
-            "Computational device [<comment>{}</comment>]:".format(device),
-            default=device,
-        )
-        solver = self.ask(question)
-
-        general.add("device", device)
 
         content.add("general", general)
 
@@ -165,6 +155,35 @@ class InitCommand(Command):
 
         content.add("chemistry", chemistry)
 
+        odesolver = table()
+
+        solver = self.option("solver")
+        question = self.create_question(
+            "Chemical solver [<comment>{}</comment>]:".format(solver), default=solver
+        )
+        solver = self.ask(question)
+
+        odesolver.add("solver", solver)
+
+        device = self.option("device")
+        question = self.create_question(
+            "Computational device [<comment>{}</comment>]:".format(device),
+            default=device,
+        )
+        device = self.ask(question)
+
+        odesolver.add("device", device)
+
+        required = self.option("required")
+        if not required:
+            required = self.choice(
+                "List of required functions.", ["fex", "jac", "jtv"], "0", multiple=True
+            )
+
+        odesolver.add("required", required)
+
+        content.add("ODEsolver", odesolver)
+
         with open(config_file, "w", encoding="utf-8") as f:
             f.write(dumps(content))
 
@@ -173,20 +192,3 @@ class InitCommand(Command):
         if render:
 
             self.call("render")
-
-        # import naunet
-
-        # src_parent_path = Path(naunet.__file__).parent
-        # csrc_path = str(src_parent_path) + "/cxx_src"
-
-        # dest_path = str(Path.cwd())
-
-        # for file in os.listdir(csrc_path):
-        #     src = "/".join([csrc_path, file])
-        #     dest = "/".join([dest_path, file])
-        #     if os.path.isdir(src):
-        #         shutil.copytree(src, dest)
-        #     elif os.path.isfile(src):
-        #         shutil.copyfile(src, dest)
-        #     # else:
-        #     #     raise TypeError

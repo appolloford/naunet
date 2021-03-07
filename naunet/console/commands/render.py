@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
+import errno
 import os
 import re
 import sys
 import urllib.parse
+import shutil
 
 from cleo import argument, option
 from tomlkit import dumps
@@ -18,6 +20,7 @@ class RenderCommand(Command):
     Render source codes according to the project setting
 
     render
+        {--f|force : forced to override the existing files}
     """
 
     def __init__(self):
@@ -35,6 +38,9 @@ class RenderCommand(Command):
         element = chemistry["elements"]
         pseudo_element = chemistry["pseudo_elements"]
 
+        odesolver = content["ODEsolver"]
+        required = odesolver["required"]
+
         from pathlib import Path
         import naunet
 
@@ -42,22 +48,99 @@ class RenderCommand(Command):
 
         from naunet.network import Network
 
+        header_prefix = os.path.join(Path.cwd(), "include")
+        source_prefix = os.path.join(Path.cwd(), "src")
+
+        if os.path.exists(header_prefix):
+            if not os.path.isdir(header_prefix):
+                raise FileNotFoundError(
+                    errno.ENOENT, os.strerror(errno.ENOENT), header_prefix
+                )
+
+            elif os.listdir(header_prefix):
+                overwrite = self.confirm(
+                    "Non-empty include directory. Overwrite?", False
+                )
+
+                if not overwrite:
+                    sys.exit()
+
+        else:
+            os.mkdir(header_prefix)
+
+        if os.path.exists(source_prefix):
+            if not os.path.isdir(source_prefix):
+                raise FileNotFoundError(
+                    errno.ENOENT, os.strerror(errno.ENOENT), source_prefix
+                )
+
+            elif os.listdir(source_prefix):
+                overwrite = self.confirm(
+                    "Non-empty source directory. Overwrite?", False
+                )
+
+                if not overwrite:
+                    sys.exit()
+
+        else:
+            os.mkdir(source_prefix)
+
         net = Network(network, database)
 
         net.check_duplicate_reaction()
         net.info.to_ccode(
             to_file=True,
-            prefix=os.path.join(Path.cwd()),
+            prefix=header_prefix,
             file_name="naunet_constants.h",
         )
-        net.ode_expression.to_ccode(
-            function="fex",
+        net.userdata.to_ccode(
             to_file=True,
-            prefix=os.path.join(Path.cwd()),
-            file_name=f"fex.cpp",
-            header=True,
-            header_file=f"fex.h",
+            prefix=header_prefix,
+            file_name="naunet_userdata.h",
         )
+        for func in required:
+            net.ode_expression.to_ccode(
+                function=func,
+                to_file=True,
+                prefix=source_prefix,
+                file_name=f"{func}.cpp",
+                header=True,
+                header_prefix=header_prefix,
+                header_file=f"{func}.h",
+            )
+
+        src_parent_path = Path(naunet.__file__).parent
+        csrc_path = os.path.join(src_parent_path, "cxx_src", "cvode_example", "src")
+        dest_path = os.path.join(Path.cwd(), "src")
+
+        incfile = os.path.join(
+            src_parent_path, "cxx_src", "cvode_example", "include", "naunet.h"
+        )
+        dest = os.path.join(Path.cwd(), "include", "naunet.h")
+        shutil.copyfile(incfile, dest)
+
+        for src in ["main.cpp", "naunet.cpp"]:
+            srcfile = os.path.join(csrc_path, src)
+            dest = os.path.join(dest_path, src)
+            shutil.copyfile(srcfile, dest)
+
+        cmakefile = os.path.join(
+            src_parent_path, "cxx_src", "cvode_example", "CMakeLists.txt"
+        )
+        dest = os.path.join(Path.cwd(), "CMakeLists.txt")
+        shutil.copyfile(cmakefile, dest)
+
+        # csrc_path = str(src_parent_path) + "/cxx_src"
+        # dest_path = str(Path.cwd())
+        # for file in os.listdir(csrc_path):
+        #     src = "/".join([csrc_path, file])
+        #     dest = "/".join([dest_path, file])
+        #     if os.path.isdir(src):
+        #         shutil.copytree(src, dest)
+        #     elif os.path.isfile(src):
+        #         shutil.copyfile(src, dest)
+        #     # else:
+        #     #     raise TypeError
 
         # progress = self.progress_bar()
         # progress.finish()

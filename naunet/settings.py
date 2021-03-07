@@ -3,7 +3,7 @@ This module is provided as a singleton. Modify naunet.settings.xxx to share the 
 """
 import sympy as sym
 import logging
-from .auxiliary import request_user_check
+from .auxiliary import conti_confirm
 
 setting_initialized = False
 
@@ -169,6 +169,7 @@ def initialize(
     element: list = [],
     pseudo_element: list = [],
     species: list = [],
+    user_symbol: list = [],
     filename: str = None,
 ):
 
@@ -202,11 +203,9 @@ def initialize(
     dup_element = [ele for ele in all_element if all_element.count(ele) > 1]
 
     if len(dup_element) > 0:
-        request_user_check(
-            "{} are repeated in element list. Are you sure to continue? [Y/n]".format(
-                dup_element
-            ),
-            "N",
+        conti_confirm(
+            "{} are repeated in element list. Continue?".format(dup_element),
+            default=True,
         )
 
     user_symbols.update(default_user_symbols)

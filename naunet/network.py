@@ -70,6 +70,7 @@ class TemplateLoader:
         template = self.env.get_template(os.path.join(template_prefix, template_file))
 
         if to_file:
+
             template.stream(**kwargs).dump(os.path.join(prefix, file_name))
 
         else:
@@ -318,6 +319,7 @@ class ODESystem(TemplateLoader):
         function: str = "fex",
         var_rate: bool = True,
         header: bool = True,
+        header_prefix: str = None,
         header_file: str = None,
         solver: str = "cvode",
         device: str = "cpu",
@@ -380,8 +382,8 @@ class ODESystem(TemplateLoader):
                 template_prefix,
                 template_file,
                 to_file=kwargs.get("to_file"),
+                prefix=header_prefix,
                 file_name=header_file,
-                prefix=kwargs.get("prefix"),
                 header=header,
                 func=cpp_func,
             )
