@@ -28,6 +28,7 @@ def test_generate_ccode_from_kida():
             prefix="test/test_output/",
             file_name=f"{func}.cpp",
             header=True,
+            header_prefix="test/test_output/",
             header_file=f"{func}.h",
         )
 
@@ -47,6 +48,7 @@ def test_generate_ccode_from_leeds():
             prefix="test/test_output/",
             file_name=f"{func}.cpp",
             header=True,
+            header_prefix="test/test_output/",
             header_file=f"{func}.h",
         )
 
@@ -70,5 +72,6 @@ def test_generate_ccode_from_krome():
             prefix="test/test_output/",
             file_name=f"{func}.cpp",
             header=True,
+            header_prefix="test/test_output/",
             header_file=f"{func}.h",
         )
