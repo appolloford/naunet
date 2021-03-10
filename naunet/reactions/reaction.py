@@ -106,6 +106,10 @@ class Reaction(ABC):
         if species_name not in settings.pseudo_element_list:
             return Species(species_name)
 
+    @classmethod
+    def preprocessing(cls, line: str) -> str:
+        return line
+
     def rpeq(self, o: object) -> bool:
         """
         Compare two reactions by their reactants and products.

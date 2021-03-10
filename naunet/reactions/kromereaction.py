@@ -7,21 +7,41 @@ from .reaction import Reaction, ReactionType
 
 
 class KROMEReaction(Reaction):
-    def __init__(self, react_string, format, *args, **kwargs) -> None:
+
+    reacformat = "idx,r,r,r,p,p,p,p,tmin,tmax,rate"
+    common = []
+    var = []
+
+    def __init__(self, react_string, *args, **kwargs) -> None:
         super().__init__(react_string)
 
         self.database = "krome"
         self.alpha = 0.0
         self.beta = 0.0
         self.gamma = 0.0
-        self.kromeformat = format.lower().strip()
+        self.kromeformat = self.reacformat.lower().strip()
         self.rate_string = None
 
         self._parse_string(react_string)
 
+    @classmethod
+    def preprocessing(cls, line: str) -> str:
+        if line.startswith(("#", "//")):
+            return ""
+        elif line.startswith("@format:"):
+            KROMEReaction.reacformat = line.replace("@format:", "")
+            return ""
+        elif line.startswith("@var"):
+            KROMEReaction.var.extend(line.replace("@var:", "").split(","))
+        elif line.startswith("@common:"):
+            KROMEReaction.common.extend(line.replace("@common:", "").split(","))
+            return ""
+        else:
+            return line.strip()
+
     def rate_func(self):
 
-        # print(self.rate_string)
+        # print(type(self.rate_string), self.rate_string)
         rate = re.sub(r"(\d\.?)d(\-?\d)", r"\1e\2", self.rate_string)
         return sympify(rate)
 

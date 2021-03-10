@@ -26,25 +26,12 @@ supported_reaction_class = {
 }
 
 
-krome_globals = {
-    "format": "idx,r,r,r,p,p,p,p,tmin,tmax,rate",
-}
-
-
-def krome_parser(line):
-    if line.startswith(("#", "//")):
-        return ""
-    elif line.startswith("@format:"):
-        krome_globals["format"] = line.replace("@format:", "")
-        return ""
-    else:
-        return line.strip()
-
-
 def reaction_factory(react_string: str, database: str) -> Reaction:
     initializer = supported_reaction_class.get(database)
-    format = krome_globals.get("format")
-    return initializer(react_string, format)
+    react_string = initializer.preprocessing(react_string)
+    if react_string:
+        return initializer(react_string, format)
+    return None
 
 
 class TemplateLoader:
@@ -142,6 +129,11 @@ class Network:
 
     def _add_reaction(self, react_string: str, database: str) -> list:
         reaction = reaction_factory(react_string, database)
+
+        # return empty set for updating if it is a fake react_string
+        if not reaction:
+            return set()
+
         self.reaction_list.append(reaction)
         new_reactants = set(reaction.reactants).difference(self.reactants_in_network)
         new_products = set(reaction.products).difference(self.products_in_network)
@@ -166,12 +158,7 @@ class Network:
         new_species = set()
         with open(filename, "r") as networkfile:
             for _, line in enumerate(tqdm(networkfile.readlines())):
-                if database == "krome":
-                    react_string = krome_parser(line)
-                    if react_string:
-                        new_species.update(self._add_reaction(line, "krome"))
-                else:
-                    new_species.update(self._add_reaction(line, database))
+                new_species.update(self._add_reaction(line, database))
 
             # print("New species: \n{}".format("\n".join(str(x) for x in new_species)))
 
