@@ -1,5 +1,4 @@
 import logging
-from sympy.codegen.cfunctions import exp
 from .. import settings
 from ..species import Species
 from .reaction import Reaction, ReactionType
@@ -34,11 +33,14 @@ class LEEDSReaction(Reaction):
 
         # TODO: finish the remaining type of reactions
         if rtype == 1:
-            return a * (Tgas / 300.0) ** b * exp(-c / Tgas)
+            rate = f"{a} * pow({Tgas}/300.0, {b}) * exp(-{c}/{Tgas})"
         else:
             raise RuntimeError(
                 f"Type {rtype} has not been defined! Please extend the definition"
             )
+
+        rate = self._beautiy(rate)
+        return rate
 
     def _parse_string(self, react_string) -> None:
         list_label = [

@@ -1,7 +1,5 @@
 import logging
 import re
-from sympy import sympify
-from sympy.codegen.cfunctions import exp
 from ..species import Species
 from .reaction import Reaction, ReactionType
 
@@ -43,7 +41,7 @@ class KROMEReaction(Reaction):
 
         # print(type(self.rate_string), self.rate_string)
         rate = re.sub(r"(\d\.?)d(\-?\d)", r"\1e\2", self.rate_string)
-        return sympify(rate)
+        return rate
 
     def _parse_string(self, react_string, *argc, **kwargs) -> None:
 

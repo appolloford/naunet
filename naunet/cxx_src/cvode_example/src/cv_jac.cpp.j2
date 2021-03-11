@@ -15,7 +15,7 @@
     realtype Tgas = u_data->Tgas;
 
     {% for declare in rate_declare -%}
-        {{ declare }} = 0.0;
+        {{ declare }}
     {% endfor %}
 
     {% set wrap = "\n        " -%}

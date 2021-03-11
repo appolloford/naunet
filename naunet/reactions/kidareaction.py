@@ -2,7 +2,6 @@ import logging
 from .. import settings
 from ..species import Species
 from .reaction import Reaction, ReactionType
-from sympy.codegen.cfunctions import exp
 
 
 class KIDAReaction(Reaction):
@@ -27,15 +26,18 @@ class KIDAReaction(Reaction):
         Tgas = settings.user_symbols["Temperature"]
         Av = settings.user_symbols["VisualExtinction"]
         if formula == 1:
-            return a * zeta
+            rate = f"{a} * {zeta}"
         elif formula == 2:
-            return a * exp(-c * Av)
+            rate = f"{a} * exp(-{c}*{Av})"
         elif formula == 3:
-            return a * (Tgas / 300.0) ** b * exp(-c / Tgas)
+            rate = f"{a} * pow({Tgas}/300.0, {b}) * exp(-{c}/{Tgas}) "
         else:
             raise RuntimeError(
                 f"Formula {formula} has not been defined! Please extend the definition"
             )
+
+        rate = self._beautiy(rate)
+        return rate
 
     def _parse_string(self, react_string) -> None:
         react_string = react_string.strip()

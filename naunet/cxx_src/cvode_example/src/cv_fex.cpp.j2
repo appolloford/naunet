@@ -24,7 +24,7 @@
     realtype sqrTgas = sqrt(Tgas); //Tgas rootsquare (K**0.5)
 
     {% for declare in rate_declare -%}
-        {{ declare }} = 0.0;
+        {{ declare }}
     {% endfor %}
 
     {% set wrap = "\n        " -%}

@@ -1,7 +1,6 @@
 """
 This module is provided as a singleton. Modify naunet.settings.xxx to share the values globally
 """
-import sympy as sym
 import logging
 from .auxiliary import conti_confirm
 
@@ -22,10 +21,10 @@ charge_symbols = ["+", "-"]
 user_symbols = {}
 
 default_user_symbols = {
-    "CRIR": sym.symbols("zeta"),
-    "Temperature": sym.symbols("Tgas"),
-    "VisualExtinction": sym.symbols("Av"),
-    "UVPHOT": sym.symbols("uv"),
+    "CRIR": "zeta",
+    "Temperature": "Tgas",
+    "VisualExtinction": "Av",
+    "UVPHOT": "uv",
 }
 
 ode_symbols = {

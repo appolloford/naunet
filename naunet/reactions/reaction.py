@@ -85,6 +85,23 @@ class Reaction(ABC):
         )
         return verbose
 
+    def _beautiy(self, rate_string: str) -> str:
+        """
+        Beautify the reaction rate string
+
+        :param rate_string: reaction rate string expression
+        :type rate_string: str
+        :return: beautified string
+        :rtype: str
+        """
+        rate = (
+            rate_string.replace("++", "+")
+            .replace("--", "+")
+            .replace("+-", "-")
+            .replace("-+", "-")
+        )
+        return rate
+
     @abstractmethod
     def _parse_string(self, react_string) -> None:
         """

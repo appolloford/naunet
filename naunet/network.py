@@ -2,9 +2,6 @@ import logging
 import os
 from operator import mul
 from functools import reduce
-from sympy import symbols, Symbol, Function, MatrixSymbol, Idx, ccode
-from sympy.codegen.ast import Assignment, CodeBlock, Declaration, Variable, real
-from sympy.utilities.codegen import codegen
 from jinja2 import Environment, FileSystemLoader, PackageLoader
 from tqdm import tqdm
 from . import settings
@@ -100,10 +97,7 @@ class UserData(TemplateLoader):
 
     def to_ccode(self, *args, **kwargs) -> None:
 
-        variables = [
-            ccode(Declaration(Variable(v, type=real)))
-            for v in settings.user_symbols.values()
-        ]
+        variables = [f"double {v};" for v in settings.user_symbols.values()]
 
         template_prefix = "include/"
         template_file = "naunet_userdata.h.j2"
@@ -247,26 +241,26 @@ class Network:
             pidx = [self.info.net_species.index(p) for p in react.products]
 
             rsym = [y[idx] for idx in ridx]
-            rsym_mul = reduce(mul, rsym)
+            rsym_mul = "*".join(rsym)
             for idx in ridx:
-                self._ode_expression.rhs[idx] -= rate_sym[rl] * rsym_mul
+                self._ode_expression.rhs[idx] += f" - {rate_sym[rl]}*{rsym_mul}"
             for idx in pidx:
-                self._ode_expression.rhs[idx] += rate_sym[rl] * rsym_mul
+                self._ode_expression.rhs[idx] += f" + {rate_sym[rl]}*{rsym_mul}"
 
             for idx in ridx:
-                rsym_mul = reduce(mul, rsym)
+                rsym_mul = "*".join(rsym)
                 for ri in ridx:
-                    residue = rsym_mul / y[ri]
-                    self._ode_expression.jac[idx * self.info.n_spec + ri] -= (
-                        rate_sym[rl] * residue
-                    )
+                    residue = rsym_mul.replace(f"{y[ri]}*", "", 1)
+                    self._ode_expression.jac[
+                        idx * self.info.n_spec + ri
+                    ] += f" - {rate_sym[rl]}*{residue}"
             for idx in pidx:
-                rsym_mul = reduce(mul, rsym)
+                rsym_mul = "*".join(rsym)
                 for ri in ridx:
-                    residue = rsym_mul / y[ri]
-                    self._ode_expression.jac[idx * self.info.n_spec + ri] += (
-                        rate_sym[rl] * residue
-                    )
+                    residue = rsym_mul.replace(f"{y[ri]}*", "", 1)
+                    self._ode_expression.jac[
+                        idx * self.info.n_spec + ri
+                    ] += f" + {rate_sym[rl]}*{residue}"
 
         return self._ode_expression
 
@@ -292,14 +286,14 @@ class ODESystem(TemplateLoader):
 
         odesym = settings.ode_symbols
 
-        self.rate_sym = [Symbol(f"{odesym['rate']}{r}") for r in range(n_react)]
+        self.rate_sym = [f"{odesym['rate']}{r}" for r in range(n_react)]
         self.rate_func = []
         self.rate_mintemp = []
         self.rate_maxtemp = []
 
-        self.y = MatrixSymbol(odesym["ode_vector"], n_spec, 1)
-        self.rhs = [0.0] * n_spec
-        self.jac = [0.0] * n_spec * n_spec
+        self.y = [f"{odesym['ode_vector']}[{s}]" for s in range(n_spec)]
+        self.rhs = ["0.0"] * n_spec
+        self.jac = ["0.0"] * n_spec * n_spec
 
     def to_ccode(
         self,
@@ -317,14 +311,12 @@ class ODESystem(TemplateLoader):
 
         cpp_func = self.cpp_func_names[f"{solver}_{function}"]
 
-        rate_declare = [
-            ccode(Declaration(Variable(s, type=real))) for s in self.rate_sym
-        ]
+        rate_declare = [f"double {s} = 0.0;" for s in self.rate_sym]
 
         rate_assign = [
-            f"if (Tgas>{tmin} && Tgas<{tmax}) {{\n{ccode(Assignment(sym, func))} \n}}"
+            f"if (Tgas>{tmin} && Tgas<{tmax}) {{\n{' = '.join([sym, func])}; \n}}"
             if tmin < tmax
-            else ccode(Assignment(sym, func))
+            else f"{' = '.join([sym, func])};"
             for tmin, tmax, sym, func in zip(
                 self.rate_mintemp, self.rate_maxtemp, self.rate_sym, self.rate_func
             )
@@ -332,12 +324,12 @@ class ODESystem(TemplateLoader):
 
         if function == "jac":
             eqns = [
-                f"IJth(Jac, {idx//self.neq}, {idx%self.neq}) = {ccode(j)};"
+                f"IJth(Jac, {idx//self.neq}, {idx%self.neq}) = {j};"
                 for idx, j in enumerate(self.jac)
             ]
         else:
-            lhs = MatrixSymbol(odesym[f"{function}_lhs"], self.neq, 1)
-            eqns = [ccode(Assignment(l, r)) for l, r in zip(lhs, self.rhs)]
+            lhs = [f"{odesym[f'{function}_lhs']}[{s}]" for s in range(self.neq)]
+            eqns = [f"{l} = {r};" for l, r in zip(lhs, self.rhs)]
 
         template_prefix = "src/"
         template_file = f"cv_{function}.cpp.j2"
