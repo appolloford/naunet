@@ -21,6 +21,7 @@ charge_symbols = ["+", "-"]
 user_symbols = {}
 
 default_user_symbols = {
+    "Hnuclei": "nH",
     "CRIR": "zeta",
     "Temperature": "Tgas",
     "VisualExtinction": "Av",

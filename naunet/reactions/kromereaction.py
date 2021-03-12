@@ -19,7 +19,7 @@ class FtoCCoverter:
             .replace(")", "]")
             .replace("n", settings.ode_symbols["ode_vector"])
         )
-        index = lambda self, i: "idx" + "".join(i)
+        index = lambda self, i: "IDX" + "".join(i)
         atom = lambda self, a: "".join(a)
 
         def scientific(self, s):
@@ -77,33 +77,6 @@ class FtoCCoverter:
         return cexpr
 
 
-class Expression(Transformer):
-    def powexpression(self, p):
-        return f"pow({''.join(p).replace('**', ', ')})"
-
-    def expression(self, e):
-        return " ".join(e)
-
-    def scientific(self, s):
-        (s,) = s
-        return s.value
-
-    def atom(self, a):
-        return "".join(a)
-
-    def func(self, f):
-        return "".join(f)
-
-    def WORD(self, w):
-        return w.value
-
-    def generalexpression(self, g):
-        return "".join(g)
-
-    def variable(self, f):
-        return "".join(f)
-
-
 class KROMEReaction(Reaction):
 
     reacformat = "idx,r,r,r,p,p,p,p,tmin,tmax,rate"
@@ -130,53 +103,18 @@ class KROMEReaction(Reaction):
             KROMEReaction.reacformat = line.replace("@format:", "")
             return ""
         elif line.startswith("@var"):
-            KROMEReaction.var.extend(line.replace("@var:", "").split(","))
+            KROMEReaction.var.append(line.replace("@var:", "").strip())
         elif line.startswith("@common:"):
-            KROMEReaction.common.extend(line.replace("@common:", "").split(","))
+            commonlist = line.replace("@common:", "").strip().split(",")
+            KROMEReaction.common.extend(commonlist)
+            settings.user_symbols.update(zip(commonlist, commonlist))
             return ""
         else:
             return line.strip()
 
     def rate_func(self):
 
-        # grammar = r"""
-        #     generalexpression: expression ((PLUS | MINUS) expression)*
-        #     expression: atom ((TIMES | DIV) atom)*
-        #     atom: powexpression
-        #         | scientific
-        #         | LPAREN expression RPAREN
-        #         | LPAREN generalexpression RPAREN
-        #         | WORD
-        #         | func
-        #         | variable
-        #     powexpression: (atom POW atom)
-        #     func: variable LPAREN generalexpression (COMMA generalexpression)* RPAREN
-        #     PLUS: "+"
-        #     MINUS: "-"
-        #     TIMES: "*"
-        #     DIV: "/"
-        #     POW: "**"
-        #     LPAREN: "("
-        #     RPAREN: ")"
-        #     COMMA: ","
-        #     variable: WORD (WORD | NUMBER)*
-        #     scientific: SCIENTIFIC_NUMBER
-        #     SCIENTIFIC_NUMBER: NUMBER ((E1 | E2) SIGN? NUMBER)?
-        #     E1: "E"
-        #     E2: "e"
-        #     SIGN: "+" | "-"
-        #     %import common.WORD             -> WORD
-        #     %import common.SIGNED_NUMBER    -> NUMBER
-        #     %import common.WS
-        #     %ignore WS
-        # """
-
-        # rate_parser = Lark(grammar, start="generalexpression")
-
-        # print(type(self.rate_string), self.rate_string)
         rate = re.sub(r"(\d\.?)d(\-?\d)", r"\1e\2", self.rate_string)
-        # rate = rate_parser.parse(rate)
-        # rate = Expression().transform(rate)
         rate = FtoCCoverter.convert(rate)
         return rate
 

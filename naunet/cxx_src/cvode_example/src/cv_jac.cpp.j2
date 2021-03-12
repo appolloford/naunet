@@ -12,11 +12,11 @@
 
     realtype *{{ vector }} = N_VGetArrayPointer(u);
     UserData *u_data = (UserData*) user_data;
-    realtype Tgas = u_data->Tgas;
-
-    {% for declare in rate_declare -%}
-        {{ declare }}
+    {% for v in varlist -%}
+        {{ v }}
     {% endfor %}
+
+    {{ rate_declare }}
 
     {% set wrap = "\n        " -%}
     {% set bclose = wrap + "}" -%}

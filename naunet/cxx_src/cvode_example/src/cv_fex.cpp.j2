@@ -14,7 +14,9 @@
     realtype *{{ vector }} = N_VGetArrayPointer(u);
     realtype *{{ lhs }} = N_VGetArrayPointer(u_dot);
     UserData *u_data = (UserData*) user_data;
-    realtype Tgas = u_data->Tgas;
+    {% for v in varlist -%}
+        {{ v }}
+    {% endfor %}
 
     realtype Te = Tgas*8.617343e-5; //Tgas in eV (eV)
     realtype lnTe = log(Te); //ln of Te (#)
@@ -23,9 +25,7 @@
     realtype invTe = 1.0/Te; //inverse of T (1/eV)
     realtype sqrTgas = sqrt(Tgas); //Tgas rootsquare (K**0.5)
 
-    {% for declare in rate_declare -%}
-        {{ declare }}
-    {% endfor %}
+    {{ rate_declare }}
 
     {% set wrap = "\n        " -%}
     {% set bclose = wrap + "}" -%}

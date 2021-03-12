@@ -1,11 +1,8 @@
 import logging
 import os
-from operator import mul
-from functools import reduce
 from jinja2 import Environment, FileSystemLoader, PackageLoader
 from tqdm import tqdm
 from . import settings
-from .species import Species
 from .reactions.reaction import Reaction
 from .reactions.kidareaction import KIDAReaction
 from .reactions.leedsreaction import LEEDSReaction
@@ -94,10 +91,11 @@ class Info(TemplateLoader):
 class UserData(TemplateLoader):
     def __init__(self) -> None:
         super().__init__()
+        self.var = settings.user_symbols.values()
 
     def to_ccode(self, *args, **kwargs) -> None:
 
-        variables = [f"double {v};" for v in settings.user_symbols.values()]
+        variables = [f"double {v};" for v in self.var]
 
         template_prefix = "include/"
         template_file = "naunet_userdata.h.j2"
@@ -116,7 +114,7 @@ class Network:
         self.reactants_in_network = set()
         self.products_in_network = set()
         self._info = None
-        self._userdata = UserData()
+        self._userdata = None
         self._ode_expression = None
 
         self.add_reaction_from_file(fname, database)
@@ -228,6 +226,15 @@ class Network:
         # renew an ode system
         self._ode_expression = ODESystem(self.info.n_spec, len(self.reaction_list))
 
+        if self.userdata.var:
+            self._ode_expression.var.extend(
+                [f"realtype {v} = u_data->{v};" for v in self._userdata.var]
+            )
+
+        additionalvar = hasattr(self.reaction_list[0], "var")
+        if additionalvar and len(self.reaction_list[0].var):
+            self._ode_expression.var.extend(self.reaction_list[0].var)
+
         y = self._ode_expression.y
         rate_sym = self._ode_expression.rate_sym
 
@@ -266,6 +273,10 @@ class Network:
 
     @property
     def userdata(self):
+        if self._info and self._userdata:
+            return self._userdata
+
+        self._userdata = UserData()
         return self._userdata
 
 
@@ -286,7 +297,7 @@ class ODESystem(TemplateLoader):
 
         odesym = settings.ode_symbols
 
-        self.rate_sym = [f"{odesym['rate']}{r}" for r in range(n_react)]
+        self.rate_sym = [f"{odesym['rate']}[{r}]" for r in range(n_react)]
         self.rate_func = []
         self.rate_mintemp = []
         self.rate_maxtemp = []
@@ -294,6 +305,8 @@ class ODESystem(TemplateLoader):
         self.y = [f"{odesym['ode_vector']}[{s}]" for s in range(n_spec)]
         self.rhs = ["0.0"] * n_spec
         self.jac = ["0.0"] * n_spec * n_spec
+
+        self.var = []
 
     def to_ccode(
         self,
@@ -311,7 +324,7 @@ class ODESystem(TemplateLoader):
 
         cpp_func = self.cpp_func_names[f"{solver}_{function}"]
 
-        rate_declare = [f"double {s} = 0.0;" for s in self.rate_sym]
+        rate_declare = f"double {odesym['rate']}[{self.nreact}] = {{0.0}};"
 
         rate_assign = [
             f"if (Tgas>{tmin} && Tgas<{tmax}) {{\n{' = '.join([sym, func])}; \n}}"
@@ -342,6 +355,7 @@ class ODESystem(TemplateLoader):
             func=cpp_func,
             vector=odesym["ode_vector"],
             lhs=odesym[f"{function}_lhs"],
+            varlist=self.var,
             rate_declare=rate_declare,
             rate_assign=rate_assign,
             eqns=eqns,
