@@ -60,17 +60,19 @@ class TemplateLoader:
 
 
 class Info(TemplateLoader):
-    def __init__(self, speclist: list) -> None:
+    def __init__(self, speclist: list, n_react: int) -> None:
 
         super().__init__()
 
         self.net_species = speclist
         self.n_spec = len(speclist)
+        self.n_react = n_react
 
     # ? create the to_code() interface in TemplateLoader
     def to_ccode(self, *args, **kwargs) -> None:
 
-        nspec_def = f"#define NSPECIES {self.n_spec}\n"
+        nspec_def = f"#define NSPECIES {self.n_spec}"
+        nreac_def = f"#define NREACTIONS {self.n_react}"
 
         spec_idx = [
             f"#define IDX_{x.alias} {i}" for i, x in enumerate(self.net_species)
@@ -84,6 +86,7 @@ class Info(TemplateLoader):
             template_file,
             **kwargs,
             nspec_def=nspec_def,
+            nreac_def=nreac_def,
             spec_idx=spec_idx,
         )
 
@@ -202,8 +205,8 @@ class Network:
         if self._info:
             return self._info
 
-        speclist = list(self.reactants_in_network | self.products_in_network)
-        self._info = Info(speclist)
+        speclist = sorted(self.reactants_in_network | self.products_in_network)
+        self._info = Info(speclist, len(self.reaction_list))
         # self.net_species = list(self.reactants_in_network | self.products_in_network)
         # self.nspecies = len(self.net_species)
         logging.info(

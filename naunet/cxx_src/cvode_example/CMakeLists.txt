@@ -3,6 +3,16 @@ cmake_minimum_required(VERSION 3.10)
 # set the project name
 project(NAUNET VERSION 0.1.0)
 
+set (CMAKE_CXX_STANDARD 11)
+
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Debug)
+endif()
+
+IF (CMAKE_BUILD_TYPE STREQUAL Debug)
+    ADD_DEFINITIONS(-DDEBUG)
+ENDIF()
+
 find_library(CVODE sundials_cvode)
 if (NOT CVODE)
     message(FATAL_ERROR "cvode not found")

@@ -103,7 +103,9 @@ class KROMEReaction(Reaction):
             KROMEReaction.reacformat = line.replace("@format:", "")
             return ""
         elif line.startswith("@var"):
-            KROMEReaction.var.append(line.replace("@var:", "").strip())
+            if "Hnuclei" not in line:
+                KROMEReaction.var.append(line.replace("@var:", "").strip())
+            return ""
         elif line.startswith("@common:"):
             commonlist = line.replace("@common:", "").strip().split(",")
             KROMEReaction.common.extend(commonlist)
@@ -115,6 +117,10 @@ class KROMEReaction(Reaction):
     def rate_func(self):
 
         rate = re.sub(r"(\d\.?)d(\-?\d)", r"\1e\2", self.rate_string)
+        rate = re.sub(r"(idx_.?)p", r"\1II", rate)
+        rate = re.sub(r"(idx_.?)m", r"\1M", rate)
+        rate = re.sub(r"(idx_.?)\)", r"\1I)", rate)
+        rate = rate.replace("Hnuclei", "nH")
         rate = FtoCCoverter.convert(rate)
         return rate
 
