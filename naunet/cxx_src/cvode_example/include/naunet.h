@@ -5,6 +5,8 @@
 #include <nvector/nvector_serial.h>    // access to serial N_Vector
 #include <sunlinsol/sunlinsol_spgmr.h> //access to SPGMR SUNLinearSolver
 #include <cvode/cvode_spils.h>         // access to CVSpils interface
+#include <sunmatrix/sunmatrix_dense.h> // access to dense SUNMatrix
+#include <sunlinsol/sunlinsol_dense.h> // access to dense SUNLinearSolver
 #include <sundials/sundials_dense.h>   // use generic dense solver in precond
 #include <sundials/sundials_types.h>   // defs. of realtype, sunindextype
 #include <sundials/sundials_math.h>    // contains the macros ABS, SUNSQR, EXP
@@ -14,11 +16,13 @@
 #include "fex.h"
 #include "jtv.h"
 
-class Naunet{
+class Naunet
+{
 
 private:
     // UserData *m_data;
     N_Vector m_y;
+    SUNMatrix m_a;
 
     realtype m_atol;
     realtype m_rtol;
@@ -36,7 +40,6 @@ public:
     //     m_cvode_mem = CVodeCreate(CV_BDF);
     //     m_ls = NULL;
     // };
-
 
     // int initSolver(){
     //     int flag;
@@ -81,8 +84,7 @@ public:
     //     CVodeFree(&m_cvode_mem);
     //     SUNLinSolFree(m_ls);
     //     // delete m_data;
-    // }; 
-
+    // };
 };
 
 #endif

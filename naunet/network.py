@@ -227,7 +227,8 @@ class Network:
             return self._ode_expression
 
         # renew an ode system
-        self._ode_expression = ODESystem(self.info.n_spec, len(self.reaction_list))
+        # self._ode_expression = ODESystem(self.info.n_spec, len(self.reaction_list))
+        self._ode_expression = ODESystem(self.info)
 
         if self.userdata.var:
             self._ode_expression.var.extend(
@@ -291,23 +292,24 @@ class ODESystem(TemplateLoader):
         "cvode_jac": "int jac(realtype t, N_Vector u, N_Vector fu, SUNMatrix Jac, void *user_data, N_Vector tmp1, N_Vector tmp2, N_Vector tmp3)",
     }
 
-    def __init__(self, n_spec: int, n_react: int) -> None:
+    def __init__(self, info: Info) -> None:
 
         super().__init__()
 
-        self.neq = n_spec
-        self.nreact = n_react
+        self.neq = info.n_spec
+        self.nreact = info.n_react
+        self.net_species = info.net_species
 
         odesym = settings.ode_symbols
 
-        self.rate_sym = [f"{odesym['rate']}[{r}]" for r in range(n_react)]
+        self.rate_sym = [f"{odesym['rate']}[{r}]" for r in range(info.n_react)]
         self.rate_func = []
         self.rate_mintemp = []
         self.rate_maxtemp = []
 
-        self.y = [f"{odesym['ode_vector']}[{s}]" for s in range(n_spec)]
-        self.rhs = ["0.0"] * n_spec
-        self.jac = ["0.0"] * n_spec * n_spec
+        self.y = [f"{odesym['ode_vector']}[IDX_{x.alias}]" for x in info.net_species]
+        self.rhs = ["0.0"] * info.n_spec
+        self.jac = ["0.0"] * info.n_spec * info.n_spec
 
         self.var = []
 
@@ -344,7 +346,9 @@ class ODESystem(TemplateLoader):
                 for idx, j in enumerate(self.jac)
             ]
         else:
-            lhs = [f"{odesym[f'{function}_lhs']}[{s}]" for s in range(self.neq)]
+            lhs = [
+                f"{odesym[f'{function}_lhs']}[IDX_{x.alias}]" for x in self.net_species
+            ]
             eqns = [f"{l} = {r};" for l, r in zip(lhs, self.rhs)]
 
         template_prefix = "src/"

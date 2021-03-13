@@ -43,12 +43,11 @@ static int check_flag(void *flagvalue, const char *funcname, int opt)
     return 0;
 }
 
-
-Naunet::Naunet():
-    m_atol(1e-20),
-    m_rtol(1e-5)
+Naunet::Naunet() : m_atol(1e-20),
+                   m_rtol(1e-5)
 {
     m_y = N_VNew_Serial((sunindextype)NSPECIES);
+    m_a = SUNDenseMatrix(NSPECIES, NSPECIES);
     m_cvode_mem = CVodeCreate(CV_BDF);
     m_ls = NULL;
 };
@@ -56,21 +55,22 @@ Naunet::Naunet():
 Naunet::~Naunet()
 {
     // N_VDestroy(m_y);
+    SUNMatDestroy(m_a);
     CVodeFree(&m_cvode_mem);
     SUNLinSolFree(m_ls);
     // delete m_data;
-}; 
+};
 
 int Naunet::initSolver()
 {
     int flag;
     flag = CVodeInit(m_cvode_mem, fex, 0.0, m_y);
-    if ( flag != CV_SUCCESS ) 
+    if (flag != CV_SUCCESS)
     {
         check_flag(&flag, "CVodeInit", 1);
     }
-    CVodeSStolerances(m_cvode_mem, m_rtol, m_atol);
-    if ( flag != CV_SUCCESS ) 
+    flag = CVodeSStolerances(m_cvode_mem, m_rtol, m_atol);
+    if (flag != CV_SUCCESS)
     {
         check_flag(&flag, "CVodeSStolerances", 1);
     }
@@ -82,28 +82,33 @@ int Naunet::solve(realtype *ab, realtype dt, UserData *data)
     int flag;
     N_VSetArrayPointer(ab, m_y);
     flag = CVodeReInit(m_cvode_mem, 0.0, m_y);
-    if ( check_flag(&flag, "CVodeInit", 1) )
+    if (check_flag(&flag, "CVodeInit", 1))
         return 1;
     flag = CVodeSetUserData(m_cvode_mem, data);
     if (check_flag(&flag, "CVodeSetUserData", 1))
         return 1;
-    m_ls = SUNLinSol_SPGMR(m_y, 0, 0);
-    if (check_flag((void *)m_ls, "SUNLinSol_SPGMR", 0))
+    // m_ls = SUNLinSol_SPGMR(m_y, 0, 0);
+    // if (check_flag((void *)m_ls, "SUNLinSol_SPGMR", 0))
+    //     return 1;
+    m_ls = SUNLinSol_Dense(m_y, m_a);
+    if (check_flag((void *)m_ls, "SUNLinSol_Dense", 0))
         return 1;
-    flag = CVSpilsSetLinearSolver(m_cvode_mem, m_ls);
-    if (check_flag(&flag, "CVSpilsSetLinearSolver", 1))
+    // flag = CVSpilsSetLinearSolver(m_cvode_mem, m_ls);
+    // if (check_flag(&flag, "CVSpilsSetLinearSolver", 1))
+    //     return 1;
+    flag = CVodeSetLinearSolver(m_cvode_mem, m_ls, m_a);
+    if (check_flag(&flag, "CVodeSetLinearSolver", 1))
         return 1;
-    flag = CVSpilsSetJacTimes(m_cvode_mem, NULL, jtv);
-    if (check_flag(&flag, "CVSpilsSetJacTimes", 1))
-        return 1;
+    // flag = CVSpilsSetJacTimes(m_cvode_mem, NULL, jtv);
+    // if (check_flag(&flag, "CVSpilsSetJacTimes", 1))
+    //     return 1;
+    // flag = CVodeSetJacFn(m_cvode_mem, jac);
+    // if (check_flag(&flag, "CVodeSetJacFn", 1))
+    //     return 1;
 
     realtype t0 = 0.0;
     flag = CVode(m_cvode_mem, dt, m_y, &t0, CV_NORMAL);
-    for (int i=0; i<NSPECIES; i++) {
-        ab[i] = NV_Ith_S(m_y, i);
-    }
+    ab = N_VGetArrayPointer(m_y);
+
     return 0;
 };
-
-
-

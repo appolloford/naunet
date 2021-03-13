@@ -34,15 +34,6 @@
         {{ "" }}
     {% endfor %}
 
-#ifdef DEBUG
-    FILE *fptr = fopen("reactionrates.dat", "a");
-    for (int i=0; i<NREACTIONS; i++) {
-        fprintf(fptr, "%13.7e ", k[i]);
-    }
-    fprintf(fptr, "\n");
-    fclose(fptr);
-#endif
-
     {% for eq in eqns -%}
         {{ eq | wordwrap(80) | replace('\n', wrap) }}
     {% endfor %}

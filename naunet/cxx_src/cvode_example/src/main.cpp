@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <nvector/nvector_serial.h>
 
 #include "naunet.h"
 #include "naunet_userdata.h"
@@ -43,9 +42,24 @@ int main()
     y[IDX_CI] = 7.3e-6 * nH;
     y[IDX_GRAIN0I] = 1.3215e-12 * nH;
 
-    naunet.solve(y, 10 * spy, data);
+    realtype time = 0.0, dtyr = 1.0, tend = 1.e8;
+    for (time = 0.0; time < tend; time += dtyr)
+    {
+        if (time < 1e5)
+        {
+            dtyr = fmax(9.0 * time, dtyr);
+        }
+        else
+        {
+            dtyr = 1e5;
+        }
+        naunet.solve(y, dtyr * spy, data);
+        printf("Time = %13.7e yr\n", time);
+    }
     for (int i = 0; i < NSPECIES; i++)
     {
         printf("\t%10.3e\n", y[i]);
     }
+
+    return 0;
 }
