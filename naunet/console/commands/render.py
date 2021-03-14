@@ -21,6 +21,7 @@ class RenderCommand(Command):
 
     render
         {--f|force : forced to override the existing files}
+        {--update-species=? : allow to update the species list in toml configure file}
     """
 
     def __init__(self):
@@ -37,12 +38,16 @@ class RenderCommand(Command):
         database = chemistry["database"]
         element = chemistry["elements"]
         pseudo_element = chemistry["pseudo_elements"]
+        species = chemistry["species"]
 
         odesolver = content["ODEsolver"]
         required = odesolver["required"]
 
         from pathlib import Path
         import naunet
+
+        if len(species) == 0:
+            species = None
 
         naunet.settings.initialize(element=element, pseudo_element=pseudo_element)
 
@@ -58,7 +63,7 @@ class RenderCommand(Command):
                 )
 
             elif os.listdir(header_prefix):
-                overwrite = self.confirm(
+                overwrite = self.option("force") or self.confirm(
                     "Non-empty include directory. Overwrite?", False
                 )
 
@@ -75,7 +80,7 @@ class RenderCommand(Command):
                 )
 
             elif os.listdir(source_prefix):
-                overwrite = self.confirm(
+                overwrite = self.option("force") or self.confirm(
                     "Non-empty source directory. Overwrite?", False
                 )
 
@@ -85,7 +90,7 @@ class RenderCommand(Command):
         else:
             os.mkdir(source_prefix)
 
-        net = Network(network, database)
+        net = Network(network, database, species=species)
 
         net.check_duplicate_reaction()
         net.info.to_ccode(
@@ -129,6 +134,20 @@ class RenderCommand(Command):
         )
         dest = os.path.join(Path.cwd(), "CMakeLists.txt")
         shutil.copyfile(cmakefile, dest)
+
+        print(self.option("update-species"))
+        update = self.option("update-species")
+        if not update:
+            update = self.confirm("Update species in configure file?", False)
+
+        if update and self.option("update-species").lower != "false":
+            chemistry["species"] = [x.name for x in net.info.net_species]
+
+            content["chemistry"] = chemistry
+
+            config_file = os.path.join(Path.cwd(), "naunet_config.toml")
+            with open(config_file, "w", encoding="utf-8") as f:
+                f.write(dumps(content))
 
         # csrc_path = str(src_parent_path) + "/cxx_src"
         # dest_path = str(Path.cwd())

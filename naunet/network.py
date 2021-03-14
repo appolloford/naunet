@@ -112,15 +112,27 @@ class UserData(TemplateLoader):
 
 
 class Network:
-    def __init__(self, fname: str = None, database: str = None) -> None:
+    def __init__(
+        self,
+        fname: str = None,
+        database: str = None,
+        species: list = None,
+    ) -> None:
+
         self.reaction_list = []
         self.reactants_in_network = set()
         self.products_in_network = set()
+        self._allowed_species = None
+        self._skipped_reactions = []
         self._info = None
         self._userdata = None
         self._ode_expression = None
 
-        self.add_reaction_from_file(fname, database)
+        if species:
+            self._allowed_species = species
+
+        if fname and database:
+            self.add_reaction_from_file(fname, database)
 
     def _add_reaction(self, react_string: str, database: str) -> list:
         reaction = reaction_factory(react_string, database)
@@ -128,6 +140,16 @@ class Network:
         # return empty set for updating if it is a fake react_string
         if not reaction:
             return set()
+
+        if self._allowed_species:
+            if not all(
+                [
+                    rp.name in self._allowed_species
+                    for rp in reaction.reactants + reaction.products
+                ]
+            ):
+                self._skipped_reactions.append(reaction)
+                return set()
 
         self.reaction_list.append(reaction)
         new_reactants = set(reaction.reactants).difference(self.reactants_in_network)
@@ -146,6 +168,8 @@ class Network:
         self._info = None
 
     def add_reaction_from_file(self, filename: str, database: str) -> None:
+        if not filename:
+            logger.critical("No file assigned!")
         if not database:
             logger.critical(
                 'Try to read in file but database is not assigned. Try again by "add_reaction_from_file"'
@@ -209,9 +233,15 @@ class Network:
         self._info = Info(speclist, len(self.reaction_list))
         # self.net_species = list(self.reactants_in_network | self.products_in_network)
         # self.nspecies = len(self.net_species)
-        logging.info(
+        logger.info(
             "{} species in the network: {}".format(
                 self._info.n_spec, ", ".join([x.name for x in self._info.net_species])
+            )
+        )
+
+        logger.info(
+            "Skipped reactions: {}".format(
+                "\n".join([repr(x) for x in self._skipped_reactions])
             )
         )
 
@@ -274,6 +304,14 @@ class Network:
                     ] += f" + {rate_sym[rl]}*{residue}"
 
         return self._ode_expression
+
+    @property
+    def allowed_species(self):
+        return self._allowed_species
+
+    @allowed_species.setter
+    def allowed_species(self, speclist: list):
+        self._allowed_species = speclist
 
     @property
     def userdata(self):
