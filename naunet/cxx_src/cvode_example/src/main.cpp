@@ -42,6 +42,8 @@ int main()
     y[IDX_CI] = 7.3e-6 * nH;
     y[IDX_GRAIN0I] = 1.3215e-12 * nH;
 
+    FILE *fbin = fopen("evolution.bin", "w");
+    FILE *ftxt = fopen("evolution.txt", "w");
     realtype time = 0.0, dtyr = 1.0, tend = 1.e8;
     for (time = 0.0; time < tend; time += dtyr)
     {
@@ -55,11 +57,20 @@ int main()
         }
         naunet.solve(y, dtyr * spy, data);
         printf("Time = %13.7e yr\n", time);
+
+        fwrite(&time, sizeof(realtype), 1, fbin);
+        fwrite(y, sizeof(realtype), NSPECIES, fbin);
+
+        fprintf(ftxt, "%13.7e ", time);
+        for (int i = 0; i < NSPECIES; i++)
+        {
+            fprintf(ftxt, "%13.7e ", y[i]);
+        }
+        fprintf(ftxt, "\n");
     }
-    for (int i = 0; i < NSPECIES; i++)
-    {
-        printf("\t%10.3e\n", y[i]);
-    }
+
+    fclose(fbin);
+    fclose(ftxt);
 
     return 0;
 }
