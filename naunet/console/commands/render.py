@@ -103,16 +103,15 @@ class RenderCommand(Command):
             prefix=header_prefix,
             file_name="naunet_userdata.h",
         )
-        for func in required:
-            net.ode_expression.to_ccode(
-                function=func,
-                to_file=True,
-                prefix=source_prefix,
-                file_name=f"{func}.cpp",
-                header=True,
-                header_prefix=header_prefix,
-                header_file=f"{func}.h",
-            )
+
+        net.ode_expression.to_ccode(
+            to_file=True,
+            prefix=source_prefix,
+            file_name=f"naunet_ode.cpp",
+            header=True,
+            header_prefix=header_prefix,
+            header_file=f"naunet_ode.h",
+        )
 
         src_parent_path = Path(naunet.__file__).parent
         csrc_path = os.path.join(src_parent_path, "cxx_src", "cvode_example", "src")

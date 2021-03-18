@@ -13,8 +13,7 @@
 
 #include "naunet_userdata.h"
 #include "naunet_constants.h"
-#include "fex.h"
-#include "jtv.h"
+#include "naunet_ode.h"
 
 class Naunet
 {

@@ -25,19 +25,15 @@ IF (CMAKE_BUILD_TYPE STREQUAL Debug)
                         LOCATION INTERFACE_INCLUDE_DIRECTORIES)
 ENDIF()
 
-add_library(fex STATIC src/fex.cpp)
-target_include_directories(fex PUBLIC include)
-target_include_directories(fex PUBLIC /usr/local/include)
-
-add_library(jtv STATIC src/jtv.cpp)
-target_include_directories(jtv PUBLIC include)
-target_include_directories(jtv PUBLIC /usr/local/include)
+add_library(naunet_ode STATIC src/naunet_ode.cpp)
+target_include_directories(naunet_ode PUBLIC include)
+target_link_libraries(naunet_ode SUNDIALS::cvode_static SUNDIALS::nvecserial_static)
 
 add_library(naunet STATIC src/naunet.cpp)
 target_include_directories(naunet PUBLIC include)
-target_include_directories(naunet PUBLIC /usr/local/include)
+target_link_libraries(naunet SUNDIALS::cvode_static SUNDIALS::nvecserial_static)
 
 add_executable(naunet.x src/main.cpp)
 
-target_link_libraries(naunet.x fex jtv naunet SUNDIALS::cvode_static SUNDIALS::nvecserial_static)
+target_link_libraries(naunet.x naunet naunet_ode SUNDIALS::cvode_static SUNDIALS::nvecserial_static)
 

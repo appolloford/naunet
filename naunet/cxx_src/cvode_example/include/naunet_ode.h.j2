@@ -1,0 +1,22 @@
+#ifndef __CV_FEX_H__
+#define __CV_FEX_H__
+
+#include <cvode/cvode.h>
+#include <nvector/nvector_serial.h>
+#include <sunmatrix/sunmatrix_dense.h> // access to dense SUNMatrix
+#include <sundials/sundials_types.h>   // defs. of realtype, sunindextype
+#include "naunet_constants.h"
+#include "naunet_userdata.h"
+
+{% if ode.solver == "cvode" %}
+#define IJth(A,i,j) SM_ELEMENT_D(A,i,j)
+
+int calculate_rates(realtype *rates, realtype y, void *user_data);
+int fex(realtype t, N_Vector u, N_Vector u_dot, void *user_data);
+int jtv(N_Vector v, N_Vector Jv, realtype t, N_Vector u, N_Vector fu, 
+        void *user_data, N_Vector tmp);
+int jac(realtype t, N_Vector u, N_Vector fu, SUNMatrix Jac, 
+        void *user_data, N_Vector tmp1, N_Vector tmp2, N_Vector tmp3);
+{% endif %}
+
+#endif

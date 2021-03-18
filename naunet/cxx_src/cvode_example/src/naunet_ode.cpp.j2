@@ -1,0 +1,103 @@
+{% if header %}
+#include "{{ header_file }}"
+{% else %}
+#include <cvode/cvode.h>
+#include <nvector/nvector_serial.h>
+#include "naunet_constants.h"
+#include "userdata.h"
+{% endif %}
+
+
+{% if ode.solver == "cvode" %}
+int calculate_rates(realtype *k, realtype *y, UserData *u_data)
+{
+
+    {% for v in ode.var -%}
+        {{ v }}
+    {% endfor %}
+
+    realtype Te = Tgas*8.617343e-5; //Tgas in eV (eV)
+    realtype lnTe = log(Te); //ln of Te (#)
+    realtype T32 = Tgas*0.0033333333333333335; //Tgas/(300 K) (#)
+    realtype invT = 1.0/Tgas; //inverse of T (1/K)
+    realtype invTe = 1.0/Te; //inverse of T (1/eV)
+    realtype sqrTgas = sqrt(Tgas); //Tgas rootsquare (K**0.5)
+
+    {% set wrap = "\n        " -%}
+    {% set bclose = wrap + "}" -%}
+    {% for assign in ode.rateeqs -%}
+        {{ assign | wordwrap(80) | replace("\n", wrap) | replace(bclose, '\n    }') }}
+        {{ "" }}
+    {% endfor %}
+
+    return NAUNET_SUCCESS;
+}
+
+int fex(realtype t, N_Vector u, N_Vector u_dot, void *user_data) 
+{
+
+    realtype *y      = N_VGetArrayPointer(u);
+    realtype *ydot   = N_VGetArrayPointer(u_dot);
+    UserData *u_data = (UserData*) user_data;
+    {% for v in ode.var -%}
+        {{ v }}
+    {% endfor %}
+
+    realtype k[NREACTIONS] = {0.0};
+    calculate_rates(k, y, u_data);
+
+    {% for eq in ode.fexeqs -%}
+        {{ eq | wordwrap(80) | replace('\n', wrap) }}
+    {% endfor %}
+
+    return NAUNET_SUCCESS;
+
+}
+int jtv(N_Vector v, N_Vector Jv, realtype t, N_Vector u, N_Vector fu, 
+        void *user_data, N_Vector tmp) 
+{
+    realtype *x      = N_VGetArrayPointer(u);
+    realtype *y      = N_VGetArrayPointer(v);
+    realtype *ydot   = N_VGetArrayPointer(Jv);
+    realtype *fx     = N_VGetArrayPointer(fu);
+
+    UserData *u_data = (UserData*) user_data;
+    {% for v in ode.var -%}
+        {{ v }}
+    {% endfor %}
+
+    realtype k[NREACTIONS] = {0.0};
+    calculate_rates(k, y, u_data);
+
+    {% for eq in ode.fexeqs -%}
+        {{ eq | wordwrap(80) | replace('\n', wrap) }}
+    {% endfor %}
+
+    for (int i=0; i<NSPECIES; i++) {
+        fx[i] = 0.0;
+    }
+
+    return NAUNET_SUCCESS;
+
+}
+int jac(realtype t, N_Vector u, N_Vector fu, SUNMatrix Jac, 
+        void *user_data, N_Vector tmp1, N_Vector tmp2, N_Vector tmp3)
+{
+    realtype *y = N_VGetArrayPointer(u);
+    UserData *u_data = (UserData*) user_data;
+    {% for v in ode.var -%}
+        {{ v }}
+    {% endfor %}
+
+    realtype k[NREACTIONS] = {0.0};
+    calculate_rates(k, y, u_data);
+
+    {% for eq in ode.jaceqs -%}
+        {{ eq | wordwrap(80) | replace('\n', wrap) }}
+    {% endfor %}
+
+    return NAUNET_SUCCESS;
+
+}
+{% endif %}
+

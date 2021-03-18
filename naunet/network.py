@@ -323,16 +323,11 @@ class Network:
 
 
 class ODESystem(TemplateLoader):
-
-    cpp_func_names = {
-        "cvode_fex": "int fex(realtype t, N_Vector u, N_Vector u_dot, void *user_data)",
-        "cvode_jtv": "int jtv(N_Vector v, N_Vector Jv, realtype t, N_Vector u, N_Vector fu, void *user_data, N_Vector tmp)",
-        "cvode_jac": "int jac(realtype t, N_Vector u, N_Vector fu, SUNMatrix Jac, void *user_data, N_Vector tmp1, N_Vector tmp2, N_Vector tmp3)",
-    }
-
     def __init__(self, info: Info) -> None:
 
         super().__init__()
+
+        self.solver = "cvode"
 
         self.neq = info.n_spec
         self.nreact = info.n_react
@@ -349,12 +344,14 @@ class ODESystem(TemplateLoader):
         self.rhs = ["0.0"] * info.n_spec
         self.jac = ["0.0"] * info.n_spec * info.n_spec
 
+        self.rateeqs = None
+        self.fexeqs = None
+        self.jaceqs = None
+
         self.var = []
 
     def to_ccode(
         self,
-        function: str = "fex",
-        var_rate: bool = True,
         header: bool = True,
         header_prefix: str = None,
         header_file: str = None,
@@ -363,13 +360,9 @@ class ODESystem(TemplateLoader):
         **kwargs,
     ):
 
-        odesym = settings.ode_symbols
+        self.solver = solver
 
-        cpp_func = self.cpp_func_names[f"{solver}_{function}"]
-
-        rate_declare = f"double {odesym['rate']}[{self.nreact}] = {{0.0}};"
-
-        rate_assign = [
+        self.rateeqs = [
             f"if (Tgas>{tmin} && Tgas<{tmax}) {{\n{' = '.join([sym, func])}; \n}}"
             if tmin < tmax
             else f"{' = '.join([sym, func])};"
@@ -378,43 +371,33 @@ class ODESystem(TemplateLoader):
             )
         ]
 
-        if function == "jac":
-            eqns = [
-                f"IJth(Jac, {idx//self.neq}, {idx%self.neq}) = {j};"
-                for idx, j in enumerate(self.jac)
-            ]
-        else:
-            lhs = [
-                f"{odesym[f'{function}_lhs']}[IDX_{x.alias}]" for x in self.net_species
-            ]
-            eqns = [f"{l} = {r};" for l, r in zip(lhs, self.rhs)]
+        lhs = [f"ydot[IDX_{x.alias}]" for x in self.net_species]
+        self.fexeqs = [f"{l} = {r};" for l, r in zip(lhs, self.rhs)]
+        self.jaceqs = [
+            f"IJth(Jac, {idx//self.neq}, {idx%self.neq}) = {j};"
+            for idx, j in enumerate(self.jac)
+        ]
 
         template_prefix = "src/"
-        template_file = f"cv_{function}.cpp.j2"
+        template_file = f"naunet_ode.cpp.j2"
 
         self._write_code(
             template_prefix,
             template_file,
             header=header,
             header_file=header_file,
-            func=cpp_func,
-            vector=odesym["ode_vector"],
-            lhs=odesym[f"{function}_lhs"],
-            varlist=self.var,
-            rate_declare=rate_declare,
-            rate_assign=rate_assign,
-            eqns=eqns,
+            ode=self,
             **kwargs,
         )
 
         if header:
             if not header_file:
-                logger.warning(
+                raise RuntimeError(
                     'Header is used but file name is not assigned, "use header_file="'
                 )
 
             template_prefix = "include/"
-            template_file = f"cv_{function}.h.j2"
+            template_file = f"naunet_ode.h.j2"
 
             self._write_code(
                 template_prefix,
@@ -423,5 +406,5 @@ class ODESystem(TemplateLoader):
                 prefix=header_prefix,
                 file_name=header_file,
                 header=header,
-                func=cpp_func,
+                ode=self,
             )

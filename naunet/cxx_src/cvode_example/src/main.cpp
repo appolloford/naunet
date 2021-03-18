@@ -3,8 +3,6 @@
 #include "naunet.h"
 #include "naunet_userdata.h"
 #include "naunet_constants.h"
-#include "fex.h"
-#include "jtv.h"
 
 int main()
 {

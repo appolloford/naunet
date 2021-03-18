@@ -21,16 +21,14 @@ def test_generate_ccode_from_kida():
         prefix="test/test_output/",
         file_name="naunet_constants.h",
     )
-    for func in ["fex", "jtv", "jac"]:
-        network.ode_expression.to_ccode(
-            function=func,
-            to_file=True,
-            prefix="test/test_output/",
-            file_name=f"{func}.cpp",
-            header=True,
-            header_prefix="test/test_output/",
-            header_file=f"{func}.h",
-        )
+    network.ode_expression.to_ccode(
+        to_file=True,
+        prefix="test/test_output/",
+        file_name=f"naunet_ode.cpp",
+        header=True,
+        header_prefix="test/test_output/",
+        header_file=f"naunet_ode.h",
+    )
 
 
 def test_generate_ccode_from_leeds():
@@ -41,16 +39,14 @@ def test_generate_ccode_from_leeds():
         prefix="test/test_output/",
         file_name="naunet_constants.h",
     )
-    for func in ["fex", "jtv", "jac"]:
-        network.ode_expression.to_ccode(
-            function=func,
-            to_file=True,
-            prefix="test/test_output/",
-            file_name=f"{func}.cpp",
-            header=True,
-            header_prefix="test/test_output/",
-            header_file=f"{func}.h",
-        )
+    network.ode_expression.to_ccode(
+        to_file=True,
+        prefix="test/test_output/",
+        file_name=f"naunet_ode.cpp",
+        header=True,
+        header_prefix="test/test_output/",
+        header_file=f"naunet_ode.h",
+    )
 
 
 def test_generate_ccode_from_krome():
@@ -65,13 +61,11 @@ def test_generate_ccode_from_krome():
         prefix="test/test_output/",
         file_name="naunet_userdata.h",
     )
-    for func in ["fex", "jtv", "jac"]:
-        network.ode_expression.to_ccode(
-            function=func,
-            to_file=True,
-            prefix="test/test_output/",
-            file_name=f"{func}.cpp",
-            header=True,
-            header_prefix="test/test_output/",
-            header_file=f"{func}.h",
-        )
+    network.ode_expression.to_ccode(
+        to_file=True,
+        prefix="test/test_output/",
+        file_name=f"naunet_ode.cpp",
+        header=True,
+        header_prefix="test/test_output/",
+        header_file=f"naunet_ode.h",
+    )
