@@ -270,7 +270,7 @@ class Network:
             self._ode_expression.var.extend(self.reaction_list[0].var)
 
         y = self._ode_expression.y
-        rate_sym = self._ode_expression.rate_sym
+        rates = self._ode_expression.rates
 
         for rl, react in enumerate(self.reaction_list):
             # self._ode_expression.rate_func[rl] = react.rate_func()
@@ -284,9 +284,9 @@ class Network:
             rsym = [y[idx] for idx in ridx]
             rsym_mul = "*".join(rsym)
             for idx in ridx:
-                self._ode_expression.rhs[idx] += f" - {rate_sym[rl]}*{rsym_mul}"
+                self._ode_expression.rhs[idx] += f" - {rates[rl]}*{rsym_mul}"
             for idx in pidx:
-                self._ode_expression.rhs[idx] += f" + {rate_sym[rl]}*{rsym_mul}"
+                self._ode_expression.rhs[idx] += f" + {rates[rl]}*{rsym_mul}"
 
             for idx in ridx:
                 rsym_mul = "*".join(rsym)
@@ -294,14 +294,14 @@ class Network:
                     residue = rsym_mul.replace(f"{y[ri]}*", "", 1)
                     self._ode_expression.jac[
                         idx * self.info.n_spec + ri
-                    ] += f" - {rate_sym[rl]}*{residue}"
+                    ] += f" - {rates[rl]}*{residue}"
             for idx in pidx:
                 rsym_mul = "*".join(rsym)
                 for ri in ridx:
                     residue = rsym_mul.replace(f"{y[ri]}*", "", 1)
                     self._ode_expression.jac[
                         idx * self.info.n_spec + ri
-                    ] += f" + {rate_sym[rl]}*{residue}"
+                    ] += f" + {rates[rl]}*{residue}"
 
         return self._ode_expression
 
@@ -333,14 +333,12 @@ class ODESystem(TemplateLoader):
         self.nreact = info.n_react
         self.net_species = info.net_species
 
-        odesym = settings.ode_symbols
-
-        self.rate_sym = [f"{odesym['rate']}[{r}]" for r in range(info.n_react)]
+        self.rates = [f"k[{r}]" for r in range(info.n_react)]
         self.rate_func = []
         self.rate_mintemp = []
         self.rate_maxtemp = []
 
-        self.y = [f"{odesym['ode_vector']}[IDX_{x.alias}]" for x in info.net_species]
+        self.y = [f"y[IDX_{x.alias}]" for x in info.net_species]
         self.rhs = ["0.0"] * info.n_spec
         self.jac = ["0.0"] * info.n_spec * info.n_spec
 
@@ -367,7 +365,7 @@ class ODESystem(TemplateLoader):
             if tmin < tmax
             else f"{' = '.join([sym, func])};"
             for tmin, tmax, sym, func in zip(
-                self.rate_mintemp, self.rate_maxtemp, self.rate_sym, self.rate_func
+                self.rate_mintemp, self.rate_maxtemp, self.rates, self.rate_func
             )
         ]
 
