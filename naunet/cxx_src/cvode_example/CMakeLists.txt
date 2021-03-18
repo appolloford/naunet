@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
+include(CMakePrintHelpers)
 # set the project name
 project(NAUNET VERSION 0.1.0)
 
@@ -13,15 +14,16 @@ IF (CMAKE_BUILD_TYPE STREQUAL Debug)
     ADD_DEFINITIONS(-DDEBUG)
 ENDIF()
 
-find_library(CVODE sundials_cvode)
-if (NOT CVODE)
-    message(FATAL_ERROR "cvode not found")
-endif()
+SET(SUNDIALS_MIN_VERSION "5.6.1")
 
-find_library(NVECTOR_S sundials_nvecserial)
-if (NOT NVECTOR_S)
-    message(FATAL_ERROR "sundials_nvecserial not found")
-endif()
+find_package(sundials ${SUNDIALS_MIN_VERSION} REQUIRED CONFIG)
+
+IF (CMAKE_BUILD_TYPE STREQUAL Debug)
+    cmake_print_properties(TARGETS SUNDIALS::cvode_static PROPERTIES
+                        LOCATION INTERFACE_INCLUDE_DIRECTORIES)
+    cmake_print_properties(TARGETS SUNDIALS::nvecserial_static PROPERTIES
+                        LOCATION INTERFACE_INCLUDE_DIRECTORIES)
+ENDIF()
 
 add_library(fex STATIC src/fex.cpp)
 target_include_directories(fex PUBLIC include)
@@ -37,10 +39,5 @@ target_include_directories(naunet PUBLIC /usr/local/include)
 
 add_executable(naunet.x src/main.cpp)
 
-target_include_directories(naunet.x PRIVATE include)
-target_include_directories(naunet.x PRIVATE /usr/local/include)
-#link_directories(/usr/local/lib)
-#target_link_libraries(naunet sundials_cvode sundials_nvecserial)
-
-target_link_libraries(naunet.x fex jtv naunet ${CVODE} ${NVECTOR_S})
+target_link_libraries(naunet.x fex jtv naunet SUNDIALS::cvode_static SUNDIALS::nvecserial_static)
 
