@@ -45,13 +45,13 @@ int main()
     realtype time = 0.0, dtyr = 1.0, tend = 1.e8;
     for (time = 0.0; time < tend; time += dtyr)
     {
-        if (time < 1e5)
+        if (time < 1e4)
         {
             dtyr = fmax(9.0 * time, dtyr);
         }
         else
         {
-            dtyr = 1e5;
+            dtyr = 1e4;
         }
         naunet.solve(y, dtyr * spy, data);
         printf("Time = %13.7e yr\n", time);

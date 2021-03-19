@@ -53,44 +53,30 @@ class RenderCommand(Command):
 
         from naunet.network import Network
 
-        header_prefix = os.path.join(Path.cwd(), "include")
-        source_prefix = os.path.join(Path.cwd(), "src")
+        for subdir in ["include", "src", "test"]:
+            prefix = os.path.join(Path.cwd(), subdir)
 
-        if os.path.exists(header_prefix):
-            if not os.path.isdir(header_prefix):
-                raise FileNotFoundError(
-                    errno.ENOENT, os.strerror(errno.ENOENT), header_prefix
-                )
+            if os.path.exists(prefix):
+                if not os.path.isdir(prefix):
+                    raise FileNotFoundError(
+                        errno.ENOENT, os.strerror(errno.ENOENT), prefix
+                    )
 
-            elif os.listdir(header_prefix):
-                overwrite = self.option("force") or self.confirm(
-                    "Non-empty include directory. Overwrite?", False
-                )
+                elif os.listdir(prefix):
+                    overwrite = self.option("force") or self.confirm(
+                        f"Non-empty {subdir} directory. Overwrite?", False
+                    )
 
-                if not overwrite:
-                    sys.exit()
+                    if not overwrite:
+                        sys.exit()
 
-        else:
-            os.mkdir(header_prefix)
-
-        if os.path.exists(source_prefix):
-            if not os.path.isdir(source_prefix):
-                raise FileNotFoundError(
-                    errno.ENOENT, os.strerror(errno.ENOENT), source_prefix
-                )
-
-            elif os.listdir(source_prefix):
-                overwrite = self.option("force") or self.confirm(
-                    "Non-empty source directory. Overwrite?", False
-                )
-
-                if not overwrite:
-                    sys.exit()
-
-        else:
-            os.mkdir(source_prefix)
+            else:
+                os.mkdir(prefix)
 
         net = Network(network, database, species=species)
+
+        header_prefix = os.path.join(Path.cwd(), "include")
+        source_prefix = os.path.join(Path.cwd(), "src")
 
         net.check_duplicate_reaction()
         net.info.to_ccode(
@@ -114,25 +100,31 @@ class RenderCommand(Command):
         )
 
         src_parent_path = Path(naunet.__file__).parent
-        csrc_path = os.path.join(src_parent_path, "cxx_src", "cvode_example", "src")
-        dest_path = os.path.join(Path.cwd(), "src")
+        template_path = os.path.join(src_parent_path, "cxx_src", "cvode_example")
+        csrc_path = os.path.join(template_path, "src")
 
-        incfile = os.path.join(
-            src_parent_path, "cxx_src", "cvode_example", "include", "naunet.h"
-        )
+        for src in ["naunet.cpp"]:
+            srcfile = os.path.join(csrc_path, src)
+            dest = os.path.join(Path.cwd(), "src", src)
+            shutil.copyfile(srcfile, dest)
+
+        inc_path = os.path.join(template_path, "include")
+        incfile = os.path.join(inc_path, "naunet.h")
         dest = os.path.join(Path.cwd(), "include", "naunet.h")
         shutil.copyfile(incfile, dest)
 
-        for src in ["main.cpp", "naunet.cpp"]:
-            srcfile = os.path.join(csrc_path, src)
-            dest = os.path.join(dest_path, src)
-            shutil.copyfile(srcfile, dest)
+        testfile = os.path.join(template_path, "test", "main.cpp")
+        dest = os.path.join(Path.cwd(), "test", "main.cpp")
+        shutil.copyfile(testfile, dest)
 
-        cmakefile = os.path.join(
-            src_parent_path, "cxx_src", "cvode_example", "CMakeLists.txt"
-        )
-        dest = os.path.join(Path.cwd(), "CMakeLists.txt")
-        shutil.copyfile(cmakefile, dest)
+        # parfile = os.path.join(template_path, "test", "timeres.dat")
+        # dest = os.path.join(Path.cwd(), "test", "timeres.dat")
+        # shutil.copyfile(parfile, dest)
+
+        for cmakesrc in ["CMakeLists.txt", "src/CMakeLists.txt", "test/CMakeLists.txt"]:
+            cmakefile = os.path.join(template_path, cmakesrc)
+            dest = os.path.join(Path.cwd(), cmakesrc)
+            shutil.copyfile(cmakefile, dest)
 
         print(self.option("update-species"))
         update = self.option("update-species")
