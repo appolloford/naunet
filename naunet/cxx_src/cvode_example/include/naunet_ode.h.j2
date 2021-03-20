@@ -11,7 +11,7 @@
 {% if ode.solver == "cvode" %}
 #define IJth(A,i,j) SM_ELEMENT_D(A,i,j)
 
-int calculate_rates(realtype *rates, realtype y, void *user_data);
+int calculate_rates(realtype *rates, realtype *y, UserData *user_data);
 int fex(realtype t, N_Vector u, N_Vector u_dot, void *user_data);
 int jtv(N_Vector v, N_Vector Jv, realtype t, N_Vector u, N_Vector fu, 
         void *user_data, N_Vector tmp);

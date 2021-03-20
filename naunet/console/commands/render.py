@@ -117,9 +117,9 @@ class RenderCommand(Command):
         dest = os.path.join(Path.cwd(), "test", "main.cpp")
         shutil.copyfile(testfile, dest)
 
-        # parfile = os.path.join(template_path, "test", "timeres.dat")
-        # dest = os.path.join(Path.cwd(), "test", "timeres.dat")
-        # shutil.copyfile(parfile, dest)
+        parfile = os.path.join(template_path, "test", "timeres.dat")
+        dest = os.path.join(Path.cwd(), "test", "timeres.dat")
+        shutil.copyfile(parfile, dest)
 
         for cmakesrc in ["CMakeLists.txt", "src/CMakeLists.txt", "test/CMakeLists.txt"]:
             cmakefile = os.path.join(template_path, cmakesrc)

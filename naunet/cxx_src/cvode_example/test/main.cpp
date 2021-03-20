@@ -3,6 +3,7 @@
 #include "naunet.h"
 #include "naunet_userdata.h"
 #include "naunet_constants.h"
+#include "naunet_ode.h"
 
 int main()
 {
@@ -40,35 +41,65 @@ int main()
     y[IDX_CI] = 7.3e-6 * nH;
     y[IDX_GRAIN0I] = 1.3215e-12 * nH;
 
+    realtype time[10046];
+    FILE *tfile = fopen("timeres.dat", "r");
+    for (int i = 0; i < 10046; i++)
+    {
+        fscanf(tfile, "%lf\n", time + i);
+    }
+    fclose(tfile);
+
     FILE *fbin = fopen("evolution.bin", "w");
     FILE *ftxt = fopen("evolution.txt", "w");
-    realtype time = 0.0, dtyr = 1.0, tend = 1.e8;
-    for (time = 0.0; time < tend; time += dtyr)
-    {
-        if (time < 1e4)
-        {
-            dtyr = fmax(9.0 * time, dtyr);
-        }
-        else
-        {
-            dtyr = 1e4;
-        }
-        naunet.solve(y, dtyr * spy, data);
-        printf("Time = %13.7e yr\n", time);
+#ifdef NAUNET_DEBUG
+    FILE *rtxt = fopen("reactionrates.txt", "w");
+    realtype rates[NREACTIONS];
+#endif
 
-        fwrite(&time, sizeof(realtype), 1, fbin);
+    realtype dtyr = 1.0, tend = 1.e8;
+    // for (time = 0.0; time < tend; time += dtyr)
+    // {
+    //     if (time < 1e5)
+    //     {
+    //         dtyr = fmax(9.0 * time, dtyr);
+    //     }
+    //     else
+    //     {
+    //         dtyr = 1e5;
+    //     }
+    for (int i = 0; i < 10046; i++)
+    {
+
+#ifdef NAUNET_DEBUG
+        calculate_rates(rates, y, data);
+        for (int j = 0; j < NREACTIONS; j++)
+        {
+            fprintf(rtxt, "%13.7e ", rates[j]);
+        }
+        fprintf(rtxt, "\n");
+#endif
+
+        dtyr = time[i + 1] - time[i];
+
+        fwrite(time + i, sizeof(realtype), 1, fbin);
         fwrite(y, sizeof(realtype), NSPECIES, fbin);
 
-        fprintf(ftxt, "%13.7e ", time);
-        for (int i = 0; i < NSPECIES; i++)
+        fprintf(ftxt, "%13.7e ", time[i]);
+        for (int j = 0; j < NSPECIES; j++)
         {
-            fprintf(ftxt, "%13.7e ", y[i]);
+            fprintf(ftxt, "%13.7e ", y[j]);
         }
         fprintf(ftxt, "\n");
+
+        naunet.solve(y, dtyr * spy, data);
+        printf("Time = %13.7e yr\n", time[i + 1]);
     }
 
     fclose(fbin);
     fclose(ftxt);
+#ifdef NAUNET_DEBUG
+    fclose(rtxt);
+#endif
 
     return 0;
 }
