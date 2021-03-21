@@ -41,7 +41,7 @@ class RenderCommand(Command):
         species = chemistry["species"]
 
         odesolver = content["ODEsolver"]
-        required = odesolver["required"]
+        # required = odesolver["required"]
 
         from pathlib import Path
         import naunet

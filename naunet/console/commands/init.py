@@ -174,13 +174,13 @@ class InitCommand(Command):
 
         odesolver.add("device", device)
 
-        required = self.option("required")
-        if not required:
-            required = self.choice(
-                "List of required functions.", ["fex", "jac", "jtv"], "0", multiple=True
-            )
+        # required = self.option("required")
+        # if not required:
+        #     required = self.choice(
+        #         "List of required functions.", ["fex", "jac", "jtv"], "0", multiple=True
+        #     )
 
-        odesolver.add("required", required)
+        # odesolver.add("required", required)
 
         content.add("ODEsolver", odesolver)
 
