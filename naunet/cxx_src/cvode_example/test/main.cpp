@@ -4,6 +4,7 @@
 #include "naunet_userdata.h"
 #include "naunet_constants.h"
 #include "naunet_ode.h"
+#include "naunet_timer.h"
 
 int main()
 {
@@ -91,8 +92,12 @@ int main()
         }
         fprintf(ftxt, "\n");
 
+        Timer timer;
+        timer.start();
         naunet.solve(y, dtyr * spy, data);
-        printf("Time = %13.7e yr\n", time[i + 1]);
+        timer.stop();
+        float duration = (float) timer.elapsed() / 1e6;
+        printf("Time = %13.7e yr, elapsed: %8.5e sec\n", time[i + 1], duration);
     }
 
     fclose(fbin);
