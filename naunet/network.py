@@ -278,29 +278,31 @@ class Network:
             self._ode_expression.rate_mintemp.append(react.temp_min)
             self._ode_expression.rate_maxtemp.append(react.temp_max)
 
-            ridx = [self.info.net_species.index(r) for r in react.reactants]
-            pidx = [self.info.net_species.index(p) for p in react.products]
+            rspecidx = [self.info.net_species.index(r) for r in react.reactants]
+            pspecidx = [self.info.net_species.index(p) for p in react.products]
 
-            rsym = [y[idx] for idx in ridx]
+            rsym = [y[idx] for idx in rspecidx]
             rsym_mul = "*".join(rsym)
-            for idx in ridx:
-                self._ode_expression.rhs[idx] += f" - {rates[rl]}*{rsym_mul}"
-            for idx in pidx:
-                self._ode_expression.rhs[idx] += f" + {rates[rl]}*{rsym_mul}"
+            for specidx in rspecidx:
+                self._ode_expression.rhs[specidx] += f" - {rates[rl]}*{rsym_mul}"
+            for specidx in pspecidx:
+                self._ode_expression.rhs[specidx] += f" + {rates[rl]}*{rsym_mul}"
 
-            for idx in ridx:
-                rsym_mul = "*".join(rsym)
-                for ri in ridx:
-                    residue = rsym_mul.replace(f"{y[ri]}*", "", 1)
+            for specidx in rspecidx:
+                for ri in rspecidx:
+                    rsymcopy = rsym.copy()
+                    rsymcopy.remove(y[ri])
+                    residue = "*".join(rsymcopy)
                     self._ode_expression.jac[
-                        idx * self.info.n_spec + ri
+                        specidx * self.info.n_spec + ri
                     ] += f" - {rates[rl]}*{residue}"
-            for idx in pidx:
-                rsym_mul = "*".join(rsym)
-                for ri in ridx:
-                    residue = rsym_mul.replace(f"{y[ri]}*", "", 1)
+            for specidx in pspecidx:
+                for ri in rspecidx:
+                    rsymcopy = rsym.copy()
+                    rsymcopy.remove(y[ri])
+                    residue = "*".join(rsymcopy)
                     self._ode_expression.jac[
-                        idx * self.info.n_spec + ri
+                        specidx * self.info.n_spec + ri
                     ] += f" + {rates[rl]}*{residue}"
 
         return self._ode_expression
