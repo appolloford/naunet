@@ -308,18 +308,14 @@ class Network:
                 for ri in rspecidx:
                     rsymcopy = rsym.copy()
                     rsymcopy.remove(y[ri])
-                    residue = "*".join(rsymcopy)
-                    self._ode_expression.jac[
-                        specidx * self.info.n_spec + ri
-                    ] += f" - {rates[rl]}*{residue}"
+                    jac = f" - {'*'.join([rates[rl], *rsymcopy])}"
+                    self._ode_expression.jac[specidx * self.info.n_spec + ri] += jac
             for specidx in pspecidx:
                 for ri in rspecidx:
                     rsymcopy = rsym.copy()
                     rsymcopy.remove(y[ri])
-                    residue = "*".join(rsymcopy)
-                    self._ode_expression.jac[
-                        specidx * self.info.n_spec + ri
-                    ] += f" + {rates[rl]}*{residue}"
+                    jac = f" + {'*'.join([rates[rl], *rsymcopy])}"
+                    self._ode_expression.jac[specidx * self.info.n_spec + ri] += jac
 
         return self._ode_expression
 
@@ -338,6 +334,7 @@ class ODESystem(TemplateLoader):
         super().__init__()
 
         self.solver = "cvode"
+        self.linsolver = "dense"
 
         self.neq = info.n_spec
         self.nreact = info.n_react
@@ -356,6 +353,10 @@ class ODESystem(TemplateLoader):
         self.fexeqs = None
         self.jaceqs = None
 
+        self.jacrptr = []
+        self.jaccval = []
+        self.jacdata = []
+
         self.var = []
 
     def to_ccode(
@@ -364,11 +365,13 @@ class ODESystem(TemplateLoader):
         header_prefix: str = None,
         header_file: str = None,
         solver: str = "cvode",
+        linsolver: str = "dense",
         device: str = "cpu",
         **kwargs,
     ):
 
         self.solver = solver
+        self.linsolver = linsolver
 
         self.rateeqs = [
             f"if (Tgas>{tmin} && Tgas<{tmax}) {{\n{' = '.join([sym, func])}; \n}}"
@@ -385,6 +388,18 @@ class ODESystem(TemplateLoader):
             f"IJth(Jac, {idx//self.neq}, {idx%self.neq}) = {j};"
             for idx, j in enumerate(self.jac)
         ]
+
+        # TODO: Too slow! Optimize it
+        nnz = 0
+        for row in range(self.neq):
+            self.jacrptr.append(f"rowptrs[{row}] = {nnz};")
+            for col in range(self.neq):
+                elem = self.jac[row * self.neq + col]
+                if elem != 0.0:
+                    self.jaccval.append(f"colvals[{nnz}] = {col};")
+                    self.jacdata.append(f"data[{nnz}] = {elem};")
+                    nnz += 1
+        self.jacrptr.append(f"rowptrs[{self.neq}] = {nnz};")
 
         template_prefix = "src/"
         template_file = f"naunet_ode.cpp.j2"

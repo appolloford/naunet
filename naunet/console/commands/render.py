@@ -41,6 +41,9 @@ class RenderCommand(Command):
         species = chemistry["species"]
 
         odesolver = content["ODEsolver"]
+        solver = odesolver["solver"]
+        if solver == "cvode":
+            linsolver = odesolver["linsolver"]
         # required = odesolver["required"]
 
         from pathlib import Path
@@ -91,6 +94,7 @@ class RenderCommand(Command):
         )
 
         net.ode_expression.to_ccode(
+            linsolver=linsolver,
             to_file=True,
             prefix=source_prefix,
             file_name=f"naunet_ode.cpp",
@@ -109,9 +113,10 @@ class RenderCommand(Command):
             shutil.copyfile(srcfile, dest)
 
         inc_path = os.path.join(template_path, "include")
-        incfile = os.path.join(inc_path, "naunet.h")
-        dest = os.path.join(Path.cwd(), "include", "naunet.h")
-        shutil.copyfile(incfile, dest)
+        for inc in ["naunet_timer.h", "naunet.h"]:
+            incfile = os.path.join(inc_path, inc)
+            dest = os.path.join(Path.cwd(), "include", inc)
+            shutil.copyfile(incfile, dest)
 
         testfile = os.path.join(template_path, "test", "main.cpp")
         dest = os.path.join(Path.cwd(), "test", "main.cpp")

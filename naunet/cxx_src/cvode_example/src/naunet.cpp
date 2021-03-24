@@ -47,7 +47,8 @@ Naunet::Naunet() : m_atol(1e-20),
                    m_rtol(1e-5)
 {
     m_y = N_VNew_Serial((sunindextype)NSPECIES);
-    m_a = SUNDenseMatrix(NSPECIES, NSPECIES);
+    // m_a = SUNDenseMatrix(NSPECIES, NSPECIES);
+    m_a = SUNSparseMatrix(NSPECIES, NSPECIES, NSPECIES * NSPECIES, CSR_MAT);
     m_cvode_mem = CVodeCreate(CV_BDF);
     m_ls = NULL;
 };
@@ -90,8 +91,11 @@ int Naunet::solve(realtype *ab, realtype dt, UserData *data)
     // m_ls = SUNLinSol_SPGMR(m_y, 0, 0);
     // if (check_flag((void *)m_ls, "SUNLinSol_SPGMR", 0))
     //     return 1;
-    m_ls = SUNLinSol_Dense(m_y, m_a);
-    if (check_flag((void *)m_ls, "SUNLinSol_Dense", 0))
+    // m_ls = SUNLinSol_Dense(m_y, m_a);
+    // if (check_flag((void *)m_ls, "SUNLinSol_Dense", 0))
+    //     return 1;
+    m_ls = SUNLinSol_KLU(m_y, m_a);
+    if (check_flag((void *)m_ls, "SUNLinSol_KLU", 0))
         return 1;
     // flag = CVSpilsSetLinearSolver(m_cvode_mem, m_ls);
     // if (check_flag(&flag, "CVSpilsSetLinearSolver", 1))
@@ -102,9 +106,9 @@ int Naunet::solve(realtype *ab, realtype dt, UserData *data)
     // flag = CVSpilsSetJacTimes(m_cvode_mem, NULL, jtv);
     // if (check_flag(&flag, "CVSpilsSetJacTimes", 1))
     //     return 1;
-    // flag = CVodeSetJacFn(m_cvode_mem, jac);
-    // if (check_flag(&flag, "CVodeSetJacFn", 1))
-    //     return 1;
+    flag = CVodeSetJacFn(m_cvode_mem, jac);
+    if (check_flag(&flag, "CVodeSetJacFn", 1))
+        return 1;
 
     realtype t0 = 0.0;
     flag = CVode(m_cvode_mem, dt, m_y, &t0, CV_NORMAL);

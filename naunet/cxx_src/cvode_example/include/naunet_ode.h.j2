@@ -4,7 +4,11 @@
 #include <math.h>
 #include <cvode/cvode.h>
 #include <nvector/nvector_serial.h>
+{% if ode.linsolver == "dense" -%}
 #include <sunmatrix/sunmatrix_dense.h> // access to dense SUNMatrix
+{% elif ode.linsolver == "sparse" -%}
+#include <sunmatrix/sunmatrix_sparse.h> // access to sparse SUNMatrix
+{% endif -%}
 #include <sundials/sundials_types.h>   // defs. of realtype, sunindextype
 #include "naunet_constants.h"
 #include "naunet_userdata.h"

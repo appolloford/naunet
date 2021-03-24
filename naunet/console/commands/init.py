@@ -31,6 +31,7 @@ class InitCommand(Command):
         {--database= : The database/format of the chemical network}
         {--solver=cvode : ODE solver}
         {--device=cpu : Device}
+        {--linsolver=dense : Linear solver used in CVode}
         {--required=* : List of required functions}
     """
 
@@ -173,6 +174,18 @@ class InitCommand(Command):
         device = self.ask(question)
 
         odesolver.add("device", device)
+
+        if solver == "cvode":
+            linsolver = self.option("linsolver")
+            question = self.create_question(
+                "Linear solver used in CVode [<comment>{}</comment>]:".format(
+                    linsolver
+                ),
+                default=linsolver,
+            )
+            linsolver = self.ask(question)
+
+            odesolver.add("linsolver", linsolver)
 
         # required = self.option("required")
         # if not required:

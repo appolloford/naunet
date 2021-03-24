@@ -1,15 +1,17 @@
 #ifndef __NAUNET_H__
 #define __NAUNET_H__
 
-#include <cvode/cvode.h>               // prototypes for CVODE fcts., consts.
-#include <nvector/nvector_serial.h>    // access to serial N_Vector
-#include <sunlinsol/sunlinsol_spgmr.h> //access to SPGMR SUNLinearSolver
-#include <cvode/cvode_spils.h>         // access to CVSpils interface
-#include <sunmatrix/sunmatrix_dense.h> // access to dense SUNMatrix
-#include <sunlinsol/sunlinsol_dense.h> // access to dense SUNLinearSolver
-#include <sundials/sundials_dense.h>   // use generic dense solver in precond
-#include <sundials/sundials_types.h>   // defs. of realtype, sunindextype
-#include <sundials/sundials_math.h>    // contains the macros ABS, SUNSQR, EXP
+#include <cvode/cvode.h>                // prototypes for CVODE fcts., consts.
+#include <nvector/nvector_serial.h>     // access to serial N_Vector
+#include <sunlinsol/sunlinsol_spgmr.h>  // access to SPGMR SUNLinearSolver
+#include <cvode/cvode_spils.h>          // access to CVSpils interface
+#include <sunmatrix/sunmatrix_dense.h>  // access to dense SUNMatrix
+#include <sunlinsol/sunlinsol_dense.h>  // access to dense SUNLinearSolver
+#include <sundials/sundials_dense.h>    // use generic dense solver in precond
+#include <sundials/sundials_types.h>    // defs. of realtype, sunindextype
+#include <sundials/sundials_math.h>     // contains the macros ABS, SUNSQR, EXP
+#include <sunmatrix/sunmatrix_sparse.h> // access to sparse SUNMatrix
+#include <sunlinsol/sunlinsol_klu.h>    // access to KLU sparse direct solver
 
 #include "naunet_userdata.h"
 #include "naunet_constants.h"
