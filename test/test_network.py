@@ -29,6 +29,7 @@ def test_generate_ccode_from_kida():
         header_prefix="test/test_output/",
         header_file=f"naunet_ode.h",
     )
+    network.finalize()
 
 
 def test_generate_ccode_from_leeds():
@@ -47,6 +48,7 @@ def test_generate_ccode_from_leeds():
         header_prefix="test/test_output/",
         header_file=f"naunet_ode.h",
     )
+    network.finalize()
 
 
 def test_generate_ccode_from_krome():
@@ -69,3 +71,4 @@ def test_generate_ccode_from_krome():
         header_prefix="test/test_output/",
         header_file=f"naunet_ode.h",
     )
+    network.finalize()

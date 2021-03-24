@@ -96,6 +96,14 @@ class KROMEReaction(Reaction):
         self._parse_string(react_string)
 
     @classmethod
+    def finalize(cls) -> None:
+        # restore the default settings after completing a file
+        print("krome finalize is called")
+        KROMEReaction.reacformat = "idx,r,r,r,p,p,p,p,tmin,tmax,rate"
+        KROMEReaction.common = []
+        KROMEReaction.var = []
+
+    @classmethod
     def preprocessing(cls, line: str) -> str:
         if line.startswith(("#", "//")):
             return ""

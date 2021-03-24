@@ -119,6 +119,7 @@ class Network:
         species: list = None,
     ) -> None:
 
+        self.database_list = set()
         self.reaction_list = []
         self.reactants_in_network = set()
         self.products_in_network = set()
@@ -161,6 +162,7 @@ class Network:
         return new_reactants | new_products
 
     def add_reaction(self, react_string: str, database: str) -> None:
+        self.database_list.update({database})
         new_species = self._add_reaction(react_string, database)
         logger.info("New species are added: {}".format(new_species))
 
@@ -174,6 +176,7 @@ class Network:
             logger.critical(
                 'Try to read in file but database is not assigned. Try again by "add_reaction_from_file"'
             )
+        self.database_list.update({database})
         new_species = set()
         with open(filename, "r") as networkfile:
             for _, line in enumerate(tqdm(networkfile.readlines())):
@@ -182,6 +185,14 @@ class Network:
             # print("New species: \n{}".format("\n".join(str(x) for x in new_species)))
 
         self._info = None
+
+    @property
+    def allowed_species(self):
+        return self._allowed_species
+
+    @allowed_species.setter
+    def allowed_species(self, speclist: list):
+        self._allowed_species = speclist
 
     def check_duplicate_reaction(self, full_check: bool = True):
 
@@ -223,6 +234,11 @@ class Network:
             print("Found sources: ", source)
         elif len(sink) != 0:
             print("Found sinks: ", sink)
+
+    def finalize(self):
+        for db in list(self.database_list):
+            if supported_reaction_class.get(db):
+                supported_reaction_class.get(db).finalize()
 
     @property
     def info(self):
@@ -306,14 +322,6 @@ class Network:
                     ] += f" + {rates[rl]}*{residue}"
 
         return self._ode_expression
-
-    @property
-    def allowed_species(self):
-        return self._allowed_species
-
-    @allowed_species.setter
-    def allowed_species(self, speclist: list):
-        self._allowed_species = speclist
 
     @property
     def userdata(self):

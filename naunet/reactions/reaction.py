@@ -124,6 +124,10 @@ class Reaction(ABC):
             return Species(species_name)
 
     @classmethod
+    def finalize(cls) -> None:
+        pass
+
+    @classmethod
     def preprocessing(cls, line: str) -> str:
         return line
 
