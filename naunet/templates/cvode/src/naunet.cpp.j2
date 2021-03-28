@@ -47,8 +47,11 @@ Naunet::Naunet() : m_atol(1e-20),
                    m_rtol(1e-5)
 {
     m_y = N_VNew_Serial((sunindextype)NSPECIES);
-    // m_a = SUNDenseMatrix(NSPECIES, NSPECIES);
-    m_a = SUNSparseMatrix(NSPECIES, NSPECIES, NSPECIES * NSPECIES, CSR_MAT);
+    {% if info.method == "dense" -%}
+    m_a = SUNDenseMatrix(NSPECIES, NSPECIES);
+    {% elif info.method == "sparse" -%}
+    m_a = SUNSparseMatrix(NSPECIES, NSPECIES, NNZ, CSR_MAT);
+    {% endif -%}
     m_cvode_mem = CVodeCreate(CV_BDF);
     m_ls = NULL;
 };
@@ -88,15 +91,23 @@ int Naunet::solve(realtype *ab, realtype dt, UserData *data)
     flag = CVodeSetUserData(m_cvode_mem, data);
     if (check_flag(&flag, "CVodeSetUserData", 1))
         return 1;
-    // m_ls = SUNLinSol_SPGMR(m_y, 0, 0);
-    // if (check_flag((void *)m_ls, "SUNLinSol_SPGMR", 0))
-    //     return 1;
-    // m_ls = SUNLinSol_Dense(m_y, m_a);
-    // if (check_flag((void *)m_ls, "SUNLinSol_Dense", 0))
-    //     return 1;
+
+    {% if info.method == "dense" -%}
+
+    m_ls = SUNLinSol_Dense(m_y, m_a);
+    if (check_flag((void *)m_ls, "SUNLinSol_Dense", 0))
+        return 1;
+    
+    {% elif info.method == "sparse" -%}
+
     m_ls = SUNLinSol_KLU(m_y, m_a);
     if (check_flag((void *)m_ls, "SUNLinSol_KLU", 0))
         return 1;
+
+    {% endif -%}
+    // m_ls = SUNLinSol_SPGMR(m_y, 0, 0);
+    // if (check_flag((void *)m_ls, "SUNLinSol_SPGMR", 0))
+    //     return 1;
     // flag = CVSpilsSetLinearSolver(m_cvode_mem, m_ls);
     // if (check_flag(&flag, "CVSpilsSetLinearSolver", 1))
     //     return 1;

@@ -87,18 +87,19 @@ class RenderCommand(Command):
         tl.render_constants(prefix=header_prefix)
         tl.render_userdata(prefix=header_prefix)
         tl.render_ode(prefix=source_prefix, headerprefix=header_prefix)
+        tl.render_naunet(prefix=source_prefix, headerprefix=header_prefix)
 
         src_parent_path = Path(naunet.__file__).parent
         template_path = os.path.join(src_parent_path, "templates", "cvode")
         csrc_path = os.path.join(template_path, "src")
 
-        for src in ["naunet.cpp"]:
-            srcfile = os.path.join(csrc_path, src)
-            dest = os.path.join(Path.cwd(), "src", src)
-            shutil.copyfile(srcfile, dest)
+        # for src in ["naunet.cpp"]:
+        #     srcfile = os.path.join(csrc_path, src)
+        #     dest = os.path.join(Path.cwd(), "src", src)
+        #     shutil.copyfile(srcfile, dest)
 
         inc_path = os.path.join(template_path, "include")
-        for inc in ["naunet_timer.h", "naunet.h"]:
+        for inc in ["naunet_timer.h"]:
             incfile = os.path.join(inc_path, inc)
             dest = os.path.join(Path.cwd(), "include", inc)
             shutil.copyfile(incfile, dest)

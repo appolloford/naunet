@@ -68,6 +68,13 @@ class TemplateLoader(ABC):
             result = template.render(**kwargs)
             print(result)
 
+    def render(self, prefix="./", save=True):
+
+        self.render_constants(prefix=prefix, save=save)
+        self.render_userdata(prefix=prefix, save=save)
+        self.render_ode(prefix=prefix, save=save)
+        self.render_naunet(prefix=prefix, save=save)
+
     # def render_cmake(self)
 
     def render_constants(
@@ -81,14 +88,29 @@ class TemplateLoader(ABC):
             template, prefix, name, save, constants=self._constants, info=self._info
         )
 
-    def render_userdata(
-        self, prefix: str = "./", name: str = None, save: bool = True
-    ) -> None:
-        if not name and save:
-            name = "naunet_userdata.h"
+    def render_naunet(
+        self,
+        prefix: str = "./",
+        name: str = None,
+        save: bool = True,
+        headerprefix: str = None,
+        headername: str = None,
+        header: bool = True,
+    ):
 
-        template = self._env.get_template("include/naunet_userdata.h.j2")
-        self._render(template, prefix, name, save, userdata=self._userdata)
+        if save:
+            name = name if name else "naunet.cpp"
+            headername = headername if headername else "naunet.h"
+            headerprefix = headerprefix if headerprefix else prefix
+
+        if header:
+            headername = headername if headername else "naunet.h"
+            self._ode.header = headername
+            template = self._env.get_template("include/naunet.h.j2")
+            self._render(template, headerprefix, headername, save, info=self._info)
+
+        template = self._env.get_template("src/naunet.cpp.j2")
+        self._render(template, prefix, name, save, info=self._info)
 
     def render_ode(
         self,
@@ -106,6 +128,7 @@ class TemplateLoader(ABC):
             headerprefix = headerprefix if headerprefix else prefix
 
         if header:
+            headername = headername if headername else "naunet_ode.h"
             self._ode.header = headername
             template = self._env.get_template("include/naunet_ode.h.j2")
             self._render(
@@ -115,11 +138,14 @@ class TemplateLoader(ABC):
         template = self._env.get_template("src/naunet_ode.cpp.j2")
         self._render(template, prefix, name, save, ode=self._ode, info=self._info)
 
-    def render(self, prefix="./", save=True):
+    def render_userdata(
+        self, prefix: str = "./", name: str = None, save: bool = True
+    ) -> None:
+        if not name and save:
+            name = "naunet_userdata.h"
 
-        self.render_constants(prefix=prefix, save=save)
-        self.render_userdata(prefix=prefix, save=save)
-        self.render_ode(prefix=prefix, save=save)
+        template = self._env.get_template("include/naunet_userdata.h.j2")
+        self._render(template, prefix, name, save, userdata=self._userdata)
 
 
 class CVodeTemplateLoader(TemplateLoader):
