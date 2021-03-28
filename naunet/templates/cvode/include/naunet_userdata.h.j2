@@ -5,8 +5,8 @@
 class UserData
 {
 public:
-    {% for var in variables -%}
-        {{ var }}
+    {% for v in userdata.var -%}
+        {{ v }}
     {% endfor %}
 
 };

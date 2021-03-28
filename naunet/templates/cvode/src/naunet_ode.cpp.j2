@@ -1,12 +1,12 @@
 {% if header %}
-#include "{{ header_file }}"
+#include "{{ header }}"
 {% else %}
 #include <math.h>
 #include <cvode/cvode.h>
 #include <nvector/nvector_serial.h>
-{% if ode.linsolver == "dense" -%}
+{% if info.method == "dense" -%}
 #include <sunmatrix/sunmatrix_dense.h> // access to dense SUNMatrix
-{% elif ode.linsolver == "dense" -%}
+{% elif info.method == "sparse" -%}
 #include <sunmatrix/sunmatrix_sparse.h> // access to sparse SUNMatrix
 {% endif -%}
 #include <sundials/sundials_types.h>   // defs. of realtype, sunindextype
@@ -15,7 +15,6 @@
 {% endif %}
 
 
-{% if ode.solver == "cvode" %}
 int calculate_rates(realtype *k, realtype *y, UserData *u_data)
 {
 
@@ -32,7 +31,7 @@ int calculate_rates(realtype *k, realtype *y, UserData *u_data)
 
     {% set wrap = "\n        " -%}
     {% set bclose = wrap + "}" -%}
-    {% for assign in ode.rateeqs -%}
+    {% for assign in ode.rateeqns -%}
         {{ assign | wordwrap(80) | replace("\n", wrap) | replace(bclose, '\n    }') }}
         {{ "" }}
     {% endfor %}
@@ -53,7 +52,7 @@ int fex(realtype t, N_Vector u, N_Vector u_dot, void *user_data)
     realtype k[NREACTIONS] = {0.0};
     calculate_rates(k, y, u_data);
 
-    {% for eq in ode.fexeqs -%}
+    {% for eq in ode.fex -%}
         {{ eq | wordwrap(80) | replace('\n', wrap) }}
     {% endfor %}
 
@@ -76,7 +75,7 @@ int jtv(N_Vector v, N_Vector Jv, realtype t, N_Vector u, N_Vector fu,
     realtype k[NREACTIONS] = {0.0};
     calculate_rates(k, y, u_data);
 
-    {% for eq in ode.fexeqs -%}
+    {% for eq in ode.fex -%}
         {{ eq | wordwrap(80) | replace('\n', wrap) }}
     {% endfor %}
 
@@ -90,7 +89,7 @@ int jtv(N_Vector v, N_Vector Jv, realtype t, N_Vector u, N_Vector fu,
 int jac(realtype t, N_Vector u, N_Vector fu, SUNMatrix Jac, 
         void *user_data, N_Vector tmp1, N_Vector tmp2, N_Vector tmp3)
 {
-{% if ode.linsolver == "dense" %}
+{% if info.method == "dense" %}
     realtype *y = N_VGetArrayPointer(u);
     UserData *u_data = (UserData*) user_data;
     {% for v in ode.var -%}
@@ -100,11 +99,11 @@ int jac(realtype t, N_Vector u, N_Vector fu, SUNMatrix Jac,
     realtype k[NREACTIONS] = {0.0};
     calculate_rates(k, y, u_data);
 
-    {% for eq in ode.jaceqs -%}
+    {% for eq in ode.jac -%}
         {{ eq | wordwrap(80) | replace('\n', wrap) }}
     {% endfor %}
 
-{% elif ode.linsolver == "sparse" -%}
+{% elif info.method == "sparse" -%}
     realtype *y = N_VGetArrayPointer(u);;
     sunindextype *rowptrs = SUNSparseMatrix_IndexPointers(Jac);
     sunindextype *colvals = SUNSparseMatrix_IndexValues(Jac);
@@ -114,22 +113,21 @@ int jac(realtype t, N_Vector u, N_Vector fu, SUNMatrix Jac,
     realtype k[NREACTIONS] = {0.0};
     calculate_rates(k, y, u_data);
 
-    {% for rptr in ode.jacrptr -%}
+    {% for rptr in ode.spjacrptr -%}
         {{ rptr }}
     {% endfor %}
 
-    {% for cval in ode.jaccval -%}
+    {% for cval in ode.spjaccval -%}
         {{ cval }}
     {% endfor %}
 
-    {% for data in ode.jacdata -%}
+    {% for data in ode.spjacdata -%}
         {{ data }}
     {% endfor %}
 
-{% endif -%}
+{% endif %}
 
     return NAUNET_SUCCESS;
 
 }
-{% endif %}
 

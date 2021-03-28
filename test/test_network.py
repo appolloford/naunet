@@ -1,3 +1,4 @@
+from sys import prefix
 import pytest
 from naunet.network import Network
 
@@ -16,59 +17,18 @@ def test_check_duplicate():
 def test_generate_ccode_from_kida():
     network = Network("test/test_input/simple_test.dat", "kida")
     network.check_duplicate_reaction()
-    network.info.to_ccode(
-        to_file=True,
-        prefix="test/test_output/",
-        file_name="naunet_constants.h",
-    )
-    network.ode_expression.to_ccode(
-        to_file=True,
-        prefix="test/test_output/",
-        file_name=f"naunet_ode.cpp",
-        header=True,
-        header_prefix="test/test_output/",
-        header_file=f"naunet_ode.h",
-    )
+    network.to_code(linsolver="sparse", prefix="test/test_output/")
     network.finalize()
 
 
 def test_generate_ccode_from_leeds():
     network = Network("test/test_input/rate12_twobody_HO.rates", "leeds")
     network.check_duplicate_reaction()
-    network.info.to_ccode(
-        to_file=True,
-        prefix="test/test_output/",
-        file_name="naunet_constants.h",
-    )
-    network.ode_expression.to_ccode(
-        to_file=True,
-        prefix="test/test_output/",
-        file_name=f"naunet_ode.cpp",
-        header=True,
-        header_prefix="test/test_output/",
-        header_file=f"naunet_ode.h",
-    )
+    network.to_code(prefix="test/test_output/")
     network.finalize()
 
 
 def test_generate_ccode_from_krome():
     network = Network("test/test_input/react_primordial.krome", "krome")
-    network.info.to_ccode(
-        to_file=True,
-        prefix="test/test_output/",
-        file_name="naunet_constants.h",
-    )
-    network.userdata.to_ccode(
-        to_file=True,
-        prefix="test/test_output/",
-        file_name="naunet_userdata.h",
-    )
-    network.ode_expression.to_ccode(
-        to_file=True,
-        prefix="test/test_output/",
-        file_name=f"naunet_ode.cpp",
-        header=True,
-        header_prefix="test/test_output/",
-        header_file=f"naunet_ode.h",
-    )
+    network.to_code(prefix="test/test_output/")
     network.finalize()

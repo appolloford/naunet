@@ -4,10 +4,13 @@
 #define NAUNET_SUCCESS 0
 #define NAUNET_FAIL 1
 
-{{ nspec_def }}
-{{ nreac_def }}
+{{ constants.nspec }}
+{{ constants.nreact }}
+{% if info.linsolver == "sparse" -%}
+{{ constants.nnz }}
+{% endif %}
 
-{% for idx in spec_idx -%}
+{% for idx in constants.speclist -%}
     {{ idx }}
 {% endfor %}
 
