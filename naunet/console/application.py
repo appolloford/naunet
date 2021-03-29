@@ -6,6 +6,7 @@ from ..__version__ import __version__
 
 from .commands.init import InitCommand
 from .commands.render import RenderCommand
+from .commands.example import ExampleCommand
 
 
 class Application(BaseApplication):
@@ -19,6 +20,7 @@ class Application(BaseApplication):
         commands = [
             InitCommand(),
             RenderCommand(),
+            ExampleCommand(),
         ]
 
         return commands

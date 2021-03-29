@@ -24,15 +24,14 @@ class InitCommand(Command):
     init
         {--name= : Name of the project}
         {--description= : Description of the project}
-        {--elements=* : List of elements}
-        {--pseudo-elements=* : List of pseudo elements}
-        {--species=* : List of species}
+        {--elements= : List of elements}
+        {--pseudo-elements= : List of pseudo elements}
+        {--species= : List of species}
         {--network= : Source of chemical network file}
         {--database= : The database/format of the chemical network}
         {--solver=cvode : ODE solver}
         {--device=cpu : Device}
         {--linsolver=dense : Linear solver used in CVode}
-        {--required=* : List of required functions}
     """
 
     def __init__(self):
@@ -85,7 +84,7 @@ class InitCommand(Command):
 
         chemistry = table()
 
-        element = self.option("elements")
+        element = self.option("elements").split(",")
         if not element:
 
             element = default_element_list
@@ -100,7 +99,7 @@ class InitCommand(Command):
 
         chemistry.add("elements", element)
 
-        pseudo_element = self.option("pseudo-elements")
+        pseudo_element = self.option("pseudo-elements").split(",")
         if not pseudo_element:
 
             pseudo_element = default_pseudo_element_list
@@ -115,12 +114,15 @@ class InitCommand(Command):
 
         chemistry.add("pseudo_elements", pseudo_element)
 
-        species = self.option("species")
-        question = self.create_question(
-            "Species incuded in the network [<comment>{}</comment>]:".format(species),
-            default=species,
-        )
-        species = self.ask(question)
+        species = self.option("species").split(",")
+        if not species:
+            question = self.create_question(
+                "Species incuded in the network [<comment>{}</comment>]:".format(
+                    species
+                ),
+                default=species,
+            )
+            species = self.ask(question)
 
         chemistry.add("species", species)
 
@@ -159,31 +161,35 @@ class InitCommand(Command):
         odesolver = table()
 
         solver = self.option("solver")
-        question = self.create_question(
-            "Chemical solver [<comment>{}</comment>]:".format(solver), default=solver
-        )
-        solver = self.ask(question)
+        if not solver:
+            question = self.create_question(
+                "Chemical solver [<comment>{}</comment>]:".format(solver),
+                default=solver,
+            )
+            solver = self.ask(question)
 
         odesolver.add("solver", solver)
 
         device = self.option("device")
-        question = self.create_question(
-            "Computational device [<comment>{}</comment>]:".format(device),
-            default=device,
-        )
-        device = self.ask(question)
+        if not device:
+            question = self.create_question(
+                "Computational device [<comment>{}</comment>]:".format(device),
+                default=device,
+            )
+            device = self.ask(question)
 
         odesolver.add("device", device)
 
         if solver == "cvode":
             linsolver = self.option("linsolver")
-            question = self.create_question(
-                "Linear solver used in CVode [<comment>{}</comment>]:".format(
-                    linsolver
-                ),
-                default=linsolver,
-            )
-            linsolver = self.ask(question)
+            if not linsolver:
+                question = self.create_question(
+                    "Linear solver used in CVode [<comment>{}</comment>]:".format(
+                        linsolver
+                    ),
+                    default=linsolver,
+                )
+                linsolver = self.ask(question)
 
             odesolver.add("linsolver", linsolver)
 

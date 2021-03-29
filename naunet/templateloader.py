@@ -105,12 +105,18 @@ class TemplateLoader(ABC):
 
         if header:
             headername = headername if headername else "naunet.h"
-            self._ode.header = headername
             template = self._env.get_template("include/naunet.h.j2")
-            self._render(template, headerprefix, headername, save, info=self._info)
+            self._render(
+                template,
+                headerprefix,
+                headername,
+                save,
+                info=self._info,
+                header=headername,
+            )
 
         template = self._env.get_template("src/naunet.cpp.j2")
-        self._render(template, prefix, name, save, info=self._info)
+        self._render(template, prefix, name, save, info=self._info, header=headername)
 
     def render_ode(
         self,

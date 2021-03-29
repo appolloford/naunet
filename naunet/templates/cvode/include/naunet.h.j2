@@ -1,21 +1,27 @@
 #ifndef __NAUNET_H__
 #define __NAUNET_H__
 
+{% if header %}
 #include <cvode/cvode.h>                // prototypes for CVODE fcts., consts.
 #include <nvector/nvector_serial.h>     // access to serial N_Vector
 #include <sunlinsol/sunlinsol_spgmr.h>  // access to SPGMR SUNLinearSolver
 #include <cvode/cvode_spils.h>          // access to CVSpils interface
+{% if info.method == "dense" -%}
 #include <sunmatrix/sunmatrix_dense.h>  // access to dense SUNMatrix
 #include <sunlinsol/sunlinsol_dense.h>  // access to dense SUNLinearSolver
 #include <sundials/sundials_dense.h>    // use generic dense solver in precond
+{% elif info.method == "sparse" -%}
+#include <sunmatrix/sunmatrix_sparse.h> // access to sparse SUNMatrix
+{% endif -%}
 #include <sundials/sundials_types.h>    // defs. of realtype, sunindextype
 #include <sundials/sundials_math.h>     // contains the macros ABS, SUNSQR, EXP
-#include <sunmatrix/sunmatrix_sparse.h> // access to sparse SUNMatrix
 #include <sunlinsol/sunlinsol_klu.h>    // access to KLU sparse direct solver
 
 #include "naunet_userdata.h"
 #include "naunet_constants.h"
 #include "naunet_ode.h"
+{% endif %}
+
 
 class Naunet
 {
