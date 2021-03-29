@@ -16,6 +16,7 @@ lark = "^0.11.1"
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.0"
 coverage = "^5.4"
+black = {version = "^20.8b1", allow-prereleases = true}
 
 [tool.poetry.scripts]
 naunet = "naunet.console:main"

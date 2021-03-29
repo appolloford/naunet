@@ -141,6 +141,5 @@ dmypy.json
 cython_debug/
 
 # some temporary files
-conftest.py
 test.ipynb
 test/test_output/
