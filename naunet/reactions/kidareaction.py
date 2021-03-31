@@ -5,6 +5,16 @@ from .reaction import Reaction, ReactionType
 
 
 class KIDAReaction(Reaction):
+
+    variables = {
+        "Hnuclei": "nH",
+        "CRIR": "zeta",
+        "Temperature": "Tgas",
+        "VisualExtinction": "Av",
+        "UVPHOT": "uv",
+    }
+    user_var = []
+
     def __init__(self, react_string, *args, **kwargs) -> None:
         super().__init__(react_string)
 
@@ -22,9 +32,9 @@ class KIDAReaction(Reaction):
         b = self.beta
         c = self.gamma
         formula = self.formula
-        zeta = settings.user_symbols["CRIR"]
-        Tgas = settings.user_symbols["Temperature"]
-        Av = settings.user_symbols["VisualExtinction"]
+        zeta = KIDAReaction.variables["CRIR"]
+        Tgas = KIDAReaction.variables["Temperature"]
+        Av = KIDAReaction.variables["VisualExtinction"]
         if formula == 1:
             rate = f"{a} * {zeta}"
         elif formula == 2:

@@ -123,7 +123,7 @@ class RenderCommand(Command):
             update = self.confirm("Update species in configure file?", False)
 
         if update or (update_option and update_option.lower != "false"):
-            chemistry["species"] = [x.name for x in net.info.net_species]
+            chemistry["species"] = [x.name for x in net.info.species]
 
             content["chemistry"] = chemistry
 

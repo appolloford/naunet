@@ -192,18 +192,19 @@ class CVodeTemplateLoader(TemplateLoader):
     def _prepare_contents(self, netinfo: object, linsolver: str, device: str) -> None:
         n_spec = netinfo.n_spec
         n_react = netinfo.n_react
-        net_species = netinfo.net_species
-        reaction_list = netinfo.reaction_list
+        species = netinfo.species
+        reactions = netinfo.reactions
+        databases = netinfo.databases
 
         self._info = self.InfoContent(linsolver, device)
 
         nspec = f"#define NSPECIES {n_spec}"
         nreact = f"#define NREACTIONS {n_react}"
-        speclist = [f"#define IDX_{x.alias} {i}" for i, x in enumerate(net_species)]
+        speclist = [f"#define IDX_{x.alias} {i}" for i, x in enumerate(species)]
 
         self._constants = self.ConstantsContent(nspec, nreact, speclist)
 
-        var = [f"double {v};" for v in settings.user_symbols.values()]
+        var = [f"double {v};" for db in databases for v in db.variables.values()]
         user_var = []
 
         self._userdata = self.UserdataContent(var, user_var)
@@ -213,16 +214,16 @@ class CVodeTemplateLoader(TemplateLoader):
             f"if (Tgas>{reac.temp_min} && Tgas<{reac.temp_max}) {{\n{' = '.join([rate, reac.rate_func()])}; \n}}"
             if reac.temp_min < reac.temp_max
             else f"{' = '.join([rate, reac.rate_func()])};"
-            for rate, reac in zip(rates, reaction_list)
+            for rate, reac in zip(rates, reactions)
         ]
 
-        y = [f"y[IDX_{x.alias}]" for x in net_species]
+        y = [f"y[IDX_{x.alias}]" for x in species]
         rhs = ["0.0"] * n_spec
         jacrhs = ["0.0"] * n_spec * n_spec
-        for rl, react in enumerate(tqdm(reaction_list, desc="Preparing ODE...")):
+        for rl, react in enumerate(tqdm(reactions, desc="Preparing ODE...")):
 
-            rspecidx = [net_species.index(r) for r in react.reactants]
-            pspecidx = [net_species.index(p) for p in react.products]
+            rspecidx = [species.index(r) for r in react.reactants]
+            pspecidx = [species.index(p) for p in react.products]
 
             rsym = [y[idx] for idx in rspecidx]
             rsym_mul = "*".join(rsym)
@@ -244,7 +245,7 @@ class CVodeTemplateLoader(TemplateLoader):
                     term = f" + {'*'.join([rates[rl], *rsymcopy])}"
                     jacrhs[specidx * n_spec + ri] += term
 
-        lhs = [f"ydot[IDX_{x.alias}]" for x in net_species]
+        lhs = [f"ydot[IDX_{x.alias}]" for x in species]
         fex = [f"{l} = {r};" for l, r in zip(lhs, rhs)]
         jac = [
             f"IJth(Jac, {idx//n_spec}, {idx%n_spec}) = {j};"
@@ -268,11 +269,11 @@ class CVodeTemplateLoader(TemplateLoader):
             spjacrptr.append(f"rowptrs[{n_spec}] = {nnz};")
             self._constants.nnz = f"#define NNZ {nnz}"
 
-        var = [f"realtype {v} = u_data->{v};" for v in settings.user_symbols.values()]
+        var = [f"realtype {v} = u_data->{v};" for db in databases for v in db.variables.values()]
 
-        additionalvar = hasattr(reaction_list[0], "var")
-        if additionalvar and len(reaction_list[0].var):
-            var.extend(reaction_list[0].var)
+        for db in databases:
+            if len(db.user_var) > 0:
+                var.extend(db.user_var)
 
         self._ode = self.ODEContent(
             linsolver,

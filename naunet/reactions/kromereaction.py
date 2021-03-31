@@ -80,8 +80,11 @@ class FtoCCoverter:
 class KROMEReaction(Reaction):
 
     reacformat = "idx,r,r,r,p,p,p,p,tmin,tmax,rate"
-    common = []
-    var = []
+    variables = {
+        "Hnuclei": "nH",
+        "Temperature": "Tgas",
+    }
+    user_var = []
 
     def __init__(self, react_string, *args, **kwargs) -> None:
         super().__init__(react_string)
@@ -100,8 +103,8 @@ class KROMEReaction(Reaction):
         # restore the default settings after completing a file
         print("krome finalize is called")
         KROMEReaction.reacformat = "idx,r,r,r,p,p,p,p,tmin,tmax,rate"
-        KROMEReaction.common = []
-        KROMEReaction.var = []
+        KROMEReaction.variables = []
+        KROMEReaction.user_var = []
 
     @classmethod
     def preprocessing(cls, line: str) -> str:
@@ -112,12 +115,11 @@ class KROMEReaction(Reaction):
             return ""
         elif line.startswith("@var"):
             if "Hnuclei" not in line:
-                KROMEReaction.var.append(line.replace("@var:", "").strip())
+                KROMEReaction.user_var.append(line.replace("@var:", "").strip())
             return ""
         elif line.startswith("@common:"):
             commonlist = line.replace("@common:", "").strip().split(",")
-            KROMEReaction.common.extend(commonlist)
-            settings.user_symbols.update(zip(commonlist, commonlist))
+            KROMEReaction.variables.update(zip(commonlist, commonlist))
             return ""
         else:
             return line.strip()

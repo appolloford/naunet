@@ -33,6 +33,10 @@ class ReactionType(Enum):
 
 
 class Reaction(ABC):
+
+    variables = {}
+    user_var = []
+
     def __init__(self, react_string, *args, **kwargs) -> None:
         self.reactants = []
         self.products = []

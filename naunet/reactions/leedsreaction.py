@@ -11,6 +11,15 @@ class LEEDSReaction(Reaction):
     The name can be changed anytime
     """
 
+    variables = {
+        "Hnuclei": "nH",
+        "CRIR": "zeta",
+        "Temperature": "Tgas",
+        "VisualExtinction": "Av",
+        "UVPHOT": "uv",
+    }
+    user_var = []
+
     def __init__(self, react_string, *args, **kwargs) -> None:
         super().__init__(react_string)
 
@@ -27,9 +36,9 @@ class LEEDSReaction(Reaction):
         b = self.beta
         c = self.gamma
         rtype = self.rtype
-        zeta = settings.user_symbols["CRIR"]
-        Tgas = settings.user_symbols["Temperature"]
-        Av = settings.user_symbols["VisualExtinction"]
+        zeta = LEEDSReaction.variables["CRIR"]
+        Tgas = LEEDSReaction.variables["Temperature"]
+        Av = LEEDSReaction.variables["VisualExtinction"]
 
         # TODO: finish the remaining type of reactions
         if rtype == 1:

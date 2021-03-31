@@ -31,11 +31,12 @@ def reaction_factory(react_string: str, database: str) -> Reaction:
 
 class Network:
     class Info:
-        def __init__(self, net_species: list, reaction_list: list) -> None:
-            self.n_spec = len(net_species)
-            self.n_react = len(reaction_list)
-            self.net_species = net_species
-            self.reaction_list = reaction_list
+        def __init__(self, species: list, reactions: list, databases: list) -> None:
+            self.n_spec = len(species)
+            self.n_react = len(reactions)
+            self.species = species
+            self.reactions = reactions
+            self.databases = databases
 
     def __init__(
         self,
@@ -167,10 +168,11 @@ class Network:
             return self._info
 
         speclist = sorted(self.reactants_in_network | self.products_in_network)
-        self._info = self.Info(speclist, self.reaction_list)
+        databaselist = [supported_reaction_class.get(db) for db in self.database_list]
+        self._info = self.Info(speclist, self.reaction_list, databaselist)
         logger.info(
             "{} species in the network: {}".format(
-                self._info.n_spec, ", ".join([x.name for x in self._info.net_species])
+                self._info.n_spec, ", ".join([x.name for x in self._info.species])
             )
         )
 

@@ -14,16 +14,6 @@ surface_symbol = "#"
 
 charge_symbols = ["+", "-"]
 
-user_symbols = {}
-
-default_user_symbols = {
-    "Hnuclei": "nH",
-    "CRIR": "zeta",
-    "Temperature": "Tgas",
-    "VisualExtinction": "Av",
-    "UVPHOT": "uv",
-}
-
 ode_symbols = {
     "ode_vector": "y",
     "fex_lhs": "ydot",
@@ -146,11 +136,6 @@ def _initialize_pseudo_element(input_pseudo_element_list):
     pseudo_element_list.clear()
     pseudo_element_list.extend(input_pseudo_element_list)
 
-
-def _initialize_user_symbols(input_user_symbols):
-    user_symbols.update(input_user_symbols)
-
-
 def _initialize_from_file(filename):
     with open(filename):
         pass
@@ -159,7 +144,6 @@ def _initialize_from_file(filename):
 def initialize(
     element: list = [],
     pseudo_element: list = [],
-    user_symbol: list = [],
     filename: str = None,
 ):
 
@@ -181,7 +165,6 @@ def initialize(
         # print(default_pseudo_element_list, default_element_list)
         _initialize_element(default_element_list)
         _initialize_pseudo_element(default_pseudo_element_list)
-        _initialize_user_symbols(default_user_symbols)
 
     all_element = element_list + pseudo_element_list
 
@@ -192,8 +175,6 @@ def initialize(
             "{} are repeated in element list. Continue?".format(dup_element),
             default=True,
         )
-
-    user_symbols.update(default_user_symbols)
 
     setting_initialized = True
 
