@@ -96,7 +96,7 @@ int main()
         timer.start();
         naunet.solve(y, dtyr * spy, data);
         timer.stop();
-        float duration = (float) timer.elapsed() / 1e6;
+        float duration = (float)timer.elapsed() / 1e6;
         printf("Time = %13.7e yr, elapsed: %8.5e sec\n", time[i + 1], duration);
     }
 

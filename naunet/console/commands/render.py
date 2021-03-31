@@ -117,7 +117,6 @@ class RenderCommand(Command):
             dest = os.path.join(Path.cwd(), cmakesrc)
             shutil.copyfile(cmakefile, dest)
 
-        print(self.option("update-species"))
         update = self.option("update-species")
         if not update:
             update = self.confirm("Update species in configure file?", False)

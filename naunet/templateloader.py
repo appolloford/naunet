@@ -129,7 +129,13 @@ class TemplateLoader(ABC):
     ) -> None:
 
         if save:
-            name = name if name else "naunet_ode.cpp"
+            name = (
+                name
+                if name
+                else "naunet_ode.cu"
+                if self._info.device == "gpu"
+                else "naunet_ode.cpp"
+            )
             headername = headername if headername else "naunet_ode.h"
             headerprefix = headerprefix if headerprefix else prefix
 

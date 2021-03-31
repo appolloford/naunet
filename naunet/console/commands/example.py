@@ -33,7 +33,7 @@ class ExampleCommand(Command):
         src_parent_path = Path(naunet.__file__).parent
         example_path = os.path.join(src_parent_path, "examples")
 
-        networklist = ["deuterium/1", "deuterium/2"]
+        networklist = ["deuterium/1", "deuterium/2", "deuterium/3"]
 
         case = self.choice("Choose an example network", networklist, 0)
 
@@ -192,4 +192,15 @@ class ExampleCommand(Command):
             self.call(
                 "init",
                 f"--name={name} --description=example --elements={','.join(element)} --pseudo-elements=o,p,m --species={','.join(species)} --network=deuterium.krome --database=krome --solver=cvode --device=cpu --linsolver=sparse",
+            )
+
+        elif case == networklist[2]:
+
+            netfile = os.path.join(example_path, "deuterium.krome")
+            dest = os.path.join(Path.cwd(), "deuterium.krome")
+            shutil.copyfile(netfile, dest)
+
+            self.call(
+                "init",
+                f"--name={name} --description=example --elements={','.join(element)} --pseudo-elements=o,p,m --species={','.join(species)} --network=deuterium.krome --database=krome --solver=cvode --device=gpu --linsolver=cusparse",
             )

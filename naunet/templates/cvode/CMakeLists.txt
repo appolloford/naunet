@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 
 # set the project name
-project(NAUNET VERSION 0.1.0)
+project(NAUNET VERSION 0.1.0 LANGUAGES CUDA CXX)
 
 include(CMakePrintHelpers)
 
@@ -19,6 +19,9 @@ ENDIF()
 set(SUNDIALS_MIN_VERSION "5.6.1")
 set(SUNDIALS_DIR "" CACHE PATH "Path to SUNDIALSConfig.cmake")
 find_package(SUNDIALS ${SUNDIALS_MIN_VERSION} REQUIRED CONFIG)
+
+# find_package(CUDA REQUIRED)
+# find_package(CUDAToolkit REQUIRED)
 
 # IF (CMAKE_BUILD_TYPE STREQUAL Debug)
 #     cmake_print_properties(TARGETS SUNDIALS::cvode_static PROPERTIES

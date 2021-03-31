@@ -2,15 +2,19 @@
 #include "{{ header }}"
 {% else %}
 #include <cvode/cvode.h>                // prototypes for CVODE fcts., consts.
-#include <nvector/nvector_serial.h>     // access to serial N_Vector
 #include <sunlinsol/sunlinsol_spgmr.h>  // access to SPGMR SUNLinearSolver
 #include <cvode/cvode_spils.h>          // access to CVSpils interface
 {% if info.method == "dense" -%}
+#include <nvector/nvector_serial.h>     // access to serial N_Vector
 #include <sunmatrix/sunmatrix_dense.h>  // access to dense SUNMatrix
 #include <sunlinsol/sunlinsol_dense.h>  // access to dense SUNLinearSolver
 #include <sundials/sundials_dense.h>    // use generic dense solver in precond
 {% elif info.method == "sparse" -%}
+#include <nvector/nvector_serial.h>     // access to serial N_Vector
 #include <sunmatrix/sunmatrix_sparse.h> // access to sparse SUNMatrix
+{% elif info.method == "cusparse" -%}
+#include <nvector/nvector_cuda.h>
+#include <sunlinsol/sunlinsol_cusolversp_batchqr.h>
 {% endif -%}
 #include <sundials/sundials_types.h>    // defs. of realtype, sunindextype
 #include <sundials/sundials_math.h>     // contains the macros ABS, SUNSQR, EXP
@@ -67,14 +71,22 @@ static int check_flag(void *flagvalue, const char *funcname, int opt)
 Naunet::Naunet() : m_atol(1e-20),
                    m_rtol(1e-5)
 {
-    m_y = N_VNew_Serial((sunindextype)NSPECIES);
-    {% if info.method == "dense" -%}
-    m_a = SUNDenseMatrix(NSPECIES, NSPECIES);
-    {% elif info.method == "sparse" -%}
-    m_a = SUNSparseMatrix(NSPECIES, NSPECIES, NNZ, CSR_MAT);
-    {% endif -%}
     m_cvode_mem = CVodeCreate(CV_BDF);
     m_ls = NULL;
+    {% if info.method == "dense" -%}
+    m_y = N_VNew_Serial((sunindextype)NSPECIES);
+    m_a = SUNDenseMatrix(NSPECIES, NSPECIES);
+    {% elif info.method == "sparse" -%}
+    m_y = N_VNew_Serial((sunindextype)NSPECIES);
+    m_a = SUNSparseMatrix(NSPECIES, NSPECIES, NNZ, CSR_MAT);
+    {% elif info.method == "cusparse" -%}
+    cusparseCreate(&m_cusp_handle);
+    cusolverSpCreate(&m_cusol_handle);
+    m_y = N_VNew_Cuda(MAXNGROUPS*NSPECIES);
+    m_a = SUNMatrix_cuSparse_NewBlockCSR(MAXNGROUPS, NSPECIES, NSPECIES, NNZ, m_cusp_handle);
+    // abstol = N_VNew_Cuda(neq);
+    {% endif -%}
+
 };
 
 Naunet::~Naunet()
@@ -84,6 +96,11 @@ Naunet::~Naunet()
     CVodeFree(&m_cvode_mem);
     SUNLinSolFree(m_ls);
     // delete m_data;
+
+    {% if info.method == "cusparse" -%}
+    cusparseDestroy(m_cusp_handle);
+    cusolverSpDestroy(m_cusol_handle);
+    {% endif -%}
 };
 
 int Naunet::initSolver()
@@ -99,13 +116,29 @@ int Naunet::initSolver()
     {
         check_flag(&flag, "CVodeSStolerances", 1);
     }
-    return 1;
+    {% if info.method == "cusparse" -%}
+    SUNMatrix_cuSparse_SetFixedPattern(m_a, 1);
+    jacInit(m_a);
+    {% endif -%}
+
+    return NAUNET_SUCCESS;
 };
 
 int Naunet::solve(realtype *ab, realtype dt, UserData *data)
 {
     int flag;
+
+    {% if info.method == "dense" or info.method == "sparse" -%}
+
     N_VSetArrayPointer(ab, m_y);
+
+    {% elif info.method == "cusparse" -%}
+
+    N_VSetHostArrayPointer_Cuda(ab, m_y);
+    N_VCopyToDevice_Cuda(m_y);
+
+    {% endif -%}
+
     flag = CVodeReInit(m_cvode_mem, 0.0, m_y);
     if (check_flag(&flag, "CVodeInit", 1))
         return 1;
@@ -124,6 +157,10 @@ int Naunet::solve(realtype *ab, realtype dt, UserData *data)
     m_ls = SUNLinSol_KLU(m_y, m_a);
     if (check_flag((void *)m_ls, "SUNLinSol_KLU", 0))
         return 1;
+
+    {% elif info.method == "cusparse" -%}
+
+    m_ls = SUNLinSol_cuSolverSp_batchQR(m_y, m_a, m_cusol_handle);
 
     {% endif -%}
     // m_ls = SUNLinSol_SPGMR(m_y, 0, 0);
@@ -144,7 +181,17 @@ int Naunet::solve(realtype *ab, realtype dt, UserData *data)
 
     realtype t0 = 0.0;
     flag = CVode(m_cvode_mem, dt, m_y, &t0, CV_NORMAL);
+
+    {% if info.method == "dense" or info.method == "sparse" -%}
+
     ab = N_VGetArrayPointer(m_y);
 
-    return 0;
+    {% elif info.method == "cusparse" -%}
+
+    N_VCopyFromDevice_Cuda(m_y);
+    ab = N_VGetHostArrayPointer_Cuda(m_y);
+    
+    {% endif -%}
+
+    return NAUNET_SUCCESS;
 };

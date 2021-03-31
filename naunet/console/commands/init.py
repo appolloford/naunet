@@ -191,6 +191,9 @@ class InitCommand(Command):
                 )
                 linsolver = self.ask(question)
 
+            if linsolver == "cusparse":
+                odesolver["device"] = "gpu"
+
             odesolver.add("linsolver", linsolver)
 
         # required = self.option("required")

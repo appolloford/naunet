@@ -12,14 +12,17 @@
 #include <sundials/sundials_dense.h>    // use generic dense solver in precond
 {% elif info.method == "sparse" -%}
 #include <sunmatrix/sunmatrix_sparse.h> // access to sparse SUNMatrix
+{% elif info.method == "cusparse" -%}
+#include <nvector/nvector_cuda.h>
+#include <sunlinsol/sunlinsol_cusolversp_batchqr.h>
 {% endif -%}
 #include <sundials/sundials_types.h>    // defs. of realtype, sunindextype
 #include <sundials/sundials_math.h>     // contains the macros ABS, SUNSQR, EXP
 #include <sunlinsol/sunlinsol_klu.h>    // access to KLU sparse direct solver
 
 #include "naunet_userdata.h"
-#include "naunet_constants.h"
 #include "naunet_ode.h"
+#include "naunet_constants.h"
 {% endif %}
 
 
@@ -35,6 +38,11 @@ private:
     realtype m_rtol;
     void *m_cvode_mem;
     SUNLinearSolver m_ls;
+
+    {% if info.method == "cusparse" -%}
+    cusparseHandle_t m_cusp_handle;
+    cusolverSpHandle_t m_cusol_handle;
+    {% endif %}
 
 public:
     Naunet();

@@ -1,14 +1,13 @@
 #ifndef __NAUNET_USERDATA_H__
 #define __NAUNET_USERDATA_H__
 
-// Class for holding the nessesary additional variables for the problem.
-class UserData
+// Struct for holding the nessesary additional variables for the problem.
+typedef struct
 {
-public:
     {% for v in userdata.var -%}
         {{ v }}
     {% endfor %}
 
-};
+} UserData;
 
 #endif
