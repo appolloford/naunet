@@ -72,20 +72,24 @@ Naunet::Naunet() : m_atol(1e-20),
                    m_rtol(1e-5)
 {
     m_cvode_mem = CVodeCreate(CV_BDF);
-    m_ls = NULL;
+
     {% if info.method == "dense" -%}
     m_y = N_VNew_Serial((sunindextype)NSPECIES);
     m_a = SUNDenseMatrix(NSPECIES, NSPECIES);
+    m_ls = SUNLinSol_Dense(m_y, m_a);
     {% elif info.method == "sparse" -%}
     m_y = N_VNew_Serial((sunindextype)NSPECIES);
     m_a = SUNSparseMatrix(NSPECIES, NSPECIES, NNZ, CSR_MAT);
+    m_ls = SUNLinSol_KLU(m_y, m_a);
     {% elif info.method == "cusparse" -%}
     cusparseCreate(&m_cusp_handle);
     cusolverSpCreate(&m_cusol_handle);
     m_y = N_VNew_Cuda(MAXNGROUPS*NSPECIES);
     m_a = SUNMatrix_cuSparse_NewBlockCSR(MAXNGROUPS, NSPECIES, NSPECIES, NNZ, m_cusp_handle);
+    m_ls = SUNLinSol_cuSolverSp_batchQR(m_y, m_a, m_cusol_handle);
     // abstol = N_VNew_Cuda(neq);
     {% endif %}
+
 };
 
 Naunet::~Naunet()
@@ -144,8 +148,6 @@ int Naunet::solve(realtype *ab, realtype dt, UserData *data)
     // {
     //     ydata[i] = ab[i];
     // }
-
-    // Memory leak on GPU. Not sure the reason.
     N_VSetHostArrayPointer_Cuda(ab, m_y);
     N_VCopyToDevice_Cuda(m_y);
 
@@ -166,23 +168,6 @@ int Naunet::solve(realtype *ab, realtype dt, UserData *data)
     if (check_flag(&flag, "CVodeSetUserData", 1))
         return 1;
 
-    {% if info.method == "dense" -%}
-
-    m_ls = SUNLinSol_Dense(m_y, m_a);
-    if (check_flag((void *)m_ls, "SUNLinSol_Dense", 0))
-        return 1;
-    
-    {% elif info.method == "sparse" -%}
-
-    m_ls = SUNLinSol_KLU(m_y, m_a);
-    if (check_flag((void *)m_ls, "SUNLinSol_KLU", 0))
-        return 1;
-
-    {% elif info.method == "cusparse" -%}
-
-    m_ls = SUNLinSol_cuSolverSp_batchQR(m_y, m_a, m_cusol_handle);
-
-    {% endif -%}
     // m_ls = SUNLinSol_SPGMR(m_y, 0, 0);
     // if (check_flag((void *)m_ls, "SUNLinSol_SPGMR", 0))
     //     return 1;
