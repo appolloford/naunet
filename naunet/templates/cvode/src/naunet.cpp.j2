@@ -85,8 +85,7 @@ Naunet::Naunet() : m_atol(1e-20),
     m_y = N_VNew_Cuda(MAXNGROUPS*NSPECIES);
     m_a = SUNMatrix_cuSparse_NewBlockCSR(MAXNGROUPS, NSPECIES, NSPECIES, NNZ, m_cusp_handle);
     // abstol = N_VNew_Cuda(neq);
-    {% endif -%}
-
+    {% endif %}
 };
 
 Naunet::~Naunet()
@@ -130,14 +129,35 @@ int Naunet::solve(realtype *ab, realtype dt, UserData *data)
 
     {% if info.method == "dense" or info.method == "sparse" -%}
 
+    // realtype *ydata = N_VGetArrayPointer(m_y);
+    // for (int i=0; i<NSPECIES; i++)
+    // {
+    //     ydata[i] = ab[i];
+    // }
     N_VSetArrayPointer(ab, m_y);
 
     {% elif info.method == "cusparse" -%}
 
+    // This way is too slow
+    // realtype *ydata = N_VGetArrayPointer(m_y);
+    // for (int i=0; i<NSPECIES; i++)
+    // {
+    //     ydata[i] = ab[i];
+    // }
+
+    // Memory leak on GPU. Not sure the reason.
     N_VSetHostArrayPointer_Cuda(ab, m_y);
     N_VCopyToDevice_Cuda(m_y);
 
-    {% endif -%}
+    {% endif %}
+
+{% if info.method == "cusparse" -%}
+#ifdef NAUNET_DEBUG
+    sunindextype lrw, liw;
+    N_VSpace_Cuda(m_y, &lrw, &liw);
+    printf("NVector space: real-%d, int-%d\n", lrw, liw);
+#endif
+{% endif -%}
 
     flag = CVodeReInit(m_cvode_mem, 0.0, m_y);
     if (check_flag(&flag, "CVodeInit", 1))

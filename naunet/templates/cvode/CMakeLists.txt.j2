@@ -1,19 +1,29 @@
-cmake_minimum_required(VERSION 3.10)
-
-# set the project name
+# To use CUDA by enabling language
+cmake_minimum_required(VERSION 3.18)
+{% if info.device == "gpu" -%}
 project(NAUNET VERSION 0.1.0 LANGUAGES CUDA CXX)
+{% else %}
+project(NAUNET VERSION 0.1.0 LANGUAGES CXX)
+{% endif %}
+
+message(STATUS "CMAKE_SYSTEM_NAME          = ${CMAKE_SYSTEM_NAME}"         )
+message(STATUS "CMAKE_CXX_COMPILER_ID      = ${CMAKE_CXX_COMPILER_ID}"     )
+message(STATUS "CMAKE_CXX_COMPILER_VERSION = ${CMAKE_CXX_COMPILER_VERSION}")
+message(STATUS "CMAKE_COMPILER_IS_GNUCXX   = ${CMAKE_COMPILER_IS_GNUCXX}"  )
 
 include(CMakePrintHelpers)
 
 set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Debug)
 endif()
 
-IF (CMAKE_BUILD_TYPE STREQUAL Debug)
-    ADD_DEFINITIONS(-DNAUNET_DEBUG)
-ENDIF()
+if(CMAKE_BUILD_TYPE STREQUAL Debug)
+    add_definitions(-DNAUNET_DEBUG)
+endif()
 
 
 set(SUNDIALS_MIN_VERSION "5.6.1")
@@ -23,12 +33,12 @@ find_package(SUNDIALS ${SUNDIALS_MIN_VERSION} REQUIRED CONFIG)
 # find_package(CUDA REQUIRED)
 # find_package(CUDAToolkit REQUIRED)
 
-# IF (CMAKE_BUILD_TYPE STREQUAL Debug)
+# if(CMAKE_BUILD_TYPE STREQUAL Debug)
 #     cmake_print_properties(TARGETS SUNDIALS::cvode_static PROPERTIES
 #                            LOCATION INTERFACE_INCLUDE_DIRECTORIES)
 #     cmake_print_properties(TARGETS SUNDIALS::nvecserial_static PROPERTIES
 #                            LOCATION INTERFACE_INCLUDE_DIRECTORIES)
-# ENDIF()
+# endif()
 
 
 add_subdirectory(src)

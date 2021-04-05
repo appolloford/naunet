@@ -2,6 +2,7 @@ import os
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import List
+from tqdm import tqdm
 from jinja2 import Environment, FileSystemLoader, PackageLoader
 from . import settings
 
@@ -75,7 +76,18 @@ class TemplateLoader(ABC):
         self.render_ode(prefix=prefix, save=save)
         self.render_naunet(prefix=prefix, save=save)
 
-    # def render_cmake(self)
+    # This function should not be used outside console commands
+    def render_cmake(self, prefix: str = "./") -> None:
+
+        template_names = [
+            "CMakeLists.txt.j2",
+            "src/CMakeLists.txt.j2",
+            "test/CMakeLists.txt.j2",
+        ]
+        for name in template_names:
+            template = self._env.get_template(name)
+            target = name.replace(".j2", "")
+            self._render(template, prefix, name=target, save=True, info=self._info)
 
     def render_constants(
         self, prefix: str = "./", name: str = None, save: bool = True
@@ -207,7 +219,7 @@ class CVodeTemplateLoader(TemplateLoader):
         y = [f"y[IDX_{x.alias}]" for x in net_species]
         rhs = ["0.0"] * n_spec
         jacrhs = ["0.0"] * n_spec * n_spec
-        for rl, react in enumerate(reaction_list):
+        for rl, react in enumerate(tqdm(reaction_list, desc="Preparing ODE...")):
 
             rspecidx = [net_species.index(r) for r in react.reactants]
             pspecidx = [net_species.index(p) for p in react.products]

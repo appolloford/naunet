@@ -103,7 +103,9 @@ class Network:
         self.database_list.update({database})
         new_species = set()
         with open(filename, "r") as networkfile:
-            for _, line in enumerate(tqdm(networkfile.readlines())):
+            for _, line in enumerate(
+                tqdm(networkfile.readlines(), desc="Reading File...")
+            ):
                 new_species.update(self._add_reaction(line, database))
 
             # print("New species: \n{}".format("\n".join(str(x) for x in new_species)))
@@ -138,11 +140,6 @@ class Network:
                 seen[x] += 1
 
         logger.info(
-            "The following reactions are duplicate:\n{}".format(
-                "\n".join([repr(x) for x in dupes])
-            )
-        )
-        print(
             "The following reactions are duplicate:\n{}".format(
                 "\n".join([repr(x) for x in dupes])
             )

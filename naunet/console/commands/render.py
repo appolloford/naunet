@@ -88,6 +88,7 @@ class RenderCommand(Command):
         tl.render_userdata(prefix=header_prefix)
         tl.render_ode(prefix=source_prefix, headerprefix=header_prefix)
         tl.render_naunet(prefix=source_prefix, headerprefix=header_prefix)
+        tl.render_cmake(prefix=Path.cwd())
 
         src_parent_path = Path(naunet.__file__).parent
         template_path = os.path.join(src_parent_path, "templates", "cvode")
@@ -112,16 +113,16 @@ class RenderCommand(Command):
         dest = os.path.join(Path.cwd(), "test", "timeres.dat")
         shutil.copyfile(parfile, dest)
 
-        for cmakesrc in ["CMakeLists.txt", "src/CMakeLists.txt", "test/CMakeLists.txt"]:
-            cmakefile = os.path.join(template_path, cmakesrc)
-            dest = os.path.join(Path.cwd(), cmakesrc)
-            shutil.copyfile(cmakefile, dest)
+        # for cmakesrc in ["CMakeLists.txt", "src/CMakeLists.txt", "test/CMakeLists.txt"]:
+        #     cmakefile = os.path.join(template_path, cmakesrc)
+        #     dest = os.path.join(Path.cwd(), cmakesrc)
+        #     shutil.copyfile(cmakefile, dest)
 
-        update = self.option("update-species")
-        if not update:
+        update_option = self.option("update-species")
+        if not update_option:
             update = self.confirm("Update species in configure file?", False)
 
-        if update or self.option("update-species").lower != "false":
+        if update or (update_option and update_option.lower != "false"):
             chemistry["species"] = [x.name for x in net.info.net_species]
 
             content["chemistry"] = chemistry
