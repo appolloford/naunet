@@ -2,7 +2,7 @@
 
 #include "naunet.h"
 #include "naunet_userdata.h"
-#include "naunet_constants.h"
+#include "naunet_macros.h"
 #include "naunet_ode.h"
 #include "naunet_timer.h"
 

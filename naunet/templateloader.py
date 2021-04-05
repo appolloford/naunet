@@ -93,9 +93,9 @@ class TemplateLoader(ABC):
         self, prefix: str = "./", name: str = None, save: bool = True
     ) -> None:
         if not name and save:
-            name = "naunet_constants.h"
+            name = "naunet_macros.h"
 
-        template = self._env.get_template("include/naunet_constants.h.j2")
+        template = self._env.get_template("include/naunet_macros.h.j2")
         self._render(
             template, prefix, name, save, constants=self._constants, info=self._info
         )
@@ -269,7 +269,11 @@ class CVodeTemplateLoader(TemplateLoader):
             spjacrptr.append(f"rowptrs[{n_spec}] = {nnz};")
             self._constants.nnz = f"#define NNZ {nnz}"
 
-        var = [f"realtype {v} = u_data->{v};" for db in databases for v in db.variables.values()]
+        var = [
+            f"realtype {v} = u_data->{v};"
+            for db in databases
+            for v in db.variables.values()
+        ]
 
         for db in databases:
             if len(db.user_var) > 0:
