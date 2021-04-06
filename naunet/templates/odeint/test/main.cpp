@@ -52,6 +52,7 @@ int main()
 
     FILE *fbin = fopen("evolution.bin", "w");
     FILE *ftxt = fopen("evolution.txt", "w");
+    FILE *ttxt = fopen("time.txt", "w");
 #ifdef NAUNET_DEBUG
     FILE *rtxt = fopen("reactionrates.txt", "w");
     double rates[NREACTIONS];
@@ -68,7 +69,7 @@ int main()
     //     {
     //         dtyr = 1e5;
     //     }
-    for (int i = 0; i < 10046; i++)
+    for (int i = 0; i < 10045; i++)
     {
 
 #ifdef NAUNET_DEBUG
@@ -97,11 +98,13 @@ int main()
         naunet.solve(y, dtyr * spy, data);
         timer.stop();
         float duration = (float)timer.elapsed() / 1e6;
-        printf("Time = %13.7e yr, elapsed: %8.5e sec\n", time[i + 1], duration);
+        fprintf(ttxt, "%8.5e \n", duration);
+        // printf("Time = %13.7e yr, elapsed: %8.5e sec\n", time[i + 1], duration);
     }
 
     fclose(fbin);
     fclose(ftxt);
+    fclose(ttxt);
 #ifdef NAUNET_DEBUG
     fclose(rtxt);
 #endif

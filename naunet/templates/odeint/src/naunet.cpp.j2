@@ -30,8 +30,8 @@ int Naunet::solve(double *ab, double dt, UserData *data)
     }
 
     size_t num_of_steps = integrate_adaptive(
-        make_dense_output< rosenbrock4<double> >(m_atol, m_rtol),
-        make_pair(fex(data), jac(data)), y, 0.0, dt, 0.01*dt
+        make_controlled<rosenbrock4<double>>(m_atol, m_rtol),
+        make_pair(fex(data), jac(data)), y, 0.0, dt, dt
     );
 
     for (int i=0; i<NSPECIES; i++)
