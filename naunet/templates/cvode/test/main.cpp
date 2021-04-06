@@ -9,14 +9,14 @@
 int main()
 {
 
-    realtype spy = 86400.0 * 365.0;
-    realtype pi = 3.14159265;
-    realtype rD = 1.0e-5;
-    realtype rhoD = 3.0;
-    realtype DtoGM = 7.09e-3;
-    realtype amH = 1.66043e-24;
-    realtype nH = 1e5;
-    realtype OPRH2 = 0.1;
+    double spy = 86400.0 * 365.0;
+    double pi = 3.14159265;
+    double rD = 1.0e-5;
+    double rhoD = 3.0;
+    double DtoGM = 7.09e-3;
+    double amH = 1.66043e-24;
+    double nH = 1e5;
+    double OPRH2 = 0.1;
 
     UserData *data = new UserData();
     data->nH = nH;
@@ -28,7 +28,7 @@ int main()
     Naunet naunet;
     naunet.initSolver();
 
-    realtype y[NSPECIES];
+    double y[NSPECIES];
     for (int i = 0; i < NSPECIES; i++)
     {
         y[i] = 1.e-40;
@@ -42,7 +42,7 @@ int main()
     y[IDX_CI] = 7.3e-6 * nH;
     y[IDX_GRAIN0I] = 1.3215e-12 * nH;
 
-    realtype time[10046];
+    double time[10046];
     FILE *tfile = fopen("timeres.dat", "r");
     for (int i = 0; i < 10046; i++)
     {
@@ -52,12 +52,13 @@ int main()
 
     FILE *fbin = fopen("evolution.bin", "w");
     FILE *ftxt = fopen("evolution.txt", "w");
+    FILE *ttxt = fopen("time.txt", "w");
 #ifdef NAUNET_DEBUG
     FILE *rtxt = fopen("reactionrates.txt", "w");
-    realtype rates[NREACTIONS];
+    double rates[NREACTIONS];
 #endif
 
-    realtype dtyr = 1.0, tend = 1.e8;
+    double dtyr = 1.0, tend = 1.e8;
     // for (time = 0.0; time < tend; time += dtyr)
     // {
     //     if (time < 1e5)
@@ -68,7 +69,7 @@ int main()
     //     {
     //         dtyr = 1e5;
     //     }
-    for (int i = 0; i < 10046; i++)
+    for (int i = 0; i < 10045; i++)
     {
 
 #ifdef NAUNET_DEBUG
@@ -82,8 +83,8 @@ int main()
 
         dtyr = time[i + 1] - time[i];
 
-        fwrite(time + i, sizeof(realtype), 1, fbin);
-        fwrite(y, sizeof(realtype), NSPECIES, fbin);
+        fwrite(time + i, sizeof(double), 1, fbin);
+        fwrite(y, sizeof(double), NSPECIES, fbin);
 
         fprintf(ftxt, "%13.7e ", time[i]);
         for (int j = 0; j < NSPECIES; j++)
@@ -97,11 +98,13 @@ int main()
         naunet.solve(y, dtyr * spy, data);
         timer.stop();
         float duration = (float)timer.elapsed() / 1e6;
-        printf("Time = %13.7e yr, elapsed: %8.5e sec\n", time[i + 1], duration);
+        fprintf(ttxt, "%8.5e \n", duration);
+        // printf("Time = %13.7e yr, elapsed: %8.5e sec\n", time[i + 1], duration);
     }
 
     fclose(fbin);
     fclose(ftxt);
+    fclose(ttxt);
 #ifdef NAUNET_DEBUG
     fclose(rtxt);
 #endif

@@ -12,12 +12,12 @@ using namespace boost::numeric::odeint;
 typedef boost::numeric::ublas::vector< double > vector_type;
 typedef boost::numeric::ublas::matrix< double > matrix_type;
 
-int calculate_rates(vector_type *rates, const vector_type *y, UserData *user_data);
+int calculate_rates(double *rates, double *y, UserData *user_data);
 
 class fex
 {
 private:
-    UserData *user_data;
+    UserData *u_data;
 
 public:
 
@@ -31,7 +31,7 @@ public:
 class jac
 {
 private:
-    UserData *user_data;
+    UserData *u_data;
 
 public:
 
