@@ -1,0 +1,45 @@
+#ifndef __NAUNET_ODE_H__
+#define __NAUNET_ODE_H__
+
+#include <math.h>
+#include <boost/numeric/odeint.hpp>
+#include "naunet_macros.h"
+#include "naunet_userdata.h"
+
+using namespace std;
+using namespace boost::numeric::odeint;
+
+typedef boost::numeric::ublas::vector< double > vector_type;
+typedef boost::numeric::ublas::matrix< double > matrix_type;
+
+int calculate_rates(vector_type *rates, const vector_type *y, UserData *user_data);
+
+class fex
+{
+private:
+    UserData *user_data;
+
+public:
+
+    fex();
+    fex(UserData *data);
+    ~fex();
+
+    void operator()(const vector_type &y, vector_type &ydot, double t);
+};
+
+class jac
+{
+private:
+    UserData *user_data;
+
+public:
+
+    jac();
+    jac(UserData *data);
+    ~jac();
+
+    void operator()(const vector_type &y, matrix_type &j, const double &t, vector_type &dfdt);
+};
+
+#endif

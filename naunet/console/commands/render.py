@@ -42,8 +42,7 @@ class RenderCommand(Command):
 
         odesolver = content["ODEsolver"]
         solver = odesolver["solver"]
-        if solver == "cvode":
-            linsolver = odesolver["linsolver"]
+        method = odesolver["method"]
         device = odesolver["device"]
         # required = odesolver["required"]
 
@@ -83,7 +82,7 @@ class RenderCommand(Command):
         source_prefix = os.path.join(Path.cwd(), "src")
 
         net.check_duplicate_reaction()
-        tl = net.templateloader(solver=solver, linsolver=linsolver, device=device)
+        tl = net.templateloader(solver=solver, method=method, device=device)
         tl.render_constants(prefix=header_prefix)
         tl.render_userdata(prefix=header_prefix)
         tl.render_ode(prefix=source_prefix, headerprefix=header_prefix)
@@ -91,7 +90,7 @@ class RenderCommand(Command):
         tl.render_cmake(prefix=Path.cwd())
 
         src_parent_path = Path(naunet.__file__).parent
-        template_path = os.path.join(src_parent_path, "templates", "cvode")
+        template_path = os.path.join(src_parent_path, "templates", solver)
         csrc_path = os.path.join(template_path, "src")
 
         # for src in ["naunet.cpp"]:

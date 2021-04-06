@@ -1,0 +1,37 @@
+# To use CUDA by enabling language
+cmake_minimum_required(VERSION 3.18)
+{% if info.device == "gpu" -%}
+project(NAUNET VERSION 0.1.0 LANGUAGES CUDA CXX)
+{% else %}
+project(NAUNET VERSION 0.1.0 LANGUAGES CXX)
+{% endif %}
+
+message(STATUS "CMAKE_SYSTEM_NAME          = ${CMAKE_SYSTEM_NAME}"         )
+message(STATUS "CMAKE_CXX_COMPILER_ID      = ${CMAKE_CXX_COMPILER_ID}"     )
+message(STATUS "CMAKE_CXX_COMPILER_VERSION = ${CMAKE_CXX_COMPILER_VERSION}")
+message(STATUS "CMAKE_COMPILER_IS_GNUCXX   = ${CMAKE_COMPILER_IS_GNUCXX}"  )
+
+include(CMakePrintHelpers)
+
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Debug)
+endif()
+
+if(CMAKE_BUILD_TYPE STREQUAL Debug)
+    add_definitions(-DNAUNET_DEBUG)
+endif()
+
+
+find_package(Boost 1.68 REQUIRED)
+
+# find_package(CUDA REQUIRED)
+# find_package(CUDAToolkit REQUIRED)
+
+
+add_subdirectory(src)
+add_subdirectory(test)
+

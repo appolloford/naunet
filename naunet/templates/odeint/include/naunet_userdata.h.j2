@@ -1,0 +1,13 @@
+#ifndef __NAUNET_USERDATA_H__
+#define __NAUNET_USERDATA_H__
+
+// Struct for holding the nessesary additional variables for the problem.
+typedef struct
+{
+    {% for v in userdata.var -%}
+        {{ v }}
+    {% endfor %}
+
+} UserData;
+
+#endif

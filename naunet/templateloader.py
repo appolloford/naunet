@@ -174,7 +174,7 @@ class TemplateLoader(ABC):
 
 class CVodeTemplateLoader(TemplateLoader):
     def __init__(
-        self, netinfo: object, linsolver: str, device: str, *args, **kwargs
+        self, netinfo: object, method: str, device: str, *args, **kwargs
     ) -> None:
 
         super().__init__(netinfo)
@@ -187,16 +187,16 @@ class CVodeTemplateLoader(TemplateLoader):
         # env.lstrip_blocks = True
         self._env.rstrip_blocks = True
 
-        self._prepare_contents(netinfo, linsolver, device)
+        self._prepare_contents(netinfo, method, device)
 
-    def _prepare_contents(self, netinfo: object, linsolver: str, device: str) -> None:
+    def _prepare_contents(self, netinfo: object, method: str, device: str) -> None:
         n_spec = netinfo.n_spec
         n_react = netinfo.n_react
         species = netinfo.species
         reactions = netinfo.reactions
         databases = netinfo.databases
 
-        self._info = self.InfoContent(linsolver, device)
+        self._info = self.InfoContent(method, device)
 
         nspec = f"#define NSPECIES {n_spec}"
         nreact = f"#define NREACTIONS {n_react}"
@@ -255,7 +255,7 @@ class CVodeTemplateLoader(TemplateLoader):
         spjacrptr = []
         spjaccval = []
         spjacdata = []
-        if "sparse" in linsolver:
+        if "sparse" in method:
             # TODO: Too slow! Optimize it
             nnz = 0
             for row in range(n_spec):
@@ -280,7 +280,7 @@ class CVodeTemplateLoader(TemplateLoader):
                 var.extend(db.user_var)
 
         self._ode = self.ODEContent(
-            linsolver,
+            method,
             device,
             rateeqns,
             fex,
@@ -288,5 +288,102 @@ class CVodeTemplateLoader(TemplateLoader):
             spjacrptr=spjacrptr,
             spjaccval=spjaccval,
             spjacdata=spjacdata,
+            var=var,
+        )
+
+
+class ODEIntTemplateLoader(TemplateLoader):
+    def __init__(
+        self, netinfo: object, method: str, device: str, *args, **kwargs
+    ) -> None:
+
+        super().__init__(netinfo)
+
+        rpath = "templates/odeint"
+        loader = PackageLoader("naunet", rpath)
+        self._env = Environment(loader=loader)
+        self._env.globals.update(zip=zip)
+        self._env.trim_blocks = True
+        # env.lstrip_blocks = True
+        self._env.rstrip_blocks = True
+
+        self._prepare_contents(netinfo, method, device)
+
+    def _prepare_contents(self, netinfo: object, method: str, device: str) -> None:
+        n_spec = netinfo.n_spec
+        n_react = netinfo.n_react
+        species = netinfo.species
+        reactions = netinfo.reactions
+        databases = netinfo.databases
+
+        self._info = self.InfoContent(method, device)
+
+        nspec = f"#define NSPECIES {n_spec}"
+        nreact = f"#define NREACTIONS {n_react}"
+        speclist = [f"#define IDX_{x.alias} {i}" for i, x in enumerate(species)]
+
+        self._constants = self.ConstantsContent(nspec, nreact, speclist)
+
+        var = [f"double {v};" for db in databases for v in db.variables.values()]
+        user_var = []
+
+        self._userdata = self.UserdataContent(var, user_var)
+
+        rates = [f"k[{r}]" for r in range(n_react)]
+        rateeqns = [
+            f"if (Tgas>{reac.temp_min} && Tgas<{reac.temp_max}) {{\n{' = '.join([rate, reac.rate_func()])}; \n}}"
+            if reac.temp_min < reac.temp_max
+            else f"{' = '.join([rate, reac.rate_func()])};"
+            for rate, reac in zip(rates, reactions)
+        ]
+
+        y = [f"y[IDX_{x.alias}]" for x in species]
+        rhs = ["0.0"] * n_spec
+        jacrhs = ["0.0"] * n_spec * n_spec
+        for rl, react in enumerate(tqdm(reactions, desc="Preparing ODE...")):
+
+            rspecidx = [species.index(r) for r in react.reactants]
+            pspecidx = [species.index(p) for p in react.products]
+
+            rsym = [y[idx] for idx in rspecidx]
+            rsym_mul = "*".join(rsym)
+            for specidx in rspecidx:
+                rhs[specidx] += f" - {rates[rl]}*{rsym_mul}"
+            for specidx in pspecidx:
+                rhs[specidx] += f" + {rates[rl]}*{rsym_mul}"
+
+            for specidx in rspecidx:
+                for ri in rspecidx:
+                    rsymcopy = rsym.copy()
+                    rsymcopy.remove(y[ri])
+                    term = f" - {'*'.join([rates[rl], *rsymcopy])}"
+                    jacrhs[specidx * n_spec + ri] += term
+            for specidx in pspecidx:
+                for ri in rspecidx:
+                    rsymcopy = rsym.copy()
+                    rsymcopy.remove(y[ri])
+                    term = f" + {'*'.join([rates[rl], *rsymcopy])}"
+                    jacrhs[specidx * n_spec + ri] += term
+
+        lhs = [f"ydot[IDX_{x.alias}]" for x in species]
+        fex = [f"{l} = {r};" for l, r in zip(lhs, rhs)]
+        jac = [f"j({idx//n_spec}, {idx%n_spec}) = {j};" for idx, j in enumerate(jacrhs)]
+
+        var = [
+            f"double {v} = u_data->{v};"
+            for db in databases
+            for v in db.variables.values()
+        ]
+
+        for db in databases:
+            if len(db.user_var) > 0:
+                var.extend(db.user_var)
+
+        self._ode = self.ODEContent(
+            method,
+            device,
+            rateeqns,
+            fex,
+            jac,
             var=var,
         )

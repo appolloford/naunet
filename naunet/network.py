@@ -1,7 +1,7 @@
 import logging
 from tqdm import tqdm
 from . import settings
-from .templateloader import TemplateLoader, CVodeTemplateLoader
+from .templateloader import ODEIntTemplateLoader, TemplateLoader, CVodeTemplateLoader
 from .reactions.reaction import Reaction
 from .reactions.kidareaction import KIDAReaction
 from .reactions.leedsreaction import LEEDSReaction
@@ -18,7 +18,10 @@ supported_reaction_class = {
     "krome": KROMEReaction,
 }
 
-supported_template_loader = {"cvode": CVodeTemplateLoader}
+supported_template_loader = {
+    "cvode": CVodeTemplateLoader,
+    "odeint": ODEIntTemplateLoader,
+}
 
 
 def reaction_factory(react_string: str, database: str) -> Reaction:
@@ -184,22 +187,22 @@ class Network:
 
         return self._info
 
-    def templateloader(self, solver: str, linsolver: str, device: str):
+    def templateloader(self, solver: str, method: str, device: str):
 
         if self._info and self._templateloader:
             return self._templateloader
 
         tl = supported_template_loader.get(solver)
-        self._templateloader = tl(self.info, linsolver, device)
+        self._templateloader = tl(self.info, method, device)
         return self._templateloader
 
     def to_code(
         self,
         solver: str = "cvode",
-        linsolver: str = "dense",
+        method: str = "dense",
         device: str = "cpu",
         prefix: str = "./",
     ):
 
-        tl = self.templateloader(solver, linsolver, device)
+        tl = self.templateloader(solver, method, device)
         tl.render(prefix=prefix, save=True)

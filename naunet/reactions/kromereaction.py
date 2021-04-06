@@ -103,7 +103,10 @@ class KROMEReaction(Reaction):
         # restore the default settings after completing a file
         print("krome finalize is called")
         KROMEReaction.reacformat = "idx,r,r,r,p,p,p,p,tmin,tmax,rate"
-        KROMEReaction.variables = []
+        KROMEReaction.variables = {
+            "Hnuclei": "nH",
+            "Temperature": "Tgas",
+        }
         KROMEReaction.user_var = []
 
     @classmethod

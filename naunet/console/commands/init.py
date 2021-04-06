@@ -31,7 +31,7 @@ class InitCommand(Command):
         {--database= : The database/format of the chemical network}
         {--solver=cvode : ODE solver}
         {--device=cpu : Device}
-        {--linsolver=dense : Linear solver used in CVode}
+        {--method=dense : Linear solver used in CVode or algorithm in ODEInt}
     """
 
     def __init__(self):
@@ -180,21 +180,27 @@ class InitCommand(Command):
 
         odesolver.add("device", device)
 
-        if solver == "cvode":
-            linsolver = self.option("linsolver")
-            if not linsolver:
+        method = self.option("method")
+        if not method:
+            if solver == "cvode":
                 question = self.create_question(
                     "Linear solver used in CVode [<comment>{}</comment>]:".format(
-                        linsolver
+                        method
                     ),
-                    default=linsolver,
+                    default=method,
                 )
-                linsolver = self.ask(question)
+                method = self.ask(question)
+            elif solver == "odeint":
+                question = self.create_question(
+                    "Algorithm used in ODEInt [<comment>{}</comment>]:".format(method),
+                    default=method,
+                )
+                method = self.ask(question)
 
-            if linsolver == "cusparse":
-                odesolver["device"] = "gpu"
+        if solver == "cvode" and method == "cusparse":
+            odesolver["device"] = "gpu"
 
-            odesolver.add("linsolver", linsolver)
+        odesolver.add("method", method)
 
         # required = self.option("required")
         # if not required:

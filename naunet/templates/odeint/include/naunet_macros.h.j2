@@ -1,0 +1,14 @@
+#ifndef __NAUNET_MACROS_H__
+#define __NAUNET_MACROS_H__
+
+#define NAUNET_SUCCESS 0
+#define NAUNET_FAIL 1
+
+{{ constants.nspec }}
+{{ constants.nreact }}
+
+{% for idx in constants.speclist -%}
+    {{ idx }}
+{% endfor -%}
+
+#endif

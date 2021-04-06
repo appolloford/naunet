@@ -1,0 +1,43 @@
+{% if header %}
+#include "{{ header }}"
+{% else %}
+#include <boost/numeric/odeint.hpp>
+#include "naunet_userdata.h"
+#include "naunet_ode.h"
+#include "naunet_macros.h"
+{% endif %}
+
+Naunet::Naunet() : m_atol(1e-20),
+                   m_rtol(1e-5)
+{
+};
+
+Naunet::~Naunet()
+{
+};
+
+int Naunet::initSolver()
+{
+    return NAUNET_SUCCESS;
+};
+
+int Naunet::solve(double *ab, double dt, UserData *data)
+{
+    vector_type y(NSPECIES);
+    for (int i=0; i<NSPECIES; i++)
+    {
+        y[i] = ab[i];
+    }
+
+    size_t num_of_steps = integrate_adaptive(
+        make_dense_output< rosenbrock4<double> >(m_atol, m_rtol),
+        make_pair(fex(), jac()), y, 0.0, dt, 0.01*dt
+    );
+
+    for (int i=0; i<NSPECIES; i++)
+    {
+        ab[i] = y[i];
+    }
+
+    return NAUNET_SUCCESS;
+};

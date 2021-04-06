@@ -1,0 +1,14 @@
+list(APPEND NAUNETLIB
+    naunet
+    naunet_ode
+)
+
+add_executable(naunet.x main.cpp)
+
+{% if info.device == "gpu" -%}
+target_include_directories(naunet.x PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
+{% endif %}
+target_link_libraries(naunet.x ${NAUNETLIB})
+target_include_directories(naunet.x PRIVATE ${BOOST_ROOT}/include)
+file(COPY timeres.dat DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+
