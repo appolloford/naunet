@@ -56,7 +56,8 @@ class RenderCommand(Command):
 
         from naunet.network import Network
 
-        for subdir in ["include", "src", "test"]:
+        # Check whether include and src folders exist, test folder is checked in example.py
+        for subdir in ["include", "src"]:
             prefix = os.path.join(Path.cwd(), subdir)
 
             if os.path.exists(prefix):
@@ -104,13 +105,13 @@ class RenderCommand(Command):
             dest = os.path.join(Path.cwd(), "include", inc)
             shutil.copyfile(incfile, dest)
 
-        testfile = os.path.join(template_path, "test", "main.cpp")
-        dest = os.path.join(Path.cwd(), "test", "main.cpp")
-        shutil.copyfile(testfile, dest)
+        # testfile = os.path.join(template_path, "test", "main.cpp")
+        # dest = os.path.join(Path.cwd(), "test", "main.cpp")
+        # shutil.copyfile(testfile, dest)
 
-        parfile = os.path.join(template_path, "test", "timeres.dat")
-        dest = os.path.join(Path.cwd(), "test", "timeres.dat")
-        shutil.copyfile(parfile, dest)
+        # parfile = os.path.join(template_path, "test", "timeres.dat")
+        # dest = os.path.join(Path.cwd(), "test", "timeres.dat")
+        # shutil.copyfile(parfile, dest)
 
         # for cmakesrc in ["CMakeLists.txt", "src/CMakeLists.txt", "test/CMakeLists.txt"]:
         #     cmakefile = os.path.join(template_path, cmakesrc)

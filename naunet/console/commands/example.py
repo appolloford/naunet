@@ -32,10 +32,40 @@ class ExampleCommand(Command):
 
         src_parent_path = Path(naunet.__file__).parent
         example_path = os.path.join(src_parent_path, "examples")
+        deuterium_path = os.path.join(example_path, "deuterium")
 
         networklist = ["deuterium/1", "deuterium/2", "deuterium/3", "deuterium/4"]
 
         case = self.choice("Choose an example network", networklist, 0)
+
+        # Check whether the test folder exists
+        prefix = os.path.join(Path.cwd(), "test")
+
+        if os.path.exists(prefix):
+            if not os.path.isdir(prefix):
+                raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), prefix)
+
+            elif os.listdir(prefix):
+                overwrite = self.confirm(f"Non-empty test directory. Overwrite?", False)
+
+                if not overwrite:
+                    sys.exit()
+
+        # Copy the network and the test folder
+        if "deuterium" in case:
+
+            for file in os.listdir(deuterium_path):
+
+                # src = "/".join([deuterium_path, file])
+                src = os.path.join(deuterium_path, file)
+                # dest = "/".join([deuterium_path, file])
+                dest = os.path.join(Path.cwd(), file)
+
+                if os.path.isdir(src):
+                    shutil.copytree(src, dest)
+
+                elif os.path.isfile(src):
+                    shutil.copyfile(src, dest)
 
         name = Path.cwd().name.lower()
         element = ["e", "H", "D", "He", "C", "N", "O", "GRAIN"]
@@ -174,20 +204,12 @@ class ExampleCommand(Command):
         ]
         if case == networklist[0]:
 
-            netfile = os.path.join(example_path, "deuterium.krome")
-            dest = os.path.join(Path.cwd(), "deuterium.krome")
-            shutil.copyfile(netfile, dest)
-
             self.call(
                 "init",
                 f"--name={name} --description=example --elements={','.join(element)} --pseudo-elements=o,p,m --species={','.join(species)} --network=deuterium.krome --database=krome --solver=cvode --device=cpu --method=dense",
             )
 
         elif case == networklist[1]:
-
-            netfile = os.path.join(example_path, "deuterium.krome")
-            dest = os.path.join(Path.cwd(), "deuterium.krome")
-            shutil.copyfile(netfile, dest)
 
             self.call(
                 "init",
@@ -196,20 +218,12 @@ class ExampleCommand(Command):
 
         elif case == networklist[2]:
 
-            netfile = os.path.join(example_path, "deuterium.krome")
-            dest = os.path.join(Path.cwd(), "deuterium.krome")
-            shutil.copyfile(netfile, dest)
-
             self.call(
                 "init",
                 f"--name={name} --description=example --elements={','.join(element)} --pseudo-elements=o,p,m --species={','.join(species)} --network=deuterium.krome --database=krome --solver=cvode --device=gpu --method=cusparse",
             )
 
         elif case == networklist[3]:
-
-            netfile = os.path.join(example_path, "deuterium.krome")
-            dest = os.path.join(Path.cwd(), "deuterium.krome")
-            shutil.copyfile(netfile, dest)
 
             self.call(
                 "init",

@@ -154,11 +154,11 @@ int Naunet::solve(realtype *ab, realtype dt, UserData *data)
     {% endif %}
 
 {% if info.method == "cusparse" -%}
-#ifdef NAUNET_DEBUG
-    sunindextype lrw, liw;
-    N_VSpace_Cuda(m_y, &lrw, &liw);
-    printf("NVector space: real-%d, int-%d\n", lrw, liw);
-#endif
+// #ifdef NAUNET_DEBUG
+//     sunindextype lrw, liw;
+//     N_VSpace_Cuda(m_y, &lrw, &liw);
+//     printf("NVector space: real-%d, int-%d\n", lrw, liw);
+// #endif
 {% endif -%}
 
     flag = CVodeReInit(m_cvode_mem, 0.0, m_y);

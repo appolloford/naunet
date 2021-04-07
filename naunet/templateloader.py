@@ -82,7 +82,6 @@ class TemplateLoader(ABC):
         template_names = [
             "CMakeLists.txt.j2",
             "src/CMakeLists.txt.j2",
-            "test/CMakeLists.txt.j2",
         ]
         for name in template_names:
             template = self._env.get_template(name)
