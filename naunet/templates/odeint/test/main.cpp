@@ -35,7 +35,7 @@ int main()
     }
     y[IDX_pH2I] = 1.0 / (1.0 + OPRH2) * 0.5 * nH;
     y[IDX_oH2I] = OPRH2 / (1.0 + OPRH2) * 0.5 * nH;
-    y[IDX_HDI] = 1.0e-5 * nH;
+    y[IDX_HDI] = 1.5e-5 * nH;
     y[IDX_HeI] = 1.0e-1 * nH;
     y[IDX_NI] = 2.1e-6 * nH;
     y[IDX_OI] = 1.8e-5 * nH;
