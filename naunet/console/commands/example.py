@@ -20,6 +20,7 @@ class ExampleCommand(Command):
     Render source codes according to the project setting
 
     example
+        {--select= : select the example}
     """
 
     def __init__(self):
@@ -36,7 +37,11 @@ class ExampleCommand(Command):
 
         networklist = ["deuterium/1", "deuterium/2", "deuterium/3", "deuterium/4"]
 
-        case = self.choice("Choose an example network", networklist, 0)
+        case_idx = self.option("select")
+        if case_idx:
+            case = networklist[int(case_idx)]
+        else:
+            case = self.choice("Choose an example network", networklist, 0)
 
         # Check whether the test folder exists
         prefix = os.path.join(Path.cwd(), "test")
@@ -206,26 +211,26 @@ class ExampleCommand(Command):
 
             self.call(
                 "init",
-                f"--name={name} --description=example --elements={','.join(element)} --pseudo-elements=o,p,m --species={','.join(species)} --network=deuterium.krome --database=krome --solver=cvode --device=cpu --method=dense",
+                f"--name={name} --description=example --elements={','.join(element)} --pseudo-elements=o,p,m --species={','.join(species)} --network=deuterium.krome --database=krome --solver=cvode --device=cpu --method=dense --render",
             )
 
         elif case == networklist[1]:
 
             self.call(
                 "init",
-                f"--name={name} --description=example --elements={','.join(element)} --pseudo-elements=o,p,m --species={','.join(species)} --network=deuterium.krome --database=krome --solver=cvode --device=cpu --method=sparse",
+                f"--name={name} --description=example --elements={','.join(element)} --pseudo-elements=o,p,m --species={','.join(species)} --network=deuterium.krome --database=krome --solver=cvode --device=cpu --method=sparse --render",
             )
 
         elif case == networklist[2]:
 
             self.call(
                 "init",
-                f"--name={name} --description=example --elements={','.join(element)} --pseudo-elements=o,p,m --species={','.join(species)} --network=deuterium.krome --database=krome --solver=cvode --device=gpu --method=cusparse",
+                f"--name={name} --description=example --elements={','.join(element)} --pseudo-elements=o,p,m --species={','.join(species)} --network=deuterium.krome --database=krome --solver=cvode --device=gpu --method=cusparse --render",
             )
 
         elif case == networklist[3]:
 
             self.call(
                 "init",
-                f"--name={name} --description=example --elements={','.join(element)} --pseudo-elements=o,p,m --species={','.join(species)} --network=deuterium.krome --database=krome --solver=odeint --device=cpu --method=rosenbrock4",
+                f"--name={name} --description=example --elements={','.join(element)} --pseudo-elements=o,p,m --species={','.join(species)} --network=deuterium.krome --database=krome --solver=odeint --device=cpu --method=rosenbrock4 --render",
             )

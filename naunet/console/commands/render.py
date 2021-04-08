@@ -118,11 +118,12 @@ class RenderCommand(Command):
         #     dest = os.path.join(Path.cwd(), cmakesrc)
         #     shutil.copyfile(cmakefile, dest)
 
-        update_option = self.option("update-species")
-        if not update_option:
+        update = self.option("update-species")
+        if not update:
             update = self.confirm("Update species in configure file?", False)
 
-        if update or (update_option and update_option.lower != "false"):
+        if update and not (type(update) is str and update.lower() in ["false", "no"]):
+
             chemistry["species"] = [x.name for x in net.info.species]
 
             content["chemistry"] = chemistry

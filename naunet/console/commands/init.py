@@ -32,6 +32,7 @@ class InitCommand(Command):
         {--solver=cvode : ODE solver}
         {--device=cpu : Device}
         {--method=dense : Linear solver used in CVode or algorithm in ODEInt}
+        {--render : render template immediately}
     """
 
     def __init__(self):
@@ -215,8 +216,10 @@ class InitCommand(Command):
         with open(config_file, "w", encoding="utf-8") as f:
             f.write(dumps(content))
 
-        render = self.confirm("Render the source codes now?", False)
+        render = self.option("render")
+        if not render:
+            render = self.confirm("Render the source codes now?", False)
 
         if render:
 
-            self.call("render")
+            self.call("render", "--update-species=false")
