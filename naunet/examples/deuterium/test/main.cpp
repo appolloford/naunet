@@ -109,5 +109,7 @@ int main()
     fclose(rtxt);
 #endif
 
+    delete data;
+
     return 0;
 }
