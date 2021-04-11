@@ -31,8 +31,8 @@ int jac(realtype t, N_Vector u, N_Vector fu, SUNMatrix Jac,
 
 {% if info.method == "cusparse" -%}
 int jacInit(SUNMatrix jmatrix);
-__global__ void f_kernel(realtype *y, realtype *ydot, UserData *udata);
-__global__ void j_kernel(realtype *y, realtype *jdata, UserData *udata);
+__global__ void f_kernel(realtype *y, realtype *ydot, UserData *udata, int nsystem);
+__global__ void j_kernel(realtype *y, realtype *jdata, UserData *udata, int nsystem);
 
 {% endif -%}
 

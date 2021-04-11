@@ -48,7 +48,7 @@ int calculate_rates(realtype *k, realtype *y, UserData *u_data)
 int fex(realtype t, N_Vector u, N_Vector u_dot, void *user_data) 
 {
 
-{% if info.method == "dense" or info.method == "sparse"%}
+    {% if info.method == "dense" or info.method == "sparse" -%}
     realtype *y      = N_VGetArrayPointer(u);
     realtype *ydot   = N_VGetArrayPointer(u_dot);
     UserData *u_data = (UserData*) user_data;
@@ -63,31 +63,36 @@ int fex(realtype t, N_Vector u, N_Vector u_dot, void *user_data)
         {{ eq | wordwrap(80) | replace('\n', wrap) }}
     {% endfor %}
 
-{% elif info.method == "cusparse" %}
+    {% elif info.method == "cusparse" -%}
 
     realtype *y     = N_VGetDeviceArrayPointer_Cuda(u);
     realtype *ydot  = N_VGetDeviceArrayPointer_Cuda(u_dot);
     UserData *h_udata = (UserData*) user_data;
     UserData *d_udata;
 
-    cudaMalloc((void**)&d_udata, sizeof(UserData) * MAXNGROUPS);
-    cudaMemcpy(d_udata, h_udata, sizeof(UserData) * MAXNGROUPS, cudaMemcpyHostToDevice);
-    cudaDeviceSynchronize();
-    
-    unsigned block_size = BLOCKSIZE;
+    int nsystem;
+    sunindextype lrw, liw;
+    N_VSpace_Cuda(u, &lrw, &liw);
+    nsystem = lrw / NSPECIES;
+
+    cudaMalloc((void**)&d_udata, sizeof(UserData) * nsystem);
+    cudaMemcpy(d_udata, h_udata, sizeof(UserData) * nsystem, cudaMemcpyHostToDevice);
+    cudaDeviceSynchronize();    
+
+    unsigned block_size = min(BLOCKSIZE, nsystem);
     unsigned grid_size = 1;
-    f_kernel<<<grid_size, block_size>>>(y, ydot, d_udata);
+    f_kernel<<<grid_size, block_size>>>(y, ydot, d_udata, nsystem);
 
     cudaDeviceSynchronize();
     cudaError_t cuerr = cudaGetLastError();
     if (cuerr != cudaSuccess) {
         fprintf(stderr,
-            ">>> ERROR in Jac: cudaGetLastError returned %s\n",
+            ">>> ERROR in fex: cudaGetLastError returned %s\n",
             cudaGetErrorName(cuerr));
         return -1;
     }
 
-{% endif %}
+    {% endif -%}
 
     return CV_SUCCESS;
 
@@ -127,7 +132,7 @@ int jtv(N_Vector v, N_Vector Jv, realtype t, N_Vector u, N_Vector fu,
 int jac(realtype t, N_Vector u, N_Vector fu, SUNMatrix Jac, 
         void *user_data, N_Vector tmp1, N_Vector tmp2, N_Vector tmp3)
 {
-{% if info.method == "dense" %}
+    {% if info.method == "dense" -%}
     realtype *y = N_VGetArrayPointer(u);
     UserData *u_data = (UserData*) user_data;
     {% for v in ode.var -%}
@@ -141,8 +146,8 @@ int jac(realtype t, N_Vector u, N_Vector fu, SUNMatrix Jac,
         {{ eq | wordwrap(80) | replace('\n', wrap) }}
     {% endfor %}
 
-{% elif info.method == "sparse" %}
-    realtype *y = N_VGetArrayPointer(u);;
+    {% elif info.method == "sparse" -%}
+    realtype *y = N_VGetArrayPointer(u);
     sunindextype *rowptrs = SUNSparseMatrix_IndexPointers(Jac);
     sunindextype *colvals = SUNSparseMatrix_IndexValues(Jac);
     realtype *data = SUNSparseMatrix_Data(Jac);
@@ -163,30 +168,35 @@ int jac(realtype t, N_Vector u, N_Vector fu, SUNMatrix Jac,
         {{ data }}
     {% endfor %}
 
-{% elif info.method == "cusparse" %}
+    {% elif info.method == "cusparse" -%}
     realtype *y       = N_VGetDeviceArrayPointer_Cuda(u);
     realtype *data    = SUNMatrix_cuSparse_Data(Jac);
     UserData *h_udata = (UserData*) user_data;
     UserData *d_udata;
 
-    cudaMalloc((void**)&d_udata, sizeof(UserData) * MAXNGROUPS);
-    cudaMemcpy(d_udata, h_udata, sizeof(UserData) * MAXNGROUPS, cudaMemcpyHostToDevice);
+    int nsystem;
+    sunindextype lrw, liw;
+    N_VSpace_Cuda(u, &lrw, &liw);
+    nsystem = lrw / NSPECIES;
+
+    cudaMalloc((void**)&d_udata, sizeof(UserData) * nsystem);
+    cudaMemcpy(d_udata, h_udata, sizeof(UserData) * nsystem, cudaMemcpyHostToDevice);
     cudaDeviceSynchronize();
-    
-    unsigned block_size = BLOCKSIZE;
+
+    unsigned block_size = min(BLOCKSIZE, nsystem);
     unsigned grid_size = 1;
-    j_kernel<<<grid_size, block_size>>>(y, data, d_udata);
+    j_kernel<<<grid_size, block_size>>>(y, data, d_udata, nsystem);
 
     cudaDeviceSynchronize();
     cudaError_t cuerr = cudaGetLastError();
     if (cuerr != cudaSuccess) {
         fprintf(stderr,
-            ">>> ERROR in Jac: cudaGetLastError returned %s\n",
+            ">>> ERROR in jac: cudaGetLastError returned %s\n",
             cudaGetErrorName(cuerr));
         return -1;
     }
 
-{% endif %}
+    {% endif -%}
 
     return CV_SUCCESS;
 
@@ -215,50 +225,54 @@ int jacInit(SUNMatrix jmatrix)
     return CV_SUCCESS;
 }
 
-__global__ void f_kernel(realtype *y, realtype *ydot, UserData *d_udata)
-{
-    int tidx = blockIdx.x*blockDim.x + threadIdx.x;
-    int isys = tidx*NSPECIES;
-
-    realtype yi[NSPECIES] = {0.0};
-    realtype k[NREACTIONS] = {0.0};
-    if ( tidx < MAXNGROUPS)
-    {
-        UserData *udata = &d_udata[tidx];
-        for (int i=0; i<NSPECIES; i++)
-        {
-            yi[i] = y[isys + i];
-        }
-        calculate_rates(k, yi, udata);
-    }
-
-    {% for eq in ode.fex -%}
-        {{ eq | replace("IDX", "isys + IDX") | wordwrap(80) | replace('\n', wrap) }}
-    {% endfor %}
-
-}
-
-__global__ void j_kernel(realtype *y, realtype *data, UserData *d_udata)
+__global__ void f_kernel(realtype *y, realtype *ydot, UserData *d_udata, int nsystem)
 {
     int tidx = blockIdx.x*blockDim.x + threadIdx.x;
     int gs   = blockDim.x * gridDim.x;
-    int isys = tidx*NSPECIES;
+    int isys;
 
     realtype yi[NSPECIES] = {0.0};
     realtype k[NREACTIONS] = {0.0};
-    if ( tidx < MAXNGROUPS)
+    for (int cur = tidx; cur < nsystem; cur += gs)
     {
-        UserData *udata = &d_udata[tidx];
+        isys = cur * NSPECIES;
+        UserData *udata = &d_udata[cur];
         for (int i=0; i<NSPECIES; i++)
         {
             yi[i] = y[isys + i];
         }
         calculate_rates(k, yi, udata);
+
+        {% for eq in ode.fex -%}
+            {{ eq | replace("IDX", "isys + IDX") | wordwrap(80) | replace('\n', wrap) }}
+        {% endfor %}
     }
 
-    {% for data in ode.spjacdata -%}
-        {{ data | replace("data[", "data[isys + ") | replace("IDX", "isys + IDX")}}
-    {% endfor %}
+}
+
+__global__ void j_kernel(realtype *y, realtype *data, UserData *d_udata, int nsystem)
+{
+    int tidx = blockIdx.x*blockDim.x + threadIdx.x;
+    int gs   = blockDim.x * gridDim.x;
+    int isys;
+
+    realtype yi[NSPECIES] = {0.0};
+    realtype k[NREACTIONS] = {0.0};
+    for (int cur = tidx; cur < nsystem; cur += gs)
+    {
+        isys = cur * NSPECIES;
+        UserData *udata = &d_udata[cur];
+        for (int i=0; i<NSPECIES; i++)
+        {
+            yi[i] = y[isys + i];
+        }
+        calculate_rates(k, yi, udata);
+
+        int inzsys = cur * NNZ;
+        {% for data in ode.spjacdata -%}
+            {{ data | replace("data[", "data[inzsys + ") | replace("IDX", "isys + IDX")}}
+        {% endfor %}
+    }
 
 }
 

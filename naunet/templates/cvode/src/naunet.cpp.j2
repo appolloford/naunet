@@ -135,12 +135,43 @@ int Naunet::initSolver()
     {% elif info.method == "cusparse" -%}
 
     // N_VDestroy(m_y);
-    // m_y = N_VNewEmpty_Cuda();    
+    // m_y = N_VNewEmpty_Cuda();
 
     {% endif -%}
 
     return NAUNET_SUCCESS;
 };
+
+{% if info.method == "cusparse" %}
+// To reset the size of cusparse solver
+int Naunet::resetSolver(int nsystem)
+{
+
+    N_VDestroy(m_y);
+    SUNMatDestroy(m_a);
+    SUNLinSolFree(m_ls);
+
+    m_y = N_VNew_Cuda(nsystem*NSPECIES);
+    m_a = SUNMatrix_cuSparse_NewBlockCSR(nsystem, NSPECIES, NSPECIES, NNZ, m_cusp_handle);
+    m_ls = SUNLinSol_cuSolverSp_batchQR(m_y, m_a, m_cusol_handle);
+    SUNMatrix_cuSparse_SetFixedPattern(m_a, 1);
+    jacInit(m_a);
+
+    int flag;
+    flag = CVodeInit(m_cvode_mem, fex, 0.0, m_y);
+    if (check_flag(&flag, "CVodeInit", 1))
+        return 1;
+    flag = CVodeSStolerances(m_cvode_mem, m_rtol, m_atol);
+    if (check_flag(&flag, "CVodeSStolerances", 1))
+        return 1;
+
+    // reset the n_vector to empty, maybe not necessary
+    // N_VDestroy(m_y);
+    // m_y = N_VNewEmpty_Cuda();
+
+    return NAUNET_SUCCESS;
+};
+{% endif %}
 
 int Naunet::solve(realtype *ab, realtype dt, UserData *data)
 {
@@ -177,7 +208,7 @@ int Naunet::solve(realtype *ab, realtype dt, UserData *data)
 {% endif %}
 
     flag = CVodeReInit(m_cvode_mem, 0.0, m_y);
-    if (check_flag(&flag, "CVodeInit", 1))
+    if (check_flag(&flag, "CVodeReInit", 1))
         return 1;
     flag = CVodeSetUserData(m_cvode_mem, data);
     if (check_flag(&flag, "CVodeSetUserData", 1))

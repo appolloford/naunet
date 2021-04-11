@@ -49,6 +49,9 @@ public:
     Naunet();
     ~Naunet();
     int initSolver();
+    {% if info.method == "cusparse" -%}
+    int resetSolver(int nsystem);
+    {% endif -%}
     int solve(realtype *ab, realtype dt, UserData *data);
 };
 

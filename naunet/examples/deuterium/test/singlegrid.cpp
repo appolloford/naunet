@@ -18,15 +18,19 @@ int main()
     double nH = 1e5;
     double OPRH2 = 0.1;
 
-    UserData *data = new UserData();
-    data->nH = nH;
-    data->Tgas = 15.0;
-    data->user_Av = 30.0;
-    data->user_crflux = 2.5e-17;
-    data->user_GtoDN = (4.e0 * pi * rhoD * rD * rD * rD) / (3.e0 * DtoGM * amH);
+    UserData data;
+    data.nH = nH;
+    data.Tgas = 15.0;
+    data.user_Av = 30.0;
+    data.user_crflux = 2.5e-17;
+    data.user_GtoDN = (4.e0 * pi * rhoD * rD * rD * rD) / (3.e0 * DtoGM * amH);
 
     Naunet naunet;
     naunet.initSolver();
+
+#ifdef USE_CUDA
+    naunet.resetSolver(1);
+#endif
 
     double y[NSPECIES];
     for (int i = 0; i < NSPECIES; i++)
@@ -50,9 +54,9 @@ int main()
     }
     fclose(tfile);
 
-    FILE *fbin = fopen("evolution.bin", "w");
-    FILE *ftxt = fopen("evolution.txt", "w");
-    FILE *ttxt = fopen("time.txt", "w");
+    FILE *fbin = fopen("evolution_singlegrid.bin", "w");
+    FILE *ftxt = fopen("evolution_singlegrid.txt", "w");
+    FILE *ttxt = fopen("time_singlegrid.txt", "w");
 #ifdef NAUNET_DEBUG
     FILE *rtxt = fopen("reactionrates.txt", "w");
     double rates[NREACTIONS];
@@ -73,7 +77,7 @@ int main()
     {
 
 #ifdef NAUNET_DEBUG
-        calculate_rates(rates, y, data);
+        calculate_rates(rates, y, &data);
         for (int j = 0; j < NREACTIONS; j++)
         {
             fprintf(rtxt, "%13.7e ", rates[j]);
@@ -95,7 +99,7 @@ int main()
 
         Timer timer;
         timer.start();
-        naunet.solve(y, dtyr * spy, data);
+        naunet.solve(y, dtyr * spy, &data);
         timer.stop();
         float duration = (float)timer.elapsed() / 1e6;
         fprintf(ttxt, "%8.5e \n", duration);
@@ -108,8 +112,6 @@ int main()
 #ifdef NAUNET_DEBUG
     fclose(rtxt);
 #endif
-
-    delete data;
 
     return 0;
 }

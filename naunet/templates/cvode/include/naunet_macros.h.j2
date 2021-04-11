@@ -8,11 +8,12 @@
 {{ constants.nreact }}
 {% if info.method == "sparse" or info.method == "cusparse" -%}
 {{ constants.nnz }}
-{% endif -%}
+{% endif %}
 {% if info.method == "cusparse" -%}
-#define MAXNGROUPS 1
-#define BLOCKSIZE 1
-{% endif -%}
+#define USE_CUDA
+#define MAXNGROUPS 4096
+#define BLOCKSIZE 32
+{% endif %}
 
 {% for idx in constants.speclist -%}
     {{ idx }}
