@@ -2,8 +2,6 @@
 #include "{{ header }}"
 {% else %}
 #include <cvode/cvode.h>                // prototypes for CVODE fcts., consts.
-#include <sunlinsol/sunlinsol_spgmr.h>  // access to SPGMR SUNLinearSolver
-#include <cvode/cvode_spils.h>          // access to CVSpils interface
 {% if info.method == "dense" -%}
 #include <nvector/nvector_serial.h>     // access to serial N_Vector
 #include <sunmatrix/sunmatrix_dense.h>  // access to dense SUNMatrix
@@ -15,6 +13,9 @@
 {% elif info.method == "cusparse" -%}
 #include <nvector/nvector_cuda.h>
 #include <sunlinsol/sunlinsol_cusolversp_batchqr.h>
+{% elif info.method == "spgmr" -%}
+#include <sunlinsol/sunlinsol_spgmr.h>  // access to SPGMR SUNLinearSolver
+#include <cvode/cvode_spils.h>          // access to CVSpils interface
 {% endif -%}
 #include <sundials/sundials_types.h>    // defs. of realtype, sunindextype
 #include <sundials/sundials_math.h>     // contains the macros ABS, SUNSQR, EXP
@@ -85,7 +86,7 @@ Naunet::~Naunet()
     {% if info.method == "cusparse" -%}
     cusparseDestroy(m_cusp_handle);
     cusolverSpDestroy(m_cusol_handle);
-    {% endif -%}
+    {% endif %}
 };
 
 int Naunet::initSolver()
@@ -114,6 +115,18 @@ int Naunet::initSolver()
     SUNMatrix_cuSparse_SetFixedPattern(m_a, 1);
     jacInit(m_a);
 
+    {% elif info.method == "spgmr" -%}
+    // TODO: Try GMRES solvers
+    // m_ls = SUNLinSol_SPGMR(m_y, 0, 0);
+    // if (check_flag((void *)m_ls, "SUNLinSol_SPGMR", 0))
+    //     return 1;
+    // flag = CVSpilsSetLinearSolver(m_cvode_mem, m_ls);
+    // if (check_flag(&flag, "CVSpilsSetLinearSolver", 1))
+    //     return 1;
+    // flag = CVSpilsSetJacTimes(m_cvode_mem, NULL, jtv);
+    // if (check_flag(&flag, "CVSpilsSetJacTimes", 1))
+    //     return 1;
+
     {% endif %}
 
     m_cvode_mem = CVodeCreate(CV_BDF);
@@ -124,6 +137,12 @@ int Naunet::initSolver()
         return 1;
     flag = CVodeSStolerances(m_cvode_mem, m_rtol, m_atol);
     if (check_flag(&flag, "CVodeSStolerances", 1))
+        return 1;
+    flag = CVodeSetLinearSolver(m_cvode_mem, m_ls, m_a);
+    if (check_flag(&flag, "CVodeSetLinearSolver", 1))
+        return 1;
+    flag = CVodeSetJacFn(m_cvode_mem, jac);
+    if (check_flag(&flag, "CVodeSetJacFn", 1))
         return 1;
 
     // reset the n_vector to empty, maybe not necessary
@@ -150,7 +169,9 @@ int Naunet::resetSolver(int nsystem)
     N_VDestroy(m_y);
     SUNMatDestroy(m_a);
     SUNLinSolFree(m_ls);
+    CVodeFree(&m_cvode_mem);
 
+    m_cvode_mem = CVodeCreate(CV_BDF);
     m_y = N_VNew_Cuda(nsystem*NSPECIES);
     m_a = SUNMatrix_cuSparse_NewBlockCSR(nsystem, NSPECIES, NSPECIES, NNZ, m_cusp_handle);
     m_ls = SUNLinSol_cuSolverSp_batchQR(m_y, m_a, m_cusol_handle);
@@ -163,6 +184,12 @@ int Naunet::resetSolver(int nsystem)
         return 1;
     flag = CVodeSStolerances(m_cvode_mem, m_rtol, m_atol);
     if (check_flag(&flag, "CVodeSStolerances", 1))
+        return 1;
+    flag = CVodeSetLinearSolver(m_cvode_mem, m_ls, m_a);
+    if (check_flag(&flag, "CVodeSetLinearSolver", 1))
+        return 1;
+    flag = CVodeSetJacFn(m_cvode_mem, jac);
+    if (check_flag(&flag, "CVodeSetJacFn", 1))
         return 1;
 
     // reset the n_vector to empty, maybe not necessary
@@ -212,22 +239,6 @@ int Naunet::solve(realtype *ab, realtype dt, UserData *data)
         return 1;
     flag = CVodeSetUserData(m_cvode_mem, data);
     if (check_flag(&flag, "CVodeSetUserData", 1))
-        return 1;
-
-    // m_ls = SUNLinSol_SPGMR(m_y, 0, 0);
-    // if (check_flag((void *)m_ls, "SUNLinSol_SPGMR", 0))
-    //     return 1;
-    // flag = CVSpilsSetLinearSolver(m_cvode_mem, m_ls);
-    // if (check_flag(&flag, "CVSpilsSetLinearSolver", 1))
-    //     return 1;
-    flag = CVodeSetLinearSolver(m_cvode_mem, m_ls, m_a);
-    if (check_flag(&flag, "CVodeSetLinearSolver", 1))
-        return 1;
-    // flag = CVSpilsSetJacTimes(m_cvode_mem, NULL, jtv);
-    // if (check_flag(&flag, "CVSpilsSetJacTimes", 1))
-    //     return 1;
-    flag = CVodeSetJacFn(m_cvode_mem, jac);
-    if (check_flag(&flag, "CVodeSetJacFn", 1))
         return 1;
 
     realtype t0 = 0.0;

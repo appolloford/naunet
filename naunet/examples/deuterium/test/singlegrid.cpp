@@ -58,6 +58,7 @@ int main()
     FILE *ftxt = fopen("evolution_singlegrid.txt", "w");
     FILE *ttxt = fopen("time_singlegrid.txt", "w");
 #ifdef NAUNET_DEBUG
+    printf("Initialization is done. Start to evolve.\n");
     FILE *rtxt = fopen("reactionrates.txt", "w");
     double rates[NREACTIONS];
 #endif

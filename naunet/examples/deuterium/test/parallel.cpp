@@ -9,7 +9,7 @@
 int main()
 {
 
-    int nsystem = 2;
+    int nsystem = 64;
     double spy = 86400.0 * 365.0;
     double pi = 3.14159265;
     double rD = 1.0e-5;
@@ -64,6 +64,7 @@ int main()
     FILE *ttxt = fopen("time_parallel.txt", "w");
 
 #ifdef NAUNET_DEBUG
+    printf("Initialization is done. Start to evolve.\n");
     // FILE *rtxt = fopen("reactionrates.txt", "w");
     // double rates[NREACTIONS];
 #endif
@@ -128,6 +129,7 @@ int main()
 #endif
 
     delete[] data;
+    delete[] y;
 
     return 0;
 }
