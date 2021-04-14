@@ -5,6 +5,12 @@
 #include "naunet_userdata.h"
 #include "naunet_ode.h"
 #include "naunet_macros.h"
+
+using namespace std;
+using namespace boost::numeric::odeint;
+
+typedef boost::numeric::ublas::vector< double > vector_type;
+typedef boost::numeric::ublas::matrix< double > matrix_type;
 {% endif %}
 
 Naunet::Naunet() : m_atol(1e-20),
@@ -28,6 +34,17 @@ int Naunet::solve(double *ab, double dt, UserData *data)
     {
         y[i] = ab[i];
     }
+
+    // TODO: test the two methods from odeint stiff system example
+    // size_t num_of_steps = integrate_const(
+    //     make_dense_output<rosenbrock4<double>>(m_atol, m_rtol),
+    //     make_pair(fex(data), jac(data)), y, 0.0, dt, dt
+    // );
+
+    // size_t num_of_steps = integrate_const(
+    //     make_dense_output<runge_kutta_dopri5<vector_type>>(m_atol, m_rtol),
+    //     fex(data), y, 0.0, dt, dt
+    // );
 
     size_t num_of_steps = integrate_adaptive(
         make_controlled<rosenbrock4<double>>(m_atol, m_rtol),
