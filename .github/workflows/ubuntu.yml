@@ -30,7 +30,7 @@ jobs:
       - uses: actions/cache@v2
         with:
           path: ~/.cache/pypoetry/virtualenvs
-          key: ${{ runner.os }}-poetry-${{ hashFiles('poetry.lock') }}
+          key: ${{ matrix.os }}-poetry-${{ hashFiles('poetry.lock') }}
 
       - run: poetry --version
 
@@ -43,6 +43,9 @@ jobs:
       # ? It seems poetry install doesn't install package to the system
       - name: Install package
         run: pip install .
+
+      - name: Check package installed
+        run: naunet --version
         
   build:
     needs: install
@@ -68,6 +71,19 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
+
+      - name: Set up Pyhon
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python }}
+
+      - uses: actions/cache@v2
+        with:
+          path: ~/.cache/pip
+          key: ${{ matrix.os }}-pip-${{ hashFiles('poetry.lock') }}
+
+      - name: Install package
+        run: pip install .
 
       - name: Create naunet examples
         run: |
