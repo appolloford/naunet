@@ -39,6 +39,10 @@ jobs:
 
       - name: Pytest
         run: poetry run pytest -rs -o log_cli=true -o log_cli_level=DEBUG --runslow test
+
+      # ? It seems poetry install doesn't install package to the system
+      - name: Install package
+        run: pip install .
         
       - name: Test console command
         run: naunet example --select=0
@@ -67,6 +71,12 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
+
+      - name: Create naunet examples
+        run: |
+          cd $HOME
+          naunet example --select=0 --dest=naunet_example0
+          naunet example --select=1 --dest=naunet_example1
 
       - name: Install BLAS & LAPACK
         run: sudo apt-get install libblas-dev liblapack-dev

@@ -21,6 +21,7 @@ class ExampleCommand(Command):
 
     example
         {--select= : select the example}
+        {--dest= : the destination directory, created if not existed}
     """
 
     def __init__(self):
@@ -30,6 +31,12 @@ class ExampleCommand(Command):
 
         from pathlib import Path
         import naunet
+
+        destination_path = Path.cwd()
+        destination = self.option("dest")
+        if destination:
+            Path(destination).mkdir(parents=True)
+            destination_path = destination
 
         src_parent_path = Path(naunet.__file__).parent
         example_path = os.path.join(src_parent_path, "examples")
@@ -44,7 +51,7 @@ class ExampleCommand(Command):
             case = self.choice("Choose an example network", networklist, 0)
 
         # Check whether the test folder exists
-        prefix = os.path.join(Path.cwd(), "test")
+        prefix = os.path.join(destination_path, "test")
 
         if os.path.exists(prefix):
             if not os.path.isdir(prefix):
@@ -64,7 +71,7 @@ class ExampleCommand(Command):
                 # src = "/".join([deuterium_path, file])
                 src = os.path.join(deuterium_path, file)
                 # dest = "/".join([deuterium_path, file])
-                dest = os.path.join(Path.cwd(), file)
+                dest = os.path.join(destination_path, file)
 
                 if os.path.isdir(src):
                     shutil.copytree(src, dest)
@@ -72,7 +79,7 @@ class ExampleCommand(Command):
                 elif os.path.isfile(src):
                     shutil.copyfile(src, dest)
 
-        name = Path.cwd().name.lower()
+        name = destination if destination else Path.cwd().name.lower()
         element = ["e", "H", "D", "He", "C", "N", "O", "GRAIN"]
         species = [
             "C",
@@ -207,6 +214,10 @@ class ExampleCommand(Command):
             "pH2D+",
             "pH3+",
         ]
+
+        # TODO: improve the way to create project in a new directory
+        os.chdir(destination_path)
+
         if case == networklist[0]:
 
             self.call(
