@@ -44,9 +44,6 @@ jobs:
       - name: Install package
         run: pip install .
         
-      - name: Test console command
-        run: naunet example --select=0
-        
   build:
     needs: install
     
