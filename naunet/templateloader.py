@@ -1,6 +1,7 @@
 import os
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+from pathlib import Path
 from typing import List
 from tqdm import tqdm
 from jinja2 import Environment, FileSystemLoader, PackageLoader
@@ -69,7 +70,9 @@ class TemplateLoader(ABC):
             result = template.render(**kwargs)
             print(result)
 
-    def render(self, prefix="./", save=True):
+    def render(self, prefix="./source", save=True):
+
+        Path(prefix).mkdir(parents=True, exist_ok=True)
 
         self.render_constants(prefix=prefix, save=save)
         self.render_userdata(prefix=prefix, save=save)
@@ -247,7 +250,7 @@ class CVodeTemplateLoader(TemplateLoader):
         lhs = [f"ydot[IDX_{x.alias}]" for x in species]
         fex = [f"{l} = {r};" for l, r in zip(lhs, rhs)]
         jac = [
-            f"IJth(Jac, {idx//n_spec}, {idx%n_spec}) = {j};"
+            f"IJth(jmatrix, {idx//n_spec}, {idx%n_spec}) = {j};"
             for idx, j in enumerate(jacrhs)
         ]
 
