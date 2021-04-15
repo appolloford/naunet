@@ -1,11 +1,11 @@
 cd $HOME/naunet_example0
 cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release \
-      -DSUNDIALS_DIR=/usr/local/sundials/lib/cmake/sundials \
+      -DSUNDIALS_DIR=/usr/local/sundials/lib/cmake/sundials
 cmake --build build
 
 cd $HOME/naunet_example1
 cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release \
-      -DSUNDIALS_DIR=/usr/local/sundials/lib/cmake/sundials \
+      -DSUNDIALS_DIR=/usr/local/sundials/lib/cmake/sundials
 cmake --build build
 
 cd $HOME/naunet_example2
