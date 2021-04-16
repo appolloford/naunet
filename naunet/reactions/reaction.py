@@ -1,38 +1,57 @@
 from abc import ABC, abstractmethod
-from enum import Enum
 from collections import Counter
+from enum import IntEnum
 from .. import settings
 from ..species import Species
 
 # If the reaction types have the same formalism, they share the same value in the enum class
-class ReactionType(Enum):
-    COSMIC_RAY = 1
-    PHOTON = 2
-    TWO_BODY = 3
+class ReactionType(IntEnum):
+    """
+    The definition of reaction types. Types are categorized by phases
+    (gas, grain, surface) and then divided to sub-groups
 
-    KIDA_CR = 1  # Cosmic-ray ionization
-    KIDA_PD = 2  # Photo-dissociation (Draine)
-    KIDA_MA = 3  # Modified Arrhenius
-    KIDA_IP1 = 4  # ionpol1
-    KIDA_IP2 = 5  # ionpol2
-    KIDA_TB = 6  # Three-body
+    :base IntEnum:
+    """
 
-    UMIST_AD = 3  # Associative Detachment
-    UMIST_CD = 3  # Collisional Dissociation
-    UMIST_CE = 3  # Charge Exchange
-    UMIST_CP = 1  # Cosmic-Ray Proton (CRP)
-    UMIST_CR = 7  # Cosmic-Ray Photon (CRPHOT)
-    UMIST_DR = 3  # Dissociative Recombination
-    UMIST_IN = 3  # Ion-Nuetral
-    UMIST_MN = 3  # Mutual Neutralisation
-    UMIST_NN = 3  # Nuetral-Neutral
-    UMIST_PH = 2  # Photoprocess
-    UMIST_RA = 3  # Radiative Association
-    UMIST_REA = 3  # Radiative Electron Attachment
-    UMIST_RR = 3  # Radiative Recombination
+    # 10x: common types of gas phase reactions
+    GAS_TWOBODY = 100
+    GAS_COSMICRAY = 101
+    GAS_PHOTON = 102
+    GAS_THREEBODY = 103
+
+    # 11x: special types in KIDA
+    GAS_KIDA_IP1 = 110
+    GAS_KIDA_IP2 = 111
+
+    # 12x: special types in UMIST
+    GAS_UMIST_CRPHOT = 120
+
+    # 20x: common types of gas-grain interaction
+    GRAIN_FREEZE = 200
+    GRAIN_DESORPT_THERMAL = 201
+    GRAIN_DESORPT_COSMICRAY = 202
+    GRAIN_DESORPT_PHOTON = 203
+
+    # 21x: special desorption from Walsh+2015
+    GRAIN_DESORPT_REACTIVE = 210
+
+    # 22x: special desoprtion from UCLCHEM
+    GRAIN_DESORPT_H2 = 220
+
+    # 30x: common types of surface reactions
+    SURFACE_TWOBODY = 300
+    SURFACE_COSMICRAY = 301
+    SURFACE_PHOTON = 302
+
+    UNKNOWN = 999
 
 
 class Reaction(ABC):
+    """
+    Interface of reaction
+
+    :base ABC:
+    """
 
     variables = {}
     user_var = []
@@ -42,10 +61,8 @@ class Reaction(ABC):
         self.products = []
         self.temp_min = 1.0
         self.temp_max = -1.0
-        self.reaction_type = None
+        self.reaction_type = ReactionType.UNKNOWN
         self.database = None
-
-        # self._parse_string(react_string)
 
     def __str__(self) -> str:
         verbose = "{} -> {}".format(
@@ -55,6 +72,9 @@ class Reaction(ABC):
         return verbose
 
     def __eq__(self, o: object) -> bool:
+        if not isinstance(o, Reaction):
+            raise ValueError(f"{o} is not a reaction")
+
         # ignore reaction_type if there is no this information e.g. krome
         return (
             self.rpeq(o)
@@ -62,8 +82,8 @@ class Reaction(ABC):
             and self.temp_max == o.temp_max
             and (
                 self.reaction_type == o.reaction_type
-                or not self.reaction_type
-                or not o.reaction_type
+                or self.reaction_type == ReactionType.UNKNOWN
+                or o.reaction_type == ReactionType.UNKNOWN
             )
         )
 
@@ -80,7 +100,7 @@ class Reaction(ABC):
                     " + ".join(x.name for x in self.products),
                     self.temp_min,
                     self.temp_max,
-                    self.reaction_type if self.reaction_type else "Unknown",
+                    self.reaction_type.name,
                     self.database,
                 )
             )
@@ -124,15 +144,27 @@ class Reaction(ABC):
         :return: Species object
         :rtype: object
         """
-        if species_name not in settings.pseudo_element_list:
+        if species_name and species_name not in settings.pseudo_element_list:
             return Species(species_name)
 
     @classmethod
     def finalize(cls) -> None:
+        """
+        Interface. Reset class attributes if needed
+        """
         pass
 
     @classmethod
     def preprocessing(cls, line: str) -> str:
+        """
+        Interface. Preprocess the input reaction string before initialize a reaction.
+        Called in Network class
+
+        :param line: reaction string
+        :type line: str
+        :return: proceeded string
+        :rtype: str
+        """
         return line
 
     def rpeq(self, o: object) -> bool:

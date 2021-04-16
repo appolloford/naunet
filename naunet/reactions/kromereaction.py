@@ -89,7 +89,7 @@ class KROMEReaction(Reaction):
     def __init__(self, react_string, *args, **kwargs) -> None:
         super().__init__(react_string)
 
-        self.database = "krome"
+        self.database = "KROME"
         self.alpha = 0.0
         self.beta = 0.0
         self.gamma = 0.0

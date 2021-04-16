@@ -88,6 +88,8 @@ default_pseudo_element_list = [
     "CRP",
     "XRAY",
     "Photon",
+    "PHOTON",
+    "CRPHOT",
     "X",
     "M",
     "p",
@@ -135,6 +137,7 @@ def _initialize_element(input_element_list):
 def _initialize_pseudo_element(input_pseudo_element_list):
     pseudo_element_list.clear()
     pseudo_element_list.extend(input_pseudo_element_list)
+
 
 def _initialize_from_file(filename):
     with open(filename):

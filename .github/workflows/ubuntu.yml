@@ -77,7 +77,8 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
 
-      - uses: actions/cache@v2
+      - name: Cache Python packages
+        uses: actions/cache@v2
         with:
           path: ~/.cache/pip
           key: ${{ matrix.os }}-pip-${{ hashFiles('poetry.lock') }}
@@ -95,7 +96,7 @@ jobs:
         uses: actions/cache@v2
         id: boost
         with:
-          path: $HOME/boost
+          path: ~/boost
           key: ${{ matrix.os }}-boost1.65
           
       - name: Install boost
@@ -119,7 +120,7 @@ jobs:
         uses: actions/cache@v2
         id: suitesparse
         with:
-          path: $HOME/suitesparse
+          path: ~/suitesparse
           key: ${{ matrix.os }}-suitesparse
 
       - name: Install SuiteSparse
@@ -151,7 +152,7 @@ jobs:
         uses: actions/cache@v2
         id: sundials
         with:
-          path: $HOME/sundials
+          path: ~/sundials
           key: ${{ matrix.os }}-sundials
 
       - name: Install SUNDIALS
