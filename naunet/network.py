@@ -1,6 +1,5 @@
 import logging
 from tqdm import tqdm
-from . import settings
 from .templateloader import ODEIntTemplateLoader, TemplateLoader, CVodeTemplateLoader
 from .reactions.reaction import Reaction
 from .reactions.kidareaction import KIDAReaction
@@ -30,6 +29,13 @@ def reaction_factory(react_string: str, database: str) -> Reaction:
     if react_string:
         return initializer(react_string, format)
     return None
+
+
+def define_reaction(name: str):
+    def insert_class(reactcls: object):
+        supported_reaction_class.update({name: reactcls})
+
+    return insert_class
 
 
 class Network:

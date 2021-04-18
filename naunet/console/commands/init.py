@@ -85,11 +85,12 @@ class InitCommand(Command):
 
         chemistry = table()
 
-        element = self.option("elements").split(",")
-        if not element:
+        element = self.option("elements")
+        if element:
+            element = element.split(",")
 
+        else:
             element = default_element_list
-
             question = self.create_question(
                 "Elements incuded in the network [<comment>{}</comment>]:".format(
                     element
@@ -100,11 +101,12 @@ class InitCommand(Command):
 
         chemistry.add("elements", element)
 
-        pseudo_element = self.option("pseudo-elements").split(",")
-        if not pseudo_element:
+        pseudo_element = self.option("pseudo-elements")
+        if pseudo_element:
+            pseudo_element = pseudo_element.split(",")
 
+        else:
             pseudo_element = default_pseudo_element_list
-
             question = self.create_question(
                 "Pseudo_elements incuded in the network [<comment>{}</comment>]:".format(
                     pseudo_element
@@ -115,13 +117,14 @@ class InitCommand(Command):
 
         chemistry.add("pseudo_elements", pseudo_element)
 
-        species = self.option("species").split(",")
-        if not species:
+        species = self.option("species")
+        if species:
+            species = species.split(",")
+
+        else:
             question = self.create_question(
-                "Species incuded in the network [<comment>{}</comment>]:".format(
-                    species
-                ),
-                default=species,
+                "Species incuded in the network [<comment>{}</comment>]:".format([]),
+                default=[],
             )
             species = self.ask(question)
 

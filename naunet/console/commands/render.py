@@ -54,7 +54,7 @@ class RenderCommand(Command):
 
         naunet.settings.initialize(element=element, pseudo_element=pseudo_element)
 
-        from naunet.network import Network
+        from naunet.network import Network, supported_reaction_class
 
         # Check whether include and src folders exist, test folder is checked in example.py
         for subdir in ["include", "src"]:
@@ -76,6 +76,13 @@ class RenderCommand(Command):
 
             else:
                 os.mkdir(prefix)
+
+        if not supported_reaction_class.get(database):
+            from importlib import util
+
+            spec = util.spec_from_file_location(database, f"{database}.py")
+            module = util.module_from_spec(spec)
+            spec.loader.exec_module(module)
 
         net = Network(network, database, species=species)
 
