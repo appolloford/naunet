@@ -25,6 +25,11 @@ if(CMAKE_BUILD_TYPE STREQUAL Debug)
     add_definitions(-DNAUNET_DEBUG)
 endif()
 
+message(STATUS "CMAKE_SYSTEM_NAME          = ${CMAKE_SYSTEM_NAME}"         )
+message(STATUS "CMAKE_CXX_COMPILER_ID      = ${CMAKE_CXX_COMPILER_ID}"     )
+message(STATUS "CMAKE_CXX_COMPILER_VERSION = ${CMAKE_CXX_COMPILER_VERSION}")
+message(STATUS "CMAKE_COMPILER_IS_GNUCXX   = ${CMAKE_COMPILER_IS_GNUCXX}"  )
+message(STATUS "CMAKE_BUILD_TYPE           = ${CMAKE_BUILD_TYPE}"          )
 
 set(USE_BOOST ON)
 find_package(Boost 1.65 REQUIRED)
@@ -32,6 +37,7 @@ find_package(Boost 1.65 REQUIRED)
 # find_package(CUDA REQUIRED)
 # find_package(CUDAToolkit REQUIRED)
 
+set(NVIDIA_GPU_COUNT 0)
 
 add_subdirectory(src)
 add_subdirectory(test)

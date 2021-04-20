@@ -88,7 +88,7 @@ class ExampleCommand(Command):
                 dest = os.path.join(destination_path, file)
 
                 if os.path.isdir(src):
-                    shutil.copytree(src, dest)
+                    shutil.copytree(src, dest, dirs_exist_ok=True)
 
                 elif os.path.isfile(src):
                     shutil.copyfile(src, dest)

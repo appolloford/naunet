@@ -19,11 +19,29 @@ endif()
 
 target_link_libraries(test_singlegrid.x ${NAUNETLIB})
 
-# if CUDA is on, add parallel test
 if("CUDA" IN_LIST languages)
+    # if CUDA is on, parallel test should be included
     add_executable(test_parallel.x parallel.cpp)
     target_include_directories(test_parallel.x PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
     target_link_libraries(test_parallel.x ${NAUNETLIB})
+
+    # test if gpu device is found when CUDA is enabled
+    if(${NVIDIA_GPU_COUNT})
+        add_test(
+            NAME test_singlegrid
+            COMMAND $<TARGET_FILE:test_singlegrid.x>
+        )
+        add_test(
+            NAME test_parallel
+            COMMAND $<TARGET_FILE:test_parallel.x>
+        )
+    endif()
+else()
+    # if no CUDA, only test the simple case
+    add_test(
+        NAME test_singlegrid
+        COMMAND $<TARGET_FILE:test_singlegrid.x>
+    )
 endif()
 
 file(COPY timeres.dat DESTINATION ${CMAKE_CURRENT_BINARY_DIR})

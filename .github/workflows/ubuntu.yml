@@ -167,3 +167,6 @@ jobs:
 
       - name: Build naunet examples
         run: source ./scripts/actions/build_examples.sh
+
+      - name: Test naunet examples
+        run: source ./scripts/actions/test_examples.sh
