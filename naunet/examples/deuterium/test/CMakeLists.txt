@@ -13,8 +13,8 @@ if("CUDA" IN_LIST languages)
 endif()
 
 # for odeint test
-if(USE_BOOST AND BOOST_ROOT)
-    target_include_directories(test_singlegrid.x PRIVATE ${BOOST_ROOT}/include)
+if(USE_BOOST)
+    target_include_directories(test_singlegrid.x PRIVATE ${Boost_INCLUDE_DIRS})
 endif()
 
 target_link_libraries(test_singlegrid.x ${NAUNETLIB})
