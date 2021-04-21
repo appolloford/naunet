@@ -12,8 +12,6 @@ pseudo_element_list = []
 
 surface_symbol = "#"
 
-charge_symbols = ["+", "-"]
-
 default_element_list = [
     "e",
     "E",

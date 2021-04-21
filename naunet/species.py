@@ -8,8 +8,6 @@ class Species:
     def __init__(self, name):
         self.name = name
         self.element_count = dict()
-        self.charge = 0
-        self.is_surface = False
         self._alias = None
 
         # initialize the default elements list if it is not
@@ -50,33 +48,14 @@ class Species:
         else:
             self.element_count[element] = count
 
-    @staticmethod
-    def _is_surface(name):
-        return name[0] == settings.surface_symbol
-
-    @staticmethod
-    def _is_charged(name):
-        return any([x in name[-1] for x in settings.charge_symbols])
-
     def _parse_molecule_name(self):
         element_sorted = sorted(
             settings.element_list + settings.pseudo_element_list, key=len, reverse=True
         )
         element_len = list(map(lambda x: len(x), element_sorted))
 
-        specname = self.name
-        # TODO: generalize the way to check surface and count charge
-        if self._is_surface(specname):
-            self.is_surface = True
-            specname = specname.replace(settings.surface_symbol, "")
-
-        if self._is_charged(specname):
-            pcharge = "".join(re.findall(r"\+*$", specname)).count("+")
-            ncharge = "".join(re.findall(r"-*$", specname)).count("-")
-            self.charge = pcharge - ncharge
-            # remove the charge symbols
-            specname = re.sub(r"\+*$", "", specname)
-            specname = re.sub(r"-*$", "", specname)
+        # get the name without surface or charge symbol
+        specname = self.basename
 
         lastelement = None
         while len(specname) > 0:
@@ -100,26 +79,6 @@ class Species:
                     raise RuntimeError(
                         'Unrecongnized name: "{}" in "{}"'.format(specname, self.name)
                     )
-
-    @property
-    def basename(self) -> str:
-        """
-        Clip the surface and charge symbols. Return the name of the molecular/atom
-
-        Returns:
-            str: name of the molecular/atom without charge or phase information
-        """
-        # TODO: generalize the way to check surface and count charge
-        basename = self.name
-        if self.is_surface:
-            basename = basename.replace(settings.surface_symbol, "")
-
-        if self.charge > 0:
-            basename = re.sub(r"\+*$", "", basename)
-        elif self.charge < 0:
-            basename = re.sub(r"-*$", "", basename)
-
-        return basename
 
     @property
     def alias(self) -> str:
@@ -147,6 +106,45 @@ class Species:
             name (str): new alias of the species
         """
         self._alias = name
+
+    @property
+    def basename(self) -> str:
+        """
+        Clip the surface and charge symbols. Return the name of the molecular/atom
+
+        Returns:
+            str: name of the molecular/atom without charge or phase information
+        """
+        basename = self.name
+
+        # remove surface symbol
+        if self.is_surface:
+            basename = basename.replace(settings.surface_symbol, "")
+
+        # remove charge symbols
+        if self.charge != 0:
+            basename = re.sub(r"\+*$", "", basename)
+            basename = re.sub(r"-*$", "", basename)
+
+        return basename
+
+    @property
+    def charge(self) -> int:
+        """
+        Total charge of the species. Calculate the number of "+" and "-" in the end
+
+        Returns:
+            int: total charge
+        """
+        pcharge = "".join(re.findall(r"\+*$", self.name)).count("+")
+        ncharge = "".join(re.findall(r"-*$", self.name)).count("-")
+        return pcharge - ncharge
+
+    @property
+    def is_surface(self):
+        if "GRAIN" in self.name.upper():
+            return False
+        return self.name.startswith(settings.surface_symbol)
 
 
 def top_abundant_species(species_list, abundances, element=None, rank=-1):
