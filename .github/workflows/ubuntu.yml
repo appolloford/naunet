@@ -128,7 +128,7 @@ jobs:
           CACHE_HIT: ${{ steps.suitesparse.outputs.cache-hit }}
         run: |
           if [[ "$CACHE_HIT" == 'true' ]]; then
-            sudo cp --verbose --force --recursive ~/suitesparse/* /usr/local
+            sudo cp --verbose --force --recursive ~/suitesparse/* /usr/local/suitesparse
           else
             source ./scripts/actions/install_suitesparse.sh
           fi
@@ -160,7 +160,7 @@ jobs:
           CACHE_HIT: ${{ steps.sundials.outputs.cache-hit }}
         run: |
           if [[ "$CACHE_HIT" == 'true' ]]; then
-            sudo cp --verbose --force --recursive ~/sundials/* /usr/local
+            sudo cp --verbose --force --recursive ~/sundials/* /usr/local/sundials
           else
             source ./scripts/actions/install_sundials.sh
           fi
