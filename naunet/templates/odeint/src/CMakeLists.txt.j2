@@ -7,7 +7,7 @@ target_include_directories(naunet_ode PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIREC
 add_library(naunet_ode STATIC naunet_ode.cpp)
 {% endif -%}
 target_include_directories(naunet_ode PUBLIC ${CMAKE_SOURCE_DIR}/include)
-target_include_directories(naunet_ode PRIVATE ${BOOST_ROOT}/include)
+target_include_directories(naunet_ode PRIVATE ${Boost_INCLUDE_DIRS})
 
 
 add_library(naunet STATIC naunet.cpp)
@@ -16,7 +16,7 @@ set_target_properties(naunet PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
 target_include_directories(naunet PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 {% endif -%}
 target_include_directories(naunet PUBLIC ${CMAKE_SOURCE_DIR}/include)
-target_include_directories(naunet PRIVATE ${BOOST_ROOT}/include)
+target_include_directories(naunet PRIVATE ${Boost_INCLUDE_DIRS})
 
 
 

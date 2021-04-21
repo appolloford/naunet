@@ -14,14 +14,6 @@ surface_symbol = "#"
 
 charge_symbols = ["+", "-"]
 
-ode_symbols = {
-    "ode_vector": "y",
-    "fex_lhs": "ydot",
-    "jtv_lhs": "jv",
-    "jac_lhs": "",  # dummy, LHS of jac() is hard coded
-    "rate": "k",
-}
-
 default_element_list = [
     "e",
     "E",
@@ -46,42 +38,6 @@ default_element_list = [
     "GRAIN",
     "g",
 ]
-
-# default_element_list = [
-#     "E",
-#     "H",
-#     "HE",
-#     "LI",
-#     "BE",
-#     "B",
-#     "C",
-#     "N",
-#     "O",
-#     "F",
-#     "NE",
-#     "NA",
-#     "MG",
-#     "AL",
-#     "SI",
-#     "P",
-#     "S",
-#     "CL",
-#     "AR",
-#     "K",
-#     "CA",
-#     "SC",
-#     "TI",
-#     "V",
-#     "CR",
-#     "MN",
-#     "FE",
-#     "CO",
-#     "NI",
-#     "Cu",
-#     "Zn",
-#     "Ga",
-#     "Ge",
-# ]
 
 default_pseudo_element_list = [
     "CR",
@@ -150,7 +106,7 @@ def initialize(
     filename: str = None,
 ):
 
-    global species_initialized, setting_initialized
+    global setting_initialized
 
     if filename:
 
@@ -165,7 +121,6 @@ def initialize(
 
         logging.warning("No assigned data. Use default elements")
 
-        # print(default_pseudo_element_list, default_element_list)
         _initialize_element(default_element_list)
         _initialize_pseudo_element(default_pseudo_element_list)
 

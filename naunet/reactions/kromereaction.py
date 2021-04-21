@@ -1,7 +1,6 @@
 import logging
 import re
 from lark import Lark, Transformer
-from .. import settings
 from ..species import Species
 from .reaction import Reaction, ReactionType
 
@@ -17,7 +16,7 @@ class FtoCCoverter:
             lambda self, l: "".join(l)
             .replace("(", "[")
             .replace(")", "]")
-            .replace("n", settings.ode_symbols["ode_vector"])
+            .replace("n", "y")
         )
         index = lambda self, i: "IDX" + "".join(i)
         atom = lambda self, a: "".join(a)

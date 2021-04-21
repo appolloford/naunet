@@ -7,10 +7,10 @@ from . import settings
 class Species:
     def __init__(self, name):
         self.name = name
-        self.alias = None
         self.element_count = dict()
         self.charge = 0
         self.is_surface = False
+        self._alias = None
 
         # initialize the default elements list if it is not
         # initialized when the fist species is instanciated
@@ -18,7 +18,6 @@ class Species:
             settings.initialize()
 
         self._parse_molecule_name()
-        self.set_alias()
 
     def __eq__(self, o: object) -> bool:
         if isinstance(o, Species):
@@ -102,7 +101,14 @@ class Species:
                         'Unrecongnized name: "{}" in "{}"'.format(specname, self.name)
                     )
 
-    def basename(self):
+    @property
+    def basename(self) -> str:
+        """
+        Clip the surface and charge symbols. Return the name of the molecular/atom
+
+        Returns:
+            str: name of the molecular/atom without charge or phase information
+        """
         # TODO: generalize the way to check surface and count charge
         basename = self.name
         if self.is_surface:
@@ -115,16 +121,32 @@ class Species:
 
         return basename
 
-    def set_alias(self, alias=None):
-        if alias:
-            self.alias = alias
-        else:
-            basename = self.basename()
-            self.alias = "{}{}{}".format(
+    @property
+    def alias(self) -> str:
+        """
+        Alias of the species. Special symbols are removed. Used in indexing species in codes.
+
+        Returns:
+            str: alias of the species
+        """
+        if not self._alias:
+            basename = self.basename
+            self._alias = "{}{}{}".format(
                 "G" if self.is_surface else "",
                 basename,
                 "I" * (self.charge + 1) if self.charge >= 0 else "M" * abs(self.charge),
             )
+        return self._alias
+
+    @alias.setter
+    def alias(self, name):
+        """
+        Setter of alias. Customized the alias if needed.
+
+        Args:
+            name (str): new alias of the species
+        """
+        self._alias = name
 
 
 def top_abundant_species(species_list, abundances, element=None, rank=-1):
