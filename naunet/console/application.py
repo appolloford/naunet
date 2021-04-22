@@ -1,8 +1,6 @@
 import sys
-
 from cleo import Application as BaseApplication
-
-from ..__version__ import __version__
+from importlib.metadata import version
 
 from .commands.init import InitCommand
 from .commands.render import RenderCommand
@@ -11,7 +9,7 @@ from .commands.example import ExampleCommand
 
 class Application(BaseApplication):
     def __init__(self):
-        super(Application, self).__init__("naunet", __version__)
+        super(Application, self).__init__("naunet", version("naunet"))
 
         for command in self.get_default_commands():
             self.add(command)

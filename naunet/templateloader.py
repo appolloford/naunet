@@ -80,7 +80,7 @@ class TemplateLoader(ABC):
         self.render_naunet(prefix=prefix, save=save)
 
     # This function should not be used outside console commands
-    def render_cmake(self, prefix: str = "./") -> None:
+    def render_cmake(self, prefix: str = "./", version: str = None) -> None:
 
         template_names = [
             "CMakeLists.txt.j2",
@@ -89,7 +89,14 @@ class TemplateLoader(ABC):
         for name in template_names:
             template = self._env.get_template(name)
             target = name.replace(".j2", "")
-            self._render(template, prefix, name=target, save=True, info=self._info)
+            self._render(
+                template,
+                prefix,
+                name=target,
+                save=True,
+                info=self._info,
+                version=version,
+            )
 
     def render_constants(
         self, prefix: str = "./", name: str = None, save: bool = True

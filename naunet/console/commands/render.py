@@ -9,6 +9,7 @@ import urllib.parse
 import shutil
 
 from cleo import argument, option
+from importlib.metadata import version
 from tomlkit import dumps
 from tomlkit.toml_file import TOMLFile
 
@@ -28,6 +29,8 @@ class RenderCommand(Command):
         super(RenderCommand, self).__init__()
 
     def handle(self):
+
+        ver = version("naunet")
 
         config = TOMLFile("naunet_config.toml")
 
@@ -95,7 +98,7 @@ class RenderCommand(Command):
         tl.render_userdata(prefix=header_prefix)
         tl.render_ode(prefix=source_prefix, headerprefix=header_prefix)
         tl.render_naunet(prefix=source_prefix, headerprefix=header_prefix)
-        tl.render_cmake(prefix=Path.cwd())
+        tl.render_cmake(prefix=Path.cwd(), version=ver)
 
         src_parent_path = Path(naunet.__file__).parent
         template_path = os.path.join(src_parent_path, "templates", solver)
