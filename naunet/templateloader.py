@@ -17,7 +17,7 @@ from . import settings
 
 class TemplateLoader(ABC):
     @dataclass
-    class ConstantsContent:
+    class MacrosContent:
         nspec: str
         nreact: str
         speclist: List[str]
@@ -49,7 +49,7 @@ class TemplateLoader(ABC):
     def __init__(self, netinfo: object, *args, **kwargs) -> None:
 
         self._env = None
-        self._constants = None
+        self._macros = None
         self._info = None
         self._userdata = None
         self._ode = None
@@ -74,7 +74,8 @@ class TemplateLoader(ABC):
 
         Path(prefix).mkdir(parents=True, exist_ok=True)
 
-        self.render_constants(prefix=prefix, save=save)
+        # self.render_constants(prefix=prefix, save=save)
+        self.render_macros(prefix=prefix, save=save)
         self.render_userdata(prefix=prefix, save=save)
         self.render_ode(prefix=prefix, save=save)
         self.render_naunet(prefix=prefix, save=save)
@@ -102,12 +103,21 @@ class TemplateLoader(ABC):
         self, prefix: str = "./", name: str = None, save: bool = True
     ) -> None:
         if not name and save:
-            name = "naunet_macros.h"
+            name = "naunet_constants.h"
 
-        template = self._env.get_template("include/naunet_macros.h.j2")
+        template = self._env.get_template("include/naunet_constants.h.j2")
         self._render(
             template, prefix, name, save, constants=self._constants, info=self._info
         )
+
+    def render_macros(
+        self, prefix: str = "./", name: str = None, save: bool = True
+    ) -> None:
+        if not name and save:
+            name = "naunet_macros.h"
+
+        template = self._env.get_template("include/naunet_macros.h.j2")
+        self._render(template, prefix, name, save, macros=self._macros, info=self._info)
 
     def render_naunet(
         self,
@@ -211,7 +221,7 @@ class CVodeTemplateLoader(TemplateLoader):
         nreact = f"#define NREACTIONS {n_react}"
         speclist = [f"#define IDX_{x.alias} {i}" for i, x in enumerate(species)]
 
-        self._constants = self.ConstantsContent(nspec, nreact, speclist)
+        self._macros = self.MacrosContent(nspec, nreact, speclist)
 
         var = [f"double {v};" for db in databases for v in db.variables.values()]
         user_var = []
@@ -276,7 +286,7 @@ class CVodeTemplateLoader(TemplateLoader):
                         spjacdata.append(f"data[{nnz}] = {elem};")
                         nnz += 1
             spjacrptr.append(f"rowptrs[{n_spec}] = {nnz};")
-            self._constants.nnz = f"#define NNZ {nnz}"
+            self._macros.nnz = f"#define NNZ {nnz}"
 
         var = [
             f"realtype {v} = u_data->{v};"
@@ -331,7 +341,7 @@ class ODEIntTemplateLoader(TemplateLoader):
         nreact = f"#define NREACTIONS {n_react}"
         speclist = [f"#define IDX_{x.alias} {i}" for i, x in enumerate(species)]
 
-        self._constants = self.ConstantsContent(nspec, nreact, speclist)
+        self._macros = self.MacrosContent(nspec, nreact, speclist)
 
         var = [f"double {v};" for db in databases for v in db.variables.values()]
         user_var = []

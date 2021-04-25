@@ -14,7 +14,7 @@ def test_init_kidareaction():
             kida_reactions.append(KIDAReaction(line))
 
 
-def test_init_leedsreactio():
+def test_init_leedsreaction():
     leeds_reactions = []
     with open("test/test_input/rate12_full_HO.rates", "r") as react_file:
         for line in react_file.readlines():
