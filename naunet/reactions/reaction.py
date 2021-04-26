@@ -109,7 +109,7 @@ class Reaction(ABC):
         )
         return verbose
 
-    def _beautiy(self, rate_string: str) -> str:
+    def _beautify(self, rate_string: str) -> str:
         """
         Beautify the reaction rate string
 

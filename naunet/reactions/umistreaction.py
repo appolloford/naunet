@@ -78,7 +78,7 @@ class UMISTReaction(Reaction):
                 f"Code {self.code} has not been defined! Please extend the definition"
             )
 
-        rate = self._beautiy(rate)
+        rate = self._beautify(rate)
         return rate
 
     def _parse_string(self, react_string) -> None:

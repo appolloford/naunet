@@ -2,12 +2,15 @@ import logging
 import re
 from collections import Counter
 from . import settings
+from . import chemistry
 
 
 class Species:
     def __init__(self, name):
         self.name = name
         self.element_count = dict()
+        self._binding_energy = None
+        self._photon_yield = None
         self._alias = None
 
         # initialize the default elements list if it is not
@@ -129,6 +132,33 @@ class Species:
         return basename
 
     @property
+    def binding_energy(self) -> float:
+        """
+        Return the binding energy if this species is at ice-phase. If the
+        binding energy was not set before, it will be searched in the UMIST
+        2012 binding energy data. Raise error when no value is found.
+
+        Returns:
+            float: the binding energy
+        """
+        if self._binding_energy:
+            return self._binding_energy
+
+        if not self.is_surface:
+            logging.fatal(f"{self.name} is not ice species, has no binding energy")
+
+        self._binding_energy = (
+            chemistry.user_binding_energy.get(self.name)
+            if chemistry.user_binding_energy.get(self.name)
+            else chemistry.rate12_binding_energy.get(self.gasname)
+        )
+
+        if not self._binding_energy:
+            raise RuntimeError(f"Cannot find the binding energy of {self.name}")
+
+        return self._binding_energy
+
+    @property
     def charge(self) -> int:
         """
         Total charge of the species. Calculate the number of "+" and "-" in the end
@@ -141,10 +171,47 @@ class Species:
         return pcharge - ncharge
 
     @property
+    def gasname(self) -> str:
+        """
+        Return the name of its gas-phase species if this species is at ice-phase.
+        Else return the current name.
+
+        Returns:
+            str: name of its gas-phase species
+        """
+        return (
+            self.name.replace(settings.surface_symbol, "")
+            if self.is_surface
+            else self.name
+        )
+
+    @property
     def is_surface(self):
         if "GRAIN" in self.name.upper():
             return False
         return self.name.startswith(settings.surface_symbol)
+
+    @property
+    def photon_yield(self) -> float:
+        """
+        The photodesorption yield of the species (ice-phase only). Return default value
+        (1.0e-3) if no value is found. The default value can be changed in
+        naunet.chemistry.default_photon_yield
+
+        Returns:
+            float: photodesorption yield
+        """
+        if self._photon_yield:
+            return self._photon_yield
+
+        if not self.is_surface:
+            logging.fatal(f"{self.name} is not ice species! No photodesorption yield")
+
+        self._photon_yield = chemistry.user_photon_yield.get(
+            self.name, chemistry.default_photon_yield
+        )
+
+        return self._photon_yield
 
 
 def top_abundant_species(species_list, abundances, element=None, rank=-1):

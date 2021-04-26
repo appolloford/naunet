@@ -42,6 +42,8 @@ class RenderCommand(Command):
         element = chemistry["elements"]
         pseudo_element = chemistry["pseudo_elements"]
         species = chemistry["species"]
+        binding = chemistry["binding_energy"]
+        yields = chemistry["photon_yield"]
 
         odesolver = content["ODEsolver"]
         solver = odesolver["solver"]
@@ -58,6 +60,11 @@ class RenderCommand(Command):
         naunet.settings.initialize(element=element, pseudo_element=pseudo_element)
 
         from naunet.network import Network, supported_reaction_class
+        from naunet.dusts.unidust import UniDust
+        from naunet.chemistry import update_binding_energy, update_photon_yield
+
+        update_binding_energy(binding)
+        update_photon_yield(yields)
 
         # Check whether include and src folders exist, test folder is checked in example.py
         for subdir in ["include", "src"]:
