@@ -41,8 +41,15 @@ class ExampleCommand(Command):
         src_parent_path = Path(naunet.__file__).parent
         example_path = os.path.join(src_parent_path, "examples")
         deuterium_path = os.path.join(example_path, "deuterium")
+        ism_path = os.path.join(example_path, "ism")
 
-        networklist = ["deuterium/1", "deuterium/2", "deuterium/3", "deuterium/4"]
+        networklist = [
+            "deuterium/1",
+            "deuterium/2",
+            "deuterium/3",
+            "deuterium/4",
+            "ism/1",
+        ]
 
         case_idx = self.option("select")
         if case_idx:
@@ -64,7 +71,10 @@ class ExampleCommand(Command):
                     sys.exit()
 
         element = []
+        pseudo_element = []
         species = []
+        binding_energy = {}
+        photon_yield = {}
         network_source = None
 
         # Copy the network and the test folder
@@ -79,6 +89,24 @@ class ExampleCommand(Command):
             species = deuterium_species
             network_source = deuterium_path
 
+        elif "ism" in case:
+
+            from naunet.examples.ism import (
+                element as ism_element,
+                pseudo_elements as ism_pelement,
+                species as ism_species,
+                binding_energy as ism_be,
+                photon_yield as ism_yield,
+            )
+
+            element = ism_element
+            pseudo_element = ism_pelement
+            species = ism_species
+            binding_energy = ism_be
+            photon_yield = ism_yield
+            network_source = ism_path
+
+        # copy network file and test
         for file in os.listdir(network_source):
 
             # skip __init__.py and __pycache__
@@ -124,4 +152,10 @@ class ExampleCommand(Command):
             self.call(
                 "init",
                 f"--name={name} --description=example --elements={','.join(element)} --pseudo-elements=o,p,m --species={','.join(species)} --network=deuterium.krome --database=krome --solver=odeint --device=cpu --method=rosenbrock4 --render",
+            )
+
+        elif case == networklist[4]:
+            self.call(
+                "init",
+                f"--name={name} --description=example --elements={','.join(element)} --pseudo-elements={','.join(pseudo_element)} --species={','.join(species)} --network=rate12_complex.rates --database=leeds --binding={','.join(f'{s}={sv}' for s, sv in binding_energy.items())} --yield={','.join(f'{s}={sv}' for s, sv in photon_yield.items())} --solver=cvode --device=cpu --method=dense --render",
             )

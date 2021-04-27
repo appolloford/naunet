@@ -29,6 +29,8 @@ class InitCommand(Command):
         {--species= : List of species}
         {--network= : Source of chemical network file}
         {--database= : The database/format of the chemical network}
+        {--binding= : List of binding energy of ice species}
+        {--yield= : List of photodesorption yields of ice species}
         {--solver=cvode : ODE solver}
         {--device=cpu : Device}
         {--method=dense : Linear solver used in CVode or algorithm in ODEInt}
@@ -165,9 +167,25 @@ class InitCommand(Command):
         chemistry.add("dust", dust)
 
         binding = table()
+
+        binding_list = self.option("binding")
+        if binding_list:
+            binding_list = binding_list.split(",")
+            binding_list = {b.split("=")[0]: b.split("=")[1] for b in binding_list}
+            binding_list = {s: float(sv) for s, sv in binding_list.items()}
+            binding.update(binding_list)
+
         chemistry.add("binding_energy", binding)
 
         yields = table()
+
+        yield_list = self.option("yield")
+        if yield_list:
+            yield_list = yield_list.split(",")
+            yield_list = {y.split("=")[0]: y.split("=")[1] for y in yield_list}
+            yield_list = {s: float(sv) for s, sv in yield_list.items()}
+            yields.update(yield_list)
+
         chemistry.add("photon_yield", yields)
 
         content.add("chemistry", chemistry)

@@ -23,7 +23,6 @@ class LEEDSReaction(Reaction):
         "Temperature": "Tgas",
         "DustTemperature": "Tdust",
         "VisualExtinction": "Av",
-        "UVPHOT": "uv",
         "G0": "G0",
     }
     user_var = []

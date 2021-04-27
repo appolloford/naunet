@@ -1,0 +1,144 @@
+#include <stdio.h>
+
+#include "naunet.h"
+#include "naunet_userdata.h"
+#include "naunet_macros.h"
+#include "naunet_ode.h"
+#include "naunet_timer.h"
+
+int main()
+{
+
+    int nsystem = 64;
+    double nH = 1e4;
+    double zeta_cr = 1e-16;
+    double zeta_xr = 0.0;
+    double Tgas = 15.0;
+    double Tdust = 15.0;
+    double Av = 100.0;
+    double G0 = 4.0;
+    double rG = 1e-5;
+    double omega = 0.5;
+    double barr = 1.5e-8;
+    double sites = 1e15;
+    double hop = 0.3;
+    double nMono = 2.0;
+    double duty = 3.16e-19;
+    double Tcr = 70.0;
+    double branch = 1e-2;
+
+    UserData *data = new UserData[nsystem];
+    for (int isys = 0; isys < nsystem; isys++)
+    {
+        data[isys].nH = 1e4;
+        data[isys].zeta_cr = 1e-16;
+        data[isys].zeta_xr = 0.0;
+        data[isys].Tgas = 15.0;
+        data[isys].Tdust = 15.0;
+        data[isys].Av = 100.0;
+        data[isys].G0 = 4.0;
+        data[isys].rG = 1e-5;
+        data[isys].omega = 0.5;
+        data[isys].barr = 1.5e-8;
+        data[isys].sites = 1e15;
+        data[isys].hop = 0.3;
+        data[isys].nMono = 2.0;
+        data[isys].duty = 3.16e-19;
+        data[isys].Tcr = 70.0;
+        data[isys].branch = 1e-2;
+    }
+
+    Naunet naunet;
+    naunet.initSolver();
+
+    naunet.resetSolver(nsystem);
+
+    double *y = new double[nsystem * NSPECIES];
+    for (int isys = 0; isys < nsystem; isys++)
+    {
+        for (int i = 0; i < NSPECIES; i++)
+        {
+            y[isys * NSPECIES + i] = 1.e-40;
+        }
+        y[isys * NSPECIES +IDX_H2I] = 0.5 * nH;
+        y[isys * NSPECIES +IDX_HI] = 5.0e-5 * nH;
+        y[isys * NSPECIES +IDX_HeI] = 9.75e-2 * nH;
+        y[isys * NSPECIES +IDX_NI] = 7.5e-5 * nH;
+        y[isys * NSPECIES +IDX_OI] = 3.2e-4 * nH;
+        y[isys * NSPECIES +IDX_CI] = 1.4e-4 * nH;
+        y[isys * NSPECIES +IDX_SI] = 8.0e-8 * nH;
+        y[isys * NSPECIES +IDX_SiI] = 8.0e-9 * nH;
+        y[isys * NSPECIES +IDX_NaI] = 2.0e-9 * nH;
+        y[isys * NSPECIES +IDX_MgI] = 7.0e-9 * nH;
+        y[isys * NSPECIES +IDX_FeI] = 3.0e-9 * nH;
+        y[isys * NSPECIES +IDX_ClI] = 4.0e-9 * nH;
+        y[isys * NSPECIES +IDX_FI] = 2.0e-8 * nH;
+        y[isys * NSPECIES +IDX_GRAIN0I] = 1.3e-12 * nH;
+    }
+
+    FILE *fbin = fopen("evolution_parallel.bin", "w");
+    FILE *ftxt = fopen("evolution_parallel.txt", "w");
+    FILE *ttxt = fopen("time_parallel.txt", "w");
+
+#ifdef NAUNET_DEBUG
+    printf("Initialization is done. Start to evolve.\n");
+    // FILE *rtxt = fopen("reactionrates.txt", "w");
+    // double rates[NREACTIONS];
+#endif
+
+    double logtstart = 3.0, logtend = 8.0;
+    double dtyr = 0.0, time = 0.0;
+    for (double logtime = logtstart; logtime < logtend; logtime += 0.1)
+    {
+
+#ifdef NAUNET_DEBUG
+        // calculate_rates only receive one system as input, disabled in parallel test
+        // calculate_rates(rates, y, data);
+        // for (int j = 0; j < NREACTIONS; j++)
+        // {
+        //     fprintf(rtxt, "%13.7e ", rates[j]);
+        // }
+        // fprintf(rtxt, "\n");
+#endif
+
+        dtyr = exp(logtime) - time;
+        time += dtyr;
+
+        for (int isys = 0; isys < nsystem; isys++)
+        {
+
+            fwrite((double *)&isys, sizeof(double), 1, fbin);
+            fwrite(&time, sizeof(double), 1, fbin);
+            fwrite(&y[isys * NSPECIES], sizeof(double), NSPECIES, fbin);
+
+            fprintf(ftxt, "%13.7e ", (double)isys);
+            fprintf(ftxt, "%13.7e ", time[i]);
+            for (int j = 0; j < NSPECIES; j++)
+            {
+                fprintf(ftxt, "%13.7e ", y[isys * NSPECIES + j]);
+            }
+            fprintf(ftxt, "\n");
+        }
+
+        Timer timer;
+        timer.start();
+        naunet.solve(y, dtyr * spy, data);
+        timer.stop();
+        float duration = (float)timer.elapsed() / 1e6;
+        fprintf(ttxt, "%8.5e \n", duration);
+        // printf("Time = %13.7e yr, elapsed: %8.5e sec\n", time[i + 1], duration);
+    }
+
+    fclose(fbin);
+    fclose(ftxt);
+    fclose(ttxt);
+
+#ifdef NAUNET_DEBUG
+    // fclose(rtxt);
+#endif
+
+    delete[] data;
+    delete[] y;
+
+    return 0;
+}
