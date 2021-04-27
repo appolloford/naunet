@@ -45,6 +45,13 @@ class TemplateLoader(ABC):
         var: List[str]
         user_var: List[str]
 
+    @dataclass
+    class VariablesContent:
+        consts: List[str]
+        globs: List[str]
+        vars: List[str]
+        user_var: List[str]
+
     def __init__(self, netinfo: object, *args, **kwargs) -> None:
 
         self._env = None
@@ -52,7 +59,7 @@ class TemplateLoader(ABC):
         self._macros = None
         self._ode = None
         self._userdata = None
-        self._ode = None
+        self._variables = None
 
     @abstractmethod
     def _prepare_contents(self, netinfo: object, *args, **kwargs) -> None:
@@ -74,7 +81,7 @@ class TemplateLoader(ABC):
 
         Path(prefix).mkdir(parents=True, exist_ok=True)
 
-        # self.render_constants(prefix=prefix, save=save)
+        self.render_constants(prefix=prefix, save=save)
         self.render_macros(prefix=prefix, save=save)
         self.render_userdata(prefix=prefix, save=save)
         self.render_ode(prefix=prefix, save=save)
@@ -107,7 +114,7 @@ class TemplateLoader(ABC):
 
         template = self._env.get_template("include/naunet_constants.h.j2")
         self._render(
-            template, prefix, name, save, constants=self._constants, info=self._info
+            template, prefix, name, save, variables=self._variables, info=self._info
         )
 
     def render_macros(
@@ -214,6 +221,7 @@ class CVodeTemplateLoader(TemplateLoader):
         species = netinfo.species
         reactions = netinfo.reactions
         databases = netinfo.databases
+        dust = netinfo.dust
 
         self._info = self.InfoContent(method, device)
 
@@ -224,9 +232,25 @@ class CVodeTemplateLoader(TemplateLoader):
         self._macros = self.MacrosContent(nspec, nreact, speclist)
 
         var = [f"double {v};" for db in databases for v in db.vars.values()]
+        var.extend([f"double {v};" for v in dust.vars.values()])
         user_var = []
 
         self._userdata = self.UserdataContent(var, user_var)
+
+        consts = [
+            f"double {c:<10} = {cv};" for db in databases for c, cv in db.consts.items()
+        ]
+        ebs = [
+            f"double eb_{s.alias:<10} = {s.binding_energy};"
+            for s in species
+            if s.is_surface
+        ]
+        consts.extend(ebs)
+        globs = []
+        vars = [f"{v}" for db in databases for v in db.vars.values()]
+        user_var = [v for db in databases for v in db.user_var]
+
+        self._variables = self.VariablesContent(consts, globs, vars, user_var)
 
         rates = [f"k[{r}]" for r in range(n_react)]
         rateeqns = [
@@ -291,6 +315,7 @@ class CVodeTemplateLoader(TemplateLoader):
         var = [
             f"realtype {v} = u_data->{v};" for db in databases for v in db.vars.values()
         ]
+        var.extend([f"realtype {v} = u_data->{v};" for v in dust.vars.values()])
 
         for db in databases:
             if len(db.user_var) > 0:
@@ -345,6 +370,21 @@ class ODEIntTemplateLoader(TemplateLoader):
         user_var = []
 
         self._userdata = self.UserdataContent(var, user_var)
+
+        consts = [
+            f"double {c:<10} = {cv};" for db in databases for c, cv in db.consts.items()
+        ]
+        ebs = [
+            f"double eb_{s.alias:<10} = {s.binding_energy};"
+            for s in species
+            if s.is_surface
+        ]
+        consts.extend(ebs)
+        globs = []
+        vars = [f"{v}" for db in databases for v in db.vars.values()]
+        user_var = [v for db in databases for v in db.user_var]
+
+        self._variables = self.VariablesContent(consts, globs, vars, user_var)
 
         rates = [f"k[{r}]" for r in range(n_react)]
         rateeqns = [

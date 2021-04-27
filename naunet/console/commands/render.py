@@ -94,7 +94,10 @@ class RenderCommand(Command):
             module = util.module_from_spec(spec)
             spec.loader.exec_module(module)
 
-        net = Network(network, database, species=species)
+        dust = UniDust()
+
+        net = Network(species=species, dust=dust)
+        net.add_reaction_from_file(network, database)
 
         header_prefix = os.path.join(Path.cwd(), "include")
         source_prefix = os.path.join(Path.cwd(), "src")
@@ -104,6 +107,7 @@ class RenderCommand(Command):
         tl.render_constants(prefix=header_prefix)
         tl.render_userdata(prefix=header_prefix)
         tl.render_ode(prefix=source_prefix, headerprefix=header_prefix)
+        tl.render_macros(prefix=header_prefix)
         tl.render_naunet(prefix=source_prefix, headerprefix=header_prefix)
         tl.render_cmake(prefix=Path.cwd(), version=ver)
 

@@ -160,6 +160,16 @@ class InitCommand(Command):
 
         chemistry.add("database", database)
 
+        dust = table()
+        dust.add("type", "uniform")
+        chemistry.add("dust", dust)
+
+        binding = table()
+        chemistry.add("binding_energy", binding)
+
+        yields = table()
+        chemistry.add("photon_yield", yields)
+
         content.add("chemistry", chemistry)
 
         odesolver = table()

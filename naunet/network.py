@@ -5,6 +5,7 @@ from .reactions.reaction import Reaction
 from .reactions.kidareaction import KIDAReaction
 from .reactions.leedsreaction import LEEDSReaction
 from .reactions.kromereaction import KROMEReaction
+from .dusts.dust import Dust
 
 
 logging.basicConfig(level=logging.DEBUG)
@@ -23,11 +24,11 @@ supported_template_loader = {
 }
 
 
-def reaction_factory(react_string: str, database: str) -> Reaction:
+def reaction_factory(react_string: str, database: str, dust: Dust = None) -> Reaction:
     initializer = supported_reaction_class.get(database)
     react_string = initializer.preprocessing(react_string)
     if react_string:
-        return initializer(react_string, format)
+        return initializer(react_string, dust=dust)
     return None
 
 
@@ -40,37 +41,32 @@ def define_reaction(name: str):
 
 class Network:
     class Info:
-        def __init__(self, species: list, reactions: list, databases: list) -> None:
+        def __init__(
+            self, species: list, reactions: list, databases: list, dust: Dust = None
+        ) -> None:
             self.n_spec = len(species)
             self.n_react = len(reactions)
             self.species = species
             self.reactions = reactions
             self.databases = databases
+            self.dust = dust
 
-    def __init__(
-        self,
-        fname: str = None,
-        database: str = None,
-        species: list = None,
-    ) -> None:
+    def __init__(self, species: list = None, dust: Dust = None) -> None:
 
         self.database_list = set()
         self.reaction_list = []
         self.reactants_in_network = set()
         self.products_in_network = set()
-        self._allowed_species = None
+        self._allowed_species = species
         self._skipped_reactions = []
         self._info = None
         self._templateloader = None
 
-        if species:
-            self._allowed_species = species
-
-        if fname and database:
-            self.add_reaction_from_file(fname, database)
+        self._dust = dust
 
     def _add_reaction(self, react_string: str, database: str) -> list:
-        reaction = reaction_factory(react_string, database)
+
+        reaction = reaction_factory(react_string, database, self._dust)
 
         # return empty set for updating if it is a fake react_string
         if not reaction:
@@ -104,14 +100,21 @@ class Network:
         self._info = None
 
     def add_reaction_from_file(self, filename: str, database: str) -> None:
+
         if not filename:
             logger.critical("No file assigned!")
+
         if not database:
             logger.critical(
-                'Try to read in file but database is not assigned. Try again by "add_reaction_from_file"'
+                """
+                Try to read in file but database is not assigned. 
+                Try again by "add_reaction_from_file"
+                """
             )
+
         self.database_list.update({database})
         new_species = set()
+
         with open(filename, "r") as networkfile:
             for _, line in enumerate(
                 tqdm(networkfile.readlines(), desc="Reading File...")
@@ -129,6 +132,21 @@ class Network:
     @allowed_species.setter
     def allowed_species(self, speclist: list):
         self._allowed_species = speclist
+
+    @property
+    def dust(self):
+        return self._dust
+
+    @dust.setter
+    def dust(self, dust: Dust) -> None:
+        if self._dust and self.reaction_list:
+            logger.warning(
+                """
+                Dust model existed. The existed reactions may 
+                not be consistent with newly added reactions
+                """
+            )
+        self._dust = dust
 
     def check_duplicate_reaction(self, full_check: bool = True):
 
@@ -178,7 +196,9 @@ class Network:
 
         speclist = sorted(self.reactants_in_network | self.products_in_network)
         databaselist = [supported_reaction_class.get(db) for db in self.database_list]
-        self._info = self.Info(speclist, self.reaction_list, databaselist)
+        self._info = self.Info(
+            speclist, self.reaction_list, databaselist, dust=self.dust
+        )
         logger.info(
             "{} species in the network: {}".format(
                 self._info.n_spec, ", ".join([x.name for x in self._info.species])
