@@ -79,7 +79,7 @@ class FtoCCoverter:
 class KROMEReaction(Reaction):
 
     reacformat = "idx,r,r,r,p,p,p,p,tmin,tmax,rate"
-    variables = {
+    vars = {
         "Hnuclei": "nH",
         "Temperature": "Tgas",
     }
@@ -102,7 +102,7 @@ class KROMEReaction(Reaction):
         # restore the default settings after completing a file
         print("krome finalize is called")
         KROMEReaction.reacformat = "idx,r,r,r,p,p,p,p,tmin,tmax,rate"
-        KROMEReaction.variables = {
+        KROMEReaction.vars = {
             "Hnuclei": "nH",
             "Temperature": "Tgas",
         }
@@ -121,7 +121,7 @@ class KROMEReaction(Reaction):
             return ""
         elif line.startswith("@common:"):
             commonlist = line.replace("@common:", "").strip().split(",")
-            KROMEReaction.variables.update(zip(commonlist, commonlist))
+            KROMEReaction.vars.update(zip(commonlist, commonlist))
             return ""
         else:
             return line.strip()

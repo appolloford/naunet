@@ -53,7 +53,9 @@ class Reaction(ABC):
     :base ABC:
     """
 
-    variables = {}
+    consts = {}
+    globs = {}
+    vars = {}
     user_var = []
 
     def __init__(self, react_string, *args, **kwargs) -> None:

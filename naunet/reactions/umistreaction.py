@@ -37,7 +37,7 @@ class UMISTReaction(Reaction):
         "RR": ReactionType.UMIST_RR,
     }
 
-    variables = {
+    vars = {
         "Hnuclei": "nH",
         "Temperature": "Tgas",
         "VisualExtinction": "Av",
@@ -62,9 +62,9 @@ class UMISTReaction(Reaction):
         b = self.beta
         c = self.gamma
         rtype = self.reaction_type
-        Tgas = UMISTReaction.variables.get("Temperature")
-        Av = UMISTReaction.variables.get("VisualExtinction")
-        omega = UMISTReaction.variables.get("DustGrainAlbedo")
+        Tgas = UMISTReaction.vars.get("Temperature")
+        Av = UMISTReaction.vars.get("VisualExtinction")
+        omega = UMISTReaction.vars.get("DustGrainAlbedo")
         if rtype == self.ReactionType.UMIST_TWOBODY:
             rate = f"{a} * pow({Tgas}/300.0, {b}) * exp(-{c}/{Tgas})"
         elif rtype == self.ReactionType.UMIST_PH:

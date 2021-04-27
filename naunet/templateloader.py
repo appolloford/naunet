@@ -5,7 +5,6 @@ from pathlib import Path
 from typing import List
 from tqdm import tqdm
 from jinja2 import Environment, FileSystemLoader, PackageLoader
-from . import settings
 
 # @dataclass
 # class AbstractDataclass(ABC):
@@ -17,21 +16,16 @@ from . import settings
 
 class TemplateLoader(ABC):
     @dataclass
-    class MacrosContent:
-        nspec: str
-        nreact: str
-        speclist: List[str]
-        nnz: str = None
-
-    @dataclass
     class InfoContent:
         method: str
         device: str
 
     @dataclass
-    class UserdataContent:
-        var: List[str]
-        user_var: List[str]
+    class MacrosContent:
+        nspec: str
+        nreact: str
+        speclist: List[str]
+        nnz: str = None
 
     @dataclass
     class ODEContent:
@@ -46,11 +40,17 @@ class TemplateLoader(ABC):
         header: str = None
         var: List[str] = None
 
+    @dataclass
+    class UserdataContent:
+        var: List[str]
+        user_var: List[str]
+
     def __init__(self, netinfo: object, *args, **kwargs) -> None:
 
         self._env = None
-        self._macros = None
         self._info = None
+        self._macros = None
+        self._ode = None
         self._userdata = None
         self._ode = None
 
@@ -223,7 +223,7 @@ class CVodeTemplateLoader(TemplateLoader):
 
         self._macros = self.MacrosContent(nspec, nreact, speclist)
 
-        var = [f"double {v};" for db in databases for v in db.variables.values()]
+        var = [f"double {v};" for db in databases for v in db.vars.values()]
         user_var = []
 
         self._userdata = self.UserdataContent(var, user_var)
@@ -289,9 +289,7 @@ class CVodeTemplateLoader(TemplateLoader):
             self._macros.nnz = f"#define NNZ {nnz}"
 
         var = [
-            f"realtype {v} = u_data->{v};"
-            for db in databases
-            for v in db.variables.values()
+            f"realtype {v} = u_data->{v};" for db in databases for v in db.vars.values()
         ]
 
         for db in databases:
@@ -343,7 +341,7 @@ class ODEIntTemplateLoader(TemplateLoader):
 
         self._macros = self.MacrosContent(nspec, nreact, speclist)
 
-        var = [f"double {v};" for db in databases for v in db.variables.values()]
+        var = [f"double {v};" for db in databases for v in db.vars.values()]
         user_var = []
 
         self._userdata = self.UserdataContent(var, user_var)
@@ -389,9 +387,7 @@ class ODEIntTemplateLoader(TemplateLoader):
         jac = [f"j({idx//n_spec}, {idx%n_spec}) = {j};" for idx, j in enumerate(jacrhs)]
 
         var = [
-            f"double {v} = u_data->{v};"
-            for db in databases
-            for v in db.variables.values()
+            f"double {v} = u_data->{v};" for db in databases for v in db.vars.values()
         ]
 
         for db in databases:
