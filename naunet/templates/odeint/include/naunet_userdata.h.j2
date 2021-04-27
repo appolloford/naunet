@@ -4,8 +4,8 @@
 // Struct for holding the nessesary additional variables for the problem.
 typedef struct
 {
-    {% for v in userdata.var -%}
-        {{ v }}
+    {% for v in variables.vars -%}
+        double {{ v }};
     {% endfor %}
 
 } UserData;

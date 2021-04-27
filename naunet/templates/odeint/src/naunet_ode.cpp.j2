@@ -16,7 +16,11 @@ typedef boost::numeric::ublas::matrix< double > matrix_type;
 int calculate_rates(double *k, double *y, UserData *u_data)
 {
 
-    {% for v in ode.var -%}
+    {% for v in variables.vars -%}
+        double {{ v }} = u_data->{{ v }};
+    {% endfor %}
+
+    {% for v in variables.user_var -%}
         {{ v }}
     {% endfor %}
 
@@ -56,7 +60,7 @@ fex::~fex()
 void fex::operator()(const vector_type &y, vector_type &ydot, double t)
 {
 
-    {% for v in ode.var -%}
+    {% for v in variables.vars -%}
         {{ v }}
     {% endfor %}
 
@@ -93,7 +97,7 @@ jac::~jac()
 void jac::operator()(const vector_type &y, matrix_type &j, const double &t, vector_type &dfdt)
 {
 
-    {% for v in ode.var -%}
+    {% for v in variables.vars -%}
         {{ v }}
     {% endfor %}
 

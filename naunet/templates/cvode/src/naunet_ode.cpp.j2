@@ -24,7 +24,11 @@ __device__ __host__
 int calculate_rates(realtype *k, realtype *y, UserData *u_data)
 {
 
-    {% for v in ode.var -%}
+    {% for v in variables.vars -%}
+        realtype {{ v }} = u_data->{{ v }};
+    {% endfor %}
+
+    {% for v in variables.user_var -%}
         {{ v }}
     {% endfor %}
 
@@ -54,8 +58,8 @@ int fex(realtype t, N_Vector u, N_Vector u_dot, void *user_data)
     realtype *y      = N_VGetArrayPointer(u);
     realtype *ydot   = N_VGetArrayPointer(u_dot);
     UserData *u_data = (UserData*) user_data;
-    {% for v in ode.var -%}
-        {{ v }}
+    {% for v in variables.vars -%}
+        realtype {{ v }} = u_data->{{ v }};
     {% endfor %}
 
     realtype k[NREACTIONS] = {0.0};
@@ -113,8 +117,8 @@ int jtv(N_Vector v, N_Vector Jv, realtype t, N_Vector u, N_Vector fu,
     realtype *fx     = N_VGetArrayPointer(fu);
 
     UserData *u_data = (UserData*) user_data;
-    {% for v in ode.var -%}
-        {{ v }}
+    {% for v in variables.vars -%}
+        realtype {{ v }} = u_data->{{ v }};
     {% endfor %}
 
     realtype k[NREACTIONS] = {0.0};
@@ -139,8 +143,8 @@ int jac(realtype t, N_Vector u, N_Vector fu, SUNMatrix jmatrix,
     {% if info.method == "dense" -%}
     realtype *y = N_VGetArrayPointer(u);
     UserData *u_data = (UserData*) user_data;
-    {% for v in ode.var -%}
-        {{ v }}
+    {% for v in variables.vars -%}
+        realtype {{ v }} = u_data->{{ v }};
     {% endfor %}
 
     realtype k[NREACTIONS] = {0.0};

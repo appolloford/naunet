@@ -38,12 +38,6 @@ class TemplateLoader(ABC):
         spjaccval: List[str] = None
         spjacdata: List[str] = None
         header: str = None
-        var: List[str] = None
-
-    @dataclass
-    class UserdataContent:
-        var: List[str]
-        user_var: List[str]
 
     @dataclass
     class VariablesContent:
@@ -58,7 +52,6 @@ class TemplateLoader(ABC):
         self._info = None
         self._macros = None
         self._ode = None
-        self._userdata = None
         self._variables = None
 
     @abstractmethod
@@ -182,11 +175,24 @@ class TemplateLoader(ABC):
             self._ode.header = headername
             template = self._env.get_template("include/naunet_ode.h.j2")
             self._render(
-                template, headerprefix, headername, save, ode=self._ode, info=self._info
+                template,
+                headerprefix,
+                headername,
+                save,
+                ode=self._ode,
+                info=self._info,
             )
 
         template = self._env.get_template("src/naunet_ode.cpp.j2")
-        self._render(template, prefix, name, save, ode=self._ode, info=self._info)
+        self._render(
+            template,
+            prefix,
+            name,
+            save,
+            ode=self._ode,
+            info=self._info,
+            variables=self._variables,
+        )
 
     def render_userdata(
         self, prefix: str = "./", name: str = None, save: bool = True
@@ -195,7 +201,7 @@ class TemplateLoader(ABC):
             name = "naunet_userdata.h"
 
         template = self._env.get_template("include/naunet_userdata.h.j2")
-        self._render(template, prefix, name, save, userdata=self._userdata)
+        self._render(template, prefix, name, save, variables=self._variables)
 
 
 class CVodeTemplateLoader(TemplateLoader):
@@ -231,23 +237,15 @@ class CVodeTemplateLoader(TemplateLoader):
 
         self._macros = self.MacrosContent(nspec, nreact, speclist)
 
-        var = [f"double {v};" for db in databases for v in db.vars.values()]
-        var.extend([f"double {v};" for v in dust.vars.values()])
-        user_var = []
-
-        self._userdata = self.UserdataContent(var, user_var)
-
-        consts = [
-            f"double {c:<10} = {cv};" for db in databases for c, cv in db.consts.items()
-        ]
+        consts = [f"{c:<15} = {cv};" for db in databases for c, cv in db.consts.items()]
         ebs = [
-            f"double eb_{s.alias:<10} = {s.binding_energy};"
-            for s in species
-            if s.is_surface
+            f"eb_{s.alias:<12} = {s.binding_energy};" for s in species if s.is_surface
         ]
         consts.extend(ebs)
         globs = []
         vars = [f"{v}" for db in databases for v in db.vars.values()]
+        dustvars = [f"{v}" for v in dust.vars.values() if dust] if dust else []
+        vars.extend(dustvars)
         user_var = [v for db in databases for v in db.user_var]
 
         self._variables = self.VariablesContent(consts, globs, vars, user_var)
@@ -312,15 +310,6 @@ class CVodeTemplateLoader(TemplateLoader):
             spjacrptr.append(f"rowptrs[{n_spec}] = {nnz};")
             self._macros.nnz = f"#define NNZ {nnz}"
 
-        var = [
-            f"realtype {v} = u_data->{v};" for db in databases for v in db.vars.values()
-        ]
-        var.extend([f"realtype {v} = u_data->{v};" for v in dust.vars.values()])
-
-        for db in databases:
-            if len(db.user_var) > 0:
-                var.extend(db.user_var)
-
         self._ode = self.ODEContent(
             method,
             device,
@@ -330,7 +319,6 @@ class CVodeTemplateLoader(TemplateLoader):
             spjacrptr=spjacrptr,
             spjaccval=spjaccval,
             spjacdata=spjacdata,
-            var=var,
         )
 
 
@@ -357,6 +345,7 @@ class ODEIntTemplateLoader(TemplateLoader):
         species = netinfo.species
         reactions = netinfo.reactions
         databases = netinfo.databases
+        dust = netinfo.dust
 
         self._info = self.InfoContent(method, device)
 
@@ -366,22 +355,15 @@ class ODEIntTemplateLoader(TemplateLoader):
 
         self._macros = self.MacrosContent(nspec, nreact, speclist)
 
-        var = [f"double {v};" for db in databases for v in db.vars.values()]
-        user_var = []
-
-        self._userdata = self.UserdataContent(var, user_var)
-
-        consts = [
-            f"double {c:<10} = {cv};" for db in databases for c, cv in db.consts.items()
-        ]
+        consts = [f"{c:<15} = {cv};" for db in databases for c, cv in db.consts.items()]
         ebs = [
-            f"double eb_{s.alias:<10} = {s.binding_energy};"
-            for s in species
-            if s.is_surface
+            f"eb_{s.alias:<12} = {s.binding_energy};" for s in species if s.is_surface
         ]
         consts.extend(ebs)
         globs = []
         vars = [f"{v}" for db in databases for v in db.vars.values()]
+        dustvars = [f"{v}" for v in dust.vars.values() if dust] if dust else []
+        vars.extend(dustvars)
         user_var = [v for db in databases for v in db.user_var]
 
         self._variables = self.VariablesContent(consts, globs, vars, user_var)
@@ -426,19 +408,10 @@ class ODEIntTemplateLoader(TemplateLoader):
         fex = [f"{l} = {r};" for l, r in zip(lhs, rhs)]
         jac = [f"j({idx//n_spec}, {idx%n_spec}) = {j};" for idx, j in enumerate(jacrhs)]
 
-        var = [
-            f"double {v} = u_data->{v};" for db in databases for v in db.vars.values()
-        ]
-
-        for db in databases:
-            if len(db.user_var) > 0:
-                var.extend(db.user_var)
-
         self._ode = self.ODEContent(
             method,
             device,
             rateeqns,
             fex,
             jac,
-            var=var,
         )
