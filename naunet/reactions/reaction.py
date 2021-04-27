@@ -150,9 +150,16 @@ class Reaction(ABC):
             return Species(species_name)
 
     @classmethod
+    def initialize(cls) -> None:
+        """
+        Interface. Change global settings / class attributes if needed
+        """
+        pass
+
+    @classmethod
     def finalize(cls) -> None:
         """
-        Interface. Reset class attributes if needed
+        Interface. Reset global settings / class attributes if needed
         """
         pass
 

@@ -92,7 +92,14 @@ class Network:
         return new_reactants | new_products
 
     def add_reaction(self, react_string: str, database: str) -> None:
+
         self.database_list.update({database})
+
+        # change some global settings or class attibutes if needed
+        rclass = supported_reaction_class.get(database)
+        if rclass:
+            rclass.initialize()
+
         new_species = self._add_reaction(react_string, database)
         logger.info("New species are added: {}".format(new_species))
 
@@ -114,6 +121,11 @@ class Network:
 
         self.database_list.update({database})
         new_species = set()
+
+        # change some global settings or class attibutes if needed
+        rclass = supported_reaction_class.get(database)
+        if rclass:
+            rclass.initialize()
 
         with open(filename, "r") as networkfile:
             for _, line in enumerate(

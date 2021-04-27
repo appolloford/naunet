@@ -38,9 +38,15 @@ class LEEDSReaction(Reaction):
         self.rtype = None
         self.dust = dust
 
+        self._parse_string(react_string)
+
+    @classmethod
+    def initialize(cls) -> None:
         settings.surface_symbol = "G"
 
-        self._parse_string(react_string)
+    @classmethod
+    def finalize(cls) -> None:
+        settings.surface_symbol = "#"
 
     def rate_func(self):
         a = self.alpha
