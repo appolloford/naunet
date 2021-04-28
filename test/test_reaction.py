@@ -1,5 +1,3 @@
-import pathlib
-
 import pytest
 from naunet.reactions.kidareaction import KIDAReaction
 from naunet.reactions.leedsreaction import LEEDSReaction

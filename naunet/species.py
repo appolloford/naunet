@@ -1,22 +1,47 @@
 import logging
 import re
-from collections import Counter
+import csv
+import os
+from collections import namedtuple
 from . import settings
 from . import chemistry
+
+element_initialized = False
+element_table = []
+
+
+def initialize_elements():
+    path = os.path.dirname(settings.__file__)
+    global element_initialized, element_table
+    # Load the periodic table as a list of namedtuple
+    # Source: https://gist.github.com/GoodmanSciences/c2dd862cd38f21b0ad36b8f96b4bf1ee
+    # TODO: isotopes
+    with open(os.path.join(path, "chemistry/periodictable.csv"), newline="") as infile:
+        # remove comment lines in case
+        reader = csv.reader(filter(lambda row: row[0] != "#", infile))
+        Element = namedtuple("Element", next(reader))
+        element_table = list(map(Element._make, reader))
+    element_initialized = True
 
 
 class Species:
     def __init__(self, name):
         self.name = name
         self.element_count = dict()
+        self._alias = None
         self._binding_energy = None
         self._photon_yield = None
-        self._alias = None
+        self._mass = 0.0
+        self._massnumber = 0
 
         # initialize the default elements list if it is not
         # initialized when the fist species is instanciated
         if not settings.setting_initialized:
             settings.initialize()
+
+        # Create table of elements if not created
+        if not element_initialized:
+            initialize_elements()
 
         self._parse_molecule_name()
 
@@ -190,6 +215,43 @@ class Species:
         if "GRAIN" in self.name.upper():
             return False
         return self.name.startswith(settings.surface_symbol)
+
+    @property
+    def mass(self) -> float:
+        """
+        The mass (amu) of the species, estimated by summing the mass of elements
+
+        Returns:
+            float: mass of the species
+        """
+        if self._mass:
+            return self._mass
+
+        for e in element_table:
+            self._mass += self.element_count.get(e.Symbol, 0) * float(e.AtomicMass)
+
+        # ? electron mass
+        # self._mass -= 0.00054858 * self.charge
+
+        return self._mass
+
+    @property
+    def massnumber(self) -> int:
+        """
+        The mass number (neutron + proton) of the species
+
+        Returns:
+            int: mass number of the species
+        """
+        if self._massnumber:
+            return self._massnumber
+
+        for e in element_table:
+            self._massnumber += self.element_count.get(e.Symbol, 0) * (
+                int(e.NumberofNeutrons) + int(e.NumberofProtons)
+            )
+
+        return self._massnumber
 
     @property
     def photon_yield(self) -> float:

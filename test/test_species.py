@@ -44,6 +44,19 @@ def test_element_counting():
     assert Species("GRAIN-").element_count.get("GRAIN") == 1
 
 
+def test_mass():
+    assert Species("H").mass == 1.007
+    assert Species("H2").mass == 1.007 * 2
+    assert Species("He").mass == 4.002
+    assert Species("CO").mass == 12.011 + 15.999
+
+
+def test_massnumber():
+    assert Species("H2").massnumber == 2
+    assert Species("He").massnumber == 4
+    assert Species("CO").massnumber == 28
+
+
 def test_surface():
     assert Species("#H2").is_surface == True
     assert Species("H2").is_surface == False
