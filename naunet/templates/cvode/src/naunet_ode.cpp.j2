@@ -14,7 +14,9 @@
 #include <sunmatrix/sunmatrix_cusparse.h>
 {% endif -%}
 #include <sundials/sundials_types.h>   // defs. of realtype, sunindextype
+#include "naunet_constants.h"
 #include "naunet_macros.h"
+#include "naunet_physics.h"
 #include "naunet_userdata.h"
 {% endif %}
 
@@ -29,7 +31,7 @@ int calculate_rates(realtype *k, realtype *y, UserData *u_data)
     {% endfor %}
 
     {% for v in variables.user_var -%}
-        {{ v }}
+        {{ v }};
     {% endfor %}
 
     // Some variable definitions from krome

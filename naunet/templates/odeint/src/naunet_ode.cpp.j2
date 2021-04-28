@@ -3,7 +3,9 @@
 {% else %}
 #include <math.h>
 #include <boost/numeric/odeint.hpp>
+#include "naunet_constants.h"
 #include "naunet_macros.h"
+#include "naunet_physics.h"
 #include "naunet_userdata.h"
 
 using namespace std;
@@ -21,7 +23,7 @@ int calculate_rates(double *k, double *y, UserData *u_data)
     {% endfor %}
 
     {% for v in variables.user_var -%}
-        {{ v }}
+        {{ v }};
     {% endfor %}
 
     double Te = Tgas*8.617343e-5; //Tgas in eV (eV)

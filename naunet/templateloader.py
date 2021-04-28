@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import List
 from tqdm import tqdm
 from jinja2 import Environment, FileSystemLoader, PackageLoader
+from .dusts.unidust import UniDust
 
 # @dataclass
 # class AbstractDataclass(ABC):
@@ -40,6 +41,10 @@ class TemplateLoader(ABC):
         header: str = None
 
     @dataclass
+    class PhysicsContent:
+        mantles: str
+
+    @dataclass
     class VariablesContent:
         consts: List[str]
         globs: List[str]
@@ -52,6 +57,7 @@ class TemplateLoader(ABC):
         self._info = None
         self._macros = None
         self._ode = None
+        self._physics = None
         self._variables = None
 
     @abstractmethod
@@ -78,6 +84,7 @@ class TemplateLoader(ABC):
         self.render_macros(prefix=prefix, save=save)
         self.render_userdata(prefix=prefix, save=save)
         self.render_ode(prefix=prefix, save=save)
+        self.render_physics(prefix=prefix, save=save)
         self.render_naunet(prefix=prefix, save=save)
 
     # This function should not be used outside console commands
@@ -194,6 +201,50 @@ class TemplateLoader(ABC):
             variables=self._variables,
         )
 
+    def render_physics(
+        self,
+        prefix: str = "./",
+        name: str = None,
+        save: bool = True,
+        headerprefix: str = None,
+        headername: str = None,
+        header: bool = True,
+    ):
+
+        if save:
+            name = (
+                name
+                if name
+                else "naunet_physics.cu"
+                if self._info.device == "gpu"
+                else "naunet_physics.cpp"
+            )
+            headername = headername if headername else "naunet_physics.h"
+            headerprefix = headerprefix if headerprefix else prefix
+
+        if header:
+            headername = headername if headername else "naunet_physics.h"
+            self._ode.header = headername
+            template = self._env.get_template("include/naunet_physics.h.j2")
+            self._render(
+                template,
+                headerprefix,
+                headername,
+                save,
+                physics=self._physics,
+                info=self._info,
+            )
+
+        template = self._env.get_template("src/naunet_physics.cpp.j2")
+        self._render(
+            template,
+            prefix,
+            name,
+            save,
+            physics=self._physics,
+            info=self._info,
+        )
+
     def render_userdata(
         self, prefix: str = "./", name: str = None, save: bool = True
     ) -> None:
@@ -237,6 +288,9 @@ class CVodeTemplateLoader(TemplateLoader):
 
         self._macros = self.MacrosContent(nspec, nreact, speclist)
 
+        mantles = " + ".join(f"y[IDX_{g.alias}]" for g in species if g.is_surface)
+        self._physics = self.PhysicsContent(mantles)
+
         consts = [f"{c:<15} = {cv};" for db in databases for c, cv in db.consts.items()]
         ebs = [
             f"eb_{s.alias:<12} = {s.binding_energy};" for s in species if s.is_surface
@@ -247,6 +301,8 @@ class CVodeTemplateLoader(TemplateLoader):
         dustvars = [f"{v}" for v in dust.vars.values() if dust] if dust else []
         vars.extend(dustvars)
         user_var = [v for db in databases for v in db.user_var]
+        dust_uservar = dust.user_var if dust else []
+        user_var.extend(dust_uservar)
 
         self._variables = self.VariablesContent(consts, globs, vars, user_var)
 
@@ -265,24 +321,36 @@ class CVodeTemplateLoader(TemplateLoader):
 
             rspecidx = [species.index(r) for r in react.reactants]
             pspecidx = [species.index(p) for p in react.products]
+            # # consider the coverage of mantles if using UniDust model
+            # rsurface = (
+            #     ["cov" if r.is_surface else "" for r in react.reactants]
+            #     if isinstance(dust, UniDust)
+            #     else [""] * len(react.reactants)
+            # )
 
+            # Differential Equation
             rsym = [y[idx] for idx in rspecidx]
             rsym_mul = "*".join(rsym)
+            # rsym_mul = "*".join([*rsym, *list(filter(lambda x: x, rsurface))])
             for specidx in rspecidx:
                 rhs[specidx] += f" - {rates[rl]}*{rsym_mul}"
             for specidx in pspecidx:
                 rhs[specidx] += f" + {rates[rl]}*{rsym_mul}"
 
+            # Jacobian
             for specidx in rspecidx:
-                for ri in rspecidx:
+                # df/dx, remove the dependency for current reactant
+                for idx, ri in enumerate(rspecidx):
                     rsymcopy = rsym.copy()
                     rsymcopy.remove(y[ri])
+                    # coverage = [s for s in rsurface[0:idx] + rsurface[idx + 1 :] if s]
                     term = f" - {'*'.join([rates[rl], *rsymcopy])}"
                     jacrhs[specidx * n_spec + ri] += term
             for specidx in pspecidx:
-                for ri in rspecidx:
+                for idx, ri in enumerate(rspecidx):
                     rsymcopy = rsym.copy()
                     rsymcopy.remove(y[ri])
+                    # coverage = [s for s in rsurface[0:idx] + rsurface[idx + 1 :] if s]
                     term = f" + {'*'.join([rates[rl], *rsymcopy])}"
                     jacrhs[specidx * n_spec + ri] += term
 
@@ -355,6 +423,9 @@ class ODEIntTemplateLoader(TemplateLoader):
 
         self._macros = self.MacrosContent(nspec, nreact, speclist)
 
+        mantles = " + ".join(f"y[IDX_{g.alias}]" for g in species if g.is_surface)
+        self._physics = self.PhysicsContent(mantles)
+
         consts = [f"{c:<15} = {cv};" for db in databases for c, cv in db.consts.items()]
         ebs = [
             f"eb_{s.alias:<12} = {s.binding_energy};" for s in species if s.is_surface
@@ -365,6 +436,8 @@ class ODEIntTemplateLoader(TemplateLoader):
         dustvars = [f"{v}" for v in dust.vars.values() if dust] if dust else []
         vars.extend(dustvars)
         user_var = [v for db in databases for v in db.user_var]
+        dust_uservar = dust.user_var if dust else []
+        user_var.extend(dust_uservar)
 
         self._variables = self.VariablesContent(consts, globs, vars, user_var)
 

@@ -105,10 +105,11 @@ class RenderCommand(Command):
         net.check_duplicate_reaction()
         tl = net.templateloader(solver=solver, method=method, device=device)
         tl.render_constants(prefix=header_prefix)
-        tl.render_userdata(prefix=header_prefix)
-        tl.render_ode(prefix=source_prefix, headerprefix=header_prefix)
         tl.render_macros(prefix=header_prefix)
         tl.render_naunet(prefix=source_prefix, headerprefix=header_prefix)
+        tl.render_ode(prefix=source_prefix, headerprefix=header_prefix)
+        tl.render_physics(prefix=source_prefix, headerprefix=header_prefix)
+        tl.render_userdata(prefix=header_prefix)
         tl.render_cmake(prefix=Path.cwd(), version=ver)
 
         src_parent_path = Path(naunet.__file__).parent

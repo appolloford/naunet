@@ -26,6 +26,11 @@ class ReactionType(IntEnum):
     # 12x: special types in UMIST
     GAS_UMIST_CRPHOT = 120
 
+    # 13x: special types from Walsh+2015
+    GAS_LEEDS_XRAY = 130
+    GAS_LEEDS_RECOM = 131
+    GAS_LEEDS_ECAPTURE = 132
+
     # 20x: common types of gas-grain interaction
     GRAIN_FREEZE = 200
     GRAIN_DESORPT_THERMAL = 201

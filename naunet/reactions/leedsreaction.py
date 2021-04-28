@@ -1,4 +1,5 @@
 import logging
+from enum import IntEnum
 from .. import settings
 from ..dusts.dust import Dust
 from .reaction import Reaction, ReactionType as BasicType
@@ -11,10 +12,61 @@ class LEEDSReaction(Reaction):
     The name can be changed anytime
     """
 
+    class ReactionType(IntEnum):
+        # two-body gas-phase reaction
+        LEEDS_MA = BasicType.GAS_TWOBODY
+        # direct cosmic-ray ionisation
+        LEEDS_CR = BasicType.GAS_COSMICRAY
+        # cosmic-ray-induced photoreaction
+        LEEDS_CP = BasicType.GAS_UMIST_CRPHOT
+        # photoreaction
+        LEEDS_PH = BasicType.GAS_PHOTON
+        # direct X-ray ionisation
+        LEEDS_XR = BasicType.GAS_LEEDS_XRAY
+        # cation-grain recombination
+        LEEDS_RC = BasicType.GAS_LEEDS_RECOM
+        # accretion
+        LEEDS_FR = BasicType.GRAIN_FREEZE
+        # thermal desorption
+        LEEDS_TH = BasicType.GRAIN_DESORPT_THERMAL
+        # cosmic-ray-induced thermal desorption
+        LEEDS_CD = BasicType.GRAIN_DESORPT_COSMICRAY
+        # photodesorption
+        LEEDS_PD = BasicType.GRAIN_DESORPT_PHOTON
+        # grain-surface cosmic-ray-induced photoreaction
+        LEEDS_SC = BasicType.SURFACE_COSMICRAY
+        # grain-surface photoreaction
+        LEEDS_SP = BasicType.SURFACE_PHOTON
+        # two-body grain-surface reaction
+        LEEDS_SB = BasicType.SURFACE_TWOBODY
+        # reactive desorption
+        LEEDS_RD = BasicType.GRAIN_DESORPT_REACTIVE
+        # grain electron capture rate
+        LEEDS_EC = BasicType.GAS_LEEDS_ECAPTURE
+
+    rtype2type = {
+        1: ReactionType.LEEDS_MA,
+        2: ReactionType.LEEDS_CR,
+        3: ReactionType.LEEDS_CP,
+        4: ReactionType.LEEDS_PH,
+        5: ReactionType.LEEDS_XR,
+        6: ReactionType.LEEDS_RC,
+        7: ReactionType.LEEDS_FR,
+        8: ReactionType.LEEDS_TH,
+        9: ReactionType.LEEDS_CD,
+        10: ReactionType.LEEDS_PD,
+        11: ReactionType.LEEDS_SC,
+        12: ReactionType.LEEDS_SP,
+        13: ReactionType.LEEDS_SB,
+        14: ReactionType.LEEDS_RD,
+        20: ReactionType.LEEDS_EC,
+    }
+
     consts = {
         "zism": 1.6e-3,
         "habing": 1e8,
         "crphot": 1e4,
+        "hbar": 1.054571726e-27,
     }
     vars = {
         "Hnuclei": "nH",
@@ -65,15 +117,16 @@ class LEEDSReaction(Reaction):
 
         if self.dust:
             re1 = self.reactants[0]
+            if self.rtype in [13, 14]:
+                re2 = self.reactants[1]
             rg = self.dust.vars.get("Radius")
             albedo = self.dust.vars.get("Albedo")
             sites = self.dust.vars.get("SurfaceSites")
+            hop = self.dust.vars.get("HOPRatio")
             nmono = self.dust.vars.get("MonoLayers")
             duty = self.dust.vars.get("DutyCycle")
             Tcr = self.dust.vars.get("CRDesorptionTemperature")
-            gdens = "(y[IDX_GRAIN0I]+y[IDX_GRAINM])"
-            garea = f"(4*pi*{rg}*{rg}) * {gdens}"
-            densites = f"{sites} * (4*pi*{rg}*{rg}) * {gdens}"
+            branch = self.dust.vars.get("BranchRatio")
 
         # TODO: finish the remaining type of reactions
         if rtype == 1:
@@ -89,27 +142,66 @@ class LEEDSReaction(Reaction):
             # TODO: X-ray
             rate = "0.0"
         elif rtype == 6:
-            rate = f"{a} * pi * pow({rg}, 2) * {gdens} * sqrt(8.0*kerg*{Tgas}/pi/amu/{c}) * (1.0+pow(echarge, 2)/{rg}/kerg/Tgas) * (1.0 + sqrt(2.0*pow(echarge, 2)/({rg}*kerg*{Tgas}+2.0*pow(echarge, 2))))"
+            rate = f"{a} * pi * pow({rg}, 2) * gdens * sqrt(8.0*kerg*{Tgas}/pi/amu/{c}) * (1.0+pow(echarge, 2)/{rg}/kerg/Tgas) * (1.0 + sqrt(2.0*pow(echarge, 2)/({rg}*kerg*{Tgas}+2.0*pow(echarge, 2))))"
         elif rtype == 7:
-            rate = f"{a} * pi * pow({rg}, 2) * {gdens} * sqrt(8.0 * kerg * {Tgas}/ (pi*amu*{c}))"
+            rate = f"{a} * pi * pow({rg}, 2) * gdens * sqrt(8.0 * kerg * {Tgas}/ (pi*amu*{c}))"
         elif rtype == 8:
-            rate = f"sqrt(2.0*{sites}*kerg*eb_{re1.alias}/(pi*pi*amu*{c})) * {nmono} * {densites} * exp(-eb_{re1.alias}/{Tdust})"
+            rate = f"sqrt(2.0*{sites}*kerg*eb_{re1.alias}/(pi*pi*amu*{c})) * {nmono} * densites * exp(-eb_{re1.alias}/{Tdust})"
         elif rtype == 9:
-            rate = f"({cr}/{zism}) * {duty} * sqrt(2.0*{sites}*kerg*eb_{re1.alias}/(pi*pi*amu*{c})) * {nmono} * {densites} * exp(-eb_{re1.alias}/{Tcr})"
+            rate = f"({cr}/{zism}) * {duty} * sqrt(2.0*{sites}*kerg*eb_{re1.alias}/(pi*pi*amu*{c})) * {nmono} * densites * exp(-eb_{re1.alias}/{Tcr})"
         elif rtype == 10:
             uvphot = f"{G0}*{habing}*exp(-{Av}*3.02) + {crphot} * {cr}/{zism}"
-            rate = f"{uvphot} * {re1.photon_yield} * {nmono} * {garea}"
+            rate = f"{uvphot} * {re1.photon_yield} * {nmono} * garea"
         elif rtype == 11:
             rate = f"{a} * ({xr}+{cr})/{zism} * pow({Tgas}/300.0, {b}) * {c} / (1.0 - {albedo})"
         elif rtype == 12:
             # TODO: shielding
             rate = f"{G0} * {a} * exp(-{c}*{Av})"
         elif rtype == 13:
-            # TODO: diffusion
-            rate = "0.0"
+            # afreq = f"sqrt((2.0*{sites}*kerg*{re1.binding_energy})/((pi*pi)*amu*{re1.massnumber}))"
+            afreq = f"freq * sqrt({re1.binding_energy}/{re1.massnumber})"
+            adiff = f"{afreq} * exp(-{re1.binding_energy}*{hop}/{Tdust})/unisites"
+            # aquan = f"{afreq} * exp(-2*({barr}/hbar) * sqrt(2*{re1.massnumber}*amu*{hop}*{re1.binding_energy}*kerg)) / unisites"
+            aquan = f"{afreq} * exp(quan * sqrt({re1.massnumber}*{re1.binding_energy})) / unisites"
+            # bfreq = f"sqrt((2.0*{sites}*kerg*{re2.binding_energy})/((pi*pi)*amu*{re2.massnumber}))"
+            bfreq = f"freq * sqrt({re2.binding_energy}/{re2.massnumber})"
+            bdiff = f"{bfreq} * exp(-{re2.binding_energy}*{hop}/{Tdust})/unisites"
+            # bquan = f"{bfreq} * exp(-2*({barr}/hbar) * sqrt(2*{re2.massnumber}*amu*{hop}*{re2.binding_energy}*kerg)) / unisites"
+            bquan = f"{bfreq} * exp(quan * sqrt({re2.massnumber}*{re2.binding_energy})) / unisites"
+            kappa = f"exp(-{a}/{Tdust})"
+            # kquan = f"exp(-2*({barr}/hbar)*sqrt((2.0*amu*kerg)*(({re1.massnumber}*{re2.massnumber})/({re1.massnumber}+{re2.massnumber}))*{a}))"
+            kquan = f"exp(quan * sqrt((({re1.massnumber}*{re2.massnumber})/({re1.massnumber}+{re2.massnumber}))*{a}))"
+            if re1.name in ["GH", "GH2"] and re2.name in ["GH", "GH2"]:
+                rate = f"fmax({kappa}, {kquan})*(fmax({adiff}, {aquan})+fmax({bdiff}, {bquan}))*pow(({nmono}*densites), 2.0)/gdens"
+            elif re1.name in ["GH", "GH2"]:
+                rate = f"fmax({kappa}, {kquan})*(fmax({adiff}, {aquan})+{bdiff})*pow(({nmono}*densites), 2.0)/gdens"
+            elif re2.name in ["GH", "GH2"]:
+                rate = f"fmax({kappa}, {kquan})*({adiff}+fmax({bdiff}, {bquan}))*pow(({nmono}*densites), 2.0)/gdens"
+            else:
+                rate = f"{kappa}*({adiff}+{bdiff})*pow(({nmono}*densites), 2.0)/gdens"
         elif rtype == 14:
-            # TODO: reaction desorption
-            rate = "0.0"
+            # afreq = f"sqrt((2.0*{sites}*kerg*{re1.binding_energy})/((pi*pi)*amu*{re1.massnumber}))"
+            afreq = f"freq * sqrt({re1.binding_energy}/{re1.massnumber})"
+            adiff = f"{afreq} * exp(-{re1.binding_energy}*{hop}/{Tdust})/unisites"
+            # aquan = f"{afreq} * exp(-2*({barr}/hbar) * sqrt(2*{re1.massnumber}*amu*{hop}*{re1.binding_energy}*kerg)) / unisites"
+            aquan = f"{afreq} * exp(quan * sqrt({re1.massnumber}*{re1.binding_energy})) / unisites"
+            # bfreq = f"sqrt((2.0*{sites}*kerg*{re2.binding_energy})/((pi*pi)*amu*{re2.massnumber}))"
+            bfreq = f"freq * sqrt({re2.binding_energy}/{re2.massnumber})"
+            bdiff = f"{bfreq} * exp(-{re2.binding_energy}*{hop}/{Tdust})/unisites"
+            # bquan = f"{bfreq} * exp(-2*({barr}/hbar) * sqrt(2*{re2.massnumber}*amu*{hop}*{re2.binding_energy}*kerg)) / unisites"
+            bquan = f"{bfreq} * exp(quan * sqrt({re2.massnumber}*{re2.binding_energy})) / unisites"
+            kappa = f"exp(-{a}/{Tdust})"
+            # kquan = f"exp(-2*({barr}/hbar)*sqrt((2.0*amu*kerg)*(({re1.massnumber}*{re2.massnumber})/({re1.massnumber}+{re2.massnumber}))*{a}))"
+            kquan = f"exp(quan * sqrt((({re1.massnumber}*{re2.massnumber})/({re1.massnumber}+{re2.massnumber}))*{a}))"
+            if re1.name in ["GH", "GH2"] and re2.name in ["GH", "GH2"]:
+                rate = f"fmax({kappa}, {kquan})*(fmax({adiff}, {aquan})+fmax({bdiff}, {bquan}))*pow(({nmono}*densites), 2.0)/gdens"
+            elif re1.name in ["GH", "GH2"]:
+                rate = f"fmax({kappa}, {kquan})*(fmax({adiff}, {aquan})+{bdiff})*pow(({nmono}*densites), 2.0)/gdens"
+            elif re2.name in ["GH", "GH2"]:
+                rate = f"fmax({kappa}, {kquan})*({adiff}+fmax({bdiff}, {bquan}))*pow(({nmono}*densites), 2.0)/gdens"
+            else:
+                rate = f"{kappa}*({adiff}+{bdiff})*pow(({nmono}*densites), 2.0)/gdens"
+            rate = f"{branch} * {rate}"
         elif rtype in range(15, 20):
             rate = "0.0"
         elif rtype == 20:
@@ -118,6 +210,9 @@ class LEEDSReaction(Reaction):
             raise RuntimeError(
                 f"Type {rtype} has not been defined! Please extend the definition"
             )
+
+        nsurface = len([r for r in self.reactants if r.is_surface])
+        rate = rate + "*cov" * nsurface
 
         rate = self._beautify(rate)
         return rate
@@ -180,6 +275,7 @@ class LEEDSReaction(Reaction):
                     self.temp_max = float(clip)
                 elif label == "type":
                     self.rtype = int(clip[1:])  # the first char is not used
+                    self.reaction_type = self.rtype2type.get(self.rtype)
                 else:
                     raise RuntimeError("Unknown label inserted! Please check")
 

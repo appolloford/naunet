@@ -1,0 +1,9 @@
+#include "naunet_physics.h"
+
+{% if info.device == "gpu" %}
+__device__ __host__
+{% endif %}
+double mantles(double *y)
+{
+    return {{ physics.mantles | wordwrap(80) | replace("\n", "\n" + 8*" ") }};
+}

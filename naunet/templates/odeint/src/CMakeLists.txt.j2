@@ -9,6 +9,14 @@ add_library(naunet_ode STATIC naunet_ode.cpp)
 target_include_directories(naunet_ode PUBLIC ${CMAKE_SOURCE_DIR}/include)
 target_include_directories(naunet_ode PRIVATE ${Boost_INCLUDE_DIRS})
 
+{% if info.device == "gpu" -%}
+add_library(naunet_physics STATIC naunet_physics.cu)
+set_target_properties(naunet_physics PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+target_include_directories(naunet_physics PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
+{% else -%}
+add_library(naunet_physics STATIC naunet_physics.cpp)
+{% endif -%}
+target_include_directories(naunet_physics PUBLIC ${CMAKE_SOURCE_DIR}/include)
 
 add_library(naunet STATIC naunet.cpp)
 {% if info.device == "gpu" -%}

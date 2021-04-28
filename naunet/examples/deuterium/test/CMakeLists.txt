@@ -1,6 +1,7 @@
 list(APPEND NAUNETLIB
     naunet
     naunet_ode
+    naunet_physics
 )
 
 # check enabled languages

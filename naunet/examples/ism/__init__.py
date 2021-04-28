@@ -19,7 +19,7 @@ element = [
     "GRAIN",
 ]
 
-pseudo_elements = ["CR", "XRAY", "PHOTON", "CRPHOT"]
+pseudo_elements = ["CRP", "XRAY", "PHOTON", "CRPHOT"]
 
 species = [
     "C",

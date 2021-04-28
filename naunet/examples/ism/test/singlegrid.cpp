@@ -96,7 +96,7 @@ int main()
         fprintf(rtxt, "\n");
 #endif
 
-        dtyr = exp(logtime) - time;
+        dtyr = pow(10.0, logtime) - time;
         time += dtyr;
 
         fwrite(&time, sizeof(double), 1, fbin);

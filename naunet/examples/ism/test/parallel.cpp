@@ -101,7 +101,7 @@ int main()
         // fprintf(rtxt, "\n");
 #endif
 
-        dtyr = exp(logtime) - time;
+        dtyr = pow(10.0, logtime) - time;
         time += dtyr;
 
         for (int isys = 0; isys < nsystem; isys++)

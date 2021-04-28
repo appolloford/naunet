@@ -26,6 +26,11 @@ def test_basename():
     assert Species("N2D+").basename == "N2D"
 
 
+def test_binding_energy():
+    assert Species("#H").binding_energy == 600.0
+    assert Species("#CH4").binding_energy == 1090.0
+
+
 def test_charge():
     assert Species("H2").charge == 0
     assert Species("H+").charge == 1
@@ -52,9 +57,9 @@ def test_mass():
 
 
 def test_massnumber():
-    assert Species("H2").massnumber == 2
-    assert Species("He").massnumber == 4
-    assert Species("CO").massnumber == 28
+    assert Species("H2").massnumber == 2.0
+    assert Species("He").massnumber == 4.0
+    assert Species("CO").massnumber == 28.0
 
 
 def test_surface():

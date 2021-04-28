@@ -236,7 +236,7 @@ class Species:
         return self._mass
 
     @property
-    def massnumber(self) -> int:
+    def massnumber(self) -> float:
         """
         The mass number (neutron + proton) of the species
 
@@ -248,7 +248,7 @@ class Species:
 
         for e in element_table:
             self._massnumber += self.element_count.get(e.Symbol, 0) * (
-                int(e.NumberofNeutrons) + int(e.NumberofProtons)
+                float(e.NumberofNeutrons) + float(e.NumberofProtons)
             )
 
         return self._massnumber
