@@ -155,7 +155,22 @@ class ExampleCommand(Command):
             )
 
         elif case == networklist[4]:
-            self.call(
-                "init",
-                f"--name={name} --description=example --elements={','.join(element)} --pseudo-elements={','.join(pseudo_element)} --species={','.join(species)} --network=rate12_complex.rates --database=leeds --binding={','.join(f'{s}={sv}' for s, sv in binding_energy.items())} --yield={','.join(f'{s}={sv}' for s, sv in photon_yield.items())} --solver=cvode --device=cpu --method=dense --render",
+
+            option = f"--name={name} --description=example"
+            option += f" --elements={','.join(element)}"
+            option += f" --pseudo-elements={','.join(pseudo_element)}"
+            option += f" --species={','.join(species)}"
+            option += " --network=rate12_complex.rates --database=leeds"
+            option += f" --binding={','.join(f'{s}={sv}' for s, sv in binding_energy.items())}"
+            option += (
+                f" --yield={','.join(f'{s}={sv}' for s, sv in photon_yield.items())}"
             )
+            option += " --ode-modifier='double garea = (4*pi*rG*rG) * (y[IDX_GRAIN0I]+y[IDX_GRAINM])'"
+            option += " --ode-modifier='double stick1 = (1.0 / (1.0 + 4.2e-2*sqrt(Tgas+Tdust) + 2.3e-3*Tgas - 1.3e-7*Tgas*Tgas))'"
+            option += " --ode-modifier='double stick2 = exp(-1741.0/Tgas) / (1.0 + 5e-2*sqrt(Tgas+Tdust) + 1e-14*pow(Tgas, 4.0))'"
+            option += " --ode-modifier='double stick = stick1 + stick2'"
+            option += " --ode-modifier='double hloss = stick * garea/4.0 * sqrt(8.0*kerg*Tgas/(pi*amu))'"
+            option += " --ode-modifier='ydot[IDX_H2I] += 0.5*hloss*y[IDX_HI]; ydot[IDX_HI] -= hloss*y[IDX_H2I]'"
+            option += " --solver=cvode --device=cpu --method=dense --render"
+
+            self.call("init", option)

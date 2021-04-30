@@ -39,6 +39,7 @@ class TemplateLoader(ABC):
         spjaccval: List[str] = None
         spjacdata: List[str] = None
         header: str = None
+        modifier: List[str] = None
 
     @dataclass
     class PhysicsContent:
@@ -279,6 +280,7 @@ class CVodeTemplateLoader(TemplateLoader):
         reactions = netinfo.reactions
         databases = netinfo.databases
         dust = netinfo.dust
+        modifier = netinfo.odemodifier
 
         self._info = self.InfoContent(method, device)
 
@@ -297,12 +299,12 @@ class CVodeTemplateLoader(TemplateLoader):
         ]
         consts.extend(ebs)
         globs = []
-        vars = [f"{v}" for db in databases for v in db.vars.values()]
+        reactvars = [f"{v}" for db in databases for v in db.vars.values()]
         dustvars = [f"{v}" for v in dust.vars.values() if dust] if dust else []
-        vars.extend(dustvars)
-        user_var = [v for db in databases for v in db.user_var]
+        vars = [*dustvars, *reactvars]
+        react_uservar = [v for db in databases for v in db.user_var]
         dust_uservar = dust.user_var if dust else []
-        user_var.extend(dust_uservar)
+        user_var = [*dust_uservar, *react_uservar]
 
         self._variables = self.VariablesContent(consts, globs, vars, user_var)
 
@@ -387,6 +389,7 @@ class CVodeTemplateLoader(TemplateLoader):
             spjacrptr=spjacrptr,
             spjaccval=spjaccval,
             spjacdata=spjacdata,
+            modifier=modifier,
         )
 
 
@@ -414,6 +417,7 @@ class ODEIntTemplateLoader(TemplateLoader):
         reactions = netinfo.reactions
         databases = netinfo.databases
         dust = netinfo.dust
+        modifier = netinfo.odemodifier
 
         self._info = self.InfoContent(method, device)
 
@@ -432,12 +436,12 @@ class ODEIntTemplateLoader(TemplateLoader):
         ]
         consts.extend(ebs)
         globs = []
-        vars = [f"{v}" for db in databases for v in db.vars.values()]
+        reactvars = [f"{v}" for db in databases for v in db.vars.values()]
         dustvars = [f"{v}" for v in dust.vars.values() if dust] if dust else []
-        vars.extend(dustvars)
-        user_var = [v for db in databases for v in db.user_var]
+        vars = [*dustvars, *reactvars]
+        react_uservar = [v for db in databases for v in db.user_var]
         dust_uservar = dust.user_var if dust else []
-        user_var.extend(dust_uservar)
+        user_var = [*dust_uservar, *react_uservar]
 
         self._variables = self.VariablesContent(consts, globs, vars, user_var)
 
@@ -487,4 +491,5 @@ class ODEIntTemplateLoader(TemplateLoader):
             rateeqns,
             fex,
             jac,
+            modifier=modifier,
         )

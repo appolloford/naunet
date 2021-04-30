@@ -29,8 +29,10 @@ class InitCommand(Command):
         {--species= : List of species}
         {--network= : Source of chemical network file}
         {--database= : The database/format of the chemical network}
+        {--dust= : Type of dust model}
         {--binding= : List of binding energy of ice species}
         {--yield= : List of photodesorption yields of ice species}
+        {--ode-modifier=* : List of ODEs to be changed}
         {--solver=cvode : ODE solver}
         {--device=cpu : Device}
         {--method=dense : Linear solver used in CVode or algorithm in ODEInt}
@@ -187,6 +189,12 @@ class InitCommand(Command):
             yields.update(yield_list)
 
         chemistry.add("photon_yield", yields)
+
+        ode_modifier = self.option("ode-modifier")
+        if ode_modifier:
+            ode_modifier = [om.strip() for l in ode_modifier for om in l.split(";")]
+
+        chemistry.add("ode_modifier", ode_modifier)
 
         content.add("chemistry", chemistry)
 

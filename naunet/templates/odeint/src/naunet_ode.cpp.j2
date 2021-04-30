@@ -78,6 +78,10 @@ void fex::operator()(const vector_type &y, vector_type &ydot, double t)
         {{ eq | wordwrap(80) | replace('\n', wrap) }}
     {% endfor %}
 
+    {% for m in ode.modifier -%}
+        {{ m }};
+    {% endfor %}
+
 };
 
 jac::jac()

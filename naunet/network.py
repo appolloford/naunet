@@ -6,11 +6,16 @@ from .reactions.kidareaction import KIDAReaction
 from .reactions.leedsreaction import LEEDSReaction
 from .reactions.kromereaction import KROMEReaction
 from .dusts.dust import Dust
+from .dusts.unidust import UniDust
 
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger()
 
+
+supported_dust_model = {
+    "uniform": UniDust,
+}
 
 supported_reaction_class = {
     "kida": KIDAReaction,
@@ -42,7 +47,12 @@ def define_reaction(name: str):
 class Network:
     class Info:
         def __init__(
-            self, species: list, reactions: list, databases: list, dust: Dust = None
+            self,
+            species: list,
+            reactions: list,
+            databases: list,
+            dust: Dust = None,
+            odemodifier: list = None,
         ) -> None:
             self.n_spec = len(species)
             self.n_react = len(reactions)
@@ -50,6 +60,7 @@ class Network:
             self.reactions = reactions
             self.databases = databases
             self.dust = dust
+            self.odemodifier = odemodifier
 
     def __init__(self, species: list = None, dust: Dust = None) -> None:
 
@@ -57,6 +68,7 @@ class Network:
         self.reaction_list = []
         self.reactants_in_network = set()
         self.products_in_network = set()
+        self.ode_modifier = []
         self._allowed_species = species
         self._skipped_reactions = []
         self._info = None
@@ -209,7 +221,11 @@ class Network:
         speclist = sorted(self.reactants_in_network | self.products_in_network)
         databaselist = [supported_reaction_class.get(db) for db in self.database_list]
         self._info = self.Info(
-            speclist, self.reaction_list, databaselist, dust=self.dust
+            speclist,
+            self.reaction_list,
+            databaselist,
+            dust=self.dust,
+            odemodifier=self.ode_modifier,
         )
         logger.info(
             "{} species in the network: {}".format(

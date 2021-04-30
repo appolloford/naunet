@@ -71,6 +71,10 @@ int fex(realtype t, N_Vector u, N_Vector u_dot, void *user_data)
         {{ eq | wordwrap(80) | replace('\n', wrap) }}
     {% endfor %}
 
+    {% for m in ode.modifier -%}
+        {{ m }};
+    {% endfor %}
+
     {% elif info.method == "cusparse" -%}
 
     realtype *y     = N_VGetDeviceArrayPointer_Cuda(u);
