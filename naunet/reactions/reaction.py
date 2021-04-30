@@ -9,8 +9,6 @@ class ReactionType(IntEnum):
     """
     The definition of reaction types. Types are categorized by phases
     (gas, grain, surface) and then divided to sub-groups
-
-    :base IntEnum:
     """
 
     # 10x: common types of gas phase reactions
@@ -54,8 +52,6 @@ class ReactionType(IntEnum):
 class Reaction(ABC):
     """
     Interface of reaction
-
-    :base ABC:
     """
 
     consts = {}

@@ -77,7 +77,12 @@ class LEEDSReaction(Reaction):
         "VisualExtinction": "Av",
         "G0": "G0",
     }
-    user_var = []
+    # user_var = [
+    #     "double stick1 = (1.0 / (1.0 + 4.2e-2*sqrt(Tgas+Tdust) + 2.3e-3*Tgas - 1.3e-7*Tgas*Tgas))",
+    #     "double stick2 = exp(-1741.0/Tgas) / (1.0 + 5e-2*sqrt(Tgas+Tdust) + 1e-14*pow(Tgas, 4.0))",
+    #     "double stick = stick1 + stick2",
+    #     "double hloss = stick * garea/4.0 * sqrt(8.0*kerg*Tgas/(pi*amu))",
+    # ]
 
     def __init__(self, react_string, *args, dust: Dust = None, **kwargs) -> None:
         super().__init__(react_string)
@@ -205,7 +210,7 @@ class LEEDSReaction(Reaction):
         elif rtype in range(15, 20):
             rate = "0.0"
         elif rtype == 20:
-            rate = f"pi * {rg} * {rg} * sqrt(8.0*kerg*{Tgas}/pi/amu/me)"
+            rate = f"pi * {rg} * {rg} * sqrt(8.0*kerg*{Tgas}/pi/amu/meu)"
         else:
             raise RuntimeError(
                 f"Type {rtype} has not been defined! Please extend the definition"
