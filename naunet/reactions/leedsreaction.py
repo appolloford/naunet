@@ -63,8 +63,9 @@ class LEEDSReaction(Reaction):
     }
 
     consts = {
-        "zism": 1.6e-3,
+        "gism": 1.6e-3,
         "habing": 1e8,
+        "zism": 1.3e-17,
         "crphot": 1e4,
         "hbar": 1.054571726e-27,
     }
@@ -156,7 +157,7 @@ class LEEDSReaction(Reaction):
             rate = f"({cr}/{zism}) * {duty} * sqrt(2.0*{sites}*kerg*eb_{re1.alias}/(pi*pi*amu*{c})) * {nmono} * densites * exp(-eb_{re1.alias}/{Tcr})"
         elif rtype == 10:
             uvphot = f"{G0}*{habing}*exp(-{Av}*3.02) + {crphot} * {cr}/{zism}"
-            rate = f"{uvphot} * {re1.photon_yield} * {nmono} * garea"
+            rate = f"({uvphot}) * {re1.photon_yield} * {nmono} * garea"
         elif rtype == 11:
             rate = f"{a} * ({xr}+{cr})/{zism} * pow({Tgas}/300.0, {b}) * {c} / (1.0 - {albedo})"
         elif rtype == 12:
