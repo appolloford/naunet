@@ -11,13 +11,13 @@ int main()
 
     double spy = 86400.0 * 365.0;
 
-    double nH = 1e4;
-    double zeta_cr = 1e-16;
+    double nH = 2e4;
+    double zeta_cr = 1.3e-17;
     double zeta_xr = 0.0;
-    double Tgas = 15.0;
-    double Tdust = 15.0;
-    double Av = 100.0;
-    double G0 = 4.0;
+    double Tgas = 10.0;
+    double Tdust = 10.0;
+    double Av = 10.0;
+    double G0 = 1.0;
     double rG = 1e-5;
     double omega = 0.5;
     double barr = 1.5e-8;
@@ -29,22 +29,22 @@ int main()
     double branch = 1e-2;
 
     UserData data;
-    data.nH = 1e4;
-    data.zeta_cr = 1e-16;
-    data.zeta_xr = 0.0;
-    data.Tgas = 15.0;
-    data.Tdust = 15.0;
-    data.Av = 100.0;
-    data.G0 = 4.0;
-    data.rG = 1e-5;
-    data.omega = 0.5;
-    data.barr = 1.5e-8;
-    data.sites = 1e15;
-    data.hop = 0.3;
-    data.nMono = 2.0;
-    data.duty = 3.16e-19;
-    data.Tcr = 70.0;
-    data.branch = 1e-2;
+    data.nH = nH;
+    data.zeta_cr = zeta_cr;
+    data.zeta_xr = zeta_xr;
+    data.Tgas = Tgas;
+    data.Tdust = Tdust;
+    data.Av = Av;
+    data.G0 = G0;
+    data.rG = rG;
+    data.omega = omega;
+    data.barr = barr;
+    data.sites = sites;
+    data.hop = hop;
+    data.nMono = nMono;
+    data.duty = duty;
+    data.Tcr = Tcr;
+    data.branch = branch;
 
     Naunet naunet;
     naunet.initSolver();
@@ -53,11 +53,11 @@ int main()
     naunet.resetSolver(1);
 #endif
 
-    double y[NSPECIES];
-    for (int i = 0; i < NSPECIES; i++)
-    {
-        y[i] = 1.e-40;
-    }
+    double y[NSPECIES] = {0.0};
+    // for (int i = 0; i < NSPECIES; i++)
+    // {
+    //     y[i] = 1.e-40;
+    // }
     y[IDX_H2I] = 0.5 * nH;
     y[IDX_HI] = 5.0e-5 * nH;
     y[IDX_HeI] = 9.75e-2 * nH;
@@ -115,7 +115,7 @@ int main()
         timer.stop();
         float duration = (float)timer.elapsed() / 1e6;
         fprintf(ttxt, "%8.5e \n", duration);
-        // printf("Time = %13.7e yr, elapsed: %8.5e sec\n", time[i + 1], duration);
+        printf("Time = %13.7e yr, elapsed: %8.5e sec\n", time, duration);
     }
 
     fclose(fbin);
