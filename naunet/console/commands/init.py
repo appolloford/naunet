@@ -32,6 +32,7 @@ class InitCommand(Command):
         {--dust= : Type of dust model}
         {--binding= : List of binding energy of ice species}
         {--yield= : List of photodesorption yields of ice species}
+        {--rate-modifier=* : List of reaction rates to be changed}
         {--ode-modifier=* : List of ODEs to be changed}
         {--solver=cvode : ODE solver}
         {--device=cpu : Device}
@@ -189,6 +190,12 @@ class InitCommand(Command):
             yields.update(yield_list)
 
         chemistry.add("photon_yield", yields)
+
+        rate_modifier = self.option("rate-modifier")
+        if rate_modifier:
+            rate_modifier = [rm.strip() for l in rate_modifier for rm in l.split(";")]
+
+        chemistry.add("rate_modifier", rate_modifier)
 
         ode_modifier = self.option("ode-modifier")
         if ode_modifier:

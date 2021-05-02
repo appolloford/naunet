@@ -44,6 +44,7 @@ class RenderCommand(Command):
         species = chemistry["species"]
         binding = chemistry["binding_energy"]
         yields = chemistry["photon_yield"]
+        rate_modifier = chemistry["rate_modifier"]
         ode_modifier = chemistry["ode_modifier"]
 
         odesolver = content["ODEsolver"]
@@ -99,6 +100,7 @@ class RenderCommand(Command):
 
         net = Network(species=species, dust=dust)
         net.add_reaction_from_file(network, database)
+        net.rate_modifier = rate_modifier
         net.ode_modifier = ode_modifier
 
         header_prefix = os.path.join(Path.cwd(), "include")

@@ -53,6 +53,7 @@ class Network:
             databases: list,
             dust: Dust = None,
             odemodifier: list = None,
+            ratemodifier: list = None,
         ) -> None:
             self.n_spec = len(species)
             self.n_react = len(reactions)
@@ -61,6 +62,7 @@ class Network:
             self.databases = databases
             self.dust = dust
             self.odemodifier = odemodifier
+            self.ratemodifier = ratemodifier
 
     def __init__(self, species: list = None, dust: Dust = None) -> None:
 
@@ -69,6 +71,7 @@ class Network:
         self.reactants_in_network = set()
         self.products_in_network = set()
         self.ode_modifier = []
+        self.rate_modifier = []
         self._allowed_species = species
         self._skipped_reactions = []
         self._info = None
@@ -226,6 +229,7 @@ class Network:
             databaselist,
             dust=self.dust,
             odemodifier=self.ode_modifier,
+            ratemodifier=self.rate_modifier,
         )
         logger.info(
             "{} species in the network: {}".format(

@@ -39,7 +39,8 @@ class TemplateLoader(ABC):
         spjaccval: List[str] = None
         spjacdata: List[str] = None
         header: str = None
-        modifier: List[str] = None
+        odemodifier: List[str] = None
+        ratemodifier: List[str] = None
 
     @dataclass
     class PhysicsContent:
@@ -280,7 +281,8 @@ class CVodeTemplateLoader(TemplateLoader):
         reactions = netinfo.reactions
         databases = netinfo.databases
         dust = netinfo.dust
-        modifier = netinfo.odemodifier
+        odemodifier = netinfo.odemodifier
+        ratemodifier = netinfo.ratemodifier
 
         self._info = self.InfoContent(method, device)
 
@@ -389,7 +391,8 @@ class CVodeTemplateLoader(TemplateLoader):
             spjacrptr=spjacrptr,
             spjaccval=spjaccval,
             spjacdata=spjacdata,
-            modifier=modifier,
+            odemodifier=odemodifier,
+            ratemodifier=ratemodifier,
         )
 
 
@@ -417,7 +420,8 @@ class ODEIntTemplateLoader(TemplateLoader):
         reactions = netinfo.reactions
         databases = netinfo.databases
         dust = netinfo.dust
-        modifier = netinfo.odemodifier
+        odemodifier = netinfo.odemodifier
+        ratemodifier = netinfo.ratemodifier
 
         self._info = self.InfoContent(method, device)
 
@@ -491,5 +495,6 @@ class ODEIntTemplateLoader(TemplateLoader):
             rateeqns,
             fex,
             jac,
-            modifier=modifier,
+            odemodifier=odemodifier,
+            ratemodifier=ratemodifier,
         )

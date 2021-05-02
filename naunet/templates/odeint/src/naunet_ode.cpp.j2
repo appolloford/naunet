@@ -40,6 +40,10 @@ int calculate_rates(double *k, double *y, UserData *u_data)
         {{ "" }}
     {% endfor %}
 
+    {% for m in ode.ratemodifier -%}
+        {{ m }};
+    {% endfor %}
+
     return NAUNET_SUCCESS;
 }
 
@@ -66,6 +70,10 @@ void fex::operator()(const vector_type &y, vector_type &ydot, double t)
         {{ v }}
     {% endfor %}
 
+    {% for v in variables.user_var -%}
+        {{ v }};
+    {% endfor %}
+
     double k[NREACTIONS] = {0.0};
     double ab[NSPECIES] = {0.0};
     for (int i=0; i<NSPECIES; i++)
@@ -78,7 +86,7 @@ void fex::operator()(const vector_type &y, vector_type &ydot, double t)
         {{ eq | wordwrap(80) | replace('\n', wrap) }}
     {% endfor %}
 
-    {% for m in ode.modifier -%}
+    {% for m in ode.odemodifier -%}
         {{ m }};
     {% endfor %}
 
