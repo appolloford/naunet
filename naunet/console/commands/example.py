@@ -171,7 +171,7 @@ class ExampleCommand(Command):
             option += " --ode-modifier='double stick2 = exp(-1741.0/Tgas) / (1.0 + 5e-2*sqrt(Tgas+Tdust) + 1e-14*pow(Tgas, 4.0))'"
             option += " --ode-modifier='double stick = stick1 + stick2'"
             option += " --ode-modifier='double hloss = stick * garea/4.0 * sqrt(8.0*kerg*Tgas/(pi*amu))'"
-            option += " --ode-modifier='ydot[IDX_H2I] += 0.5*hloss*y[IDX_HI]; ydot[IDX_HI] -= hloss*y[IDX_H2I]'"
+            option += " --ode-modifier='ydot[IDX_H2I] += 0.5*hloss*y[IDX_HI]; ydot[IDX_HI] -= hloss*y[IDX_HI]'"
             option += " --solver=cvode --device=cpu --method=dense --render"
 
             self.call("init", option)

@@ -97,7 +97,6 @@ int main()
 #endif
 
         dtyr = pow(10.0, logtime) - time;
-        time += dtyr;
 
         fwrite(&time, sizeof(double), 1, fbin);
         fwrite(y, sizeof(double), NSPECIES, fbin);
@@ -113,10 +112,24 @@ int main()
         timer.start();
         naunet.solve(y, dtyr * spy, &data);
         timer.stop();
+
+        time += dtyr;
+
         float duration = (float)timer.elapsed() / 1e6;
         fprintf(ttxt, "%8.5e \n", duration);
         printf("Time = %13.7e yr, elapsed: %8.5e sec\n", time, duration);
     }
+
+    // save the final results
+    fwrite(&time, sizeof(double), 1, fbin);
+    fwrite(y, sizeof(double), NSPECIES, fbin);
+
+    fprintf(ftxt, "%13.7e ", time);
+    for (int j = 0; j < NSPECIES; j++)
+    {
+        fprintf(ftxt, "%13.7e ", y[j]);
+    }
+    fprintf(ftxt, "\n");
 
     fclose(fbin);
     fclose(ftxt);

@@ -140,7 +140,7 @@ class LEEDSReaction(Reaction):
         elif rtype == 2:
             rate = f"{a} * ({cr} + {xr}) / {zism}"
         elif rtype == 3:
-            rate = f"{a} * pow({Tgas}/300.0, {b}) * {c} * ({cr} + {xr}) / {zism} / (1.0 - {albedo})"
+            rate = f"{a} * (({cr} + {xr}) / {zism}) * pow({Tgas}/300.0, {b}) * {c} / (1.0 - {albedo})"
         elif rtype == 4:
             # TODO: shielding
             rate = f"{G0} * {a} * exp(-{c}*{Av})"
@@ -148,9 +148,9 @@ class LEEDSReaction(Reaction):
             # TODO: X-ray
             rate = "0.0"
         elif rtype == 6:
-            rate = f"{a} * pi * pow({rg}, 2) * gdens * sqrt(8.0*kerg*{Tgas}/pi/amu/{c}) * (1.0+pow(echarge, 2)/{rg}/kerg/Tgas) * (1.0 + sqrt(2.0*pow(echarge, 2)/({rg}*kerg*{Tgas}+2.0*pow(echarge, 2))))"
+            rate = f"{a} * pi * pow({rg}, 2.0) * gdens * sqrt(8.0*kerg*{Tgas}/(pi*amu*{c})) * (1.0+pow(echarge, 2)/{rg}/kerg/{Tgas}) * (1.0 + sqrt(2.0*pow(echarge, 2.0)/({rg}*kerg*{Tgas}+2.0*pow(echarge, 2.0))))"
         elif rtype == 7:
-            rate = f"{a} * pi * pow({rg}, 2) * gdens * sqrt(8.0 * kerg * {Tgas}/ (pi*amu*{c}))"
+            rate = f"{a} * pi * pow({rg}, 2.0) * gdens * sqrt(8.0 * kerg * {Tgas}/ (pi*amu*{c}))"
         elif rtype == 8:
             rate = f"sqrt(2.0*{sites}*kerg*eb_{re1.alias}/(pi*pi*amu*{c})) * {nmono} * densites * exp(-eb_{re1.alias}/{Tdust})"
         elif rtype == 9:
@@ -218,7 +218,7 @@ class LEEDSReaction(Reaction):
             )
 
         nsurface = len([r for r in self.reactants if r.is_surface])
-        rate = rate + "*cov" * nsurface
+        rate = rate + "*cov" * nsurface if rtype not in [11, 12] else rate
 
         rate = self._beautify(rate)
         return rate
