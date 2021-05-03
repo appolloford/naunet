@@ -22,10 +22,6 @@ int calculate_rates(double *k, double *y, UserData *u_data)
         double {{ v }} = u_data->{{ v }};
     {% endfor %}
 
-    {% for v in variables.user_var -%}
-        {{ v }};
-    {% endfor %}
-
     double Te = Tgas*8.617343e-5; //Tgas in eV (eV)
     double lnTe = log(Te); //ln of Te (#)
     double T32 = Tgas*0.0033333333333333335; //Tgas/(300 K) (#)

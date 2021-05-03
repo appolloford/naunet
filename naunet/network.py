@@ -55,6 +55,7 @@ class Network:
             odemodifier: list = None,
             ratemodifier: list = None,
         ) -> None:
+
             self.n_spec = len(species)
             self.n_react = len(reactions)
             self.species = species
@@ -64,7 +65,7 @@ class Network:
             self.odemodifier = odemodifier
             self.ratemodifier = ratemodifier
 
-    def __init__(self, species: list = None, dust: Dust = None) -> None:
+    def __init__(self, species: list = None, dusttype: str = None) -> None:
 
         self.database_list = set()
         self.reaction_list = []
@@ -77,7 +78,7 @@ class Network:
         self._info = None
         self._templateloader = None
 
-        self._dust = dust
+        self._dust = supported_dust_model.get(dusttype)
 
     def _add_reaction(self, react_string: str, database: str) -> list:
 

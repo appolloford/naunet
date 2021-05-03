@@ -42,6 +42,7 @@ class RenderCommand(Command):
         element = chemistry["elements"]
         pseudo_element = chemistry["pseudo_elements"]
         species = chemistry["species"]
+        dust = chemistry["dust"]
         binding = chemistry["binding_energy"]
         yields = chemistry["photon_yield"]
         rate_modifier = chemistry["rate_modifier"]
@@ -96,9 +97,7 @@ class RenderCommand(Command):
             module = util.module_from_spec(spec)
             spec.loader.exec_module(module)
 
-        dust = UniDust()
-
-        net = Network(species=species, dust=dust)
+        net = Network(species=species, dusttype=dust["type"])
         net.add_reaction_from_file(network, database)
         net.rate_modifier = rate_modifier
         net.ode_modifier = ode_modifier

@@ -68,10 +68,6 @@ int fex(realtype t, N_Vector u, N_Vector u_dot, void *user_data)
         realtype {{ v }} = u_data->{{ v }};
     {% endfor %}
 
-    {% for v in variables.user_var -%}
-        {{ v }};
-    {% endfor %}
-
     realtype k[NREACTIONS] = {0.0};
     calculate_rates(k, y, u_data);
 
@@ -144,6 +140,10 @@ int jtv(N_Vector v, N_Vector Jv, realtype t, N_Vector u, N_Vector fu,
 
     {% for eq in ode.fex -%}
         {{ eq | wordwrap(80) | replace('\n', wrap) }}
+    {% endfor %}
+
+    {% for m in ode.odemodifier -%}
+        {{ m }};
     {% endfor %}
 
     for (int i=0; i<NSPECIES; i++) {
@@ -271,6 +271,10 @@ __global__ void f_kernel(realtype *y, realtype *ydot, UserData *d_udata, int nsy
 
         {% for eq in ode.fex -%}
             {{ eq | replace("ydot[IDX", "ydot[yistart + IDX") | replace("y[IDX", "y_cur[IDX") | wordwrap(80) | replace('\n', wrap) }}
+        {% endfor %}
+
+        {% for m in ode.odemodifier -%}
+            {{ m | replace("ydot[IDX", "ydot[yistart + IDX") | replace("y[IDX", "y_cur[IDX") }};
         {% endfor %}
     }
 

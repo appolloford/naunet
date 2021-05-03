@@ -166,7 +166,12 @@ class InitCommand(Command):
         chemistry.add("database", database)
 
         dust = table()
-        dust.add("type", "uniform")
+
+        dustype = self.option("dust")
+        if not dustype:
+            dustype = "none"
+        dust.add("type", dustype)
+
         chemistry.add("dust", dust)
 
         binding = table()
