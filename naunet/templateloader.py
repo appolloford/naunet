@@ -2,7 +2,7 @@ import os
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List
+from typing import List, Dict
 from tqdm import tqdm
 from jinja2 import Environment, FileSystemLoader, PackageLoader
 from .dusts.unidust import UniDust
@@ -45,13 +45,15 @@ class TemplateLoader(ABC):
     @dataclass
     class PhysicsContent:
         mantles: str
+        header: str = None
 
     @dataclass
     class VariablesContent:
-        consts: List[str]
+        consts: Dict[str, str]
         globs: List[str]
         vars: List[str]
         user_var: List[str]
+        header: str = None
 
     def __init__(self, netinfo: object, *args, **kwargs) -> None:
 
@@ -109,14 +111,47 @@ class TemplateLoader(ABC):
             )
 
     def render_constants(
-        self, prefix: str = "./", name: str = None, save: bool = True
+        self,
+        prefix: str = "./",
+        name: str = None,
+        save: bool = True,
+        headerprefix: str = None,
+        headername: str = None,
+        header: bool = True,
     ) -> None:
-        if not name and save:
-            name = "naunet_constants.h"
 
-        template = self._env.get_template("include/naunet_constants.h.j2")
+        if save:
+            name = (
+                name
+                if name
+                else "naunet_constants.cu"
+                if self._info.device == "gpu"
+                else "naunet_constants.cpp"
+            )
+            headername = headername if headername else "naunet_constants.h"
+            headerprefix = headerprefix if headerprefix else prefix
+
+        if header:
+            headername = headername if headername else "naunet_constants.h"
+            self._variables.header = headername
+            template = self._env.get_template("include/naunet_constants.h.j2")
+            self._render(
+                template,
+                headerprefix,
+                headername,
+                save,
+                variables=self._variables,
+                info=self._info,
+            )
+
+        template = self._env.get_template("src/naunet_constants.cpp.j2")
         self._render(
-            template, prefix, name, save, variables=self._variables, info=self._info
+            template,
+            prefix,
+            name,
+            save,
+            variables=self._variables,
+            info=self._info,
         )
 
     def render_macros(
@@ -226,7 +261,7 @@ class TemplateLoader(ABC):
 
         if header:
             headername = headername if headername else "naunet_physics.h"
-            self._ode.header = headername
+            self._physics.header = headername
             template = self._env.get_template("include/naunet_physics.h.j2")
             self._render(
                 template,
@@ -293,17 +328,28 @@ class CVodeTemplateLoader(TemplateLoader):
         self._macros = self.MacrosContent(nspec, nreact, speclist)
 
         mantles = " + ".join(f"y[IDX_{g.alias}]" for g in species if g.is_surface)
+        mantles = mantles if mantles else "0.0"
         self._physics = self.PhysicsContent(mantles)
 
-        consts = [f"{c:<15} = {cv};" for db in databases for c, cv in db.consts.items()]
-        ebs = [
-            f"eb_{s.alias:<12} = {s.binding_energy};" for s in species if s.is_surface
-        ]
-        consts.extend(ebs)
-        globs = []
+        reactconsts = {
+            f"{c:<15}": f"{cv}" for db in databases for c, cv in db.consts.items()
+        }
+        dustconsts = (
+            {f"{c:<15}": f"{cv}" for c, cv in dust.consts.items()} if dust else {}
+        )
+        ebs = {
+            f"eb_{s.alias:<12}": f"{s.binding_energy};" for s in species if s.is_surface
+        }
+        consts = {**reactconsts, **dustconsts, **ebs}
+
+        reactglobs = [f"{v}" for db in databases for v in db.vars.values()]
+        dustglobs = [f"{v}" for v in dust.globs.values()] if dust else []
+        globs = [*reactglobs, *dustglobs]
+
         reactvars = [f"{v}" for db in databases for v in db.vars.values()]
         dustvars = [f"{v}" for v in dust.vars.values() if dust] if dust else []
         vars = [*dustvars, *reactvars]
+
         react_uservar = [v for db in databases for v in db.user_var]
         dust_uservar = dust.user_var if dust else []
         user_var = [*dust_uservar, *react_uservar]
@@ -432,17 +478,28 @@ class ODEIntTemplateLoader(TemplateLoader):
         self._macros = self.MacrosContent(nspec, nreact, speclist)
 
         mantles = " + ".join(f"y[IDX_{g.alias}]" for g in species if g.is_surface)
+        mantles = mantles if mantles else "0.0"
         self._physics = self.PhysicsContent(mantles)
 
-        consts = [f"{c:<15} = {cv};" for db in databases for c, cv in db.consts.items()]
-        ebs = [
-            f"eb_{s.alias:<12} = {s.binding_energy};" for s in species if s.is_surface
-        ]
-        consts.extend(ebs)
-        globs = []
+        reactconsts = {
+            f"{c:<15}": f"{cv}" for db in databases for c, cv in db.consts.items()
+        }
+        dustconsts = (
+            {f"{c:<15}": f"{cv}" for c, cv in dust.consts.items()} if dust else {}
+        )
+        ebs = {
+            f"eb_{s.alias:<12}": f"{s.binding_energy};" for s in species if s.is_surface
+        }
+        consts = {**reactconsts, **dustconsts, **ebs}
+
+        reactglobs = [f"{v}" for db in databases for v in db.vars.values()]
+        dustglobs = [f"{v}" for v in dust.globs.values()] if dust else []
+        globs = [*reactglobs, *dustglobs]
+
         reactvars = [f"{v}" for db in databases for v in db.vars.values()]
         dustvars = [f"{v}" for v in dust.vars.values() if dust] if dust else []
         vars = [*dustvars, *reactvars]
+
         react_uservar = [v for db in databases for v in db.user_var]
         dust_uservar = dust.user_var if dust else []
         user_var = [*dust_uservar, *react_uservar]

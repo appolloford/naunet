@@ -2,65 +2,65 @@
 #define __NAUNET_CONSTANTS_H__
 
 {% if info.device == "gpu" %}
-__constant__ double pi              = 3.1415926;
+extern __constant__ double pi;
 
 // atomic mass unit (g)
-__constant__ double amu             = 1.6605402e-24;
+extern __constant__ double amu;
 
 // mass of electron (g)
-__constant__ double me              = 9.1093897e-28;
+extern __constant__ double me;
 
 // mass or electron (u)
-__constant__ double meu             = 5.48579909e-4;
+extern __constant__ double meu;
 
 // mass of proton (g)
-__constant__ double mp              = 1.6726231e-24;
+extern __constant__ double mp;
 
 // mass of neutron (g)
-__constant__ double mn              = 1.6749286e-24;
+extern __constant__ double mn;
 
 // mass of hydrogen (g)
-__constant__ double mh              = 1.6733e-24;
+extern __constant__ double mh;
 
 // electron charge (esu)
-__constant__ double echarge         = 4.80320425e-10;
+extern __constant__ double echarge;
 
 // Boltzmann constant (erg/K)
-__constant__ double kerg            = 1.380658e-16;
+extern __constant__ double kerg;
 
-{% for c in variables.consts %}
-__constant__ double {{ c }}
+{% for c in variables.consts.keys() %}
+extern __constant__ double {{ c }};
 {% endfor %}
 
 {% else %}
-const double pi              = 3.1415926;
+extern const double pi;
 
 // atomic mass unit (g)
-const double amu             = 1.6605402e-24;
+extern const double amu;
 
 // mass of electron (g)
-const double me              = 9.1093897e-28;
+extern const double me;
 
 // mass or electron (u)
-const double meu             = 5.48579909e-4;
+extern const double meu;
 
 // mass of proton (g)
-const double mp              = 1.6726231e-24;
+extern const double mp;
 
 // mass of neutron (g)
-const double mn              = 1.6749286e-24;
+extern const double mn;
 
 // mass of hydrogen (g)
-const double mh              = 1.6733e-24;
+extern const double mh;
 
 // electron charge (esu)
-const double echarge         = 4.80320425e-10;
+extern const double echarge;
 
 // Boltzmann constant (erg/K)
-const double kerg            = 1.380658e-16;
+extern const double kerg;
 
-{% for c in variables.consts %}
-const double {{ c }}
+{% for c in variables.consts.keys() %}
+extern const double {{ c }};
 {% endfor %}
 
 {% endif %}

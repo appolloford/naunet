@@ -1,5 +1,6 @@
 list(APPEND NAUNETLIB
     naunet
+    naunet_constants
     naunet_ode
     naunet_physics
 )

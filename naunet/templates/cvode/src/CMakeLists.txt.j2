@@ -13,6 +13,15 @@ list(APPEND SUNDIALSLIB
 )
 
 {% if info.device == "gpu" -%}
+add_library(naunet_constants STATIC naunet_constants.cu)
+set_target_properties(naunet_constants PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+target_include_directories(naunet_constants PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
+{% else -%}
+add_library(naunet_constants STATIC naunet_constants.cpp)
+{% endif -%}
+target_include_directories(naunet_constants PUBLIC ${CMAKE_SOURCE_DIR}/include)
+
+{% if info.device == "gpu" -%}
 add_library(naunet_ode STATIC naunet_ode.cu)
 set_target_properties(naunet_ode PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
 target_include_directories(naunet_ode PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
