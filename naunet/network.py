@@ -1,6 +1,6 @@
 import logging
 from tqdm import tqdm
-from .templateloader import ODEIntTemplateLoader, TemplateLoader, CVodeTemplateLoader
+from .templateloader import TemplateLoader
 from .reactions.reaction import Reaction
 from .reactions.kidareaction import KIDAReaction
 from .reactions.leedsreaction import LEEDSReaction
@@ -21,11 +21,6 @@ supported_reaction_class = {
     "kida": KIDAReaction,
     "leeds": LEEDSReaction,
     "krome": KROMEReaction,
-}
-
-supported_template_loader = {
-    "cvode": CVodeTemplateLoader,
-    "odeint": ODEIntTemplateLoader,
 }
 
 
@@ -251,8 +246,7 @@ class Network:
         if self._info and self._templateloader:
             return self._templateloader
 
-        tl = supported_template_loader.get(solver)
-        self._templateloader = tl(self.info, method, device)
+        self._templateloader = TemplateLoader(self.info, solver, method, device)
         return self._templateloader
 
     def to_code(

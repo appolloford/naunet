@@ -1,21 +1,20 @@
 import os
-from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Dict
 from tqdm import tqdm
-from jinja2 import Environment, FileSystemLoader, PackageLoader
-from .dusts.unidust import UniDust
-
-# @dataclass
-# class AbstractDataclass(ABC):
-#     def __new__(cls, *args, **kwargs):
-#         if cls == AbstractDataclass or cls.__bases__[0] == AbstractDataclass:
-#             raise TypeError("Cannot instantiate abstract class.")
-#         return super().__new__(cls)
+from jinja2 import Environment, PackageLoader
 
 
-class TemplateLoader(ABC):
+# class RelativeEnvironment(Environment):
+#     """Override join_path() to enable relative template paths."""
+
+#     def join_path(self, template, parent):
+#         return os.path.join(parent, template)
+#         # return os.path.join(os.path.dirname(parent), template)
+
+
+class TemplateLoader:
     @dataclass
     class InfoContent:
         method: str
@@ -55,18 +54,152 @@ class TemplateLoader(ABC):
         user_var: List[str]
         header: str = None
 
-    def __init__(self, netinfo: object, *args, **kwargs) -> None:
+    def __init__(self, netinfo: object, solver: str, method: str, device: str) -> None:
 
-        self._env = None
+        loader = PackageLoader("naunet")
+        # self._env = RelativeEnvironment(loader=loader)
+        self._env = Environment(loader=loader)
+        self._env.globals.update(zip=zip)
+        self._solver = solver
+        self._env.trim_blocks = True
+        self._env.rstrip_blocks = True
+
         self._info = None
         self._macros = None
         self._ode = None
         self._physics = None
         self._variables = None
 
-    @abstractmethod
-    def _prepare_contents(self, netinfo: object, *args, **kwargs) -> None:
-        raise NotImplementedError
+        self._prepare_contents(netinfo, method, device)
+
+    def _prepare_contents(self, netinfo: object, method: str, device: str) -> None:
+        n_spec = netinfo.n_spec
+        n_react = netinfo.n_react
+        species = netinfo.species
+        reactions = netinfo.reactions
+        databases = netinfo.databases
+        dust = netinfo.dust
+        odemodifier = netinfo.odemodifier
+        ratemodifier = netinfo.ratemodifier
+
+        self._info = self.InfoContent(method, device)
+
+        nspec = f"#define NSPECIES {n_spec}"
+        nreact = f"#define NREACTIONS {n_react}"
+        speclist = [f"#define IDX_{x.alias} {i}" for i, x in enumerate(species)]
+
+        self._macros = self.MacrosContent(nspec, nreact, speclist)
+
+        mantles = " + ".join(f"y[IDX_{g.alias}]" for g in species if g.is_surface)
+        mantles = mantles if mantles else "0.0"
+        self._physics = self.PhysicsContent(mantles)
+
+        reactconsts = {
+            f"{c:<15}": f"{cv}" for db in databases for c, cv in db.consts.items()
+        }
+        dustconsts = (
+            {f"{c:<15}": f"{cv}" for c, cv in dust.consts.items()} if dust else {}
+        )
+        ebs = {
+            f"eb_{s.alias:<12}": f"{s.binding_energy};" for s in species if s.is_surface
+        }
+        consts = {**reactconsts, **dustconsts, **ebs}
+
+        reactglobs = [f"{v}" for db in databases for v in db.vars.values()]
+        dustglobs = [f"{v}" for v in dust.globs.values()] if dust else []
+        globs = [*reactglobs, *dustglobs]
+
+        reactvars = [f"{v}" for db in databases for v in db.vars.values()]
+        dustvars = [f"{v}" for v in dust.vars.values() if dust] if dust else []
+        vars = [*dustvars, *reactvars]
+
+        react_uservar = [v for db in databases for v in db.user_var]
+        dust_uservar = dust.user_var if dust else []
+        user_var = [*dust_uservar, *react_uservar]
+
+        self._variables = self.VariablesContent(consts, globs, vars, user_var)
+
+        rates = [f"k[{r}]" for r in range(n_react)]
+        rateeqns = [
+            f"if (Tgas>{reac.temp_min} && Tgas<{reac.temp_max}) {{\n{' = '.join([rate, reac.rate_func()])}; \n}}"
+            if reac.temp_min < reac.temp_max
+            else f"{' = '.join([rate, reac.rate_func()])};"
+            for rate, reac in zip(rates, reactions)
+        ]
+
+        y = [f"y[IDX_{x.alias}]" for x in species]
+        rhs = ["0.0"] * n_spec
+        jacrhs = ["0.0"] * n_spec * n_spec
+        for rl, react in enumerate(tqdm(reactions, desc="Preparing ODE...")):
+
+            rspecidx = [species.index(r) for r in react.reactants]
+            pspecidx = [species.index(p) for p in react.products]
+
+            # Differential Equation
+            rsym = [y[idx] for idx in rspecidx]
+            rsym_mul = "*".join(rsym)
+            for specidx in rspecidx:
+                rhs[specidx] += f" - {rates[rl]}*{rsym_mul}"
+            for specidx in pspecidx:
+                rhs[specidx] += f" + {rates[rl]}*{rsym_mul}"
+
+            # Jacobian
+            for specidx in rspecidx:
+                # df/dx, remove the dependency for current reactant
+                for ri in rspecidx:
+                    rsymcopy = rsym.copy()
+                    rsymcopy.remove(y[ri])
+                    term = f" - {'*'.join([rates[rl], *rsymcopy])}"
+                    jacrhs[specidx * n_spec + ri] += term
+            for specidx in pspecidx:
+                for ri in rspecidx:
+                    rsymcopy = rsym.copy()
+                    rsymcopy.remove(y[ri])
+                    term = f" + {'*'.join([rates[rl], *rsymcopy])}"
+                    jacrhs[specidx * n_spec + ri] += term
+
+        lhs = [f"ydot[IDX_{x.alias}]" for x in species]
+        fex = [f"{l} = {r};" for l, r in zip(lhs, rhs)]
+
+        if self._solver == "cvode":
+            jac = [
+                f"IJth(jmatrix, {idx//n_spec}, {idx%n_spec}) = {j};"
+                for idx, j in enumerate(jacrhs)
+            ]
+        elif self._solver == "odeint":
+            jac = [
+                f"j({idx//n_spec}, {idx%n_spec}) = {j};" for idx, j in enumerate(jacrhs)
+            ]
+
+        spjacrptr = []
+        spjaccval = []
+        spjacdata = []
+        if "sparse" in method:
+            # TODO: Too slow! Optimize it
+            nnz = 0
+            for row in range(n_spec):
+                spjacrptr.append(f"rowptrs[{row}] = {nnz};")
+                for col in range(n_spec):
+                    elem = jacrhs[row * n_spec + col]
+                    if elem != "0.0":
+                        spjaccval.append(f"colvals[{nnz}] = {col};")
+                        spjacdata.append(f"data[{nnz}] = {elem};")
+                        nnz += 1
+            spjacrptr.append(f"rowptrs[{n_spec}] = {nnz};")
+            self._macros.nnz = f"#define NNZ {nnz}"
+
+        self._ode = self.ODEContent(
+            method,
+            device,
+            rateeqns,
+            fex,
+            jac,
+            spjacrptr=spjacrptr,
+            spjaccval=spjaccval,
+            spjacdata=spjacdata,
+            odemodifier=odemodifier,
+            ratemodifier=ratemodifier,
+        )
 
     def _render(
         self, template: object, prefix: str, name: str, save: bool, *args, **kwargs
@@ -99,7 +232,8 @@ class TemplateLoader(ABC):
             "src/CMakeLists.txt.j2",
         ]
         for name in template_names:
-            template = self._env.get_template(name)
+            tname = os.path.join(self._solver, name)
+            template = self._env.get_template(tname)
             target = name.replace(".j2", "")
             self._render(
                 template,
@@ -134,7 +268,8 @@ class TemplateLoader(ABC):
         if header:
             headername = headername if headername else "naunet_constants.h"
             self._variables.header = headername
-            template = self._env.get_template("include/naunet_constants.h.j2")
+            tname = os.path.join(self._solver, "include/naunet_constants.h.j2")
+            template = self._env.get_template(tname)
             self._render(
                 template,
                 headerprefix,
@@ -144,7 +279,8 @@ class TemplateLoader(ABC):
                 info=self._info,
             )
 
-        template = self._env.get_template("src/naunet_constants.cpp.j2")
+        tname = os.path.join(self._solver, "src/naunet_constants.cpp.j2")
+        template = self._env.get_template(tname)
         self._render(
             template,
             prefix,
@@ -160,7 +296,8 @@ class TemplateLoader(ABC):
         if not name and save:
             name = "naunet_macros.h"
 
-        template = self._env.get_template("include/naunet_macros.h.j2")
+        tname = os.path.join(self._solver, "include/naunet_macros.h.j2")
+        template = self._env.get_template(tname)
         self._render(template, prefix, name, save, macros=self._macros, info=self._info)
 
     def render_naunet(
@@ -180,7 +317,8 @@ class TemplateLoader(ABC):
 
         if header:
             headername = headername if headername else "naunet.h"
-            template = self._env.get_template("include/naunet.h.j2")
+            tname = os.path.join(self._solver, "include/naunet.h.j2")
+            template = self._env.get_template(tname)
             self._render(
                 template,
                 headerprefix,
@@ -190,7 +328,8 @@ class TemplateLoader(ABC):
                 header=headername,
             )
 
-        template = self._env.get_template("src/naunet.cpp.j2")
+        tname = os.path.join(self._solver, "src/naunet.cpp.j2")
+        template = self._env.get_template(tname)
         self._render(template, prefix, name, save, info=self._info, header=headername)
 
     def render_ode(
@@ -217,7 +356,8 @@ class TemplateLoader(ABC):
         if header:
             headername = headername if headername else "naunet_ode.h"
             self._ode.header = headername
-            template = self._env.get_template("include/naunet_ode.h.j2")
+            tname = os.path.join(self._solver, "include/naunet_ode.h.j2")
+            template = self._env.get_template(tname)
             self._render(
                 template,
                 headerprefix,
@@ -227,7 +367,8 @@ class TemplateLoader(ABC):
                 info=self._info,
             )
 
-        template = self._env.get_template("src/naunet_ode.cpp.j2")
+        tname = os.path.join(self._solver, "src/naunet_ode.cpp.j2")
+        template = self._env.get_template(tname)
         self._render(
             template,
             prefix,
@@ -262,7 +403,8 @@ class TemplateLoader(ABC):
         if header:
             headername = headername if headername else "naunet_physics.h"
             self._physics.header = headername
-            template = self._env.get_template("include/naunet_physics.h.j2")
+            tname = os.path.join(self._solver, "include/naunet_physics.h.j2")
+            template = self._env.get_template(tname)
             self._render(
                 template,
                 headerprefix,
@@ -272,7 +414,8 @@ class TemplateLoader(ABC):
                 info=self._info,
             )
 
-        template = self._env.get_template("src/naunet_physics.cpp.j2")
+        tname = os.path.join(self._solver, "src/naunet_physics.cpp.j2")
+        template = self._env.get_template(tname)
         self._render(
             template,
             prefix,
@@ -288,270 +431,6 @@ class TemplateLoader(ABC):
         if not name and save:
             name = "naunet_userdata.h"
 
-        template = self._env.get_template("include/naunet_userdata.h.j2")
+        tname = os.path.join(self._solver, "include/naunet_userdata.h.j2")
+        template = self._env.get_template(tname)
         self._render(template, prefix, name, save, variables=self._variables)
-
-
-class CVodeTemplateLoader(TemplateLoader):
-    def __init__(
-        self, netinfo: object, method: str, device: str, *args, **kwargs
-    ) -> None:
-
-        super().__init__(netinfo)
-
-        rpath = "templates/cvode"
-        loader = PackageLoader("naunet", rpath)
-        self._env = Environment(loader=loader)
-        self._env.globals.update(zip=zip)
-        self._env.trim_blocks = True
-        # env.lstrip_blocks = True
-        self._env.rstrip_blocks = True
-
-        self._prepare_contents(netinfo, method, device)
-
-    def _prepare_contents(self, netinfo: object, method: str, device: str) -> None:
-        n_spec = netinfo.n_spec
-        n_react = netinfo.n_react
-        species = netinfo.species
-        reactions = netinfo.reactions
-        databases = netinfo.databases
-        dust = netinfo.dust
-        odemodifier = netinfo.odemodifier
-        ratemodifier = netinfo.ratemodifier
-
-        self._info = self.InfoContent(method, device)
-
-        nspec = f"#define NSPECIES {n_spec}"
-        nreact = f"#define NREACTIONS {n_react}"
-        speclist = [f"#define IDX_{x.alias} {i}" for i, x in enumerate(species)]
-
-        self._macros = self.MacrosContent(nspec, nreact, speclist)
-
-        mantles = " + ".join(f"y[IDX_{g.alias}]" for g in species if g.is_surface)
-        mantles = mantles if mantles else "0.0"
-        self._physics = self.PhysicsContent(mantles)
-
-        reactconsts = {
-            f"{c:<15}": f"{cv}" for db in databases for c, cv in db.consts.items()
-        }
-        dustconsts = (
-            {f"{c:<15}": f"{cv}" for c, cv in dust.consts.items()} if dust else {}
-        )
-        ebs = {
-            f"eb_{s.alias:<12}": f"{s.binding_energy};" for s in species if s.is_surface
-        }
-        consts = {**reactconsts, **dustconsts, **ebs}
-
-        reactglobs = [f"{v}" for db in databases for v in db.vars.values()]
-        dustglobs = [f"{v}" for v in dust.globs.values()] if dust else []
-        globs = [*reactglobs, *dustglobs]
-
-        reactvars = [f"{v}" for db in databases for v in db.vars.values()]
-        dustvars = [f"{v}" for v in dust.vars.values() if dust] if dust else []
-        vars = [*dustvars, *reactvars]
-
-        react_uservar = [v for db in databases for v in db.user_var]
-        dust_uservar = dust.user_var if dust else []
-        user_var = [*dust_uservar, *react_uservar]
-
-        self._variables = self.VariablesContent(consts, globs, vars, user_var)
-
-        rates = [f"k[{r}]" for r in range(n_react)]
-        rateeqns = [
-            f"if (Tgas>{reac.temp_min} && Tgas<{reac.temp_max}) {{\n{' = '.join([rate, reac.rate_func()])}; \n}}"
-            if reac.temp_min < reac.temp_max
-            else f"{' = '.join([rate, reac.rate_func()])};"
-            for rate, reac in zip(rates, reactions)
-        ]
-
-        y = [f"y[IDX_{x.alias}]" for x in species]
-        rhs = ["0.0"] * n_spec
-        jacrhs = ["0.0"] * n_spec * n_spec
-        for rl, react in enumerate(tqdm(reactions, desc="Preparing ODE...")):
-
-            rspecidx = [species.index(r) for r in react.reactants]
-            pspecidx = [species.index(p) for p in react.products]
-            # # consider the coverage of mantles if using UniDust model
-            # rsurface = (
-            #     ["cov" if r.is_surface else "" for r in react.reactants]
-            #     if isinstance(dust, UniDust)
-            #     else [""] * len(react.reactants)
-            # )
-
-            # Differential Equation
-            rsym = [y[idx] for idx in rspecidx]
-            rsym_mul = "*".join(rsym)
-            # rsym_mul = "*".join([*rsym, *list(filter(lambda x: x, rsurface))])
-            for specidx in rspecidx:
-                rhs[specidx] += f" - {rates[rl]}*{rsym_mul}"
-            for specidx in pspecidx:
-                rhs[specidx] += f" + {rates[rl]}*{rsym_mul}"
-
-            # Jacobian
-            for specidx in rspecidx:
-                # df/dx, remove the dependency for current reactant
-                for idx, ri in enumerate(rspecidx):
-                    rsymcopy = rsym.copy()
-                    rsymcopy.remove(y[ri])
-                    # coverage = [s for s in rsurface[0:idx] + rsurface[idx + 1 :] if s]
-                    term = f" - {'*'.join([rates[rl], *rsymcopy])}"
-                    jacrhs[specidx * n_spec + ri] += term
-            for specidx in pspecidx:
-                for idx, ri in enumerate(rspecidx):
-                    rsymcopy = rsym.copy()
-                    rsymcopy.remove(y[ri])
-                    # coverage = [s for s in rsurface[0:idx] + rsurface[idx + 1 :] if s]
-                    term = f" + {'*'.join([rates[rl], *rsymcopy])}"
-                    jacrhs[specidx * n_spec + ri] += term
-
-        lhs = [f"ydot[IDX_{x.alias}]" for x in species]
-        fex = [f"{l} = {r};" for l, r in zip(lhs, rhs)]
-        jac = [
-            f"IJth(jmatrix, {idx//n_spec}, {idx%n_spec}) = {j};"
-            for idx, j in enumerate(jacrhs)
-        ]
-
-        spjacrptr = []
-        spjaccval = []
-        spjacdata = []
-        if "sparse" in method:
-            # TODO: Too slow! Optimize it
-            nnz = 0
-            for row in range(n_spec):
-                spjacrptr.append(f"rowptrs[{row}] = {nnz};")
-                for col in range(n_spec):
-                    elem = jacrhs[row * n_spec + col]
-                    if elem != "0.0":
-                        spjaccval.append(f"colvals[{nnz}] = {col};")
-                        spjacdata.append(f"data[{nnz}] = {elem};")
-                        nnz += 1
-            spjacrptr.append(f"rowptrs[{n_spec}] = {nnz};")
-            self._macros.nnz = f"#define NNZ {nnz}"
-
-        self._ode = self.ODEContent(
-            method,
-            device,
-            rateeqns,
-            fex,
-            jac,
-            spjacrptr=spjacrptr,
-            spjaccval=spjaccval,
-            spjacdata=spjacdata,
-            odemodifier=odemodifier,
-            ratemodifier=ratemodifier,
-        )
-
-
-class ODEIntTemplateLoader(TemplateLoader):
-    def __init__(
-        self, netinfo: object, method: str, device: str, *args, **kwargs
-    ) -> None:
-
-        super().__init__(netinfo)
-
-        rpath = "templates/odeint"
-        loader = PackageLoader("naunet", rpath)
-        self._env = Environment(loader=loader)
-        self._env.globals.update(zip=zip)
-        self._env.trim_blocks = True
-        # env.lstrip_blocks = True
-        self._env.rstrip_blocks = True
-
-        self._prepare_contents(netinfo, method, device)
-
-    def _prepare_contents(self, netinfo: object, method: str, device: str) -> None:
-        n_spec = netinfo.n_spec
-        n_react = netinfo.n_react
-        species = netinfo.species
-        reactions = netinfo.reactions
-        databases = netinfo.databases
-        dust = netinfo.dust
-        odemodifier = netinfo.odemodifier
-        ratemodifier = netinfo.ratemodifier
-
-        self._info = self.InfoContent(method, device)
-
-        nspec = f"#define NSPECIES {n_spec}"
-        nreact = f"#define NREACTIONS {n_react}"
-        speclist = [f"#define IDX_{x.alias} {i}" for i, x in enumerate(species)]
-
-        self._macros = self.MacrosContent(nspec, nreact, speclist)
-
-        mantles = " + ".join(f"y[IDX_{g.alias}]" for g in species if g.is_surface)
-        mantles = mantles if mantles else "0.0"
-        self._physics = self.PhysicsContent(mantles)
-
-        reactconsts = {
-            f"{c:<15}": f"{cv}" for db in databases for c, cv in db.consts.items()
-        }
-        dustconsts = (
-            {f"{c:<15}": f"{cv}" for c, cv in dust.consts.items()} if dust else {}
-        )
-        ebs = {
-            f"eb_{s.alias:<12}": f"{s.binding_energy};" for s in species if s.is_surface
-        }
-        consts = {**reactconsts, **dustconsts, **ebs}
-
-        reactglobs = [f"{v}" for db in databases for v in db.vars.values()]
-        dustglobs = [f"{v}" for v in dust.globs.values()] if dust else []
-        globs = [*reactglobs, *dustglobs]
-
-        reactvars = [f"{v}" for db in databases for v in db.vars.values()]
-        dustvars = [f"{v}" for v in dust.vars.values() if dust] if dust else []
-        vars = [*dustvars, *reactvars]
-
-        react_uservar = [v for db in databases for v in db.user_var]
-        dust_uservar = dust.user_var if dust else []
-        user_var = [*dust_uservar, *react_uservar]
-
-        self._variables = self.VariablesContent(consts, globs, vars, user_var)
-
-        rates = [f"k[{r}]" for r in range(n_react)]
-        rateeqns = [
-            f"if (Tgas>{reac.temp_min} && Tgas<{reac.temp_max}) {{\n{' = '.join([rate, reac.rate_func()])}; \n}}"
-            if reac.temp_min < reac.temp_max
-            else f"{' = '.join([rate, reac.rate_func()])};"
-            for rate, reac in zip(rates, reactions)
-        ]
-
-        y = [f"y[IDX_{x.alias}]" for x in species]
-        rhs = ["0.0"] * n_spec
-        jacrhs = ["0.0"] * n_spec * n_spec
-        for rl, react in enumerate(tqdm(reactions, desc="Preparing ODE...")):
-
-            rspecidx = [species.index(r) for r in react.reactants]
-            pspecidx = [species.index(p) for p in react.products]
-
-            rsym = [y[idx] for idx in rspecidx]
-            rsym_mul = "*".join(rsym)
-            for specidx in rspecidx:
-                rhs[specidx] += f" - {rates[rl]}*{rsym_mul}"
-            for specidx in pspecidx:
-                rhs[specidx] += f" + {rates[rl]}*{rsym_mul}"
-
-            for specidx in rspecidx:
-                for ri in rspecidx:
-                    rsymcopy = rsym.copy()
-                    rsymcopy.remove(y[ri])
-                    term = f" - {'*'.join([rates[rl], *rsymcopy])}"
-                    jacrhs[specidx * n_spec + ri] += term
-            for specidx in pspecidx:
-                for ri in rspecidx:
-                    rsymcopy = rsym.copy()
-                    rsymcopy.remove(y[ri])
-                    term = f" + {'*'.join([rates[rl], *rsymcopy])}"
-                    jacrhs[specidx * n_spec + ri] += term
-
-        lhs = [f"ydot[IDX_{x.alias}]" for x in species]
-        fex = [f"{l} = {r};" for l, r in zip(lhs, rhs)]
-        jac = [f"j({idx//n_spec}, {idx%n_spec}) = {j};" for idx, j in enumerate(jacrhs)]
-
-        self._ode = self.ODEContent(
-            method,
-            device,
-            rateeqns,
-            fex,
-            jac,
-            odemodifier=odemodifier,
-            ratemodifier=ratemodifier,
-        )
