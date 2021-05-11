@@ -1,4 +1,7 @@
-#include "naunet_physics.h"
+#include <math.h>
+#include "naunet_macros.h"
+#include "naunet_constants.h"
+#include "{{ physics.header }}"
 
 {% if info.device == "gpu" %}
 __device__ __host__
@@ -7,3 +10,292 @@ double mantles(double *y)
 {
     return {{ physics.mantles | wordwrap(80) | replace("\n", "\n" + 8*" ") }};
 }
+
+{% if info.device == "gpu" %}
+__device__
+{% endif %}
+double shieldingfactor(int specidx, double h2coldens, double spcoldens, double tgas, int method)
+{
+    double factor;
+#ifdef IDX_H2I
+    if (specidx == IDX_H2I)
+    {
+        factor = H2shielding(h2coldens, method);
+    }
+#endif
+#ifdef IDX_COI
+    if (specidx == IDX_COI)
+    {
+        factor = COshielding(tgas, h2coldens, spcoldens, method);
+    }
+#endif
+#ifdef IDX_N2I
+    if (specidx == IDX_N2I)
+    {
+        factor = N2shielding(tgas, h2coldens, spcoldens, method);
+    }
+#endif
+
+    return factor;
+}
+
+{% if info.device == "gpu" %}
+__device__
+{% endif %}
+double H2shielding(double coldens, int method)
+{
+    double shielding = -1.0;
+    switch(method)
+    {
+        case 0:
+            shielding = H2shieldingInt(coldens);
+        default:
+    }
+    return shielding;
+}
+
+{% if info.device == "gpu" %}
+__device__
+{% endif %}
+double COshielding(double tgas, double h2col, double coldens, int method)
+{
+    double shielding = -1.0;
+    switch(method)
+    {
+        case 0:
+            shielding = COshieldingInt(tgas, h2col, coldens);
+            break;
+        default:
+    }
+    return shielding;
+}
+
+{% if info.device == "gpu" %}
+__device__
+{% endif %}
+double N2shielding(double tgas, double h2col, double coldens, int method)
+{
+    double shielding = -1.0;
+    switch(method)
+    {
+        case 0:
+            shielding = N2shieldingInt(tgas, h2col, coldens);
+            break;
+        default:
+    }
+    return shielding;
+}
+
+// Interpolate/Extropolate from table (must be rendered in naunet constants)
+{% if info.device == "gpu" %}
+__device__
+{% endif %}
+double H2shieldingInt(double coldens)
+{
+
+    double shielding = -1.0;
+
+    {% if "Table" in physics.h2shielding -%}
+    if (coldens >= H2ShieldingTableX[104])
+    {
+        double x1 = H2ShieldingTableX[103];
+        double x2 = H2ShieldingTableX[104];
+        double y1 = H2ShieldingTable[103];
+        double y2 = H2ShieldingTable[104];
+        shielding = log10(y1) + log10(y2/y1) * log10(coldens/x1) / log10(x2/x1);
+        shielding = pow(10.0, shielding);
+        return shielding;
+    }
+
+    for (int i = 0; i < 104; i++)
+    {
+        if (coldens >= H2ShieldingTableX[i] && coldens < H2ShieldingTableX[i+1])
+        {
+            double x1 = H2ShieldingTableX[i];
+            double x2 = H2ShieldingTableX[i+1];
+            double y1 = H2ShieldingTable[i];
+            double y2 = H2ShieldingTable[i+1];
+            shielding = log10(y1) + log10(y2/y1) * log10(coldens/x1) / log10(x2/x1);
+            shielding = pow(10.0, shielding);
+            return shielding;
+        }
+    }
+    {% endif -%}
+
+    return shielding;
+}
+
+// Interpolate/Extropolate from table (must be rendered in naunet constants)
+{% if info.device == "gpu" %}
+__device__
+{% endif %}
+double COshieldingInt(double tgas, double h2col, double coldens)
+{
+
+    double shielding = -1.0;
+
+    {% if "Table" in physics.coshielding -%}
+    double x1, x2, y1, y2, z1, z2;
+    int i1, i2, j1, j2, k1, k2;
+    for (int i = 0; i < 4; i++)
+    {
+        if (tgas >= COShieldingTableX[i] && tgas < COShieldingTableX[i+1])
+        {
+            x1 = COShieldingTableX[i];
+            x2 = COShieldingTableX[i+1];
+            i1 = i;
+            i2 = i+1;
+        }
+    }
+
+    if (tgas >= COShieldingTableX[4])
+    {
+        x1 = COShieldingTableX[3];
+        x2 = COShieldingTableX[4];
+        i1 = 3;
+        i2 = 4;
+    }
+
+    for (int i = 0; i < 40; i++)
+    {
+        if (h2col >= COShieldingTableY[i] && h2col < COShieldingTableY[i+1])
+        {
+            y1 = COShieldingTableY[i];
+            y2 = COShieldingTableY[i+1];
+            j1 = i;
+            j2 = i+1;
+        }
+    }
+
+    if (h2col >= COShieldingTableY[40])
+    {
+        y1 = COShieldingTableY[39];
+        y2 = COShieldingTableY[40];
+        j1 = 39;
+        j2 = 40;
+    }
+
+    for (int i = 0; i < 45; i++)
+    {
+        if (coldens >= COShieldingTableZ[i] && coldens < COShieldingTableZ[i+1])
+        {
+            z1 = COShieldingTableZ[i];
+            z2 = COShieldingTableZ[i+1];
+            k1 = i;
+            k2 = i+1;
+        }
+    }
+
+    if (coldens >= COShieldingTableZ[45])
+    {
+        z1 = COShieldingTableZ[44];
+        z2 = COShieldingTableZ[45];
+        k1 = 44;
+        k2 = 45;
+    }
+
+    double mx = log10(tgas/x1) / log10(x2/x1);
+    double my = log10(h2col/y1) / log10(y2/y1);
+    double mz = log10(coldens/z1) / log10(z2/z1);
+
+    double f1 = log10(COShieldingTable[i1][j1][k1]) * (1-mx) + log10(COShieldingTable[i2][j1][k1]) * mx;
+    double f2 = log10(COShieldingTable[i1][j2][k1]) * (1-mx) + log10(COShieldingTable[i2][j2][k1]) * mx;
+    double f3 = log10(COShieldingTable[i1][j1][k2]) * (1-mx) + log10(COShieldingTable[i2][j1][k2]) * mx;
+    double f4 = log10(COShieldingTable[i1][j2][k2]) * (1-mx) + log10(COShieldingTable[i2][j2][k2]) * mx;
+
+    shielding = (f1*(1-my) + f2*my) * (1-mz) + (f3*(1-my) + f4*my) * mz;
+    shielding = pow(10.0, shielding);
+
+    {% endif -%}
+
+    return shielding;
+}
+
+
+
+// Interpolate/Extropolate from table (must be rendered in naunet constants)
+{% if info.device == "gpu" %}
+__device__
+{% endif %}
+double N2shieldingInt(double tgas, double h2col, double coldens)
+{
+
+    double shielding = -1.0;
+
+    {% if "Table" in physics.n2shielding -%}
+    double x1, x2, y1, y2, z1, z2;
+    int i1, i2, j1, j2, k1, k2;
+    for (int i = 0; i < 4; i++)
+    {
+        if (tgas >= N2ShieldingTableX[i] && tgas < N2ShieldingTableX[i+1])
+        {
+            x1 = N2ShieldingTableX[i];
+            x2 = N2ShieldingTableX[i+1];
+            i1 = i;
+            i2 = i+1;
+        }
+    }
+
+    if (tgas >= N2ShieldingTableX[4])
+    {
+        x1 = N2ShieldingTableX[3];
+        x2 = N2ShieldingTableX[4];
+        i1 = 3;
+        i2 = 4;
+    }
+
+    for (int i = 0; i < 45; i++)
+    {
+        if (h2col >= N2ShieldingTableY[i] && h2col < N2ShieldingTableY[i+1])
+        {
+            y1 = N2ShieldingTableY[i];
+            y2 = N2ShieldingTableY[i+1];
+            j1 = i;
+            j2 = i+1;
+        }
+    }
+
+    if (h2col >= N2ShieldingTableY[45])
+    {
+        y1 = N2ShieldingTableY[44];
+        y2 = N2ShieldingTableY[45];
+        j1 = 44;
+        j2 = 45;
+    }
+
+    for (int i = 0; i < 45; i++)
+    {
+        if (coldens >= N2ShieldingTableZ[i] && coldens < N2ShieldingTableZ[i+1])
+        {
+            z1 = N2ShieldingTableZ[i];
+            z2 = N2ShieldingTableZ[i+1];
+            k1 = i;
+            k2 = i+1;
+        }
+    }
+
+    if (coldens >= N2ShieldingTableZ[45])
+    {
+        z1 = N2ShieldingTableZ[44];
+        z2 = N2ShieldingTableZ[45];
+        k1 = 44;
+        k2 = 45;
+    }
+
+    double mx = log10(tgas/x1) / log10(x2/x1);
+    double my = log10(h2col/y1) / log10(y2/y1);
+    double mz = log10(coldens/z1) / log10(z2/z1);
+
+    double f1 = log10(N2ShieldingTable[i1][j1][k1]) * (1-mx) + log10(N2ShieldingTable[i2][j1][k1]) * mx;
+    double f2 = log10(N2ShieldingTable[i1][j2][k1]) * (1-mx) + log10(N2ShieldingTable[i2][j2][k1]) * mx;
+    double f3 = log10(N2ShieldingTable[i1][j1][k2]) * (1-mx) + log10(N2ShieldingTable[i2][j1][k2]) * mx;
+    double f4 = log10(N2ShieldingTable[i1][j2][k2]) * (1-mx) + log10(N2ShieldingTable[i2][j2][k2]) * mx;
+
+    shielding = (f1*(1-my) + f2*my) * (1-mz) + (f3*(1-my) + f4*my) * mz;
+    shielding = pow(10.0, shielding);
+
+    {% endif -%}
+
+    return shielding;
+}
+

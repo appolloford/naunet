@@ -44,6 +44,9 @@ class TemplateLoader:
     @dataclass
     class PhysicsContent:
         mantles: str
+        h2shielding: str = None
+        coshielding: str = None
+        n2shielding: str = None
         header: str = None
 
     @dataclass
@@ -92,7 +95,12 @@ class TemplateLoader:
 
         mantles = " + ".join(f"y[IDX_{g.alias}]" for g in species if g.is_surface)
         mantles = mantles if mantles else "0.0"
-        self._physics = self.PhysicsContent(mantles)
+        self._physics = self.PhysicsContent(
+            mantles,
+            h2shielding="L96Table",
+            coshielding="V09Table",
+            n2shielding="L13Table",
+        )
 
         reactconsts = {
             f"{c:<15}": f"{cv}" for db in databases for c, cv in db.consts.items()
@@ -101,7 +109,7 @@ class TemplateLoader:
             {f"{c:<15}": f"{cv}" for c, cv in dust.consts.items()} if dust else {}
         )
         ebs = {
-            f"eb_{s.alias:<12}": f"{s.binding_energy};" for s in species if s.is_surface
+            f"eb_{s.alias:<12}": f"{s.binding_energy}" for s in species if s.is_surface
         }
         consts = {**reactconsts, **dustconsts, **ebs}
 
@@ -277,6 +285,7 @@ class TemplateLoader:
                 save,
                 variables=self._variables,
                 info=self._info,
+                physics=self._physics,
             )
 
         tname = os.path.join(self._solver, "src/naunet_constants.cpp.j2")
@@ -288,6 +297,7 @@ class TemplateLoader:
             save,
             variables=self._variables,
             info=self._info,
+            physics=self._physics,
         )
 
     def render_macros(

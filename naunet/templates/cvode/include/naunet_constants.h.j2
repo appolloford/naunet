@@ -32,6 +32,35 @@ extern __constant__ double kerg;
 extern __constant__ double {{ c }};
 {% endfor %}
 
+{% if physics.h2shielding == "L96Table" %}
+// H2 column density
+extern __device__ double H2ShieldingTableX[105];
+// H2 shielding factor
+extern __device__ double H2ShieldingTable[105];
+{% endif %}
+
+{% if physics.coshielding == "V09Table" %}
+// Excitation temperature
+extern __device__ double COShieldingTableX[5];
+// H2 column density
+extern __device__ double COShieldingTableY[41];
+// CO column density
+extern __device__ double COShieldingTableZ[46];
+// CO shielding factor
+extern __device__ double COShieldingTable[5][41][46];
+{% endif %}
+
+{% if physics.n2shielding == "L13Table" %}
+// Excitation temperature
+extern __device__ double N2ShieldingTableX[5];
+// H2 column density
+extern __device__ double N2ShieldingTableY[46];
+// N2 column density
+extern __device__ double N2ShieldingTableZ[46];
+// N2 shielding factor
+extern __device__ double N2ShieldingTable[5][46][46];
+{% endif %}
+
 {% else %}
 extern const double pi;
 
@@ -62,6 +91,35 @@ extern const double kerg;
 {% for c in variables.consts.keys() %}
 extern const double {{ c }};
 {% endfor %}
+
+{% if physics.h2shielding == "L96Table" %}
+// H2 column density
+extern const double H2ShieldingTableX[105];
+// shielding factor (theta)
+extern const double H2ShieldingTable[105];
+{% endif %}
+
+{% if physics.coshielding == "V09Table" %}
+// Excitation temperature
+extern const double COShieldingTableX[5];
+// H2 column density
+extern const double COShieldingTableY[41];
+// CO column density
+extern const double COShieldingTableZ[46];
+// CO shielding factor
+extern const double COShieldingTable[5][41][46];
+{% endif %}
+
+{% if physics.n2shielding == "L13Table" %}
+// Excitation temperature
+extern const double N2ShieldingTableX[5];
+// H2 column density
+extern const double N2ShieldingTableY[46];
+// N2 column density
+extern const double N2ShieldingTableZ[46];
+// N2 shielding factor
+extern const double N2ShieldingTable[5][46][46];
+{% endif %}
 
 {% endif %}
 

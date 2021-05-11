@@ -175,6 +175,7 @@ class ExampleCommand(Command):
             option += f" --pseudo-elements={','.join(pseudo_element)}"
             option += f" --species={','.join(species)}"
             option += " --network=rate12_complex.rates --database=leeds"
+            option += " --dust=uniform"
             option += f" --binding={','.join(f'{s}={sv}' for s, sv in binding_energy.items())}"
             option += (
                 f" --yield={','.join(f'{s}={sv}' for s, sv in photon_yield.items())}"
@@ -197,6 +198,7 @@ class ExampleCommand(Command):
             option += f" --pseudo-elements={','.join(pseudo_element)}"
             option += f" --species={','.join(species)}"
             option += " --network=rate12_complex.rates --database=leeds"
+            option += " --dust=uniform"
             option += f" --binding={','.join(f'{s}={sv}' for s, sv in binding_energy.items())}"
             option += (
                 f" --yield={','.join(f'{s}={sv}' for s, sv in photon_yield.items())}"
@@ -219,6 +221,7 @@ class ExampleCommand(Command):
             option += f" --pseudo-elements={','.join(pseudo_element)}"
             option += f" --species={','.join(species)}"
             option += " --network=rate12_complex.rates --database=leeds"
+            option += " --dust=uniform"
             option += f" --binding={','.join(f'{s}={sv}' for s, sv in binding_energy.items())}"
             option += (
                 f" --yield={','.join(f'{s}={sv}' for s, sv in photon_yield.items())}"

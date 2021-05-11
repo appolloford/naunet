@@ -77,9 +77,9 @@ int main()
     FILE *ftxt = fopen("evolution_singlegrid.txt", "w");
     FILE *ttxt = fopen("time_singlegrid.txt", "w");
 #ifdef NAUNET_DEBUG
-    printf("Initialization is done. Start to evolve.\n");
-    FILE *rtxt = fopen("reactionrates.txt", "w");
-    double rates[NREACTIONS];
+    // printf("Initialization is done. Start to evolve.\n");
+    // FILE *rtxt = fopen("reactionrates.txt", "w");
+    // double rates[NREACTIONS];
 #endif
 
     double logtstart = 3.0, logtend = 8.0;
@@ -88,12 +88,12 @@ int main()
     {
 
 #ifdef NAUNET_DEBUG
-        calculate_rates(rates, y, &data);
-        for (int j = 0; j < NREACTIONS; j++)
-        {
-            fprintf(rtxt, "%13.7e ", rates[j]);
-        }
-        fprintf(rtxt, "\n");
+        // calculate_rates(rates, y, &data);
+        // for (int j = 0; j < NREACTIONS; j++)
+        // {
+        //     fprintf(rtxt, "%13.7e ", rates[j]);
+        // }
+        // fprintf(rtxt, "\n");
 #endif
 
         dtyr = pow(10.0, logtime) - time;
@@ -135,7 +135,7 @@ int main()
     fclose(ftxt);
     fclose(ttxt);
 #ifdef NAUNET_DEBUG
-    fclose(rtxt);
+    // fclose(rtxt);
 #endif
 
     return 0;

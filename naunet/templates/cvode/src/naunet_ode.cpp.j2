@@ -21,7 +21,7 @@
 {% endif %}
 
 {% if info.device == "gpu" -%}
-__device__ __host__
+__device__
 {% endif -%}
 int calculate_rates(realtype *k, realtype *y, UserData *u_data)
 {
@@ -129,10 +129,6 @@ int jtv(N_Vector v, N_Vector Jv, realtype t, N_Vector u, N_Vector fu,
     UserData *u_data = (UserData*) user_data;
     {% for v in variables.vars -%}
         realtype {{ v }} = u_data->{{ v }};
-    {% endfor %}
-
-    {% for v in variables.user_var -%}
-        {{ v }};
     {% endfor %}
 
     realtype k[NREACTIONS] = {0.0};
@@ -258,6 +254,10 @@ __global__ void f_kernel(realtype *y, realtype *ydot, UserData *d_udata, int nsy
 {
     int tidx = blockIdx.x*blockDim.x + threadIdx.x;
     int gs   = blockDim.x * gridDim.x;
+
+    {% for v in variables.vars -%}
+        realtype {{ v }} = d_udata->{{ v }};
+    {% endfor %}
 
     for (int cur = tidx; cur < nsystem; cur += gs)
     {

@@ -10,6 +10,8 @@ int main()
 {
 
     int nsystem = 64;
+    double spy = 86400.0 * 365.0;
+
     double nH = 1e4;
     double zeta_cr = 1e-16;
     double zeta_xr = 0.0;
@@ -60,20 +62,20 @@ int main()
         {
             y[isys * NSPECIES + i] = 1.e-40;
         }
-        y[isys * NSPECIES +IDX_H2I] = 0.5 * nH;
-        y[isys * NSPECIES +IDX_HI] = 5.0e-5 * nH;
-        y[isys * NSPECIES +IDX_HeI] = 9.75e-2 * nH;
-        y[isys * NSPECIES +IDX_NI] = 7.5e-5 * nH;
-        y[isys * NSPECIES +IDX_OI] = 3.2e-4 * nH;
-        y[isys * NSPECIES +IDX_CI] = 1.4e-4 * nH;
-        y[isys * NSPECIES +IDX_SI] = 8.0e-8 * nH;
-        y[isys * NSPECIES +IDX_SiI] = 8.0e-9 * nH;
-        y[isys * NSPECIES +IDX_NaI] = 2.0e-9 * nH;
-        y[isys * NSPECIES +IDX_MgI] = 7.0e-9 * nH;
-        y[isys * NSPECIES +IDX_FeI] = 3.0e-9 * nH;
-        y[isys * NSPECIES +IDX_ClI] = 4.0e-9 * nH;
-        y[isys * NSPECIES +IDX_FI] = 2.0e-8 * nH;
-        y[isys * NSPECIES +IDX_GRAIN0I] = 1.3e-12 * nH;
+        y[isys * NSPECIES + IDX_H2I] = 0.5 * nH;
+        y[isys * NSPECIES + IDX_HI] = 5.0e-5 * nH;
+        y[isys * NSPECIES + IDX_HeI] = 9.75e-2 * nH;
+        y[isys * NSPECIES + IDX_NI] = 7.5e-5 * nH;
+        y[isys * NSPECIES + IDX_OI] = 3.2e-4 * nH;
+        y[isys * NSPECIES + IDX_CI] = 1.4e-4 * nH;
+        y[isys * NSPECIES + IDX_SI] = 8.0e-8 * nH;
+        y[isys * NSPECIES + IDX_SiI] = 8.0e-9 * nH;
+        y[isys * NSPECIES + IDX_NaI] = 2.0e-9 * nH;
+        y[isys * NSPECIES + IDX_MgI] = 7.0e-9 * nH;
+        y[isys * NSPECIES + IDX_FeI] = 3.0e-9 * nH;
+        y[isys * NSPECIES + IDX_ClI] = 4.0e-9 * nH;
+        y[isys * NSPECIES + IDX_FI] = 2.0e-8 * nH;
+        y[isys * NSPECIES + IDX_GRAIN0I] = 1.3e-12 * nH;
     }
 
     FILE *fbin = fopen("evolution_parallel.bin", "w");
@@ -102,7 +104,6 @@ int main()
 #endif
 
         dtyr = pow(10.0, logtime) - time;
-        time += dtyr;
 
         for (int isys = 0; isys < nsystem; isys++)
         {
@@ -112,7 +113,7 @@ int main()
             fwrite(&y[isys * NSPECIES], sizeof(double), NSPECIES, fbin);
 
             fprintf(ftxt, "%13.7e ", (double)isys);
-            fprintf(ftxt, "%13.7e ", time[i]);
+            fprintf(ftxt, "%13.7e ", time);
             for (int j = 0; j < NSPECIES; j++)
             {
                 fprintf(ftxt, "%13.7e ", y[isys * NSPECIES + j]);
@@ -124,9 +125,28 @@ int main()
         timer.start();
         naunet.solve(y, dtyr * spy, data);
         timer.stop();
+
+        time += dtyr;
+
         float duration = (float)timer.elapsed() / 1e6;
         fprintf(ttxt, "%8.5e \n", duration);
-        // printf("Time = %13.7e yr, elapsed: %8.5e sec\n", time[i + 1], duration);
+        printf("Time = %13.7e yr, elapsed: %8.5e sec\n", time, duration);
+    }
+
+    for (int isys = 0; isys < nsystem; isys++)
+    {
+
+        fwrite((double *)&isys, sizeof(double), 1, fbin);
+        fwrite(&time, sizeof(double), 1, fbin);
+        fwrite(&y[isys * NSPECIES], sizeof(double), NSPECIES, fbin);
+
+        fprintf(ftxt, "%13.7e ", (double)isys);
+        fprintf(ftxt, "%13.7e ", time);
+        for (int j = 0; j < NSPECIES; j++)
+        {
+            fprintf(ftxt, "%13.7e ", y[isys * NSPECIES + j]);
+        }
+        fprintf(ftxt, "\n");
     }
 
     fclose(fbin);

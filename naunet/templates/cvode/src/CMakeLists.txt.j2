@@ -39,6 +39,7 @@ target_include_directories(naunet_physics PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_D
 add_library(naunet_physics STATIC naunet_physics.cpp)
 {% endif -%}
 target_include_directories(naunet_physics PUBLIC ${CMAKE_SOURCE_DIR}/include)
+target_link_libraries(naunet_physics naunet_constants)
 
 add_library(naunet STATIC naunet.cpp)
 {% if info.device == "gpu" -%}

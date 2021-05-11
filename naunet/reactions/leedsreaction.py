@@ -78,6 +78,11 @@ class LEEDSReaction(Reaction):
         "VisualExtinction": "Av",
         "G0": "G0",
     }
+    user_var = [
+        "double h2col = 0.5*1.59e21*Av",
+        "double cocol = 1e-5 * h2col",
+        "double n2col = 1e-5 * h2col",
+    ]
     # user_var = [
     #     "double stick1 = (1.0 / (1.0 + 4.2e-2*sqrt(Tgas+Tdust) + 2.3e-3*Tgas - 1.3e-7*Tgas*Tgas))",
     #     "double stick2 = exp(-1741.0/Tgas) / (1.0 + 5e-2*sqrt(Tgas+Tdust) + 1e-14*pow(Tgas, 4.0))",
@@ -144,6 +149,9 @@ class LEEDSReaction(Reaction):
         elif rtype == 4:
             # TODO: shielding
             rate = f"{G0} * {a} * exp(-{c}*{Av})"
+            if re1.name in ["H2", "CO", "N2"]:
+                shield = f"shieldingfactor(IDX_{re1.alias}, h2col, {re1.name.lower()}col, {Tgas}, 0)"
+                rate = f"{rate} * {shield}"
         elif rtype == 5:
             # TODO: X-ray
             rate = "0.0"
@@ -155,6 +163,7 @@ class LEEDSReaction(Reaction):
             rate = f"sqrt(2.0*{sites}*kerg*eb_{re1.alias}/(pi*pi*amu*{c})) * {nmono} * densites * exp(-eb_{re1.alias}/{Tdust})"
         elif rtype == 9:
             rate = f"({cr}/{zism}) * {duty} * sqrt(2.0*{sites}*kerg*eb_{re1.alias}/(pi*pi*amu*{c})) * {nmono} * densites * exp(-eb_{re1.alias}/{Tcr})"
+            rate = "0.0"
         elif rtype == 10:
             uvphot = f"{G0}*{habing}*exp(-{Av}*3.02) + {crphot} * {cr}/{zism}"
             rate = f"({uvphot}) * {re1.photon_yield} * {nmono} * garea"
@@ -163,6 +172,9 @@ class LEEDSReaction(Reaction):
         elif rtype == 12:
             # TODO: shielding
             rate = f"{G0} * {a} * exp(-{c}*{Av})"
+            if re1.name in ["GH2", "GCO", "GN2"]:
+                shield = f"shieldingfactor(IDX_{re1.alias[1:]}, h2col, {re1.name[1:].lower()}col, {Tgas}, 0)"
+                rate = f"{rate} * {shield}"
         elif rtype == 13:
             # afreq = f"sqrt((2.0*{sites}*kerg*{re1.binding_energy})/((pi*pi)*amu*{re1.massnumber}))"
             afreq = f"freq * sqrt({re1.binding_energy}/{re1.massnumber})"

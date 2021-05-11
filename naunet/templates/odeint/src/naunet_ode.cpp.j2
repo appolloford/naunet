@@ -63,7 +63,7 @@ void fex::operator()(const vector_type &y, vector_type &ydot, double t)
 {
 
     {% for v in variables.vars -%}
-        {{ v }}
+        {{ v }};
     {% endfor %}
 
     {% for v in variables.user_var -%}
@@ -108,7 +108,7 @@ void jac::operator()(const vector_type &y, matrix_type &j, const double &t, vect
 {
 
     {% for v in variables.vars -%}
-        {{ v }}
+        {{ v }};
     {% endfor %}
 
     double k[NREACTIONS] = {0.0};
