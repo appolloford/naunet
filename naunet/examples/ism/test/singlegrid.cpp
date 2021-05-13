@@ -21,7 +21,7 @@ int main()
     double rG = 1e-5;
     double omega = 0.5;
     double barr = 1.5e-8;
-    double sites = 1e15;
+    double sites = 1.5e15;
     double hop = 0.3;
     double nMono = 2.0;
     double duty = 3.16e-19;

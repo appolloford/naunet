@@ -12,17 +12,17 @@ int main()
     int nsystem = 64;
     double spy = 86400.0 * 365.0;
 
-    double nH = 1e4;
-    double zeta_cr = 1e-16;
+    double nH = 2e4;
+    double zeta_cr = 1.3e-17;
     double zeta_xr = 0.0;
-    double Tgas = 15.0;
-    double Tdust = 15.0;
-    double Av = 100.0;
-    double G0 = 4.0;
+    double Tgas = 10.0;
+    double Tdust = 10.0;
+    double Av = 10.0;
+    double G0 = 1.0;
     double rG = 1e-5;
     double omega = 0.5;
     double barr = 1.5e-8;
-    double sites = 1e15;
+    double sites = 1.5e15;
     double hop = 0.3;
     double nMono = 2.0;
     double duty = 3.16e-19;
@@ -32,22 +32,23 @@ int main()
     UserData *data = new UserData[nsystem];
     for (int isys = 0; isys < nsystem; isys++)
     {
-        data[isys].nH = 1e4;
-        data[isys].zeta_cr = 1e-16;
-        data[isys].zeta_xr = 0.0;
-        data[isys].Tgas = 15.0;
-        data[isys].Tdust = 15.0;
-        data[isys].Av = 100.0;
-        data[isys].G0 = 4.0;
-        data[isys].rG = 1e-5;
-        data[isys].omega = 0.5;
-        data[isys].barr = 1.5e-8;
-        data[isys].sites = 1e15;
-        data[isys].hop = 0.3;
-        data[isys].nMono = 2.0;
-        data[isys].duty = 3.16e-19;
-        data[isys].Tcr = 70.0;
-        data[isys].branch = 1e-2;
+        data[isys].nH = nH;
+        data[isys].zeta_cr = zeta_cr;
+        data[isys].zeta_xr = zeta_xr;
+        data[isys].Tgas = Tgas;
+        data[isys].Tdust = Tdust;
+        data[isys].Av = Av;
+        data[isys].G0 = G0;
+        data[isys].rG = rG;
+        data[isys].omega = omega;
+        data[isys].barr = barr;
+        data[isys].sites = sites;
+        data[isys].hop = hop;
+        data[isys].nMono = nMono;
+        data[isys].duty = duty;
+        data[isys].Tcr = Tcr;
+        data[isys].branch = branch;
+
     }
 
     Naunet naunet;
