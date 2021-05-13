@@ -30,6 +30,20 @@ set(SUNDIALS_MIN_VERSION "5.6.1")
 set(SUNDIALS_DIR "" CACHE PATH "Path to SUNDIALSConfig.cmake")
 find_package(SUNDIALS ${SUNDIALS_MIN_VERSION} REQUIRED CONFIG)
 
+list(APPEND SUNDIALSLIB
+    SUNDIALS::cvode
+    {% if info.method == "dense" -%}
+    SUNDIALS::nvecserial
+    {% elif info.method == "sparse" -%}
+    SUNDIALS::sunlinsolklu
+    SUNDIALS::sunmatrixsparse
+    {% elif info.method == "cusparse" -%}
+    SUNDIALS::nveccuda
+    SUNDIALS::sunmatrixcusparse
+    SUNDIALS::sunlinsolcusolversp
+    {% endif %}
+)
+
 # find_package(CUDA REQUIRED)
 # find_package(CUDAToolkit REQUIRED)
 
@@ -69,6 +83,10 @@ if (_nvidia_smi)
 
     set(NVIDIA_GPU_COUNT ${DETECTED_GPU_COUNT_NVIDIA_SMI})
 endif()
+
+set(MAKE_STATIC ON CACHE BOOL "")
+set(MAKE_SHARED ON CACHE BOOL "")
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 message(STATUS "NVIDIA_GPU_COUNT           = " ${NVIDIA_GPU_COUNT})
 

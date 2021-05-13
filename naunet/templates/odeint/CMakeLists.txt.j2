@@ -36,6 +36,10 @@ message(STATUS "Boost_LIBRARY_DIRS         = ${Boost_LIBRARY_DIRS}"        )
 
 set(NVIDIA_GPU_COUNT 0)
 
+set(MAKE_STATIC ON CACHE BOOL "")
+set(MAKE_SHARED ON CACHE BOOL "")
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
 enable_testing()
 
 add_subdirectory(src)

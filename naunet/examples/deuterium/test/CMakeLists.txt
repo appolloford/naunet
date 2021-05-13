@@ -1,9 +1,8 @@
-list(APPEND NAUNETLIB
-    naunet
-    naunet_constants
-    naunet_ode
-    naunet_physics
-)
+if(MAKE_SHARED)
+    set(NAUNETLIB ${NAUNETLIB_SHARED})
+elseif(MAKE_STATIC)
+    set(NAUNETLIB ${NAUNETLIB_STATIC})
+endif()
 
 # check enabled languages
 get_property(languages GLOBAL PROPERTY ENABLED_LANGUAGES)

@@ -1,39 +1,135 @@
-{% if info.device == "gpu" -%}
-add_library(naunet_constants STATIC naunet_constants.cu)
-set_target_properties(naunet_constants PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
-target_include_directories(naunet_constants PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
-{% else -%}
-add_library(naunet_constants STATIC naunet_constants.cpp)
-{% endif -%}
-target_include_directories(naunet_constants PUBLIC ${CMAKE_SOURCE_DIR}/include)
+set(_STATIC_LIB_SUFFIX
+    "_static"
+    CACHE INTERNAL "" FORCE
+)
+set(_SHARED_LIB_SUFFIX
+    "_shared"
+    CACHE INTERNAL "" FORCE
+)
+
+
+set(targetname
+    {% if info.device != "gpu" -%}
+    naunet_constants
+    naunet_physics
+    naunet_ode
+    {% endif -%}
+    naunet
+)
 
 {% if info.device == "gpu" -%}
-add_library(naunet_ode STATIC naunet_ode.cu)
-set_target_properties(naunet_ode PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
-target_include_directories(naunet_ode PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
-{% else -%}
-add_library(naunet_ode STATIC naunet_ode.cpp)
-{% endif -%}
-target_include_directories(naunet_ode PUBLIC ${CMAKE_SOURCE_DIR}/include)
-target_include_directories(naunet_ode PRIVATE ${Boost_INCLUDE_DIRS})
+set(cuda_targetname
+    naunet_constants
+    naunet_physics
+    naunet_ode
+)
+{% endif %}
 
-{% if info.device == "gpu" -%}
-add_library(naunet_physics STATIC naunet_physics.cu)
-set_target_properties(naunet_physics PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
-target_include_directories(naunet_physics PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
-{% else -%}
-add_library(naunet_physics STATIC naunet_physics.cpp)
-{% endif -%}
-target_include_directories(naunet_physics PUBLIC ${CMAKE_SOURCE_DIR}/include)
-target_link_libraries(naunet_physics naunet_constants)
+set(_libtypes "")
+if(MAKE_STATIC)
+    set(_libtypes "STATIC")
+endif()
 
-add_library(naunet STATIC naunet.cpp)
-{% if info.device == "gpu" -%}
-set_target_properties(naunet PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
-target_include_directories(naunet PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
-{% endif -%}
-target_include_directories(naunet PUBLIC ${CMAKE_SOURCE_DIR}/include)
-target_include_directories(naunet PRIVATE ${Boost_INCLUDE_DIRS})
+if(MAKE_SHARED)
+    set(_libtypes "${_libtypes};SHARED")
+endif()
 
+foreach(_libtype ${_libtypes})
 
+    # library suffix
+    if(${_libtype} MATCHES "STATIC")
+        set(_lib_suffix "${_STATIC_LIB_SUFFIX}")
+    else()
+        set(_lib_suffix "${_SHARED_LIB_SUFFIX}")
+    endif()
 
+    set(compiled_target "")
+    {% if info.device == "gpu" -%}
+    foreach(name ${cuda_targetname})
+        set(lib_target ${name}${_lib_suffix})
+        add_library(${lib_target} ${_libtype} name.cu)
+        set_target_properties(${lib_target} PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+        target_include_directories(${lib_target} PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
+        target_include_directories(${lib_target} PUBLIC ${CMAKE_SOURCE_DIR}/include)
+        target_include_directories(naunet PRIVATE ${Boost_INCLUDE_DIRS})
+        target_link_libraries(${lib_target} ${compiled_target})
+        set(compiled_target "${compiled_target};${lib_target}")
+    endforeach()
+    {% endif -%}
+
+    foreach(name ${targetname})
+        set(lib_target ${name}${_lib_suffix})
+        add_library(${lib_target} ${_libtype} ${name}.cpp)
+        target_include_directories(${lib_target} PUBLIC ${CMAKE_SOURCE_DIR}/include)
+        target_include_directories(naunet PRIVATE ${Boost_INCLUDE_DIRS})
+        target_link_libraries(${lib_target} ${compiled_target})
+        set(compiled_target "${compiled_target};${lib_target}")
+    endforeach()
+
+endforeach()
+
+# {% if info.device == "gpu" -%}
+# add_library(naunet_constants STATIC naunet_constants.cu)
+# set_target_properties(naunet_constants PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+# target_include_directories(naunet_constants PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
+# {% else -%}
+# add_library(naunet_constants STATIC naunet_constants.cpp)
+# {% endif -%}
+# target_include_directories(naunet_constants PUBLIC ${CMAKE_SOURCE_DIR}/include)
+# 
+# {% if info.device == "gpu" -%}
+# add_library(naunet_ode STATIC naunet_ode.cu)
+# set_target_properties(naunet_ode PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+# target_include_directories(naunet_ode PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
+# {% else -%}
+# add_library(naunet_ode STATIC naunet_ode.cpp)
+# {% endif -%}
+# target_include_directories(naunet_ode PUBLIC ${CMAKE_SOURCE_DIR}/include)
+# target_include_directories(naunet_ode PRIVATE ${Boost_INCLUDE_DIRS})
+# 
+# {% if info.device == "gpu" -%}
+# add_library(naunet_physics STATIC naunet_physics.cu)
+# set_target_properties(naunet_physics PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+# target_include_directories(naunet_physics PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
+# {% else -%}
+# add_library(naunet_physics STATIC naunet_physics.cpp)
+# {% endif -%}
+# target_include_directories(naunet_physics PUBLIC ${CMAKE_SOURCE_DIR}/include)
+# target_link_libraries(naunet_physics naunet_constants)
+# 
+# add_library(naunet STATIC naunet.cpp)
+# {% if info.device == "gpu" -%}
+# set_target_properties(naunet PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+# target_include_directories(naunet PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
+# {% endif -%}
+# target_include_directories(naunet PUBLIC ${CMAKE_SOURCE_DIR}/include)
+# target_include_directories(naunet PRIVATE ${Boost_INCLUDE_DIRS})
+
+if(MAKE_SHARED)
+    set(NAUNETLIB_SHARED
+        naunet${_SHARED_LIB_SUFFIX}
+        naunet_constants${_SHARED_LIB_SUFFIX}
+        naunet_ode${_SHARED_LIB_SUFFIX}
+        naunet_physics${_SHARED_LIB_SUFFIX}
+        CACHE INTERNAL ""
+    )
+    install(TARGETS ${NAUNETLIB_SHARED}
+        LIBRARY DESTINATION lib
+    )
+endif()
+
+if(MAKE_STATIC)
+    set(NAUNETLIB_STATIC
+        naunet${_STATIC_LIB_SUFFIX}
+        naunet_constants${_STATIC_LIB_SUFFIX}
+        naunet_ode${_STATIC_LIB_SUFFIX}
+        naunet_physics${_STATIC_LIB_SUFFIX}
+        CACHE INTERNAL ""
+    )
+    install(TARGETS ${NAUNETLIB_STATIC}
+        LIBRARY DESTINATION lib
+    )
+endif()
+
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/
+    DESTINATION include)
