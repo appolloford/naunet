@@ -40,7 +40,9 @@ double H2shielding(double coldens, int method)
     {
         case 0:
             shielding = H2shieldingInt(coldens);
+            break;
         default:
+            break;
     }
     return shielding;
 }
@@ -54,6 +56,7 @@ double COshielding(double tgas, double h2col, double coldens, int method)
             shielding = COshieldingInt(tgas, h2col, coldens);
             break;
         default:
+            break;
     }
     return shielding;
 }
@@ -67,6 +70,7 @@ double N2shielding(double tgas, double h2col, double coldens, int method)
             shielding = N2shieldingInt(tgas, h2col, coldens);
             break;
         default:
+            break;
     }
     return shielding;
 }

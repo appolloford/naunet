@@ -54,6 +54,7 @@ foreach(_libtype ${_libtypes})
         target_link_libraries(${lib_target} ${SUNDIALSLIB})
         target_link_libraries(${lib_target} ${compiled_target})
         set(compiled_target "${compiled_target};${lib_target}")
+        set_target_properties(${lib_target} PROPERTIES OUTPUT_NAME ${name})
     endforeach()
     {% endif -%}
 
@@ -64,6 +65,7 @@ foreach(_libtype ${_libtypes})
         target_link_libraries(${lib_target} ${SUNDIALSLIB})
         target_link_libraries(${lib_target} ${compiled_target})
         set(compiled_target "${compiled_target};${lib_target}")
+        set_target_properties(${lib_target} PROPERTIES OUTPUT_NAME ${name})
     endforeach()
 
     # set(lib_target naunet_constants${_lib_suffix})
