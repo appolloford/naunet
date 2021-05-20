@@ -23,6 +23,7 @@ class RenderCommand(Command):
     render
         {--f|force : forced to override the existing files}
         {--update-species=? : allow to update the species list in toml configure file}
+        {--patch= : create patch for target code}
     """
 
     def __init__(self):
@@ -69,6 +70,25 @@ class RenderCommand(Command):
         update_binding_energy(binding)
         update_photon_yield(yields)
 
+        if not supported_reaction_class.get(database):
+            from importlib import util
+
+            spec = util.spec_from_file_location(database, f"{database}.py")
+            module = util.module_from_spec(spec)
+            spec.loader.exec_module(module)
+
+        net = Network(species=species, dusttype=dust["type"])
+        net.add_reaction_from_file(network, database)
+        net.rate_modifier = rate_modifier
+        net.ode_modifier = ode_modifier
+
+        # patches are rendered independently
+        patch = self.option("patch")
+        if patch:
+            pm = net.patchmaker(patch)
+            pm.render(os.path.join(Path.cwd(), patch))
+            return
+
         # Check whether include and src folders exist, test folder is checked in example.py
         for subdir in ["include", "src"]:
             prefix = os.path.join(Path.cwd(), subdir)
@@ -89,18 +109,6 @@ class RenderCommand(Command):
 
             else:
                 os.mkdir(prefix)
-
-        if not supported_reaction_class.get(database):
-            from importlib import util
-
-            spec = util.spec_from_file_location(database, f"{database}.py")
-            module = util.module_from_spec(spec)
-            spec.loader.exec_module(module)
-
-        net = Network(species=species, dusttype=dust["type"])
-        net.add_reaction_from_file(network, database)
-        net.rate_modifier = rate_modifier
-        net.ode_modifier = ode_modifier
 
         header_prefix = os.path.join(Path.cwd(), "include")
         source_prefix = os.path.join(Path.cwd(), "src")

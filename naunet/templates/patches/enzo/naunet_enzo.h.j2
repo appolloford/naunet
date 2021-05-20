@@ -1,0 +1,20 @@
+#ifndef __NAUNET_ENZO_H__
+#define __NAUNET_ENZO_H__
+
+#include "naunet.h"
+#include "naunet_userdata.h"
+
+#define NAUNET_SPECIES 4
+// number of equations to be solved
+#define NAUNET_NSPECIES {{ nspec }}
+#define NAUNET_NEQS {{ neq }}
+
+{% for s in species -%}
+#define IDX_{{ s.alias }} {{ loop.index }}
+{% endfor -%}
+
+{% for s in species -%}
+#define A_{{ s.alias }} {{ s.massnumber }}
+{% endfor -%}
+
+#endif
