@@ -10,8 +10,9 @@
 #define NAUNET_NEQS {{ neq }}
 
 {% for s in species -%}
-#define IDX_{{ s.alias }} {{ loop.index }}
+#define IDX_{{ s.alias }} {{ loop.index0 }}
 {% endfor -%}
+
 
 {% for s in species -%}
 #define A_{{ s.alias }} {{ s.massnumber }}

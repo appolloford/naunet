@@ -83,12 +83,6 @@ class LEEDSReaction(Reaction):
         "double cocol = 1e-5 * h2col",
         "double n2col = 1e-5 * h2col",
     ]
-    # user_var = [
-    #     "double stick1 = (1.0 / (1.0 + 4.2e-2*sqrt(Tgas+Tdust) + 2.3e-3*Tgas - 1.3e-7*Tgas*Tgas))",
-    #     "double stick2 = exp(-1741.0/Tgas) / (1.0 + 5e-2*sqrt(Tgas+Tdust) + 1e-14*pow(Tgas, 4.0))",
-    #     "double stick = stick1 + stick2",
-    #     "double hloss = stick * garea/4.0 * sqrt(8.0*kerg*Tgas/(pi*amu))",
-    # ]
 
     def __init__(self, react_string, *args, dust: Dust = None, **kwargs) -> None:
         super().__init__(react_string)
@@ -139,7 +133,6 @@ class LEEDSReaction(Reaction):
             Tcr = self.dust.vars.get("CRDesorptionTemperature")
             branch = self.dust.vars.get("BranchRatio")
 
-        # TODO: finish the remaining type of reactions
         if rtype == 1:
             rate = f"{a} * pow({Tgas}/300.0, {b}) * exp(-{c}/{Tgas})"
         elif rtype == 2:
@@ -147,7 +140,6 @@ class LEEDSReaction(Reaction):
         elif rtype == 3:
             rate = f"{a} * (({cr} + {xr}) / {zism}) * pow({Tgas}/300.0, {b}) * {c} / (1.0 - {albedo})"
         elif rtype == 4:
-            # TODO: shielding
             rate = f"{G0} * {a} * exp(-{c}*{Av})"
             if re1.name in ["H2", "CO", "N2"]:
                 shield = f"shieldingfactor(IDX_{re1.alias}, h2col, {re1.name.lower()}col, {Tgas}, 0)"
@@ -170,25 +162,22 @@ class LEEDSReaction(Reaction):
         elif rtype == 11:
             rate = f"{a} * ({xr}+{cr})/{zism} * pow({Tgas}/300.0, {b}) * {c} / (1.0 - {albedo})"
         elif rtype == 12:
-            # TODO: shielding
             rate = f"{G0} * {a} * exp(-{c}*{Av})"
             if re1.name in ["GH2", "GCO", "GN2"]:
                 shield = f"shieldingfactor(IDX_{re1.alias[1:]}, h2col, {re1.name[1:].lower()}col, {Tgas}, 0)"
                 rate = f"{rate} * {shield}"
         elif rtype == 13:
-            # afreq = f"sqrt((2.0*{sites}*kerg*{re1.binding_energy})/((pi*pi)*amu*{re1.massnumber}))"
             afreq = f"freq * sqrt({re1.binding_energy}/{re1.massnumber})"
             adiff = f"{afreq} * exp(-{re1.binding_energy}*{hop}/{Tdust})/unisites"
-            # aquan = f"{afreq} * exp(-2*({barr}/hbar) * sqrt(2*{re1.massnumber}*amu*{hop}*{re1.binding_energy}*kerg)) / unisites"
             aquan = f"{afreq} * exp(quan * sqrt({hop}*{re1.massnumber}*{re1.binding_energy})) / unisites"
-            # bfreq = f"sqrt((2.0*{sites}*kerg*{re2.binding_energy})/((pi*pi)*amu*{re2.massnumber}))"
+
             bfreq = f"freq * sqrt({re2.binding_energy}/{re2.massnumber})"
             bdiff = f"{bfreq} * exp(-{re2.binding_energy}*{hop}/{Tdust})/unisites"
-            # bquan = f"{bfreq} * exp(-2*({barr}/hbar) * sqrt(2*{re2.massnumber}*amu*{hop}*{re2.binding_energy}*kerg)) / unisites"
             bquan = f"{bfreq} * exp(quan * sqrt({hop}*{re2.massnumber}*{re2.binding_energy})) / unisites"
+
             kappa = f"exp(-{a}/{Tdust})"
-            # kquan = f"exp(-2*({barr}/hbar)*sqrt((2.0*amu*kerg)*(({re1.massnumber}*{re2.massnumber})/({re1.massnumber}+{re2.massnumber}))*{a}))"
             kquan = f"exp(quan * sqrt((({re1.massnumber}*{re2.massnumber})/({re1.massnumber}+{re2.massnumber}))*{a}))"
+
             if re1.name in ["GH", "GH2"] and re2.name in ["GH", "GH2"]:
                 rate = f"fmax({kappa}, {kquan})*(fmax({adiff}, {aquan})+fmax({bdiff}, {bquan}))*pow(({nmono}*densites), 2.0)/gdens"
             elif re1.name in ["GH", "GH2"]:
@@ -198,19 +187,18 @@ class LEEDSReaction(Reaction):
             else:
                 rate = f"{kappa}*({adiff}+{bdiff})*pow(({nmono}*densites), 2.0)/gdens"
         elif rtype == 14:
-            # afreq = f"sqrt((2.0*{sites}*kerg*{re1.binding_energy})/((pi*pi)*amu*{re1.massnumber}))"
+
             afreq = f"freq * sqrt({re1.binding_energy}/{re1.massnumber})"
             adiff = f"{afreq} * exp(-{re1.binding_energy}*{hop}/{Tdust})/unisites"
-            # aquan = f"{afreq} * exp(-2*({barr}/hbar) * sqrt(2*{re1.massnumber}*amu*{hop}*{re1.binding_energy}*kerg)) / unisites"
             aquan = f"{afreq} * exp(quan * sqrt({hop}*{re1.massnumber}*{re1.binding_energy})) / unisites"
-            # bfreq = f"sqrt((2.0*{sites}*kerg*{re2.binding_energy})/((pi*pi)*amu*{re2.massnumber}))"
+
             bfreq = f"freq * sqrt({re2.binding_energy}/{re2.massnumber})"
             bdiff = f"{bfreq} * exp(-{re2.binding_energy}*{hop}/{Tdust})/unisites"
-            # bquan = f"{bfreq} * exp(-2*({barr}/hbar) * sqrt(2*{re2.massnumber}*amu*{hop}*{re2.binding_energy}*kerg)) / unisites"
             bquan = f"{bfreq} * exp(quan * sqrt({hop}*{re2.massnumber}*{re2.binding_energy})) / unisites"
+
             kappa = f"exp(-{a}/{Tdust})"
-            # kquan = f"exp(-2*({barr}/hbar)*sqrt((2.0*amu*kerg)*(({re1.massnumber}*{re2.massnumber})/({re1.massnumber}+{re2.massnumber}))*{a}))"
             kquan = f"exp(quan * sqrt((({re1.massnumber}*{re2.massnumber})/({re1.massnumber}+{re2.massnumber}))*{a}))"
+
             if re1.name in ["GH", "GH2"] and re2.name in ["GH", "GH2"]:
                 rate = f"fmax({kappa}, {kquan})*(fmax({adiff}, {aquan})+fmax({bdiff}, {bquan}))*pow(({nmono}*densites), 2.0)/gdens"
             elif re1.name in ["GH", "GH2"]:
