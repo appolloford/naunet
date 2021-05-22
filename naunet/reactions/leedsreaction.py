@@ -1,6 +1,6 @@
 import logging
 from enum import IntEnum
-from .. import settings
+from ..species import Species
 from ..dusts.dust import Dust
 from .reaction import Reaction, ReactionType as BasicType
 
@@ -98,11 +98,11 @@ class LEEDSReaction(Reaction):
 
     @classmethod
     def initialize(cls) -> None:
-        settings.surface_symbol = "G"
+        Species.surface_prefix = "G"
 
     @classmethod
     def finalize(cls) -> None:
-        settings.surface_symbol = "#"
+        Species.surface_prefix = "#"
 
     def rate_func(self):
         a = self.alpha

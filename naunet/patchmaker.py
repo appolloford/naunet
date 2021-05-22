@@ -1,10 +1,6 @@
 import os
 import shutil
-from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Dict
-from jinja2.runtime import identity
-from tqdm import tqdm
 from jinja2 import Environment, PackageLoader
 
 from .species import Species
@@ -141,7 +137,6 @@ class EnzoPatch:
 
         nspec = len(self.netinfo.species)
         neq = len(self.netinfo.species)
-        # speclist = [f"{x.alias} {i}" for i, x in enumerate(self.netinfo.species)]
 
         result = template.render(nspec=nspec, neq=neq, species=self.netinfo.species)
         with open(os.path.join(prefix, "naunet_enzo.h"), "w") as out:
@@ -151,7 +146,7 @@ class EnzoPatch:
         template = self._env.get_template("Grid.h.j2")
 
         specnum = [
-            "DeNum" if s.name == "e-" or s.name == "E-" else f"{s.alias}Num"
+            "DeNum" if s.name in ["e-", "E-"] else f"{s.alias}Num"
             for s in self.netinfo.species
         ]
         arguments = ", ".join(f"int &{n}" for n in specnum)
@@ -165,13 +160,11 @@ class EnzoPatch:
         template = self._env.get_template("Grid_IdentifyNaunetSpeciesFields.C.j2")
 
         specnum = [
-            "DeNum" if s.name == "e-" or s.name == "E-" else f"{s.alias}Num"
+            "DeNum" if s.name in ["e-", "E-"] else f"{s.alias}Num"
             for s in self.netinfo.species
         ]
         typedefidx = [
-            "ElectronDensity"
-            if s.name == "e-" or s.name == "E-"
-            else f"{s.alias}Density"
+            "ElectronDensity" if s.name in ["e-", "E-"] else f"{s.alias}Density"
             for s in self.netinfo.species
         ]
         arguments = ", ".join(f"int &{n}" for n in specnum)
@@ -200,24 +193,18 @@ class EnzoPatch:
         addspec = [s for s in self.netinfo.species if s not in self.grackle_species]
         addspecnum = [f"{s.alias}Num" for s in addspec]
 
-        # specunion = set(self.netinfo.species + self.grackle_species)
-        # specnum = [
-        #     "DeNum" if s.name == "e-" or s.name == "E-" else f"{s.alias}Num"
-        #     for s in specunion
-        # ]
-
         declare = ", ".join(addspecnum)
         prim = [f"Prim[nfield++] = BaryonField[{n}]" for n in addspecnum]
         oldprim = [f"Prim[nfield++] = OldBaryonField[{n}]" for n in addspecnum]
 
         specnum = [
-            "DeNum" if s.name == "e-" or s.name == "E-" else f"{s.alias}Num"
+            "DeNum" if s.name in ["e-", "E-"] else f"{s.alias}Num"
             for s in self.netinfo.species
         ]
-        identity = ", ".join(specnum)
+        identify = ", ".join(specnum)
 
         template = self._env.get_template("hydro_rk/Grid_ReturnHydroRKPointers.C.j2")
-        result = template.render(declare=declare, identify=identity, prim=prim)
+        result = template.render(declare=declare, identify=identify, prim=prim)
 
         with open(
             os.path.join(prefix, "hydro_rk/Grid_ReturnHydroRKPointers.C"), "w"
@@ -225,7 +212,7 @@ class EnzoPatch:
             out.write(result)
 
         template = self._env.get_template("hydro_rk/Grid_ReturnOldHydroRKPointers.C.j2")
-        result = template.render(declare=declare, identify=identity, oldprim=oldprim)
+        result = template.render(declare=declare, identify=identify, oldprim=oldprim)
 
         with open(
             os.path.join(prefix, "hydro_rk/Grid_ReturnOldHydroRKPointers.C"), "w"
@@ -240,11 +227,6 @@ class EnzoPatch:
         addname = [f"{f'{s.alias}Name':<20}   = \"{s.alias}_Density\"" for s in addspec]
         addlabel = [f"DataLabel[count++] = (char*) {s.alias}Name" for s in addspec]
 
-        # specunion = set(self.netinfo.species + self.grackle_species)
-        # specnum = [
-        #     "DeNum" if s.name == "e-" or s.name == "E-" else f"{s.alias}Num"
-        #     for s in specunion
-        # ]
         declare = ", ".join(addspecnum)
 
         addfieldtype = [
@@ -297,17 +279,23 @@ class EnzoPatch:
         template = self._env.get_template("Grid_NaunetWrapper.C.j2")
 
         specnum = [
-            "DeNum" if s.name == "e-" or s.name == "E-" else f"{s.alias}Num"
+            "DeNum" if s.name in ["e-", "E-"] else f"{s.alias}Num"
             for s in self.netinfo.species
         ]
         declare = ", ".join(specnum)
         initial = " = ".join([*specnum, "0"])
+
+        # In Enzo, electron has the same mass number as hydrogen
         abund = [
-            f"y[IDX_{s.alias}] =  BaryonField[{n}][i] / {s.massnumber}"
+            f"y[IDX_{s.alias}] =  BaryonField[{n}][i] / 1.0"
+            if s.name in ["e-", "E-"]
+            else f"y[IDX_{s.alias}] =  BaryonField[{n}][i] / {s.massnumber}"
             for s, n in zip(self.netinfo.species, specnum)
         ]
         invabund = [
-            f"BaryonField[{n}][i] = y[IDX_{s.alias}] * {s.massnumber}"
+            f"BaryonField[{n}][i] = y[IDX_{s.alias}] * 1.0"
+            if s.name in ["e-", "E-"]
+            else f"BaryonField[{n}][i] = y[IDX_{s.alias}] * {s.massnumber}"
             for s, n in zip(self.netinfo.species, specnum)
         ]
 

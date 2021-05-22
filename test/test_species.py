@@ -1,4 +1,3 @@
-from naunet import settings
 from naunet.species import Species
 
 
@@ -66,7 +65,7 @@ def test_surface():
     assert Species("#H2").is_surface == True
     assert Species("H2").is_surface == False
     # test changing surface symbol
-    settings.surface_symbol = "G"
+    Species.surface_prefix = "G"
     assert Species("GH2").is_surface == True
     # special case
     assert Species("GRAIN0").is_surface == False

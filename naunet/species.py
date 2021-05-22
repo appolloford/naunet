@@ -25,6 +25,9 @@ def initialize_elements():
 
 
 class Species:
+
+    surface_prefix = "#"
+
     def __init__(self, name):
         self.name = name
         self.element_count = dict()
@@ -143,11 +146,12 @@ class Species:
         Returns:
             str: name of the molecular/atom without charge or phase information
         """
+
         basename = self.name
 
         # remove surface symbol
         if self.is_surface:
-            basename = basename.replace(settings.surface_symbol, "")
+            basename = basename.replace(Species.surface_prefix, "")
 
         # remove charge symbols
         if self.charge != 0:
@@ -205,7 +209,7 @@ class Species:
             str: name of its gas-phase species
         """
         return (
-            self.name.replace(settings.surface_symbol, "")
+            self.name.replace(Species.surface_prefix, "")
             if self.is_surface
             else self.name
         )
@@ -214,7 +218,7 @@ class Species:
     def is_surface(self):
         if "GRAIN" in self.name.upper():
             return False
-        return self.name.startswith(settings.surface_symbol)
+        return self.name.startswith(Species.surface_prefix)
 
     @property
     def mass(self) -> float:
