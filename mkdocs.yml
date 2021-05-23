@@ -1,0 +1,14 @@
+site_name: Naunet Astrochemistry Tool
+
+theme:
+  name: "material"
+
+plugins:
+  - search
+  - mkdocstrings
+
+nav:
+  - Home: index.md
+  # - Installation: installation.md
+  - API References:
+    - species: API/species.md
