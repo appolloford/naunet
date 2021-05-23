@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
 from collections import Counter
 from enum import IntEnum
-from .. import settings
 from ..species import Species
 
 # If the reaction types have the same formalism, they share the same value in the enum class
@@ -147,7 +146,7 @@ class Reaction(ABC):
         :return: Species object
         :rtype: object
         """
-        if species_name and species_name not in settings.pseudo_element_list:
+        if species_name and species_name not in Species.known_pseudoelements():
             return Species(species_name)
 
     @classmethod

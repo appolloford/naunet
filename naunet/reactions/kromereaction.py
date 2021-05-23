@@ -101,27 +101,27 @@ class KROMEReaction(Reaction):
     def finalize(cls) -> None:
         # restore the default settings after completing a file
         print("krome finalize is called")
-        KROMEReaction.reacformat = "idx,r,r,r,p,p,p,p,tmin,tmax,rate"
-        KROMEReaction.vars = {
+        cls.reacformat = "idx,r,r,r,p,p,p,p,tmin,tmax,rate"
+        cls.vars = {
             "Hnuclei": "nH",
             "Temperature": "Tgas",
         }
-        KROMEReaction.user_var = []
+        cls.user_var = []
 
     @classmethod
     def preprocessing(cls, line: str) -> str:
         if line.startswith(("#", "//")):
             return ""
         elif line.startswith("@format:"):
-            KROMEReaction.reacformat = line.replace("@format:", "")
+            cls.reacformat = line.replace("@format:", "")
             return ""
         elif line.startswith("@var"):
             if "Hnuclei" not in line:
-                KROMEReaction.user_var.append(line.replace("@var:", "").strip())
+                cls.user_var.append(line.replace("@var:", "").strip())
             return ""
         elif line.startswith("@common:"):
             commonlist = line.replace("@common:", "").strip().split(",")
-            KROMEReaction.vars.update(zip(commonlist, commonlist))
+            cls.vars.update(zip(commonlist, commonlist))
             return ""
         else:
             return line.strip()

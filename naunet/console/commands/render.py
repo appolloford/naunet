@@ -61,10 +61,12 @@ class RenderCommand(Command):
         if len(species) == 0:
             species = None
 
-        naunet.settings.initialize(element=element, pseudo_element=pseudo_element)
-
         from naunet.network import Network, supported_reaction_class
-        from naunet.dusts.unidust import UniDust
+        from naunet.species import Species
+
+        Species.set_known_elements(element)
+        Species.set_known_pseudoelements(pseudo_element)
+
         from naunet.chemistry import update_binding_energy, update_photon_yield
 
         update_binding_energy(binding)

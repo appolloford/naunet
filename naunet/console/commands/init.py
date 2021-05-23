@@ -14,7 +14,7 @@ from tomlkit import nl, comment, table, dumps
 from tomlkit.toml_file import TOMLFile
 
 from .command import Command
-from ...settings import default_element_list, default_pseudo_element_list
+from ...species import Species
 
 
 class InitCommand(Command):
@@ -95,7 +95,7 @@ class InitCommand(Command):
             element = element.split(",")
 
         else:
-            element = default_element_list
+            element = Species.default_elements
             question = self.create_question(
                 "Elements incuded in the network [<comment>{}</comment>]:".format(
                     element
@@ -111,7 +111,7 @@ class InitCommand(Command):
             pseudo_element = pseudo_element.split(",")
 
         else:
-            pseudo_element = default_pseudo_element_list
+            pseudo_element = Species.default_pseudoelements
             question = self.create_question(
                 "Pseudo_elements incuded in the network [<comment>{}</comment>]:".format(
                     pseudo_element
