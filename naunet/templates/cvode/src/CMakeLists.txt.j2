@@ -47,7 +47,7 @@ foreach(_libtype ${_libtypes})
     {% if info.device == "gpu" -%}
     foreach(name ${cuda_targetname})
         set(lib_target ${name}${_lib_suffix})
-        add_library(${lib_target} ${_libtype} name.cu)
+        add_library(${lib_target} ${_libtype} ${name}.cu)
         set_target_properties(${lib_target} PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
         target_include_directories(${lib_target} PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
         target_include_directories(${lib_target} PUBLIC ${CMAKE_SOURCE_DIR}/include)
@@ -61,53 +61,16 @@ foreach(_libtype ${_libtypes})
     foreach(name ${targetname})
         set(lib_target ${name}${_lib_suffix})
         add_library(${lib_target} ${_libtype} ${name}.cpp)
+        {% if info.device == "gpu" -%}
+        set_target_properties(${lib_target} PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+        target_include_directories(${lib_target} PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
+        {% endif -%}
         target_include_directories(${lib_target} PUBLIC ${CMAKE_SOURCE_DIR}/include)
         target_link_libraries(${lib_target} ${SUNDIALSLIB})
         target_link_libraries(${lib_target} ${compiled_target})
         set(compiled_target "${compiled_target};${lib_target}")
         set_target_properties(${lib_target} PROPERTIES OUTPUT_NAME ${name})
     endforeach()
-
-    # set(lib_target naunet_constants${_lib_suffix})
-    # {% if info.device == "gpu" -%}
-    # add_library(${lib_target} ${_libtype} naunet_constants.cu)
-    # set_target_properties(${lib_target} PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
-    # target_include_directories(${lib_target} PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
-    # {% else -%}
-    # add_library(${lib_target} ${_libtype} naunet_constants.cpp)
-    # {% endif -%}
-    # target_include_directories(${lib_target} PUBLIC ${CMAKE_SOURCE_DIR}/include)
-
-    # set(lib_target naunet_ode${_lib_suffix})
-    # {% if info.device == "gpu" -%}
-    # add_library(${lib_target} ${_libtype} naunet_ode.cu)
-    # set_target_properties(${lib_target} PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
-    # target_include_directories(${lib_target} PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
-    # {% else -%}
-    # add_library(${lib_target} ${_libtype} naunet_ode.cpp)
-    # {% endif -%}
-    # target_include_directories(${lib_target} PUBLIC ${CMAKE_SOURCE_DIR}/include)
-    # target_link_libraries(${lib_target} ${SUNDIALSLIB})
-
-    # set(lib_target naunet_physics${_lib_suffix})
-    # {% if info.device == "gpu" -%}
-    # add_library(${lib_target} ${_libtype} naunet_physics.cu)
-    # set_target_properties(${lib_target} PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
-    # target_include_directories(${lib_target} PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
-    # {% else -%}
-    # add_library(${lib_target} ${_libtype} naunet_physics.cpp)
-    # {% endif -%}
-    # target_include_directories(${lib_target} PUBLIC ${CMAKE_SOURCE_DIR}/include)
-    # target_link_libraries(${lib_target} naunet_constants${_lib_suffix})
-
-    # set(lib_target naunet${_lib_suffix})
-    # add_library(${lib_target} ${_libtype} naunet.cpp)
-    # {% if info.device == "gpu" -%}
-    # set_target_properties(${lib_target} PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
-    # target_include_directories(${lib_target} PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
-    # {% endif -%}
-    # target_include_directories(${lib_target} PUBLIC ${CMAKE_SOURCE_DIR}/include)
-    # target_link_libraries(${lib_target} ${SUNDIALSLIB})
 
 endforeach()
 

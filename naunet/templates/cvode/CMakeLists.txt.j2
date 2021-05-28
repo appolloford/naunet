@@ -56,6 +56,8 @@ list(APPEND SUNDIALSLIB
 
 set(NVIDIA_GPU_COUNT 0)
 
+{% if info.device == "gpu" -%}
+# check the available GPUs if using GPU solver
 find_program(_nvidia_smi NAMES nvidia-smi)
 if (_nvidia_smi)
     set(DETECTED_GPU_COUNT_NVIDIA_SMI 0)
@@ -83,9 +85,16 @@ if (_nvidia_smi)
 
     set(NVIDIA_GPU_COUNT ${DETECTED_GPU_COUNT_NVIDIA_SMI})
 endif()
+{% endif %}
 
 set(MAKE_STATIC ON CACHE BOOL "")
+{% if info.device == "gpu" -%}
+# bugs in cmake?
+# https://stackoverflow.com/questions/22540783/nvlink-error-when-linking-cuda-code-against-cuda-static-library-cmake
+set(MAKE_SHARED OFF CACHE BOOL "")
+{% else %}
 set(MAKE_SHARED ON CACHE BOOL "")
+{% endif %}
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 message(STATUS "NVIDIA_GPU_COUNT           = " ${NVIDIA_GPU_COUNT})
