@@ -69,7 +69,7 @@ class LEEDSReaction(Reaction):
         "crphot": 1e4,
         "hbar": 1.054571726e-27,
     }
-    vars = {
+    varis = {
         "Hnuclei": "nH",
         "CRIR": "zeta_cr",
         "XRAY": "zeta_xr",
@@ -110,12 +110,12 @@ class LEEDSReaction(Reaction):
         c = self.gamma
         rtype = self.rtype
 
-        cr = LEEDSReaction.vars.get("CRIR")
-        xr = LEEDSReaction.vars.get("XRAY")
-        Tgas = LEEDSReaction.vars.get("Temperature")
-        Tdust = LEEDSReaction.vars.get("DustTemperature")
-        Av = LEEDSReaction.vars.get("VisualExtinction")
-        G0 = LEEDSReaction.vars.get("G0")
+        cr = LEEDSReaction.varis.get("CRIR")
+        xr = LEEDSReaction.varis.get("XRAY")
+        Tgas = LEEDSReaction.varis.get("Temperature")
+        Tdust = LEEDSReaction.varis.get("DustTemperature")
+        Av = LEEDSReaction.varis.get("VisualExtinction")
+        G0 = LEEDSReaction.varis.get("G0")
         zism = LEEDSReaction.consts.get("zism")
         habing = LEEDSReaction.consts.get("habing")
         crphot = LEEDSReaction.consts.get("crphot")
@@ -124,14 +124,14 @@ class LEEDSReaction(Reaction):
             re1 = self.reactants[0]
             if self.rtype in [13, 14]:
                 re2 = self.reactants[1]
-            rg = self.dust.vars.get("Radius")
-            albedo = self.dust.vars.get("Albedo")
-            sites = self.dust.vars.get("SurfaceSites")
-            hop = self.dust.vars.get("HOPRatio")
-            nmono = self.dust.vars.get("MonoLayers")
-            duty = self.dust.vars.get("DutyCycle")
-            Tcr = self.dust.vars.get("CRDesorptionTemperature")
-            branch = self.dust.vars.get("BranchRatio")
+            rg = self.dust.varis.get("Radius")
+            albedo = self.dust.varis.get("Albedo")
+            sites = self.dust.varis.get("SurfaceSites")
+            hop = self.dust.varis.get("HOPRatio")
+            nmono = self.dust.varis.get("MonoLayers")
+            duty = self.dust.varis.get("DutyCycle")
+            Tcr = self.dust.varis.get("CRDesorptionTemperature")
+            branch = self.dust.varis.get("BranchRatio")
 
         if rtype == 1:
             rate = f"{a} * pow({Tgas}/300.0, {b}) * exp(-{c}/{Tgas})"

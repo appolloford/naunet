@@ -5,7 +5,7 @@ class Dust(ABC):
 
     consts = {}
     globs = {}
-    vars = {}
+    varis = {}
     user_var = []
 
     def __init__(self, *args, **kwargs) -> None:

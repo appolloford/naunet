@@ -3,7 +3,7 @@ from .dust import Dust
 
 class UniDust(Dust):
 
-    vars = {
+    varis = {
         "Radius": "rG",
         "Albedo": "omega",
         "Barrier": "barr",

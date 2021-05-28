@@ -53,7 +53,7 @@ class TemplateLoader:
     class VariablesContent:
         consts: Dict[str, str]
         globs: List[str]
-        vars: List[str]
+        varis: List[str]
         user_var: List[str]
         header: str = None
 
@@ -113,19 +113,19 @@ class TemplateLoader:
         }
         consts = {**reactconsts, **dustconsts, **ebs}
 
-        reactglobs = [f"{v}" for db in databases for v in db.vars.values()]
+        reactglobs = [f"{v}" for db in databases for v in db.globs.values()]
         dustglobs = [f"{v}" for v in dust.globs.values()] if dust else []
         globs = [*reactglobs, *dustglobs]
 
-        reactvars = [f"{v}" for db in databases for v in db.vars.values()]
-        dustvars = [f"{v}" for v in dust.vars.values() if dust] if dust else []
-        vars = [*dustvars, *reactvars]
+        reactvars = [f"{v}" for db in databases for v in db.varis.values()]
+        dustvars = [f"{v}" for v in dust.varis.values() if dust] if dust else []
+        varis = [*dustvars, *reactvars]
 
         react_uservar = [v for db in databases for v in db.user_var]
         dust_uservar = dust.user_var if dust else []
         user_var = [*dust_uservar, *react_uservar]
 
-        self._variables = self.VariablesContent(consts, globs, vars, user_var)
+        self._variables = self.VariablesContent(consts, globs, varis, user_var)
 
         rates = [f"k[{r}]" for r in range(n_react)]
         rateeqns = [

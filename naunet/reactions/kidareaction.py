@@ -22,7 +22,7 @@ class KIDAReaction(Reaction):
         6: ReactionType.KIDA_TB,
     }
 
-    vars = {
+    varis = {
         "Hnuclei": "nH",
         "CRIR": "zeta",
         "Temperature": "Tgas",
@@ -48,9 +48,9 @@ class KIDAReaction(Reaction):
         b = self.beta
         c = self.gamma
         formula = self.formula
-        zeta = KIDAReaction.vars["CRIR"]
-        Tgas = KIDAReaction.vars["Temperature"]
-        Av = KIDAReaction.vars["VisualExtinction"]
+        zeta = KIDAReaction.varis["CRIR"]
+        Tgas = KIDAReaction.varis["Temperature"]
+        Av = KIDAReaction.varis["VisualExtinction"]
         if formula == 1:
             rate = f"{a} * {zeta}"
         elif formula == 2:
