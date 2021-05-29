@@ -1,17 +1,13 @@
 {% if header %}
 #include "{{ header }}"
 {% else %}
-#include <boost/numeric/odeint.hpp>
 #include "naunet_data.h"
+{% endif %}
 #include "naunet_ode.h"
 #include "naunet_macros.h"
 
-using namespace std;
 using namespace boost::numeric::odeint;
 
-typedef boost::numeric::ublas::vector< double > vector_type;
-typedef boost::numeric::ublas::matrix< double > matrix_type;
-{% endif %}
 
 Naunet::Naunet() : m_atol(1e-20),
                    m_rtol(1e-5)
@@ -48,7 +44,7 @@ int Naunet::solve(double *ab, double dt, NaunetData *data)
 
     size_t num_of_steps = integrate_adaptive(
         make_controlled<rosenbrock4<double>>(m_atol, m_rtol),
-        make_pair(fex(data), jac(data)), y, 0.0, dt, dt
+        std::make_pair(fex(data), jac(data)), y, 0.0, dt, dt
     );
 
     for (int i=0; i<NSPECIES; i++)

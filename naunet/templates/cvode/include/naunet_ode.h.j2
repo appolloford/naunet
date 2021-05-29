@@ -1,25 +1,11 @@
 #ifndef __NAUNET_ODE_H__
 #define __NAUNET_ODE_H__
 
-#include <math.h>
-#include <cvode/cvode.h>
-{% if info.method == "dense" -%}
-#include <nvector/nvector_serial.h>
-#include <sunmatrix/sunmatrix_dense.h> // access to dense SUNMatrix
-{% elif info.method == "sparse" -%}
-#include <nvector/nvector_serial.h>
-#include <sunmatrix/sunmatrix_sparse.h> // access to sparse SUNMatrix
-{% elif info.method == "cusparse" -%}
-#include <nvector/nvector_cuda.h>
-#include <sunmatrix/sunmatrix_cusparse.h>
-{% endif -%}
 #include <sundials/sundials_types.h>   // defs. of realtype, sunindextype
-#include "naunet_constants.h"
-#include "naunet_macros.h"
-#include "naunet_physics.h"
-#include "naunet_data.h"
+#include <sundials/sundials_matrix.h>
+#include <sundials/sundials_nvector.h>
 
-#define IJth(A,i,j) SM_ELEMENT_D(A,i,j)
+#include "naunet_data.h"
 
 {% if info.device == "gpu" -%}
 __device__

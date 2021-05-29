@@ -1,6 +1,3 @@
-{% if header %}
-#include "{{ header }}"
-{% else %}
 #include <cvode/cvode.h>                // prototypes for CVODE fcts., consts.
 {% if info.method == "dense" -%}
 #include <nvector/nvector_serial.h>     // access to serial N_Vector
@@ -10,6 +7,7 @@
 {% elif info.method == "sparse" -%}
 #include <nvector/nvector_serial.h>     // access to serial N_Vector
 #include <sunmatrix/sunmatrix_sparse.h> // access to sparse SUNMatrix
+#include <sunlinsol/sunlinsol_klu.h>    // access to KLU sparse direct solver
 {% elif info.method == "cusparse" -%}
 #include <nvector/nvector_cuda.h>
 #include <sunlinsol/sunlinsol_cusolversp_batchqr.h>
@@ -17,14 +15,17 @@
 #include <sunlinsol/sunlinsol_spgmr.h>  // access to SPGMR SUNLinearSolver
 #include <cvode/cvode_spils.h>          // access to CVSpils interface
 {% endif -%}
+{% if header %}
+#include "{{ header }}"
+{% else %}
 #include <sundials/sundials_types.h>    // defs. of realtype, sunindextype
 #include <sundials/sundials_math.h>     // contains the macros ABS, SUNSQR, EXP
-#include <sunlinsol/sunlinsol_klu.h>    // access to KLU sparse direct solver
-
+#include <sundials/sundials_linearsolver.h>
 #include "naunet_data.h"
+{% endif %}
 #include "naunet_ode.h"
 #include "naunet_macros.h"
-{% endif %}
+
 
 // check_flag function is from the cvDiurnals_ky.c example from the CVODE package.
 // Check function return value...

@@ -1,19 +1,21 @@
+#include <math.h>
 {% if ode.header %}
 #include "{{ ode.header }}"
 {% else %}
-#include <math.h>
 #include <boost/numeric/odeint.hpp>
+#include "naunet_data.h"
+{% endif %}
 #include "naunet_constants.h"
 #include "naunet_macros.h"
 #include "naunet_physics.h"
-#include "naunet_data.h"
 
-using namespace std;
-using namespace boost::numeric::odeint;
-
+{% if ode.header %}
+{% else %}
 typedef boost::numeric::ublas::vector< double > vector_type;
 typedef boost::numeric::ublas::matrix< double > matrix_type;
 {% endif %}
+
+using namespace boost::numeric::odeint;
 
 int calculate_rates(double *k, double *y, NaunetData *u_data)
 {

@@ -1,8 +1,4 @@
-{% if ode.header %}
-#include "{{ ode.header }}"
-{% else %}
 #include <math.h>
-#include <cvode/cvode.h>
 {% if info.method == "dense" -%}
 #include <nvector/nvector_serial.h>
 #include <sunmatrix/sunmatrix_dense.h> // access to dense SUNMatrix
@@ -13,12 +9,17 @@
 #include <nvector/nvector_cuda.h>
 #include <sunmatrix/sunmatrix_cusparse.h>
 {% endif -%}
+{% if ode.header %}
+#include "{{ ode.header }}"
+{% else %}
 #include <sundials/sundials_types.h>   // defs. of realtype, sunindextype
+#include "naunet_data.h"
+{% endif %}
 #include "naunet_constants.h"
 #include "naunet_macros.h"
 #include "naunet_physics.h"
-#include "naunet_data.h"
-{% endif %}
+
+#define IJth(A,i,j) SM_ELEMENT_D(A,i,j)
 
 {% if info.device == "gpu" -%}
 __device__
@@ -112,7 +113,7 @@ int fex(realtype t, N_Vector u, N_Vector u_dot, void *user_data)
 
     {% endif -%}
 
-    return CV_SUCCESS;
+    return NAUNET_SUCCESS;
 
 }
 
@@ -146,7 +147,7 @@ int jtv(N_Vector v, N_Vector Jv, realtype t, N_Vector u, N_Vector fu,
         fx[i] = 0.0;
     }
 
-    return CV_SUCCESS;
+    return NAUNET_SUCCESS;
 
 }
 {% endif %}
@@ -221,7 +222,7 @@ int jac(realtype t, N_Vector u, N_Vector fu, SUNMatrix jmatrix,
 
     {% endif -%}
 
-    return CV_SUCCESS;
+    return NAUNET_SUCCESS;
 
 }
 
@@ -247,7 +248,7 @@ int jacInit(SUNMatrix jmatrix)
     SUNMatrix_cuSparse_CopyToDevice(jmatrix, NULL, rowptrs, colvals);
     cudaDeviceSynchronize();
 
-    return CV_SUCCESS;
+    return NAUNET_SUCCESS;
 }
 
 __global__ void f_kernel(realtype *y, realtype *ydot, NaunetData *d_udata, int nsystem)
