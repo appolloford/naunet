@@ -21,7 +21,7 @@
 #include <sundials/sundials_math.h>     // contains the macros ABS, SUNSQR, EXP
 #include <sunlinsol/sunlinsol_klu.h>    // access to KLU sparse direct solver
 
-#include "naunet_userdata.h"
+#include "naunet_data.h"
 #include "naunet_ode.h"
 #include "naunet_macros.h"
 {% endif %}
@@ -200,7 +200,7 @@ int Naunet::resetSolver(int nsystem)
 };
 {% endif %}
 
-int Naunet::solve(realtype *ab, realtype dt, UserData *data)
+int Naunet::solve(realtype *ab, realtype dt, NaunetData *data)
 {
     int flag;
 

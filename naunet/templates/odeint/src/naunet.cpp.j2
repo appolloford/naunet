@@ -2,7 +2,7 @@
 #include "{{ header }}"
 {% else %}
 #include <boost/numeric/odeint.hpp>
-#include "naunet_userdata.h"
+#include "naunet_data.h"
 #include "naunet_ode.h"
 #include "naunet_macros.h"
 
@@ -27,7 +27,7 @@ int Naunet::initSolver()
     return NAUNET_SUCCESS;
 };
 
-int Naunet::solve(double *ab, double dt, UserData *data)
+int Naunet::solve(double *ab, double dt, NaunetData *data)
 {
     vector_type y(NSPECIES);
     for (int i=0; i<NSPECIES; i++)

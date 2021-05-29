@@ -1,7 +1,7 @@
 #include <stdio.h>
 
 #include "naunet.h"
-#include "naunet_userdata.h"
+#include "naunet_data.h"
 #include "naunet_macros.h"
 #include "naunet_ode.h"
 #include "naunet_timer.h"
@@ -19,7 +19,7 @@ int main()
     double nH = 1e5;
     double OPRH2 = 0.1;
 
-    UserData *data = new UserData[nsystem];
+    NaunetData *data = new NaunetData[nsystem];
     for (int isys = 0; isys < nsystem; isys++)
     {
         data[isys].nH = nH;

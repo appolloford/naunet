@@ -227,7 +227,7 @@ class TemplateLoader:
 
         self.render_constants(prefix=prefix, save=save)
         self.render_macros(prefix=prefix, save=save)
-        self.render_userdata(prefix=prefix, save=save)
+        self.render_data(prefix=prefix, save=save)
         self.render_ode(prefix=prefix, save=save)
         self.render_physics(prefix=prefix, save=save)
         self.render_naunet(prefix=prefix, save=save)
@@ -435,12 +435,12 @@ class TemplateLoader:
             info=self._info,
         )
 
-    def render_userdata(
+    def render_data(
         self, prefix: str = "./", name: str = None, save: bool = True
     ) -> None:
         if not name and save:
-            name = "naunet_userdata.h"
+            name = "naunet_data.h"
 
-        tname = os.path.join(self._solver, "include/naunet_userdata.h.j2")
+        tname = os.path.join(self._solver, "include/naunet_data.h.j2")
         template = self._env.get_template(tname)
         self._render(template, prefix, name, save, variables=self._variables)

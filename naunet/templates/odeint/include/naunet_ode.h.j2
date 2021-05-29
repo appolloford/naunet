@@ -6,7 +6,7 @@
 #include "naunet_constants.h"
 #include "naunet_macros.h"
 #include "naunet_physics.h"
-#include "naunet_userdata.h"
+#include "naunet_data.h"
 
 using namespace std;
 using namespace boost::numeric::odeint;
@@ -14,17 +14,17 @@ using namespace boost::numeric::odeint;
 typedef boost::numeric::ublas::vector< double > vector_type;
 typedef boost::numeric::ublas::matrix< double > matrix_type;
 
-int calculate_rates(double *rates, double *y, UserData *user_data);
+int calculate_rates(double *rates, double *y, NaunetData *user_data);
 
 class fex
 {
 private:
-    UserData *u_data;
+    NaunetData *u_data;
 
 public:
 
     fex();
-    fex(UserData *data);
+    fex(NaunetData *data);
     ~fex();
 
     void operator()(const vector_type &y, vector_type &ydot, double t);
@@ -33,12 +33,12 @@ public:
 class jac
 {
 private:
-    UserData *u_data;
+    NaunetData *u_data;
 
 public:
 
     jac();
-    jac(UserData *data);
+    jac(NaunetData *data);
     ~jac();
 
     void operator()(const vector_type &y, matrix_type &j, const double &t, vector_type &dfdt);

@@ -122,7 +122,7 @@ class RenderCommand(Command):
         tl.render_naunet(prefix=source_prefix, headerprefix=header_prefix)
         tl.render_ode(prefix=source_prefix, headerprefix=header_prefix)
         tl.render_physics(prefix=source_prefix, headerprefix=header_prefix)
-        tl.render_userdata(prefix=header_prefix)
+        tl.render_data(prefix=header_prefix)
         tl.render_cmake(prefix=Path.cwd(), version=ver)
 
         src_parent_path = Path(naunet.__file__).parent

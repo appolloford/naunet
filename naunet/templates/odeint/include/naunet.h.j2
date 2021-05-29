@@ -1,7 +1,7 @@
 #ifndef __NAUNET_H__
 #define __NAUNET_H__
 
-#include "naunet_userdata.h"
+#include "naunet_data.h"
 #include "naunet_ode.h"
 #include "naunet_macros.h"
 
@@ -16,7 +16,7 @@ public:
     Naunet();
     ~Naunet();
     int initSolver();
-    int solve(double *ab, double dt, UserData *data);
+    int solve(double *ab, double dt, NaunetData *data);
 };
 
 #endif

@@ -1,7 +1,7 @@
 #include <stdio.h>
 
 #include "naunet.h"
-#include "naunet_userdata.h"
+#include "naunet_data.h"
 #include "naunet_macros.h"
 #include "naunet_ode.h"
 #include "naunet_timer.h"
@@ -18,7 +18,7 @@ int main()
     double nH = 1e5;
     double OPRH2 = 0.1;
 
-    UserData data;
+    NaunetData data;
     data.nH = nH;
     data.Tgas = 15.0;
     data.user_Av = 30.0;
