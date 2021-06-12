@@ -79,41 +79,45 @@ class RenderCommand(Command):
             module = util.module_from_spec(spec)
             spec.loader.exec_module(module)
 
+        # patches are rendered independently
+        patch = self.option("patch")
+
+        # The include/src/test will not be changed if rendering patches
+        if not patch:
+            # Check whether include and src folders exist, test folder is checked in example.py
+            for subdir in ["include", "src"]:
+                prefix = os.path.join(Path.cwd(), subdir)
+
+                if os.path.exists(prefix):
+                    if not os.path.isdir(prefix):
+                        raise FileNotFoundError(
+                            errno.ENOENT, os.strerror(errno.ENOENT), prefix
+                        )
+
+                    elif os.listdir(prefix):
+                        overwrite = self.option("force") or self.confirm(
+                            f"Non-empty {subdir} directory. Overwrite?", False
+                        )
+
+                        if not overwrite:
+                            sys.exit()
+
+                else:
+                    os.mkdir(prefix)
+
+        header_prefix = os.path.join(Path.cwd(), "include")
+        source_prefix = os.path.join(Path.cwd(), "src")
+
         net = Network(species=species, dusttype=dust["type"])
         net.add_reaction_from_file(network, database)
         net.rate_modifier = rate_modifier
         net.ode_modifier = ode_modifier
 
-        # patches are rendered independently
-        patch = self.option("patch")
+        # Don't change the include/src/test when rendering patches
         if patch:
             pm = net.patchmaker(patch)
             pm.render(os.path.join(Path.cwd(), patch))
             return
-
-        # Check whether include and src folders exist, test folder is checked in example.py
-        for subdir in ["include", "src"]:
-            prefix = os.path.join(Path.cwd(), subdir)
-
-            if os.path.exists(prefix):
-                if not os.path.isdir(prefix):
-                    raise FileNotFoundError(
-                        errno.ENOENT, os.strerror(errno.ENOENT), prefix
-                    )
-
-                elif os.listdir(prefix):
-                    overwrite = self.option("force") or self.confirm(
-                        f"Non-empty {subdir} directory. Overwrite?", False
-                    )
-
-                    if not overwrite:
-                        sys.exit()
-
-            else:
-                os.mkdir(prefix)
-
-        header_prefix = os.path.join(Path.cwd(), "include")
-        source_prefix = os.path.join(Path.cwd(), "src")
 
         net.check_duplicate_reaction()
         tl = net.templateloader(solver=solver, method=method, device=device)
