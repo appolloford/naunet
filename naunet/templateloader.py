@@ -263,13 +263,8 @@ class TemplateLoader:
     ) -> None:
 
         if save:
-            name = (
-                name
-                if name
-                else "naunet_constants.cu"
-                if self._info.device == "gpu"
-                else "naunet_constants.cpp"
-            )
+            suffix = "cu" if self._info.device == "gpu" else "cpp"
+            name = name if name else f"naunet_constants.{suffix}"
             headername = headername if headername else "naunet_constants.h"
             headerprefix = headerprefix if headerprefix else prefix
 
@@ -354,13 +349,8 @@ class TemplateLoader:
     ) -> None:
 
         if save:
-            name = (
-                name
-                if name
-                else "naunet_ode.cu"
-                if self._info.device == "gpu"
-                else "naunet_ode.cpp"
-            )
+            suffix = "cu" if self._info.device == "gpu" else "cpp"
+            name = name if name else f"naunet_ode.{suffix}"
             headername = headername if headername else "naunet_ode.h"
             headerprefix = headerprefix if headerprefix else prefix
 
@@ -401,13 +391,8 @@ class TemplateLoader:
     ):
 
         if save:
-            name = (
-                name
-                if name
-                else "naunet_physics.cu"
-                if self._info.device == "gpu"
-                else "naunet_physics.cpp"
-            )
+            suffix = "cu" if self._info.device == "gpu" else "cpp"
+            name = name if name else f"naunet_physics.{suffix}"
             headername = headername if headername else "naunet_physics.h"
             headerprefix = headerprefix if headerprefix else prefix
 

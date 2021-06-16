@@ -10,6 +10,7 @@
 #include <sunlinsol/sunlinsol_klu.h>    // access to KLU sparse direct solver
 {% elif info.method == "cusparse" -%}
 #include <nvector/nvector_cuda.h>
+#include <sunmatrix/sunmatrix_cusparse.h> 
 #include <sunlinsol/sunlinsol_cusolversp_batchqr.h>
 {% elif info.method == "spgmr" -%}
 #include <sunlinsol/sunlinsol_spgmr.h>  // access to SPGMR SUNLinearSolver
@@ -24,7 +25,6 @@
 #include "naunet_data.h"
 {% endif %}
 #include "naunet_ode.h"
-#include "naunet_macros.h"
 
 
 // check_flag function is from the cvDiurnals_ky.c example from the CVODE package.

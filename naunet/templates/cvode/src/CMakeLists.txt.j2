@@ -128,9 +128,19 @@ if(MAKE_PYTHON)
         PUBLIC
             pybind11::module
             ${SUNDIALSLIB}
-            ${NAUNETLIB_STATIC}
+            naunet_constants_static
+            naunet_ode_static
+            naunet_physics_static
     )
-    target_include_directories(${PYMODNAME} PUBLIC ${CMAKE_SOURCE_DIR}/include)
+    target_include_directories(${PYMODNAME} 
+        PUBLIC 
+            ${CMAKE_SOURCE_DIR}/include
+        {% if info.device == "gpu" -%}
+        PRIVATE
+            ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}
+        {%- endif %}
+
+    )
 
     set_target_properties(${PYMODNAME}
         PROPERTIES
