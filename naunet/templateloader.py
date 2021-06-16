@@ -336,6 +336,7 @@ class TemplateLoader:
                 save,
                 info=self._info,
                 header=headername,
+                variables=self._variables,
             )
 
         tname = os.path.join(self._solver, "src/naunet.cpp.j2")

@@ -95,9 +95,15 @@ set(MAKE_SHARED OFF CACHE BOOL "")
 {% else %}
 set(MAKE_SHARED ON CACHE BOOL "")
 {% endif %}
+set(MAKE_PYTHON OFF CACHE BOOL "")
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 message(STATUS "NVIDIA_GPU_COUNT           = " ${NVIDIA_GPU_COUNT})
+
+if(MAKE_PYTHON)
+    set(PYMODNAME "chemistry" CACHE STRING "")
+    find_package(PythonInterp REQUIRED)
+endif()
 
 enable_testing()
 

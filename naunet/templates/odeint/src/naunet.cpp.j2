@@ -54,3 +54,16 @@ int Naunet::solve(double *ab, double dt, NaunetData *data)
 
     return NAUNET_SUCCESS;
 };
+
+#ifdef PYMODULE
+py::array_t<double> Naunet::wrapper_solve(py::array_t<double> arr, double dt, NaunetData *data)
+{
+    py::buffer_info info = arr.request();
+    double *ab = static_cast<double *>(info.ptr);
+
+    solve(ab, dt, data);
+
+    return py::array_t<double>(info.shape, ab);
+
+}
+#endif

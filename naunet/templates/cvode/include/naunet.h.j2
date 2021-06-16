@@ -10,6 +10,12 @@
 
 #include "naunet_data.h"
 
+#ifdef PYMODULE
+#include <pybind11/pybind11.h>
+#include <pybind11/numpy.h>
+
+namespace py = pybind11;
+#endif
 
 class Naunet
 {
@@ -37,6 +43,30 @@ public:
     int resetSolver(int nsystem);
     {% endif -%}
     int solve(realtype *ab, realtype dt, NaunetData *data);
+#ifdef PYMODULE
+    py::array_t<realtype> wrapper_solve(py::array_t<realtype> arr, realtype dt, NaunetData *data);
+#endif
 };
+
+#ifdef PYMODULE
+
+PYBIND11_MODULE(PYMODNAME, m) {
+    py::class_<Naunet>(m, "Naunet")
+        .def(py::init())
+        .def("initSolver", &Naunet::initSolver)
+#ifdef USE_CUDA
+        .def("resetSolver", &Naunet::resetSolver)
+#endif
+        .def("solve", &Naunet::wrapper_solve);
+
+    py::class_<NaunetData>(m, "NaunetData")
+        .def(py::init())
+        {% for v in variables.varis -%}
+            .def_readwrite("{{ v }}", &NaunetData::{{ v }})
+        {% endfor -%}
+        ;
+}
+
+#endif
 
 #endif

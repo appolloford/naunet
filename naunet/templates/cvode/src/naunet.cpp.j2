@@ -258,3 +258,16 @@ int Naunet::solve(realtype *ab, realtype dt, NaunetData *data)
 
     return NAUNET_SUCCESS;
 };
+
+#ifdef PYMODULE
+py::array_t<realtype> Naunet::wrapper_solve(py::array_t<realtype> arr, realtype dt, NaunetData *data)
+{
+    py::buffer_info info = arr.request();
+    realtype *ab = static_cast<realtype *>(info.ptr);
+
+    solve(ab, dt, data);
+
+    return py::array_t<realtype>(info.shape, ab);
+
+}
+#endif

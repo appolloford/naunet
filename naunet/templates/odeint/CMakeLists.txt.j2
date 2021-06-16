@@ -38,7 +38,13 @@ set(NVIDIA_GPU_COUNT 0)
 
 set(MAKE_STATIC ON CACHE BOOL "")
 set(MAKE_SHARED ON CACHE BOOL "")
+set(MAKE_PYTHON OFF CACHE BOOL "")
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
+if(MAKE_PYTHON)
+    set(PYMODNAME "chemistry" CACHE STRING "")
+    find_package(PythonInterp REQUIRED)
+endif()
 
 enable_testing()
 
