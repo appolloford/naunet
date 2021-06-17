@@ -77,6 +77,9 @@ jobs:
       - name: Install package
         run: pip install .
 
+      - name: Install packages for testing
+        run: pip install numpy
+
       - name: Create naunet examples
         run: source ./scripts/actions/create_examples.sh
 
@@ -84,7 +87,14 @@ jobs:
         run: brew install openblas lapack
           
       - name: Install boost
-        run: brew install boost
+        # boost 1.76 us "mp" as a namspace and conflict with the proton mass constant
+        # download boost 1.75 instead
+        # run: brew install boost
+        run: |
+          wget https://boostorg.jfrog.io/artifactory/main/release/1.75.0/source/boost_1_75_0.tar.gz
+          tar -zxf boost_1_75_0.tar.gz && cd boost_1_75_0
+          ./bootstrap.sh
+          sudo ./b2 install
 
       - name: Install SuiteSparse
         run: brew install suite-sparse
@@ -95,17 +105,17 @@ jobs:
       - name: Build naunet examples
         run: |
           cd $HOME/naunet_example0
-          cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release
+          cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release -DMAKE_PYTHON=ON
           cmake --build build
           cd $HOME/naunet_example1
-          cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release
+          cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release -DMAKE_PYTHON=ON
           cmake --build build
           cd $HOME/naunet_example3
-          cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release
+          cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release -DMAKE_PYTHON=ON
           cmake --build build
 
       - name: Test naunet examples
         run: |
-          cd $HOME/naunet_example0/build && ctest
-          cd $HOME/naunet_example1/build && ctest
-          cd $HOME/naunet_example3/build && ctest
+          cd $HOME/naunet_example0/build && ctest --output-on-failure
+          cd $HOME/naunet_example1/build && ctest --output-on-failure
+          cd $HOME/naunet_example3/build && ctest --output-on-failure

@@ -86,6 +86,9 @@ jobs:
       - name: Install package
         run: pip install .
 
+      - name: Install packages for testing
+        run: pip install numpy
+
       - name: Create naunet examples
         run: source ./scripts/actions/create_examples.sh
 

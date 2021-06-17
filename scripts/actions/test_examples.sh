@@ -1,11 +1,11 @@
 cd $HOME/naunet_example0/build
-ctest
+ctest --output-on-failure
 
 cd $HOME/naunet_example1/build
-ctest
+ctest --output-on-failure
 
 cd $HOME/naunet_example2/build
-ctest
+ctest --output-on-failure
 
 cd $HOME/naunet_example3/build
-ctest
+ctest --output-on-failure
