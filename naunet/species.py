@@ -126,7 +126,14 @@ class Species:
     def __str__(self) -> str:
         return "Species({})".format(self.name)
 
-    def _add_element_count(self, element, count):
+    def _add_element_count(self, element: str, count: int):
+        """
+        Add the count of elements in the species. Used in `_parse_molecule_name`
+
+        Args:
+            element (str): The name of the elements
+            count (int): the number to be added into count
+        """
         if element in Species._known_pseudoelements:
             return
         if count < 0:
@@ -143,6 +150,10 @@ class Species:
 
     @classmethod
     def _check_elements(cls) -> None:
+        """
+        Check whether repeated elements exist in `_known_elements` and
+        `_known_pseudoelements` lists.
+        """
         all_element = cls._known_elements + cls._known_pseudoelements
         dup_element = [ele for ele in all_element if all_element.count(ele) > 1]
         if dup_element:
@@ -151,6 +162,12 @@ class Species:
             )
 
     def _parse_molecule_name(self):
+        """
+        Parse the name of the species to get the composition of elements.
+
+        Raises:
+            RuntimeError: [description]
+        """
         element_sorted = sorted(
             Species._known_elements + Species._known_pseudoelements,
             key=len,
@@ -186,6 +203,21 @@ class Species:
 
     @classmethod
     def add_known_elements(cls, elements: list) -> list:
+        """
+        Add names of elements to the list of known elements
+
+        Args:
+            elements (list): names of elements
+
+        Raises:
+            TypeError: If argument is not a list
+
+        Returns:
+            list: the current list of known elements
+        """
+        if not isinstance(elements, list):
+            raise TypeError(f"{elements} is not a list")
+
         for ele in elements:
             if ele in cls._known_elements:
                 logging.warning("{} exists in element list, skip!".format(ele))
@@ -204,6 +236,21 @@ class Species:
 
     @classmethod
     def add_known_pseudoelements(cls, pelements: list) -> list:
+        """
+        Add names of elements to the list of known pseudo elements
+
+        Args:
+            pelements (list): names of pseudo elements
+
+        Raises:
+            TypeError: If argument is not a list
+
+        Returns:
+            list: the current list of known pseudo elements
+        """
+        if not isinstance(pelements, list):
+            raise TypeError(f"{pelements} is not a list")
+
         for ele in pelements:
             if ele in cls._known_pseudoelements:
                 logging.warning("{} exists in pseudo element list, skip!".format(ele))
@@ -223,7 +270,7 @@ class Species:
     @property
     def alias(self) -> str:
         """
-        str: Alias of the species.
+        Alias of the species.
 
         Replace surface symbol by `G` and charges by `M`(-), `I`(+). Used in
         indexing species in codes. Can be customized by setter if needed.
@@ -244,7 +291,7 @@ class Species:
 
     @property
     def basename(self) -> str:
-        """str: The species name without surface symbols and charges."""
+        """The species name without surface symbols and charges."""
 
         basename = self.name
         # remove surface symbol
@@ -261,15 +308,14 @@ class Species:
     @property
     def binding_energy(self) -> float:
         """
-        float: Binding energy of surface species.
+        Binding energy of surface species.
 
         Return the binding energy if this species is at ice-phase. If the
         binding energy was not set before, it will be searched in the UMIST
         2012 binding energy data. Raise error when no value is found.
 
         Raises:
-            RuntimeError: binding energy cannot be found in UMIST2012 or
-            customized data
+            RuntimeError: binding energy cannot be found
         """
         if self._binding_energy:
             return self._binding_energy
@@ -292,9 +338,6 @@ class Species:
     def charge(self) -> int:
         """
         Total charge of the species. Calculate the number of "+" and "-" in the end
-
-        Returns:
-            int: total charge
         """
         pcharge = "".join(re.findall(r"\+*$", self.name)).count("+")
         ncharge = "".join(re.findall(r"-*$", self.name)).count("-")
@@ -305,9 +348,6 @@ class Species:
         """
         Return the name of its gas-phase species if this species is at ice-phase.
         Else return the current name.
-
-        Returns:
-            str: name of its gas-phase species
         """
         return (
             self.name.replace(Species.surface_prefix, "")
@@ -316,7 +356,10 @@ class Species:
         )
 
     @property
-    def is_surface(self):
+    def is_surface(self) -> bool:
+        """
+        Check whether the species is sticking on surface (a surface species)
+        """
         if "GRAIN" in self.name.upper():
             return False
         return self.name.startswith(Species.surface_prefix)
@@ -324,19 +367,28 @@ class Species:
     # TODO: python 3.9 support classmethod property
     @classmethod
     def known_elements(cls) -> list:
+        """
+        Returns the current list of known elements
+
+        Returns:
+            list: the current list of known elements
+        """
         return cls._known_elements
 
     @classmethod
     def known_pseudoelements(cls) -> list:
+        """
+        Returns the current list of known pseudo elements
+
+        Returns:
+            list: the current list of known pseudo elements
+        """
         return cls._known_pseudoelements
 
     @property
     def mass(self) -> float:
         """
         The mass (amu) of the species, estimated by summing the mass of elements
-
-        Returns:
-            float: mass of the species
         """
         if self._mass:
             return self._mass
@@ -355,9 +407,6 @@ class Species:
     def massnumber(self) -> float:
         """
         The mass number (neutron + proton) of the species
-
-        Returns:
-            int: mass number of the species
         """
         if self._massnumber:
             return self._massnumber
@@ -379,9 +428,6 @@ class Species:
         The photodesorption yield of the species (ice-phase only). Return default value
         (1.0e-3) if no value is found. The default value can be changed in
         naunet.chemistry.default_photon_yield
-
-        Returns:
-            float: photodesorption yield
         """
         if self._photon_yield:
             return self._photon_yield
@@ -397,14 +443,44 @@ class Species:
 
     @classmethod
     def remove_known_elements(cls, elements: list) -> list:
+        """
+        Remove names of elements to the list of known elements
+
+        Args:
+            elements (list): names of elements
+
+        Raises:
+            TypeError: If argument is not a list
+
+        Returns:
+            list: the current list of known elements
+        """
+        if not isinstance(elements, list):
+            raise TypeError(f"{elements} is not a list")
+
         for ele in elements:
             cls._known_elements.remove(ele)
         cls._check_elements()
         return cls._known_elements
 
     @classmethod
-    def remove_known_pseudoelements(cls, pelemets: list) -> list:
-        for ele in pelemets:
+    def remove_known_pseudoelements(cls, pelements: list) -> list:
+        """
+        Add names of elements to the list of known pseudo elements
+
+        Args:
+            pelements (list): names of pseudo elements
+
+        Raises:
+            TypeError: If argument is not a list
+
+        Returns:
+            list: the current list of known pseudo elements
+        """
+        if not isinstance(pelements, list):
+            raise TypeError(f"{pelements} is not a list")
+
+        for ele in pelements:
             cls._known_pseudoelements.remove(ele)
         cls._check_elements()
         return cls._known_pseudoelements
@@ -421,12 +497,42 @@ class Species:
 
     @classmethod
     def set_known_elements(cls, elements: list) -> None:
+        """
+        Set the list of known elements to new list
+
+        Args:
+            elements (list): names of elements
+
+        Raises:
+            TypeError: If argument is not a list
+
+        Returns:
+            list: the current list of known elements
+        """
+        if not isinstance(elements, list):
+            raise TypeError(f"{elements} is not a list")
+
         cls._known_elements.clear()
         cls._known_elements.extend(elements)
         cls._check_elements()
 
     @classmethod
     def set_known_pseudoelements(cls, pelements: list) -> None:
+        """
+        Set the list of known pseudo elements to new list
+
+        Args:
+            pelements (list): names of pseudo elements
+
+        Raises:
+            TypeError: If argument is not a list
+
+        Returns:
+            list: the current list of known pseudo elements
+        """
+        if not isinstance(pelements, list):
+            raise TypeError(f"{pelements} is not a list")
+
         cls._known_pseudoelements.clear()
         cls._known_pseudoelements.extend(pelements)
         cls._check_elements()

@@ -45,3 +45,18 @@ else()
     )
 endif()
 
+if(MAKE_PYTHON)
+    configure_file(test.py.in test.py)
+
+    if( ${NVIDIA_GPU_COUNT} OR NOT ("CUDA" IN_LIST languages) )
+        add_test(
+            NAME
+                test_pymodule
+            COMMAND
+                ${CMAKE_COMMAND} -E env 
+                    CHEMISTRY_MODULE_PATH=$<TARGET_FILE_DIR:${PYMODNAME}>
+                    NAUNET_CONFIG_PATH=${CMAKE_SOURCE_DIR}
+                ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/test.py
+        )
+    endif()
+endif()
