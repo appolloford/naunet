@@ -243,12 +243,12 @@ class Network:
 
         return self._info
 
-    def patchmaker(self, target: str, *args, **kwargs):
+    def patchmaker(self, target: str, device: str, *args, **kwargs):
 
         if self._info and self._patchmaker:
             return self._patchmaker
 
-        self._patchmaker = PatchMaker(self.info, target, *args, **kwargs)
+        self._patchmaker = PatchMaker(self.info, target, device, *args, **kwargs)
         return self._patchmaker
 
     def templateloader(self, solver: str, method: str, device: str):

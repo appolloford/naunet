@@ -11,12 +11,13 @@ class PatchMaker:
         self,
         netinfo: object,
         couple: str,
+        device: str,
         *args,
         **kwargs,
     ) -> None:
 
         if couple.lower() == "enzo":
-            self.patchtemplateloader = EnzoPatch(netinfo, *args, **kwargs)
+            self.patchtemplateloader = EnzoPatch(netinfo, device, *args, **kwargs)
         else:
             raise ValueError("Not supported target!")
 
@@ -79,6 +80,7 @@ class EnzoPatch:
     def __init__(
         self,
         netinfo: object,
+        device: str,
         defined_species: list = None,
         startidx: int = 104,
     ) -> None:
@@ -90,6 +92,7 @@ class EnzoPatch:
         self._env.rstrip_blocks = True
 
         self.netinfo = netinfo
+        self.device = device
 
         # filter the enzo-defined species if species are not in current network
         specname_in_network = [s.name for s in self.netinfo.species]
@@ -285,21 +288,37 @@ class EnzoPatch:
         declare = ", ".join(specnum)
         initial = " = ".join([*specnum, "0"])
 
-        # In Enzo, electron has the same mass number as hydrogen
-        abund = [
-            f"y[IDX_{s.alias}] =  BaryonField[{n}][i] / 1.0"
-            if s.name in ["e-", "E-"]
-            else f"y[IDX_{s.alias}] =  BaryonField[{n}][i] / {s.massnumber}"
-            for s, n in zip(self.netinfo.species, specnum)
-        ]
-        invabund = [
-            f"BaryonField[{n}][i] = y[IDX_{s.alias}] * 1.0"
-            if s.name in ["e-", "E-"]
-            else f"BaryonField[{n}][i] = y[IDX_{s.alias}] * {s.massnumber}"
-            for s, n in zip(self.netinfo.species, specnum)
-        ]
+        if self.device == "cpu":
+            # In Enzo, electron has the same mass number as hydrogen
+            abund = [
+                f"y[IDX_{s.alias}] =  BaryonField[{n}][i] / 1.0"
+                if s.name in ["e-", "E-"]
+                else f"y[IDX_{s.alias}] =  BaryonField[{n}][i] / {s.massnumber}"
+                for s, n in zip(self.netinfo.species, specnum)
+            ]
+            invabund = [
+                f"BaryonField[{n}][i] = y[IDX_{s.alias}] * 1.0"
+                if s.name in ["e-", "E-"]
+                else f"BaryonField[{n}][i] = y[IDX_{s.alias}] * {s.massnumber}"
+                for s, n in zip(self.netinfo.species, specnum)
+            ]
+
+        else:
+            abund = [
+                f"y[sidx + IDX_{s.alias}] =  BaryonField[{n}][i] / 1.0"
+                if s.name in ["e-", "E-"]
+                else f"y[sidx + IDX_{s.alias}] =  BaryonField[{n}][i] / {s.massnumber}"
+                for s, n in zip(self.netinfo.species, specnum)
+            ]
+            invabund = [
+                f"BaryonField[{n}][i] = y[sidx + IDX_{s.alias}] * 1.0"
+                if s.name in ["e-", "E-"]
+                else f"BaryonField[{n}][i] = y[sidx + IDX_{s.alias}] * {s.massnumber}"
+                for s, n in zip(self.netinfo.species, specnum)
+            ]
 
         result = template.render(
+            device=self.device,
             declare=declare,
             initial=initial,
             abund=abund,

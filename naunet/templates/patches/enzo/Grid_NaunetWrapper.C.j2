@@ -193,16 +193,22 @@ int grid::NaunetWrapper()
     ENZO_FAIL("Error in grid->ComputeTemperatureField.");
   }
 
+  float NumberDensityUnits = DensityUnits / mh;
+
   Naunet naunet;
   naunet.initSolver();
 
+  // TODO: comoving, heating/cooling
+  {% if device == "cpu" %}
+
+  // Set your parameters here
   NaunetData data;
+
   float y[NAUNET_NSPECIES];
 
-  float NumberDensityUnits = DensityUnits / mh;
-
-  // TODO: comoving, heating/cooling
   for (i=0; i<size; i++) {
+    data.nH = BaryonField[iden][i] / (Mu * mh);
+
     {% for ab in abund -%}
       {{ ab }} * NumberDensityUnits;
     {% endfor -%}
@@ -213,6 +219,45 @@ int grid::NaunetWrapper()
       {{ iab }} / NumberDensityUnits;
     {% endfor -%}
   }
+  
+  {% else %}
+
+  int cur = 0, sidx;
+
+  while (cur < size) {
+    int nsystem = MAXNGROUPS;
+    if (size - cur < MAXNGROUPS) {
+      nsystem = size - cur;
+      naunet.resetSolver(nsystem);
+    }
+    cur += MAXNGROUPS;
+
+    // set your parameters here
+    NaunetData *data = new NaunetData[nsystem];
+    for (i=0; i<nsystem; i++) {
+      data[i].nH = BaryonField[iden][i] / (Mu * mh);
+    }
+
+    float *y = new double[nsystem * NSPECIES];
+
+    for (sidx=0, i=cur; i<cur+nsystem; sidx+=NSPECIES, i++) {
+      {% for ab in abund -%}
+        {{ ab }} * NumberDensityUnits;
+      {% endfor -%}
+    }
+
+    naunet.solve(y, dt_chem * TimeUnits, data);
+
+    for (sidx=0, i=cur; i<cur+nsystem; sidx+=NSPECIES, i++) {
+      {% for iab in invabund -%}
+        {{ iab }} / NumberDensityUnits;
+      {% endfor -%}
+    }
+  }
+
+  naunet.resetSolver(MAXNGROUPS);
+
+  {% endif %}
 
   if (HydroMethod != Zeus_Hydro) {
     for (i = 0; i < size; i++) {

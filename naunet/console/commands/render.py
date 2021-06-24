@@ -115,7 +115,7 @@ class RenderCommand(Command):
 
         # Don't change the include/src/test when rendering patches
         if patch:
-            pm = net.patchmaker(patch)
+            pm = net.patchmaker(patch, device)
             pm.render(os.path.join(Path.cwd(), patch))
             return
 
