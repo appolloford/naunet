@@ -32,6 +32,7 @@ class InitCommand(Command):
         {--dust= : Type of dust model}
         {--binding= : List of binding energy of ice species}
         {--yield= : List of photodesorption yields of ice species}
+        {--shielding= : List of shielding functions}
         {--rate-modifier=* : List of reaction rates to be changed}
         {--ode-modifier=* : List of ODEs to be changed}
         {--solver=cvode : ODE solver}
@@ -195,6 +196,16 @@ class InitCommand(Command):
             yields.update(yield_list)
 
         chemistry.add("photon_yield", yields)
+
+        shielding = table()
+
+        shielding_list = self.option("shielding")
+        if shielding_list:
+            shielding_list = shielding_list.split(",")
+            shielding_list = [it.split(":") for it in shielding_list]
+            shielding.update({it[0].strip(): it[1].strip() for it in shielding_list})
+
+        chemistry.add("shielding", shielding)
 
         rate_modifier = self.option("rate-modifier")
         if rate_modifier:

@@ -97,9 +97,9 @@ class TemplateLoader:
         mantles = mantles if mantles else "0.0"
         self._physics = self.PhysicsContent(
             mantles,
-            h2shielding="L96Table",
-            coshielding="V09Table",
-            n2shielding="L13Table",
+            h2shielding=netinfo.shielding.get("H2", ""),
+            coshielding=netinfo.shielding.get("CO", ""),
+            n2shielding=netinfo.shielding.get("N2", ""),
         )
 
         reactconsts = {

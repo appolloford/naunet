@@ -180,6 +180,7 @@ class ExampleCommand(Command):
             option += (
                 f" --yield={','.join(f'{s}={sv}' for s, sv in photon_yield.items())}"
             )
+            option += " --shielding='H2: L96Table, CO: V09Table, N2: L13Table'"
             option += " --rate-modifier='k[8273] = 0.0'"
             option += " --ode-modifier='double garea = (4*pi*rG*rG) * (y[IDX_GRAIN0I]+y[IDX_GRAINM])'"
             option += " --ode-modifier='double stick1 = (1.0 / (1.0 + 4.2e-2*sqrt(Tgas+Tdust) + 2.3e-3*Tgas - 1.3e-7*Tgas*Tgas))'"
@@ -203,6 +204,7 @@ class ExampleCommand(Command):
             option += (
                 f" --yield={','.join(f'{s}={sv}' for s, sv in photon_yield.items())}"
             )
+            option += " --shielding='H2: L96Table, CO: V09Table, N2: L13Table'"
             option += " --rate-modifier='k[8273] = 0.0'"
             option += " --ode-modifier='double garea = (4*pi*rG*rG) * (y[IDX_GRAIN0I]+y[IDX_GRAINM])'"
             option += " --ode-modifier='double stick1 = (1.0 / (1.0 + 4.2e-2*sqrt(Tgas+Tdust) + 2.3e-3*Tgas - 1.3e-7*Tgas*Tgas))'"
@@ -226,6 +228,7 @@ class ExampleCommand(Command):
             option += (
                 f" --yield={','.join(f'{s}={sv}' for s, sv in photon_yield.items())}"
             )
+            option += " --shielding='H2: L96Table, CO: V09Table, N2: L13Table'"
             option += " --rate-modifier='k[8273] = 0.0'"
             option += " --ode-modifier='double garea = (4*pi*rG*rG) * (y[IDX_GRAIN0I]+y[IDX_GRAINM])'"
             option += " --ode-modifier='double stick1 = (1.0 / (1.0 + 4.2e-2*sqrt(Tgas+Tdust) + 2.3e-3*Tgas - 1.3e-7*Tgas*Tgas))'"

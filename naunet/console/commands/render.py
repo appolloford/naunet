@@ -46,6 +46,7 @@ class RenderCommand(Command):
         dust = chemistry["dust"]
         binding = chemistry["binding_energy"]
         yields = chemistry["photon_yield"]
+        shielding = chemistry["shielding"]
         rate_modifier = chemistry["rate_modifier"]
         ode_modifier = chemistry["ode_modifier"]
 

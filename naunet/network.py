@@ -25,7 +25,19 @@ supported_reaction_class = {
 }
 
 
-def reaction_factory(react_string: str, database: str, dust: Dust = None) -> Reaction:
+def _reaction_factory(react_string: str, database: str, dust: Dust = None) -> Reaction:
+    """
+    Factory of reactions
+
+    Args:
+        react_string (str): the reactions read from file
+        database (str): the source of the reaction, use to interpret string format
+        dust (Dust, optional): the associated dust model, if any. Defaults to None.
+
+    Returns:
+        Reaction: a reaction object
+    """
+
     initializer = supported_reaction_class.get(database)
     react_string = initializer.preprocessing(react_string)
     if react_string:
@@ -34,6 +46,13 @@ def reaction_factory(react_string: str, database: str, dust: Dust = None) -> Rea
 
 
 def define_reaction(name: str):
+    """
+    Decorator for users to add customized reaction class
+
+    Args:
+        name (str): name of the class / source database of the reaction
+    """
+
     def insert_class(reactcls: object):
         supported_reaction_class.update({name: reactcls})
 
@@ -48,6 +67,7 @@ class Network:
             reactions: list,
             databases: list,
             dust: Dust = None,
+            shielding: dict = None,
             odemodifier: list = None,
             ratemodifier: list = None,
         ) -> None:
@@ -58,10 +78,19 @@ class Network:
             self.reactions = reactions
             self.databases = databases
             self.dust = dust
+            self.shielding = shielding
             self.odemodifier = odemodifier
             self.ratemodifier = ratemodifier
 
-    def __init__(self, species: list = None, dusttype: str = None) -> None:
+    # TODO: heating/cooling have not been implemented
+    def __init__(
+        self,
+        species: list = None,
+        heating: list = None,
+        cooling: list = None,
+        shielding: dict = None,
+        dusttype: str = None,
+    ) -> None:
 
         self.database_list = set()
         self.reaction_list = []
@@ -76,10 +105,11 @@ class Network:
         self._templateloader = None
 
         self._dust = supported_dust_model.get(dusttype)
+        self._shielding = shielding if shielding else {}
 
     def _add_reaction(self, react_string: str, database: str) -> list:
 
-        reaction = reaction_factory(react_string, database, self._dust)
+        reaction = _reaction_factory(react_string, database, self._dust)
 
         # return empty set for updating if it is a fake react_string
         if not reaction:
@@ -226,6 +256,7 @@ class Network:
             self.reaction_list,
             databaselist,
             dust=self.dust,
+            shielding=self._shielding,
             odemodifier=self.ode_modifier,
             ratemodifier=self.rate_modifier,
         )
