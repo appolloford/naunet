@@ -22,9 +22,9 @@ target_link_libraries(test_singlegrid.x ${NAUNETLIB})
 
 if("CUDA" IN_LIST languages)
     # if CUDA is on, parallel test should be included
-    add_executable(test_parallel.x parallel.cpp)
-    target_include_directories(test_parallel.x PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
-    target_link_libraries(test_parallel.x ${NAUNETLIB})
+    add_executable(test_multiplegrid.x multiplegrid.cpp)
+    target_include_directories(test_multiplegrid.x PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
+    target_link_libraries(test_multiplegrid.x ${NAUNETLIB})
 
     # test if gpu device is found when CUDA is enabled
     if(${NVIDIA_GPU_COUNT})
@@ -33,8 +33,8 @@ if("CUDA" IN_LIST languages)
             COMMAND $<TARGET_FILE:test_singlegrid.x>
         )
         add_test(
-            NAME test_parallel
-            COMMAND $<TARGET_FILE:test_parallel.x>
+            NAME test_multiplegrid
+            COMMAND $<TARGET_FILE:test_multiplegrid.x>
         )
     endif()
 else()

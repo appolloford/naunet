@@ -49,8 +49,8 @@ int main()
     for (int isys = 0; isys < nsystem; isys++)
     {
         data[isys].nH = rawdata[isys][0];
-        // data[isys].Tgas = rawdata[isys][1];
-        data[isys].Tgas = 15.0;
+        data[isys].Tgas = rawdata[isys][1];
+        // data[isys].Tgas = 15.0;
         data[isys].user_Av = 30.0;
         data[isys].user_crflux = 2.5e-17;
         data[isys].user_GtoDN = (4.e0 * pi * rhoD * rD * rD * rD) / (3.e0 * DtoGM * amH);
