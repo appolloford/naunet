@@ -9,6 +9,7 @@ private:
     bool m_status;
     std::chrono::time_point<std::chrono::high_resolution_clock> m_start;
     std::chrono::time_point<std::chrono::high_resolution_clock> m_end;
+    std::chrono::duration<double> m_duration;
 
 public:
     void start()
@@ -26,9 +27,11 @@ public:
         m_start = std::chrono::high_resolution_clock::now();
         m_status = false;
     }
-    int elapsed()
+    double elapsed()
     {
-        return std::chrono::duration_cast<std::chrono::microseconds>(m_end-m_start).count();
+        // return std::chrono::duration_cast<std::chrono::microseconds>(m_end-m_start).count();
+        m_duration = m_end - m_start;
+        return m_duration.count();
     };
 };
 

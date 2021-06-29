@@ -115,7 +115,8 @@ int main()
 
         time += dtyr;
 
-        float duration = (float)timer.elapsed() / 1e6;
+        // float duration = (float)timer.elapsed() / 1e6;
+        double duration = timer.elapsed();
         fprintf(ttxt, "%8.5e \n", duration);
         printf("Time = %13.7e yr, elapsed: %8.5e sec\n", time, duration);
     }
