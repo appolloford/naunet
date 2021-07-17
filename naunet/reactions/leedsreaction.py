@@ -77,6 +77,7 @@ class LEEDSReaction(Reaction):
         "DustTemperature": "Tdust",
         "VisualExtinction": "Av",
         "G0": "G0",
+        "DustGrainAlbedo": "omega",
     }
     user_var = [
         "double h2col = 0.5*1.59e21*Av",
@@ -109,6 +110,7 @@ class LEEDSReaction(Reaction):
         b = self.beta
         c = self.gamma
         rtype = self.rtype
+        dust = self.dust if self.dust else None
 
         cr = LEEDSReaction.varis.get("CRIR")
         xr = LEEDSReaction.varis.get("XRAY")
@@ -116,109 +118,99 @@ class LEEDSReaction(Reaction):
         Tdust = LEEDSReaction.varis.get("DustTemperature")
         Av = LEEDSReaction.varis.get("VisualExtinction")
         G0 = LEEDSReaction.varis.get("G0")
+        albedo = LEEDSReaction.varis.get("DustGrainAlbedo")
         zism = LEEDSReaction.consts.get("zism")
         habing = LEEDSReaction.consts.get("habing")
         crphot = LEEDSReaction.consts.get("crphot")
 
-        if self.dust:
-            re1 = self.reactants[0]
-            if self.rtype in [13, 14]:
-                re2 = self.reactants[1]
-            rg = self.dust.varis.get("Radius")
-            albedo = self.dust.varis.get("Albedo")
-            sites = self.dust.varis.get("SurfaceSites")
-            hop = self.dust.varis.get("HOPRatio")
-            nmono = self.dust.varis.get("MonoLayers")
-            duty = self.dust.varis.get("DutyCycle")
-            Tcr = self.dust.varis.get("CRDesorptionTemperature")
-            branch = self.dust.varis.get("BranchRatio")
+        re1 = self.reactants[0]
+        re2 = self.reactants[1] if len(self.reactants) > 1 else None
 
+        # two-body gas-phase reaction
         if rtype == 1:
             rate = f"{a} * pow({Tgas}/300.0, {b}) * exp(-{c}/{Tgas})"
+
+        # direct cosmic-ray ionisation
         elif rtype == 2:
             rate = f"{a} * ({cr} + {xr}) / {zism}"
+
+        # cosmic-ray-induced photoreaction
         elif rtype == 3:
             rate = f"{a} * (({cr} + {xr}) / {zism}) * pow({Tgas}/300.0, {b}) * {c} / (1.0 - {albedo})"
+
+        # photoreaction
         elif rtype == 4:
             rate = f"{G0} * {a} * exp(-{c}*{Av})"
             if re1.name in ["H2", "CO", "N2"]:
                 shield = f"shieldingfactor(IDX_{re1.alias}, h2col, {re1.name.lower()}col, {Tgas}, 0)"
                 rate = f"{rate} * {shield}"
+
+        # TODO:
+        # direct X-ray ionisation
         elif rtype == 5:
-            # TODO: X-ray
             rate = "0.0"
+
+        # cation-grain recombination
         elif rtype == 6:
-            rate = f"{a} * pi * pow({rg}, 2.0) * gdens * sqrt(8.0*kerg*{Tgas}/(pi*amu*{c})) * (1.0+pow(echarge, 2)/{rg}/kerg/{Tgas}) * (1.0 + sqrt(2.0*pow(echarge, 2.0)/({rg}*kerg*{Tgas}+2.0*pow(echarge, 2.0))))"
+            rate = dust.rate_recombination(a, b, c, Tgas)
+
+        # accretion
         elif rtype == 7:
-            rate = f"{a} * pi * pow({rg}, 2.0) * gdens * sqrt(8.0 * kerg * {Tgas}/ (pi*amu*{c}))"
+            rate = dust.rate_depletion(a, b, c, Tgas)
+
+        # thermal desorption
         elif rtype == 8:
-            rate = f"sqrt(2.0*{sites}*kerg*eb_{re1.alias}/(pi*pi*amu*{c})) * {nmono} * densites * exp(-eb_{re1.alias}/{Tdust})"
+            rate = dust.rate_desorption(re1, a, b, c, tdust=Tdust, destype="thermal")
+
+        # cosmic-ray-induced thermal desorption
         elif rtype == 9:
-            rate = f"({cr}/{zism}) * {duty} * sqrt(2.0*{sites}*kerg*eb_{re1.alias}/(pi*pi*amu*{c})) * {nmono} * densites * exp(-eb_{re1.alias}/{Tcr})"
+            rate = dust.rate_desorption(
+                re1, a, b, c, zeta=f"{cr}/{zism}", destype="cosmicray"
+            )
             rate = "0.0"
+
+        # photodesorption
         elif rtype == 10:
             uvphot = f"{G0}*{habing}*exp(-{Av}*3.02) + {crphot} * {cr}/{zism}"
-            rate = f"({uvphot}) * {re1.photon_yield} * {nmono} * garea"
+            rate = dust.rate_desorption(re1, a, b, c, uvphot=uvphot, destype="photon")
+
+        # grain-surface cosmic-ray-induced photoreaction
         elif rtype == 11:
-            rate = f"{a} * ({xr}+{cr})/{zism} * pow({Tgas}/300.0, {b}) * {c} / (1.0 - {albedo})"
+            zeta = f"({xr}+{cr})/{zism}"
+            rate = f"{a} * ({zeta}) * pow({Tgas}/300.0, {b}) * {c} / (1.0 - {albedo})"
+
+        # grain-surface photoreaction
         elif rtype == 12:
             rate = f"{G0} * {a} * exp(-{c}*{Av})"
             if re1.name in ["GH2", "GCO", "GN2"]:
-                shield = f"shieldingfactor(IDX_{re1.alias[1:]}, h2col, {re1.name[1:].lower()}col, {Tgas}, 0)"
+                spidx = f"IDX_{re1.alias[1:]}"
+                coldens = f"{re1.name[1:].lower()}col"
+                shield = f"shieldingfactor({spidx}, h2col, {coldens}, {Tgas}, 0)"
                 rate = f"{rate} * {shield}"
+
+        # two-body grain-surface reaction
         elif rtype == 13:
-            afreq = f"freq * sqrt({re1.binding_energy}/{re1.massnumber})"
-            adiff = f"{afreq} * exp(-{re1.binding_energy}*{hop}/{Tdust})/unisites"
-            aquan = f"{afreq} * exp(quan * sqrt({hop}*{re1.massnumber}*{re1.binding_energy})) / unisites"
+            rate = dust.rate_surface2(re1, re2, a, b, c, Tdust)
 
-            bfreq = f"freq * sqrt({re2.binding_energy}/{re2.massnumber})"
-            bdiff = f"{bfreq} * exp(-{re2.binding_energy}*{hop}/{Tdust})/unisites"
-            bquan = f"{bfreq} * exp(quan * sqrt({hop}*{re2.massnumber}*{re2.binding_energy})) / unisites"
-
-            kappa = f"exp(-{a}/{Tdust})"
-            kquan = f"exp(quan * sqrt((({re1.massnumber}*{re2.massnumber})/({re1.massnumber}+{re2.massnumber}))*{a}))"
-
-            if re1.name in ["GH", "GH2"] and re2.name in ["GH", "GH2"]:
-                rate = f"fmax({kappa}, {kquan})*(fmax({adiff}, {aquan})+fmax({bdiff}, {bquan}))*pow(({nmono}*densites), 2.0)/gdens"
-            elif re1.name in ["GH", "GH2"]:
-                rate = f"fmax({kappa}, {kquan})*(fmax({adiff}, {aquan})+{bdiff})*pow(({nmono}*densites), 2.0)/gdens"
-            elif re2.name in ["GH", "GH2"]:
-                rate = f"fmax({kappa}, {kquan})*({adiff}+fmax({bdiff}, {bquan}))*pow(({nmono}*densites), 2.0)/gdens"
-            else:
-                rate = f"{kappa}*({adiff}+{bdiff})*pow(({nmono}*densites), 2.0)/gdens"
+        # reactive desorption
         elif rtype == 14:
+            rate = dust.rate_surface2(re1, re2, a, b, c, Tdust, reacdes=True)
 
-            afreq = f"freq * sqrt({re1.binding_energy}/{re1.massnumber})"
-            adiff = f"{afreq} * exp(-{re1.binding_energy}*{hop}/{Tdust})/unisites"
-            aquan = f"{afreq} * exp(quan * sqrt({hop}*{re1.massnumber}*{re1.binding_energy})) / unisites"
-
-            bfreq = f"freq * sqrt({re2.binding_energy}/{re2.massnumber})"
-            bdiff = f"{bfreq} * exp(-{re2.binding_energy}*{hop}/{Tdust})/unisites"
-            bquan = f"{bfreq} * exp(quan * sqrt({hop}*{re2.massnumber}*{re2.binding_energy})) / unisites"
-
-            kappa = f"exp(-{a}/{Tdust})"
-            kquan = f"exp(quan * sqrt((({re1.massnumber}*{re2.massnumber})/({re1.massnumber}+{re2.massnumber}))*{a}))"
-
-            if re1.name in ["GH", "GH2"] and re2.name in ["GH", "GH2"]:
-                rate = f"fmax({kappa}, {kquan})*(fmax({adiff}, {aquan})+fmax({bdiff}, {bquan}))*pow(({nmono}*densites), 2.0)/gdens"
-            elif re1.name in ["GH", "GH2"]:
-                rate = f"fmax({kappa}, {kquan})*(fmax({adiff}, {aquan})+{bdiff})*pow(({nmono}*densites), 2.0)/gdens"
-            elif re2.name in ["GH", "GH2"]:
-                rate = f"fmax({kappa}, {kquan})*({adiff}+fmax({bdiff}, {bquan}))*pow(({nmono}*densites), 2.0)/gdens"
-            else:
-                rate = f"{kappa}*({adiff}+{bdiff})*pow(({nmono}*densites), 2.0)/gdens"
-            rate = f"{branch} * {rate}"
+        # three-body association *
+        # collisional dissociation *
+        # collisional de-excitation of H2* *
+        # Lyman-alpha photoreaction *
+        # radiative de-excitation of H2* *
         elif rtype in range(15, 20):
             rate = "0.0"
+
+        # grain electron capture rate
         elif rtype == 20:
-            rate = f"pi * {rg} * {rg} * sqrt(8.0*kerg*{Tgas}/pi/amu/meu)"
+            rate = dust.rate_electroncapture(Tgas)
         else:
             raise RuntimeError(
                 f"Type {rtype} has not been defined! Please extend the definition"
             )
-
-        nsurface = len([r for r in self.reactants if r.is_surface])
-        rate = rate + "*cov" * nsurface if rtype not in [11, 12] else rate
 
         rate = self._beautify(rate)
         return rate

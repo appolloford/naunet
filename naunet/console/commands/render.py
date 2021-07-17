@@ -109,7 +109,7 @@ class RenderCommand(Command):
         header_prefix = os.path.join(Path.cwd(), "include")
         source_prefix = os.path.join(Path.cwd(), "src")
 
-        net = Network(species=species, dusttype=dust["type"])
+        net = Network(species=species, dusttype=dust["type"], shielding=shielding)
         net.add_reaction_from_file(network, database)
         net.rate_modifier = rate_modifier
         net.ode_modifier = ode_modifier

@@ -104,7 +104,8 @@ class Network:
         self._patchmaker = None
         self._templateloader = None
 
-        self._dust = supported_dust_model.get(dusttype)
+        # Instantiate a dust model
+        self._dust = supported_dust_model.get(dusttype)()
         self._shielding = shielding if shielding else {}
 
     def _add_reaction(self, react_string: str, database: str) -> list:
@@ -150,17 +151,6 @@ class Network:
         self._info = None
 
     def add_reaction_from_file(self, filename: str, database: str) -> None:
-
-        if not filename:
-            logger.critical("No file assigned!")
-
-        if not database:
-            logger.critical(
-                """
-                Try to read in file but database is not assigned. 
-                Try again by "add_reaction_from_file"
-                """
-            )
 
         self.database_list.update({database})
         new_species = set()
