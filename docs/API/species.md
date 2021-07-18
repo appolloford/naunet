@@ -1,3 +1,4 @@
-# species module
+# Species Module
 
 ::: naunet.species
+

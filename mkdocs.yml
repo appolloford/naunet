@@ -9,6 +9,6 @@ plugins:
 
 nav:
   - Home: index.md
-  # - Installation: installation.md
   - API References:
     - species: API/species.md
+    - reaction: API/reaction.md

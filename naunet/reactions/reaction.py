@@ -50,7 +50,8 @@ class ReactionType(IntEnum):
 
 class Reaction(ABC):
     """
-    Interface of reaction
+    Abstract interface of reaction. Inherit this class to customize a new
+    reaction definition.
     """
 
     consts = {}
@@ -115,11 +116,13 @@ class Reaction(ABC):
         """
         Beautify the reaction rate string
 
-        :param rate_string: reaction rate string expression
-        :type rate_string: str
-        :return: beautified string
-        :rtype: str
+        Args:
+            rate_string (str): reaction rate expression
+
+        Returns:
+            str: beautified reaction rate expression
         """
+
         rate = (
             rate_string.replace("++", "+")
             .replace("--", "+")
@@ -132,59 +135,70 @@ class Reaction(ABC):
     def _parse_string(self, react_string) -> None:
         """
         Abstract method. It should be implemented by child class.
-        Called by __init__. Parsing the input string to set the
+        Called in __init__. Parsing the input string to set the
         reactants, product, reaction rate function, etc.
         """
+
         raise NotImplementedError
 
-    def create_species(self, species_name: str) -> object:
+    def create_species(self, species_name: str) -> Species:
         """
-        Create a Species instance if the name is not a pseudo element (e.g. CR, CRPHOT), else return None
+        Create a Species instance if the name is not a pseudo element
+        (e.g. CR, CRPHOT), else return None
 
-        :param species_name: the name of the species
-        :type species_name: str
-        :return: Species object
-        :rtype: object
+        Args:
+            species_name (str): name of species
+
+        Returns:
+            Species: Species instance of the input name
         """
+
         if species_name and species_name not in Species.known_pseudoelements():
             return Species(species_name)
 
     @classmethod
     def initialize(cls) -> None:
         """
-        Interface. Change global settings / class attributes if needed
+        Change settings / class attributes if needed
         """
+
         pass
 
     @classmethod
     def finalize(cls) -> None:
         """
-        Interface. Reset global settings / class attributes if needed
+        Reset settings / class attributes if needed
         """
+
         pass
 
     @classmethod
     def preprocessing(cls, line: str) -> str:
         """
-        Interface. Preprocess the input reaction string before initialize a reaction.
-        Called in Network class
+        Preprocess the input reaction string before initialize a reaction.
+        Called in Network class to deal with input with special meanings.
 
-        :param line: reaction string
-        :type line: str
-        :return: proceeded string
-        :rtype: str
+        Args:
+            line (str): input string of a reaction
+
+        Returns:
+            str: proceeded input string
         """
+
         return line
 
     def rpeq(self, o: object) -> bool:
         """
         Compare two reactions by their reactants and products.
 
-        :param o: Another reaction
-        :type o: object
-        :return: True if two reactions have the same reactants and products
-        :rtype: bool
+        Args:
+            o (object): other reaction instance
+
+        Returns:
+            bool: True if the reactants and products are the same in two
+            reactions. Otherwise False
         """
+
         return Counter(self.reactants) == Counter(o.reactants) and Counter(
             self.products
         ) == Counter(o.products)
@@ -192,7 +206,11 @@ class Reaction(ABC):
     @abstractmethod
     def rate_func(self):
         """
-        Abstract method. It should be implemented by child class.
-        Return the rate function string.
+        Abstract method should be implemented by child class. Return the
+        reaction rate expression.
+
+        Raises:
+            NotImplementedError
         """
+
         raise NotImplementedError
