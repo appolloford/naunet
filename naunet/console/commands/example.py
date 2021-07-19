@@ -20,6 +20,7 @@ class ExampleCommand(Command):
     Render source codes according to the project setting
 
     example
+        {--show : show the full command only}
         {--select= : select the example}
         {--dest= : the destination directory, created if not existed}
     """
@@ -59,19 +60,6 @@ class ExampleCommand(Command):
         else:
             case = self.choice("Choose an example network", networklist, 0)
 
-        # Check whether the test folder exists
-        prefix = os.path.join(destination_path, "test")
-
-        if os.path.exists(prefix):
-            if not os.path.isdir(prefix):
-                raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), prefix)
-
-            elif os.listdir(prefix):
-                overwrite = self.confirm(f"Non-empty test directory. Overwrite?", False)
-
-                if not overwrite:
-                    sys.exit()
-
         element = []
         pseudo_element = []
         species = []
@@ -108,21 +96,6 @@ class ExampleCommand(Command):
             photon_yield = ism_yield
             network_source = ism_path
 
-        # copy network file and test
-        for file in os.listdir(network_source):
-
-            # skip __init__.py and __pycache__
-            if not file.startswith("__"):
-
-                src = os.path.join(network_source, file)
-                dest = os.path.join(destination_path, file)
-
-                if os.path.isdir(src):
-                    shutil.copytree(src, dest, dirs_exist_ok=True)
-
-                elif os.path.isfile(src):
-                    shutil.copyfile(src, dest)
-
         name = destination if destination else Path.cwd().name.lower()
 
         # TODO: improve the way to create project in a new directory
@@ -136,8 +109,6 @@ class ExampleCommand(Command):
             option += " --network=deuterium.krome --database=krome"
             option += " --solver=cvode --device=cpu --method=dense --render"
 
-            self.call("init", option)
-
         elif case == networklist[1]:
 
             option = f"--name={name} --description=example"
@@ -145,8 +116,6 @@ class ExampleCommand(Command):
             option += f" --species={','.join(species)}"
             option += " --network=deuterium.krome --database=krome"
             option += " --solver=cvode --device=cpu --method=sparse --render"
-
-            self.call("init", option)
 
         elif case == networklist[2]:
 
@@ -156,8 +125,6 @@ class ExampleCommand(Command):
             option += " --network=deuterium.krome --database=krome"
             option += " --solver=cvode --device=cpu --method=cusparse --render"
 
-            self.call("init", option)
-
         elif case == networklist[3]:
 
             option = f"--name={name} --description=example"
@@ -165,8 +132,6 @@ class ExampleCommand(Command):
             option += f" --species={','.join(species)}"
             option += " --network=deuterium.krome --database=krome"
             option += " --solver=odeint --device=cpu --method=rosenbrock4 --render"
-
-            self.call("init", option)
 
         elif case == networklist[4]:
 
@@ -190,8 +155,6 @@ class ExampleCommand(Command):
             option += " --ode-modifier='ydot[IDX_H2I] += 0.5*hloss*y[IDX_HI]; ydot[IDX_HI] -= hloss*y[IDX_HI]'"
             option += " --solver=cvode --device=cpu --method=dense --render"
 
-            self.call("init", option)
-
         elif case == networklist[5]:
 
             option = f"--name={name} --description=example"
@@ -214,8 +177,6 @@ class ExampleCommand(Command):
             option += " --ode-modifier='ydot[IDX_H2I] += 0.5*hloss*y[IDX_HI]; ydot[IDX_HI] -= hloss*y[IDX_HI]'"
             option += " --solver=cvode --device=cpu --method=sparse --render"
 
-            self.call("init", option)
-
         elif case == networklist[6]:
 
             option = f"--name={name} --description=example"
@@ -237,5 +198,42 @@ class ExampleCommand(Command):
             option += " --ode-modifier='double hloss = stick * garea/4.0 * sqrt(8.0*kerg*Tgas/(pi*amu))'"
             option += " --ode-modifier='ydot[IDX_H2I] += 0.5*hloss*y[IDX_HI]; ydot[IDX_HI] -= hloss*y[IDX_HI]'"
             option += " --solver=cvode --device=cpu --method=cusparse --render"
+
+        if self.option("show"):
+            print("naunet init ", option)
+
+        else:
+
+            # Check whether the test folder exists
+            prefix = os.path.join(destination_path, "test")
+
+            if os.path.exists(prefix):
+                if not os.path.isdir(prefix):
+                    raise FileNotFoundError(
+                        errno.ENOENT, os.strerror(errno.ENOENT), prefix
+                    )
+
+                elif os.listdir(prefix):
+                    overwrite = self.confirm(
+                        f"Non-empty test directory. Overwrite?", False
+                    )
+
+                    if not overwrite:
+                        sys.exit()
+
+            # copy network file and test
+            for file in os.listdir(network_source):
+
+                # skip __init__.py and __pycache__
+                if not file.startswith("__"):
+
+                    src = os.path.join(network_source, file)
+                    dest = os.path.join(destination_path, file)
+
+                    if os.path.isdir(src):
+                        shutil.copytree(src, dest, dirs_exist_ok=True)
+
+                    elif os.path.isfile(src):
+                        shutil.copyfile(src, dest)
 
             self.call("init", option)
