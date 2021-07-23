@@ -8,7 +8,7 @@ The idea of Naunet is acting as a code-generator to generate C++ codes according
 
 ## System requirements
 
-Naunet requires Python 3.8+ and SUNDIALS > 5.6.1 (or 1.65.0 < Boost < 1.75.0, depending the ODE solver). We recommend users to start from SUNDIALS 5.7.0, which has been tested in the Github environment. Only CVODE is used in the projects, so it should be possible to only install CVODE. If you are using KLU solver, SuiteSparse is required by SUNDIALS. Similarly, if you are using the cuSolverSp_batchQR solver, then CUDA is required by SUNDIALS.
+Naunet requires Python 3.8+, CMake 3.18+, and a compiler supporting C++11. Depending on the solver, users also have to install SUNDIALS > 5.6.1 or 1.65.0 < Boost < 1.75.0. We recommend users to start from SUNDIALS 5.7.0, which has been tested in the Github environment. Only CVODE is used in the projects, so it should be possible to only install CVODE. If you are using KLU solver, SuiteSparse is required by SUNDIALS. Similarly, if you are using the cuSolverSp_batchQR solver, then CUDA is required by SUNDIALS.
 
 ## Installation
 

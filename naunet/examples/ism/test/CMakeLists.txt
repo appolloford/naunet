@@ -1,49 +1,71 @@
 if(MAKE_SHARED)
-    set(NAUNETLIB ${NAUNETLIB_SHARED})
+    set(NAUNETLIB naunet_shared)
 elseif(MAKE_STATIC)
-    set(NAUNETLIB ${NAUNETLIB_STATIC})
+    set(NAUNETLIB naunet_static)
 endif()
 
 # check enabled languages
-get_property(languages GLOBAL PROPERTY ENABLED_LANGUAGES)
+get_property(
+    languages 
+        GLOBAL 
+            PROPERTY ENABLED_LANGUAGES
+)
 
-add_executable(test_singlegrid.x singlegrid.cpp)
-
-if("CUDA" IN_LIST languages)
-    target_include_directories(test_singlegrid.x PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
-endif()
-
-# for odeint test
-if(USE_BOOST)
-    target_include_directories(test_singlegrid.x PRIVATE ${Boost_INCLUDE_DIRS})
-endif()
-
-target_link_libraries(test_singlegrid.x ${NAUNETLIB})
+set(
+    TESTTARGETS
+    singlegrid
+)
 
 if("CUDA" IN_LIST languages)
-    # if CUDA is on, parallel test should be included
-    add_executable(test_multiplegrid.x multiplegrid.cpp)
-    target_include_directories(test_multiplegrid.x PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
-    target_link_libraries(test_multiplegrid.x ${NAUNETLIB})
-
-    # test if gpu device is found when CUDA is enabled
-    if(${NVIDIA_GPU_COUNT})
-        add_test(
-            NAME test_singlegrid
-            COMMAND $<TARGET_FILE:test_singlegrid.x>
-        )
-        add_test(
-            NAME test_multiplegrid
-            COMMAND $<TARGET_FILE:test_multiplegrid.x>
-        )
-    endif()
-else()
-    # if no CUDA, only test the simple case
-    add_test(
-        NAME test_singlegrid
-        COMMAND $<TARGET_FILE:test_singlegrid.x>
+    list(
+        APPEND ${TESTTARGETS}
+            multiplegrid
     )
 endif()
+
+foreach(name ${TESTTARGETS})
+
+    set(targetname test_${name})
+    add_executable(${targetname} ${name}.cpp)
+
+    set_target_properties(
+        ${targetname}
+            PROPERTIES
+                OUTPUT_NAME ${targetname}.x
+    )
+
+    if("CUDA" IN_LIST languages)
+        target_include_directories(
+            ${targetname}
+                PRIVATE 
+                    ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}
+        )
+    endif()
+
+    # for odeint test
+    if(USE_BOOST)
+        target_include_directories(
+            ${targetname}
+                PRIVATE 
+                    ${Boost_INCLUDE_DIRS}
+        )
+    endif()
+
+    target_link_libraries(
+        ${targetname} 
+            PRIVATE
+                ${NAUNETLIB}
+    )
+
+    # test if gpu device is found when CUDA is enabled
+    if(${NVIDIA_GPU_COUNT} OR NOT ("CUDA" IN_LIST languages))
+        add_test(
+            NAME ${targetname}
+            COMMAND $<TARGET_FILE:${targetname}>
+        )
+    endif()
+
+endforeach(name ${TESTTARGETS})
 
 if(MAKE_PYTHON)
     configure_file(test.py.in test.py)

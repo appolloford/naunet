@@ -1,103 +1,136 @@
-set(_STATIC_LIB_SUFFIX
-    "_static"
-    CACHE INTERNAL "" FORCE
-)
-set(_SHARED_LIB_SUFFIX
-    "_shared"
-    CACHE INTERNAL "" FORCE
-)
-
-
-set(targetname
-    {% if info.device != "gpu" -%}
-    naunet_constants
-    naunet_physics
-    naunet_ode
-    {% endif -%}
-    naunet
+set(
+    OBJTARGETS
+        naunet_constants
+        naunet_physics
+        naunet_ode
 )
 
 {% if info.device == "gpu" -%}
-set(cuda_targetname
-    naunet_constants
-    naunet_physics
-    naunet_ode
-)
+foreach(name ${OBJTARGETS})
+    add_library(
+        ${name}
+            OBJECT
+            ${name}.cu
+    )
+    set_target_properties(
+        ${name}
+            PROPERTIES
+                CUDA_SEPARABLE_COMPILATION ON
+    )
+    target_include_directories(
+        ${name}
+            PRIVATE
+                ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}
+            PUBLIC
+                ${CMAKE_SOURCE_DIR}/include
+    )
+    target_link_libraries(
+        ${name}
+            ${SUNDIALSLIB}
+    )
+endforeach()
+{% else %}
+foreach(name ${OBJTARGETS})
+    add_library(
+        ${name}
+            OBJECT
+            ${name}.cpp
+    )
+    target_include_directories(
+        ${name}
+            PUBLIC
+                ${CMAKE_SOURCE_DIR}/include
+    )
+    target_link_libraries(
+        ${name}
+            ${SUNDIALSLIB}
+    )
+endforeach()
 {% endif %}
 
-set(_libtypes "")
-if(MAKE_STATIC)
-    set(_libtypes "STATIC")
-endif()
-
 if(MAKE_SHARED)
-    set(_libtypes "${_libtypes};SHARED")
-endif()
-
-foreach(_libtype ${_libtypes})
-
-    # library suffix
-    if(${_libtype} MATCHES "STATIC")
-        set(_lib_suffix "${_STATIC_LIB_SUFFIX}")
-    else()
-        set(_lib_suffix "${_SHARED_LIB_SUFFIX}")
-    endif()
-
-    set(compiled_target "")
+    add_library(
+        naunet_shared
+            SHARED
+            naunet.cpp
+    )
+    set_target_properties(
+        naunet_shared
+            PROPERTIES
+                OUTPUT_NAME naunet
+    )
     {% if info.device == "gpu" -%}
-    foreach(name ${cuda_targetname})
-        set(lib_target ${name}${_lib_suffix})
-        add_library(${lib_target} ${_libtype} ${name}.cu)
-        set_target_properties(${lib_target} PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
-        target_include_directories(${lib_target} PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
-        target_include_directories(${lib_target} PUBLIC ${CMAKE_SOURCE_DIR}/include)
-        target_link_libraries(${lib_target} ${SUNDIALSLIB})
-        target_link_libraries(${lib_target} ${compiled_target})
-        set(compiled_target "${compiled_target};${lib_target}")
-        set_target_properties(${lib_target} PROPERTIES OUTPUT_NAME ${name})
-    endforeach()
-    {% endif -%}
-
-    foreach(name ${targetname})
-        set(lib_target ${name}${_lib_suffix})
-        add_library(${lib_target} ${_libtype} ${name}.cpp)
-        {% if info.device == "gpu" -%}
-        set_target_properties(${lib_target} PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
-        target_include_directories(${lib_target} PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
-        {% endif -%}
-        target_include_directories(${lib_target} PUBLIC ${CMAKE_SOURCE_DIR}/include)
-        target_link_libraries(${lib_target} ${SUNDIALSLIB})
-        target_link_libraries(${lib_target} ${compiled_target})
-        set(compiled_target "${compiled_target};${lib_target}")
-        set_target_properties(${lib_target} PROPERTIES OUTPUT_NAME ${name})
-    endforeach()
-
-endforeach()
-
-
-if(MAKE_SHARED)
-    set(NAUNETLIB_SHARED
-        naunet${_SHARED_LIB_SUFFIX}
-        naunet_constants${_SHARED_LIB_SUFFIX}
-        naunet_ode${_SHARED_LIB_SUFFIX}
-        naunet_physics${_SHARED_LIB_SUFFIX}
-        CACHE INTERNAL ""
+    set_target_properties(
+        naunet_shared
+            PROPERTIES
+                CUDA_SEPARABLE_COMPILATION ON
     )
-    install(TARGETS ${NAUNETLIB_SHARED}
-        LIBRARY DESTINATION lib
+    target_include_directories(
+        naunet_shared
+            PRIVATE
+                ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}
+            PUBLIC
+                ${CMAKE_SOURCE_DIR}/include
+    )
+    {% else -%}
+    target_include_directories(
+        naunet_shared
+            PUBLIC
+                ${CMAKE_SOURCE_DIR}/include
+    )
+    {% endif -%}
+    target_link_libraries(
+        naunet_shared
+            ${OBJTARGETS}
+            ${SUNDIALSLIB}
+    )
+    install(
+        TARGETS naunet_shared
+        LIBRARY
+        DESTINATION lib
     )
 endif()
 
 if(MAKE_STATIC)
-    set(NAUNETLIB_STATIC
-        naunet${_STATIC_LIB_SUFFIX}
-        naunet_constants${_STATIC_LIB_SUFFIX}
-        naunet_ode${_STATIC_LIB_SUFFIX}
-        naunet_physics${_STATIC_LIB_SUFFIX}
-        CACHE INTERNAL ""
+    add_library(
+        naunet_static
+            STATIC
+            naunet.cpp
     )
-    install(TARGETS ${NAUNETLIB_STATIC}
-        LIBRARY DESTINATION lib
+    set_target_properties(
+        naunet_static
+            PROPERTIES
+                OUTPUT_NAME naunet
+    )
+    {% if info.device == "gpu" -%}
+    set_target_properties(
+        naunet_static
+            PROPERTIES
+                CUDA_SEPARABLE_COMPILATION ON
+    )
+    target_include_directories(
+        naunet_static
+            PRIVATE
+                ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}
+            PUBLIC
+                ${CMAKE_SOURCE_DIR}/include
+    )
+    {% else -%}
+    target_include_directories(
+        naunet_static
+            PUBLIC
+                ${CMAKE_SOURCE_DIR}/include
+    )
+    {% endif -%}
+    target_link_libraries(
+        naunet_static
+            ${OBJTARGETS}
+            ${SUNDIALSLIB}
+    )
+    install(
+        TARGETS naunet_static
+        LIBRARY
+        DESTINATION lib
     )
 endif()
 
@@ -116,43 +149,54 @@ if(MAKE_PYTHON)
         add_subdirectory(
             ${pybind11_sources_SOURCE_DIR}
             ${pybind11_sources_BINARY_DIR}
-        )   
+        )
     endif()
 
     add_library(${PYMODNAME} MODULE naunet.cpp)
     target_compile_definitions(${PYMODNAME}
         PUBLIC
-            -DPYMODULE -DPYMODNAME=${PYMODNAME}
-    ) 
-    target_link_libraries(${PYMODNAME} 
-        PUBLIC
-            pybind11::module
-            ${SUNDIALSLIB}
-            naunet_constants_static
-            naunet_ode_static
-            naunet_physics_static
-    )
-    target_include_directories(${PYMODNAME} 
-        PUBLIC 
-            ${CMAKE_SOURCE_DIR}/include
-        {% if info.device == "gpu" -%}
-        PRIVATE
-            ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}
-        {%- endif %}
-
+            -DPYMODULE
+            -DPYMODNAME=${PYMODNAME}
     )
 
     set_target_properties(${PYMODNAME}
         PROPERTIES
+            {% if info.device == "gpu" -%}
+            CUDA_SEPARABLE_COMPILATION ON
+            {% endif -%}
             PREFIX "${PYTHON_MODULE_PREFIX}"
             SUFFIX "${PYTHON_MODULE_EXTENSION}"
     )
 
-    install(TARGETS ${PYMODNAME}
-        LIBRARY DESTINATION python
+    target_include_directories(
+        ${PYMODNAME}
+            PUBLIC
+                ${CMAKE_SOURCE_DIR}/include
+            {% if info.device == "gpu" -%}
+            PRIVATE
+                ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}
+            {%- endif %}
+
+    )
+
+    target_link_libraries(
+        ${PYMODNAME}
+            PUBLIC
+                pybind11::module
+            PRIVATE
+                ${SUNDIALSLIB}
+                ${OBJTARGETS}
+    )
+
+    install(
+        TARGETS ${PYMODNAME}
+        LIBRARY
+        DESTINATION python
     )
 
 endif()
 
-install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/
-    DESTINATION include)
+install(
+    DIRECTORY ${PROJECT_SOURCE_DIR}/include/
+    DESTINATION include
+)
