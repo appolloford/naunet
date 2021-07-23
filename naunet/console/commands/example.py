@@ -98,9 +98,6 @@ class ExampleCommand(Command):
 
         name = destination if destination else Path.cwd().name.lower()
 
-        # TODO: improve the way to create project in a new directory
-        os.chdir(destination_path)
-
         if case == networklist[0]:
 
             option = f"--name={name} --description=example"
@@ -235,5 +232,8 @@ class ExampleCommand(Command):
 
                     elif os.path.isfile(src):
                         shutil.copyfile(src, dest)
+
+            # TODO: improve the way to create project in a new directory
+            os.chdir(destination_path)
 
             self.call("init", option)
