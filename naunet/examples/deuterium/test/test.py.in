@@ -35,8 +35,8 @@ naunet_data.user_crflux = 2.5e-17
 naunet_data.user_GtoDN = (4.e0 * pi * rhoD * rD * rD * rD) / (3.e0 * DtoGM * amH)
 
 naunet_solver.initSolver()
-# uncomment next line to reset the system size if using cusparse solver
-# naunet_solver.resetSolver(1)
+if @USE_CUDA@:
+    naunet_solver.resetSolver(1)
 
 y = np.ones(len(species)) * 1e-40
 # Only works if the species list in naunet_config.toml has been updated

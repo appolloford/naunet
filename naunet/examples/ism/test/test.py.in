@@ -52,8 +52,8 @@ naunet_data.Tcr = Tcr
 naunet_data.branch = branch
 
 naunet_solver.initSolver()
-# uncomment next line to reset the system size if using cusparse solver
-# naunet_solver.resetSolver(1)
+if @USE_CUDA@:
+    naunet_solver.resetSolver(1)
 
 y = np.ones(len(species)) * 1e-40
 # Only works if the species list in naunet_config.toml has been updated

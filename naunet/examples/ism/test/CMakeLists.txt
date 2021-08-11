@@ -16,7 +16,13 @@ set(
     singlegrid
 )
 
+# force cmake to have the same macro defined in naunet_macros.h
+# use CapWords convention to use in test.py
+set(USE_CUDA False)
+
 if("CUDA" IN_LIST languages)
+    set(USE_CUDA True)
+
     list(
         APPEND ${TESTTARGETS}
             multiplegrid
