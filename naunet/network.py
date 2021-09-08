@@ -2,6 +2,7 @@ import logging
 from tqdm import tqdm
 from .patchmaker import PatchMaker
 from .templateloader import TemplateLoader
+from .species import Species
 from .reactions.reaction import Reaction
 from .reactions.kidareaction import KIDAReaction
 from .reactions.leedsreaction import LEEDSReaction
@@ -85,7 +86,8 @@ class Network:
     # TODO: heating/cooling have not been implemented
     def __init__(
         self,
-        species: list = None,
+        allowed_species: list = None,
+        required_species: list = None,
         heating: list = None,
         cooling: list = None,
         shielding: dict = None,
@@ -98,7 +100,6 @@ class Network:
         self.products_in_network = set()
         self.ode_modifier = []
         self.rate_modifier = []
-        self._allowed_species = species
         self._skipped_reactions = []
         self._info = None
         self._patchmaker = None
@@ -107,7 +108,20 @@ class Network:
         dust_model = supported_dust_model.get(dusttype)  # dust model class
         # Instantiate a dust model
         self._dust = dust_model() if dust_model else None
+        self._allowed_species = allowed_species.copy() if allowed_species else []
+        self._required_species = required_species.copy() if required_species else []
         self._shielding = shielding if shielding else {}
+
+        if allowed_species and required_species:
+
+            conflict = [sp for sp in required_species if sp not in allowed_species]
+
+            if conflict:
+
+                raise RuntimeError(
+                    """All required species must exist in the allowed species list. 
+                    Otherwise leave one of them to be "None"."""
+                )
 
     def _add_reaction(self, react_string: str, database: str) -> list:
 
@@ -188,7 +202,7 @@ class Network:
 
     @allowed_species.setter
     def allowed_species(self, speclist: list):
-        self._allowed_species = speclist
+        self._allowed_species = speclist.copy()
 
     @property
     def dust(self):
@@ -251,7 +265,9 @@ class Network:
         if self._info:
             return self._info
 
-        speclist = sorted(self.reactants_in_network | self.products_in_network)
+        rqdsp = set([Species(s) for s in self._required_species])
+        speclist = sorted(self.reactants_in_network | self.products_in_network | rqdsp)
+
         databaselist = [supported_reaction_class.get(db) for db in self.database_list]
         self._info = self.Info(
             speclist,
@@ -262,6 +278,7 @@ class Network:
             odemodifier=self.ode_modifier,
             ratemodifier=self.rate_modifier,
         )
+
         logger.info(
             "{} species in the network: {}".format(
                 self._info.n_spec, ", ".join([x.name for x in self._info.species])

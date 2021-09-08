@@ -43,6 +43,7 @@ class RenderCommand(Command):
         element = chemistry["elements"]
         pseudo_element = chemistry["pseudo_elements"]
         species = chemistry["species"]
+        extra_species = chemistry["extra_species"]
         dust = chemistry["dust"]
         binding = chemistry["binding_energy"]
         yields = chemistry["photon_yield"]
@@ -109,7 +110,12 @@ class RenderCommand(Command):
         header_prefix = os.path.join(Path.cwd(), "include")
         source_prefix = os.path.join(Path.cwd(), "src")
 
-        net = Network(species=species, dusttype=dust["type"], shielding=shielding)
+        net = Network(
+            allowed_species=species + extra_species,
+            required_species=extra_species,
+            dusttype=dust["type"],
+            shielding=shielding,
+        )
         net.add_reaction_from_file(network, database)
         net.rate_modifier = rate_modifier
         net.ode_modifier = ode_modifier

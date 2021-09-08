@@ -100,101 +100,124 @@ class ExampleCommand(Command):
 
         if case == networklist[0]:
 
-            option = f"--name={name} --description=example"
-            option += f" --elements={','.join(element)} --pseudo-elements=o,p,m"
-            option += f" --species={','.join(species)}"
-            option += " --network=deuterium.krome --database=krome"
-            option += " --solver=cvode --device=cpu --method=dense --render"
+            option = " ".join(
+                [
+                    f"--name={name} --description=example",
+                    f"--elements={','.join(element)} --pseudo-elements=o,p,m",
+                    f"--species={','.join(species)}",
+                    f"--network=deuterium.krome --database=krome",
+                    f"--solver=cvode --device=cpu --method=dense --render",
+                ]
+            )
 
         elif case == networklist[1]:
 
-            option = f"--name={name} --description=example"
-            option += f" --elements={','.join(element)} --pseudo-elements=o,p,m"
-            option += f" --species={','.join(species)}"
-            option += " --network=deuterium.krome --database=krome"
-            option += " --solver=cvode --device=cpu --method=sparse --render"
+            option = " ".join(
+                [
+                    f"--name={name} --description=example",
+                    f"--elements={','.join(element)} --pseudo-elements=o,p,m",
+                    f"--species={','.join(species)}",
+                    f"--extra-species=''",
+                    f"--network=deuterium.krome --database=krome",
+                    f"--solver=cvode --device=cpu --method=sparse --render",
+                ]
+            )
 
         elif case == networklist[2]:
 
-            option = f"--name={name} --description=example"
-            option += f" --elements={','.join(element)} --pseudo-elements=o,p,m"
-            option += f" --species={','.join(species)}"
-            option += " --network=deuterium.krome --database=krome"
-            option += " --solver=cvode --device=cpu --method=cusparse --render"
+            option = " ".join(
+                [
+                    f"--name={name} --description=example",
+                    f"--elements={','.join(element)} --pseudo-elements=o,p,m",
+                    f"--species={','.join(species)}",
+                    f"--network=deuterium.krome --database=krome",
+                    f"--solver=cvode --device=cpu --method=cusparse --render",
+                ]
+            )
 
         elif case == networklist[3]:
 
-            option = f"--name={name} --description=example"
-            option += f" --elements={','.join(element)} --pseudo-elements=o,p,m"
-            option += f" --species={','.join(species)}"
-            option += " --network=deuterium.krome --database=krome"
-            option += " --solver=odeint --device=cpu --method=rosenbrock4 --render"
+            option = " ".join(
+                [
+                    f"--name={name} --description=example",
+                    f"--elements={','.join(element)} --pseudo-elements=o,p,m",
+                    f"--species={','.join(species)}",
+                    f"--network=deuterium.krome --database=krome",
+                    f"--solver=odeint --device=cpu --method=rosenbrock4 --render",
+                ]
+            )
 
         elif case == networklist[4]:
 
-            option = f"--name={name} --description=example"
-            option += f" --elements={','.join(element)}"
-            option += f" --pseudo-elements={','.join(pseudo_element)}"
-            option += f" --species={','.join(species)}"
-            option += " --network=rate12_complex.rates --database=leeds"
-            option += " --dust=uniform"
-            option += f" --binding={','.join(f'{s}={sv}' for s, sv in binding_energy.items())}"
-            option += (
-                f" --yield={','.join(f'{s}={sv}' for s, sv in photon_yield.items())}"
+            option = " ".join(
+                [
+                    f"--name={name} --description=example",
+                    f"--elements={','.join(element)}",
+                    f"--pseudo-elements={','.join(pseudo_element)}",
+                    f"--species={','.join(species)}",
+                    f"--network=rate12_complex.rates --database=leeds",
+                    f"--dust=uniform",
+                    f"--binding={','.join(f'{s}={sv}' for s, sv in binding_energy.items())}",
+                    f"--yield={','.join(f'{s}={sv}' for s, sv in photon_yield.items())}",
+                    f"--shielding='H2: L96Table, CO: V09Table, N2: L13Table'",
+                    f"--rate-modifier='k[8273] = 0.0'",
+                    f"--ode-modifier='double garea = (4*pi*rG*rG) * (y[IDX_GRAIN0I]+y[IDX_GRAINM])'",
+                    f"--ode-modifier='double stick1 = (1.0 / (1.0 + 4.2e-2*sqrt(Tgas+Tdust) + 2.3e-3*Tgas - 1.3e-7*Tgas*Tgas))'",
+                    f"--ode-modifier='double stick2 = exp(-1741.0/Tgas) / (1.0 + 5e-2*sqrt(Tgas+Tdust) + 1e-14*pow(Tgas, 4.0))'",
+                    f"--ode-modifier='double stick = stick1 + stick2'",
+                    f"--ode-modifier='double hloss = stick * garea/4.0 * sqrt(8.0*kerg*Tgas/(pi*amu))'",
+                    f"--ode-modifier='ydot[IDX_H2I] += 0.5*hloss*y[IDX_HI]; ydot[IDX_HI] -= hloss*y[IDX_HI]'",
+                    f"--solver=cvode --device=cpu --method=dense --render",
+                ]
             )
-            option += " --shielding='H2: L96Table, CO: V09Table, N2: L13Table'"
-            option += " --rate-modifier='k[8273] = 0.0'"
-            option += " --ode-modifier='double garea = (4*pi*rG*rG) * (y[IDX_GRAIN0I]+y[IDX_GRAINM])'"
-            option += " --ode-modifier='double stick1 = (1.0 / (1.0 + 4.2e-2*sqrt(Tgas+Tdust) + 2.3e-3*Tgas - 1.3e-7*Tgas*Tgas))'"
-            option += " --ode-modifier='double stick2 = exp(-1741.0/Tgas) / (1.0 + 5e-2*sqrt(Tgas+Tdust) + 1e-14*pow(Tgas, 4.0))'"
-            option += " --ode-modifier='double stick = stick1 + stick2'"
-            option += " --ode-modifier='double hloss = stick * garea/4.0 * sqrt(8.0*kerg*Tgas/(pi*amu))'"
-            option += " --ode-modifier='ydot[IDX_H2I] += 0.5*hloss*y[IDX_HI]; ydot[IDX_HI] -= hloss*y[IDX_HI]'"
-            option += " --solver=cvode --device=cpu --method=dense --render"
 
         elif case == networklist[5]:
 
-            option = f"--name={name} --description=example"
-            option += f" --elements={','.join(element)}"
-            option += f" --pseudo-elements={','.join(pseudo_element)}"
-            option += f" --species={','.join(species)}"
-            option += " --network=rate12_complex.rates --database=leeds"
-            option += " --dust=uniform"
-            option += f" --binding={','.join(f'{s}={sv}' for s, sv in binding_energy.items())}"
-            option += (
-                f" --yield={','.join(f'{s}={sv}' for s, sv in photon_yield.items())}"
+            option = " ".join(
+                [
+                    f"--name={name} --description=example",
+                    f"--elements={','.join(element)}",
+                    f"--pseudo-elements={','.join(pseudo_element)}",
+                    f"--species={','.join(species)}",
+                    f"--network=rate12_complex.rates --database=leeds",
+                    f"--dust=uniform",
+                    f"--binding={','.join(f'{s}={sv}' for s, sv in binding_energy.items())}",
+                    f"--yield={','.join(f'{s}={sv}' for s, sv in photon_yield.items())}",
+                    f"--shielding='H2: L96Table, CO: V09Table, N2: L13Table'",
+                    f"--rate-modifier='k[8273] = 0.0'",
+                    f"--ode-modifier='double garea = (4*pi*rG*rG) * (y[IDX_GRAIN0I]+y[IDX_GRAINM])'",
+                    f"--ode-modifier='double stick1 = (1.0 / (1.0 + 4.2e-2*sqrt(Tgas+Tdust) + 2.3e-3*Tgas - 1.3e-7*Tgas*Tgas))'",
+                    f"--ode-modifier='double stick2 = exp(-1741.0/Tgas) / (1.0 + 5e-2*sqrt(Tgas+Tdust) + 1e-14*pow(Tgas, 4.0))'",
+                    f"--ode-modifier='double stick = stick1 + stick2'",
+                    f"--ode-modifier='double hloss = stick * garea/4.0 * sqrt(8.0*kerg*Tgas/(pi*amu))'",
+                    f"--ode-modifier='ydot[IDX_H2I] += 0.5*hloss*y[IDX_HI]; ydot[IDX_HI] -= hloss*y[IDX_HI]'",
+                    f"--solver=cvode --device=cpu --method=sparse --render",
+                ]
             )
-            option += " --shielding='H2: L96Table, CO: V09Table, N2: L13Table'"
-            option += " --rate-modifier='k[8273] = 0.0'"
-            option += " --ode-modifier='double garea = (4*pi*rG*rG) * (y[IDX_GRAIN0I]+y[IDX_GRAINM])'"
-            option += " --ode-modifier='double stick1 = (1.0 / (1.0 + 4.2e-2*sqrt(Tgas+Tdust) + 2.3e-3*Tgas - 1.3e-7*Tgas*Tgas))'"
-            option += " --ode-modifier='double stick2 = exp(-1741.0/Tgas) / (1.0 + 5e-2*sqrt(Tgas+Tdust) + 1e-14*pow(Tgas, 4.0))'"
-            option += " --ode-modifier='double stick = stick1 + stick2'"
-            option += " --ode-modifier='double hloss = stick * garea/4.0 * sqrt(8.0*kerg*Tgas/(pi*amu))'"
-            option += " --ode-modifier='ydot[IDX_H2I] += 0.5*hloss*y[IDX_HI]; ydot[IDX_HI] -= hloss*y[IDX_HI]'"
-            option += " --solver=cvode --device=cpu --method=sparse --render"
 
         elif case == networklist[6]:
 
-            option = f"--name={name} --description=example"
-            option += f" --elements={','.join(element)}"
-            option += f" --pseudo-elements={','.join(pseudo_element)}"
-            option += f" --species={','.join(species)}"
-            option += " --network=rate12_complex.rates --database=leeds"
-            option += " --dust=uniform"
-            option += f" --binding={','.join(f'{s}={sv}' for s, sv in binding_energy.items())}"
-            option += (
-                f" --yield={','.join(f'{s}={sv}' for s, sv in photon_yield.items())}"
+            option = " ".join(
+                [
+                    f"--name={name} --description=example",
+                    f"--elements={','.join(element)}",
+                    f"--pseudo-elements={','.join(pseudo_element)}",
+                    f"--species={','.join(species)}",
+                    f"--network=rate12_complex.rates --database=leeds",
+                    f"--dust=uniform",
+                    f"--binding={','.join(f'{s}={sv}' for s, sv in binding_energy.items())}",
+                    f"--yield={','.join(f'{s}={sv}' for s, sv in photon_yield.items())}",
+                    f"--shielding='H2: L96Table, CO: V09Table, N2: L13Table'",
+                    f"--rate-modifier='k[8273] = 0.0'",
+                    f"--ode-modifier='double garea = (4*pi*rG*rG) * (y[IDX_GRAIN0I]+y[IDX_GRAINM])'",
+                    f"--ode-modifier='double stick1 = (1.0 / (1.0 + 4.2e-2*sqrt(Tgas+Tdust) + 2.3e-3*Tgas - 1.3e-7*Tgas*Tgas))'",
+                    f"--ode-modifier='double stick2 = exp(-1741.0/Tgas) / (1.0 + 5e-2*sqrt(Tgas+Tdust) + 1e-14*pow(Tgas, 4.0))'",
+                    f"--ode-modifier='double stick = stick1 + stick2'",
+                    f"--ode-modifier='double hloss = stick * garea/4.0 * sqrt(8.0*kerg*Tgas/(pi*amu))'",
+                    f"--ode-modifier='ydot[IDX_H2I] += 0.5*hloss*y[IDX_HI]; ydot[IDX_HI] -= hloss*y[IDX_HI]'",
+                    f"--solver=cvode --device=cpu --method=cusparse --render",
+                ]
             )
-            option += " --shielding='H2: L96Table, CO: V09Table, N2: L13Table'"
-            option += " --rate-modifier='k[8273] = 0.0'"
-            option += " --ode-modifier='double garea = (4*pi*rG*rG) * (y[IDX_GRAIN0I]+y[IDX_GRAINM])'"
-            option += " --ode-modifier='double stick1 = (1.0 / (1.0 + 4.2e-2*sqrt(Tgas+Tdust) + 2.3e-3*Tgas - 1.3e-7*Tgas*Tgas))'"
-            option += " --ode-modifier='double stick2 = exp(-1741.0/Tgas) / (1.0 + 5e-2*sqrt(Tgas+Tdust) + 1e-14*pow(Tgas, 4.0))'"
-            option += " --ode-modifier='double stick = stick1 + stick2'"
-            option += " --ode-modifier='double hloss = stick * garea/4.0 * sqrt(8.0*kerg*Tgas/(pi*amu))'"
-            option += " --ode-modifier='ydot[IDX_H2I] += 0.5*hloss*y[IDX_HI]; ydot[IDX_HI] -= hloss*y[IDX_HI]'"
-            option += " --solver=cvode --device=cpu --method=cusparse --render"
 
         if self.option("show"):
             print("naunet init ", option)

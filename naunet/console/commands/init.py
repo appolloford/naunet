@@ -27,6 +27,7 @@ class InitCommand(Command):
         {--elements= : List of elements}
         {--pseudo-elements= : List of pseudo elements}
         {--species= : List of species}
+        {--extra-species=? : List of extra required species}
         {--network= : Source of chemical network file}
         {--database= : The database/format of the chemical network}
         {--dust= : Type of dust model}
@@ -135,6 +136,21 @@ class InitCommand(Command):
             species = self.ask(question)
 
         chemistry.add("species", species)
+
+        extra_species = self.option("extra-species")
+        if extra_species:
+            extra_species = [] if extra_species == "null" else extra_species.split(",")
+
+        else:
+            question = self.create_question(
+                "Extra required species (not in the network) [<comment>{}</comment>]:".format(
+                    []
+                ),
+                default=[],
+            )
+            extra_species = self.ask(question)
+
+        chemistry.add("extra_species", extra_species)
 
         network = self.option("network")
 

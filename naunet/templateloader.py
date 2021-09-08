@@ -166,6 +166,12 @@ class TemplateLoader:
                     term = f" + {'*'.join([rates[rl], *rsymcopy])}"
                     jacrhs[specidx * n_spec + ri] += term
 
+            # for specidx, _ in enumerate(species):
+
+            #     # make the diagonal terms nonzero to make sure the matrix reversible
+            #     if rhs[specidx] == "0.0":
+            #         rhs[specidx] = "naunet_rate_tiny"
+
         lhs = [f"ydot[IDX_{x.alias}]" for x in species]
         fex = [f"{l} = {r};" for l, r in zip(lhs, rhs)]
 
