@@ -85,7 +85,7 @@ class UMISTReaction(Reaction):
         react_string = react_string.strip()
         if react_string != "":
 
-            id, code, *rps, _, a, b, c, lt, ut = react_string.split(":")[:14]
+            idx, code, *rps, _, a, b, c, lt, ut = react_string.split(":")[:14]
             # print(id, rps)
             self.reactants = [
                 self.create_species(r) for r in rps[0:2] if self.create_species(r)
@@ -99,5 +99,6 @@ class UMISTReaction(Reaction):
             self.gamma = float(c)
             self.temp_min = float(lt)
             self.temp_max = float(ut)
+            self.idxfromfile = int(idx)
             self.code = code
             self.reaction_type = self.code2type.get(self.code)

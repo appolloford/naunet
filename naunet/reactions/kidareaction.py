@@ -89,7 +89,7 @@ class KIDAReaction(Reaction):
                 if self.create_species(p)
             ]
 
-            a, b, c, _, _, _, itype, lt, ut, form, _, _, _ = react_string[
+            a, b, c, _, _, _, itype, lt, ut, form, idx, _, _ = react_string[
                 rlen + plen :
             ].split()
 
@@ -100,6 +100,7 @@ class KIDAReaction(Reaction):
             self.temp_min = float(lt)
             self.temp_max = float(ut)
             self.formula = int(form)
+            self.idxfromfile = int(idx)
             if self.formula < 1 or self.formula > 6:
                 logging.warning(
                     f"Formula {form} is not valid in reaction {self}, change to formula = 3."

@@ -66,6 +66,7 @@ class Reaction(ABC):
         self.temp_max = -1.0
         self.reaction_type = ReactionType.UNKNOWN
         self.database = None
+        self.idxfromfile = -1
 
     def __str__(self) -> str:
         verbose = "{} -> {}".format(

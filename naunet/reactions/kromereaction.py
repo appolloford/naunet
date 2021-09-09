@@ -145,6 +145,8 @@ class KROMEReaction(Reaction):
             for key, value in zip(kwords, react_string.split(",")):
                 if value == "":
                     continue
+                elif key == "idx":
+                    self.idxfromfile = int(value)
                 elif key == "r":
                     self.reactants.append(Species(value))
                 elif key == "p":

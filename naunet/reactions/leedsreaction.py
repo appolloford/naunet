@@ -246,7 +246,7 @@ class LEEDSReaction(Reaction):
 
                 clip = react_string[stidx : stidx + len]
                 if label == "idx":
-                    pass
+                    self.idxfromfile = int(clip)
                 elif label == "reac":
                     self.reactants = [
                         self.create_species(r.replace("YC", "CH2OHC"))
