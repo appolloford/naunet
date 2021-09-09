@@ -65,6 +65,7 @@ if(MAKE_SHARED)
         naunet_shared
             PRIVATE
                 ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}
+                ${Boost_INCLUDE_DIRS}
             PUBLIC
                 ${CMAKE_SOURCE_DIR}/include
     )
@@ -73,6 +74,8 @@ if(MAKE_SHARED)
         naunet_shared
             PUBLIC
                 ${CMAKE_SOURCE_DIR}/include
+            PRIVATE
+                ${Boost_INCLUDE_DIRS}
     )
     {% endif -%}
     target_link_libraries(
@@ -107,6 +110,7 @@ if(MAKE_STATIC)
         naunet_static
             PRIVATE
                 ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}
+                ${Boost_INCLUDE_DIRS}
             PUBLIC
                 ${CMAKE_SOURCE_DIR}/include
     )
@@ -115,6 +119,8 @@ if(MAKE_STATIC)
         naunet_static
             PUBLIC
                 ${CMAKE_SOURCE_DIR}/include
+            PRIVATE
+                ${Boost_INCLUDE_DIRS}
     )
     {% endif -%}
     target_link_libraries(
@@ -150,7 +156,7 @@ if(MAKE_PYTHON)
         PUBLIC
             -DPYMODULE
             -DPYMODNAME=${PYMODNAME}
-    ) 
+    )
     target_link_libraries(
         ${PYMODNAME}
             PUBLIC
