@@ -105,6 +105,7 @@ class ExampleCommand(Command):
                     f"--name={name} --description=example",
                     f"--elements={','.join(element)} --pseudo-elements=o,p,m",
                     f"--species={','.join(species)}",
+                    f"--extra-species=''",
                     f"--network=deuterium.krome --database=krome",
                     f"--solver=cvode --device=cpu --method=dense --render",
                 ]
@@ -130,6 +131,7 @@ class ExampleCommand(Command):
                     f"--name={name} --description=example",
                     f"--elements={','.join(element)} --pseudo-elements=o,p,m",
                     f"--species={','.join(species)}",
+                    f"--extra-species=''",
                     f"--network=deuterium.krome --database=krome",
                     f"--solver=cvode --device=cpu --method=cusparse --render",
                 ]
@@ -142,6 +144,7 @@ class ExampleCommand(Command):
                     f"--name={name} --description=example",
                     f"--elements={','.join(element)} --pseudo-elements=o,p,m",
                     f"--species={','.join(species)}",
+                    f"--extra-species=''",
                     f"--network=deuterium.krome --database=krome",
                     f"--solver=odeint --device=cpu --method=rosenbrock4 --render",
                 ]
@@ -155,6 +158,7 @@ class ExampleCommand(Command):
                     f"--elements={','.join(element)}",
                     f"--pseudo-elements={','.join(pseudo_element)}",
                     f"--species={','.join(species)}",
+                    f"--extra-species=''",
                     f"--network=rate12_complex.rates --database=leeds",
                     f"--dust=uniform",
                     f"--binding={','.join(f'{s}={sv}' for s, sv in binding_energy.items())}",
@@ -179,6 +183,7 @@ class ExampleCommand(Command):
                     f"--elements={','.join(element)}",
                     f"--pseudo-elements={','.join(pseudo_element)}",
                     f"--species={','.join(species)}",
+                    f"--extra-species=''",
                     f"--network=rate12_complex.rates --database=leeds",
                     f"--dust=uniform",
                     f"--binding={','.join(f'{s}={sv}' for s, sv in binding_energy.items())}",
@@ -203,6 +208,7 @@ class ExampleCommand(Command):
                     f"--elements={','.join(element)}",
                     f"--pseudo-elements={','.join(pseudo_element)}",
                     f"--species={','.join(species)}",
+                    f"--extra-species=''",
                     f"--network=rate12_complex.rates --database=leeds",
                     f"--dust=uniform",
                     f"--binding={','.join(f'{s}={sv}' for s, sv in binding_energy.items())}",

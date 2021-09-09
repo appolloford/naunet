@@ -10,7 +10,7 @@ import shutil
 
 from cleo import argument, option
 from importlib.metadata import version
-from tomlkit import dumps
+from tomlkit import table, dumps
 from tomlkit.toml_file import TOMLFile
 
 from .command import Command
@@ -164,19 +164,29 @@ class RenderCommand(Command):
         #     dest = os.path.join(Path.cwd(), cmakesrc)
         #     shutil.copyfile(cmakefile, dest)
 
-        update = self.option("update-species")
-        if not update:
-            update = self.confirm("Update species in configure file?", False)
+        summary = table()
+        summary["num_of_species"] = net.info.n_spec
+        summary["num_of_reactions"] = net.info.n_react
+        summary["list_of_species"] = [x.name for x in net.info.species]
 
-        if update and not (type(update) is str and update.lower() in ["false", "no"]):
+        content["summary"] = summary
+        config_file = os.path.join(Path.cwd(), "naunet_config.toml")
+        with open(config_file, "w", encoding="utf-8") as f:
+            f.write(dumps(content))
 
-            chemistry["species"] = [x.name for x in net.info.species]
+        # update = self.option("update-species")
+        # if not update:
+        #     update = self.confirm("Update species in configure file?", False)
 
-            content["chemistry"] = chemistry
+        # if update and not (type(update) is str and update.lower() in ["false", "no"]):
 
-            config_file = os.path.join(Path.cwd(), "naunet_config.toml")
-            with open(config_file, "w", encoding="utf-8") as f:
-                f.write(dumps(content))
+        #     chemistry["species"] = [x.name for x in net.info.species]
+
+        #     content["chemistry"] = chemistry
+
+        #     config_file = os.path.join(Path.cwd(), "naunet_config.toml")
+        #     with open(config_file, "w", encoding="utf-8") as f:
+        #         f.write(dumps(content))
 
         # csrc_path = str(src_parent_path) + "/cxx_src"
         # dest_path = str(Path.cwd())
