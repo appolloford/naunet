@@ -1,0 +1,1914 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.2.2, mkdocs-material-7.2.6">
+    
+    
+      
+        <title>species - Naunet Astrochemistry Tool</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.802231af.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.3f5d1f46.min.css">
+        
+      
+    
+    
+    
+      
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700%7CRoboto+Mono&display=fallback">
+        <style>:root{--md-text-font-family:"Roboto";--md-code-font-family:"Roboto Mono"}</style>
+      
+    
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+    
+      
+
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="" data-md-color-primary="none" data-md-color-accent="none">
+  
+    
+    <script>function __prefix(e){return new URL("../..",location).pathname+"."+e}function __get(e,t=localStorage){return JSON.parse(t.getItem(__prefix(e)))}</script>
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#species-module" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Naunet Astrochemistry Tool" class="md-header__button md-logo" aria-label="Naunet Astrochemistry Tool" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Naunet Astrochemistry Tool
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              species
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+      </label>
+      
+<div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" aria-label="Clear" tabindex="-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+  </nav>
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Naunet Astrochemistry Tool" class="md-nav__button md-logo" aria-label="Naunet Astrochemistry Tool" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    Naunet Astrochemistry Tool
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        Home
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_2" type="checkbox" id="__nav_2" checked>
+      
+      <label class="md-nav__link" for="__nav_2">
+        API References
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="API References" data-md-level="1">
+        <label class="md-nav__title" for="__nav_2">
+          <span class="md-nav__icon md-icon"></span>
+          API References
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          species
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        species
+      </a>
+      
+        
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#naunet.species" class="md-nav__link">
+    naunet.species
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#naunet.species.Species" class="md-nav__link">
+    Species
+  </a>
+  
+    <nav class="md-nav" aria-label="Species">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#naunet.species.Species.alias" class="md-nav__link">
+    alias
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#naunet.species.Species.basename" class="md-nav__link">
+    basename
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#naunet.species.Species.binding_energy" class="md-nav__link">
+    binding_energy
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#naunet.species.Species.charge" class="md-nav__link">
+    charge
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#naunet.species.Species.gasname" class="md-nav__link">
+    gasname
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#naunet.species.Species.is_surface" class="md-nav__link">
+    is_surface
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#naunet.species.Species.mass" class="md-nav__link">
+    mass
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#naunet.species.Species.massnumber" class="md-nav__link">
+    massnumber
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#naunet.species.Species.photon_yield" class="md-nav__link">
+    photon_yield
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#naunet.species.Species.add_known_elements" class="md-nav__link">
+    add_known_elements()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#naunet.species.Species.add_known_pseudoelements" class="md-nav__link">
+    add_known_pseudoelements()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#naunet.species.Species.known_elements" class="md-nav__link">
+    known_elements()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#naunet.species.Species.known_pseudoelements" class="md-nav__link">
+    known_pseudoelements()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#naunet.species.Species.remove_known_elements" class="md-nav__link">
+    remove_known_elements()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#naunet.species.Species.remove_known_pseudoelements" class="md-nav__link">
+    remove_known_pseudoelements()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#naunet.species.Species.reset" class="md-nav__link">
+    reset()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#naunet.species.Species.set_known_elements" class="md-nav__link">
+    set_known_elements()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#naunet.species.Species.set_known_pseudoelements" class="md-nav__link">
+    set_known_pseudoelements()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#naunet.species.top_abundant_species" class="md-nav__link">
+    top_abundant_species()
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reaction/" class="md-nav__link">
+        reaction
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#naunet.species" class="md-nav__link">
+    naunet.species
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#naunet.species.Species" class="md-nav__link">
+    Species
+  </a>
+  
+    <nav class="md-nav" aria-label="Species">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#naunet.species.Species.alias" class="md-nav__link">
+    alias
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#naunet.species.Species.basename" class="md-nav__link">
+    basename
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#naunet.species.Species.binding_energy" class="md-nav__link">
+    binding_energy
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#naunet.species.Species.charge" class="md-nav__link">
+    charge
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#naunet.species.Species.gasname" class="md-nav__link">
+    gasname
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#naunet.species.Species.is_surface" class="md-nav__link">
+    is_surface
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#naunet.species.Species.mass" class="md-nav__link">
+    mass
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#naunet.species.Species.massnumber" class="md-nav__link">
+    massnumber
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#naunet.species.Species.photon_yield" class="md-nav__link">
+    photon_yield
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#naunet.species.Species.add_known_elements" class="md-nav__link">
+    add_known_elements()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#naunet.species.Species.add_known_pseudoelements" class="md-nav__link">
+    add_known_pseudoelements()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#naunet.species.Species.known_elements" class="md-nav__link">
+    known_elements()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#naunet.species.Species.known_pseudoelements" class="md-nav__link">
+    known_pseudoelements()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#naunet.species.Species.remove_known_elements" class="md-nav__link">
+    remove_known_elements()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#naunet.species.Species.remove_known_pseudoelements" class="md-nav__link">
+    remove_known_pseudoelements()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#naunet.species.Species.reset" class="md-nav__link">
+    reset()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#naunet.species.Species.set_known_elements" class="md-nav__link">
+    set_known_elements()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#naunet.species.Species.set_known_pseudoelements" class="md-nav__link">
+    set_known_pseudoelements()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#naunet.species.top_abundant_species" class="md-nav__link">
+    top_abundant_species()
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content" data-md-component="content">
+            <article class="md-content__inner md-typeset">
+              
+                
+                
+                <h1 id="species-module">Species Module</h1>
+
+
+  <div class="doc doc-object doc-module">
+
+<a id="naunet.species"></a>
+    <div class="doc doc-contents first">
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+  <div class="doc doc-object doc-class">
+
+
+
+<h2 id="naunet.species.Species" class="doc doc-heading">
+        <code>Species</code>
+
+
+
+</h2>
+
+    <div class="doc doc-contents ">
+
+      <p>Class of chemical species</p>
+<p>This class generated species instances from the name of species. The
+name of species are like H2O, C2H6, etc. It parses the species name and
+find the substring matches with the recorded element/pseudo-element
+names. The list of element names can be set by the users (see methods
+below). Otherwise the default lists of element/pseudo-element are used.</p>
+<p>!!! notes
+    1. Pseudo-element here is used to say the special symbols exist in
+    species but not elements in periodic table, isotopes, charges. E.g.
+    o(ortho-), p(para-), CR (cosmic-ray)
+    2. For surface species (species stick on grains), another special
+    symbol are defined in <code>surface_prefix</code>. Species starts with the
+    special symbol are denoted as surface species.
+    3. Charges must be +/- symbol append in the end. E.g. He++, Si+++</p>
+
+<p><strong>Attributes:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>default_elements</code></td>
+        <td><code>list</code></td>
+        <td><p>The default element names used to parse</p></td>
+      </tr>
+      <tr>
+        <td><code>default_pseudoelement</code></td>
+        <td><code>list</code></td>
+        <td><p>The default pseudo-element names</p></td>
+      </tr>
+      <tr>
+        <td><code>surface_symbol</code></td>
+        <td><code>str</code></td>
+        <td><p>The symbol used to define surface species.</p></td>
+      </tr>
+  </tbody>
+</table>
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+  <div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="naunet.species.Species.alias" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">alias</span><span class="p">:</span> <span class="nb">str</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-property"><code>property</code></small>
+      <small class="doc doc-property doc-property-writable"><code>writable</code></small>
+  </span>
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Alias of the species.</p>
+<p>Replace surface symbol by <code>G</code> and charges by <code>M</code>(-), <code>I</code>(+). Used in
+indexing species in codes. Can be customized by setter if needed.</p>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="naunet.species.Species.basename" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">basename</span><span class="p">:</span> <span class="nb">str</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-property"><code>property</code></small>
+      <small class="doc doc-property doc-property-readonly"><code>readonly</code></small>
+  </span>
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>The species name without surface symbols and charges.</p>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="naunet.species.Species.binding_energy" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">binding_energy</span><span class="p">:</span> <span class="nb">float</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-property"><code>property</code></small>
+      <small class="doc doc-property doc-property-readonly"><code>readonly</code></small>
+  </span>
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Binding energy of surface species.</p>
+<p>Return the binding energy if this species is at ice-phase. If the
+binding energy was not set before, it will be searched in the UMIST
+2012 binding energy data. Raise error when no value is found.</p>
+
+<p><strong>Exceptions:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>RuntimeError</code></td>
+        <td><p>binding energy cannot be found</p></td>
+      </tr>
+  </tbody>
+</table>    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="naunet.species.Species.charge" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">charge</span><span class="p">:</span> <span class="nb">int</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-property"><code>property</code></small>
+      <small class="doc doc-property doc-property-readonly"><code>readonly</code></small>
+  </span>
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Total charge of the species. Calculate the number of "+" and "-" in the end</p>
+    </div>
+
+  </div>
+
+
+
+
+
+  <div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="naunet.species.Species.gasname" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">gasname</span><span class="p">:</span> <span class="nb">str</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-property"><code>property</code></small>
+      <small class="doc doc-property doc-property-readonly"><code>readonly</code></small>
+  </span>
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Return the name of its gas-phase species if this species is at ice-phase.
+Else return the current name.</p>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="naunet.species.Species.is_surface" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">is_surface</span><span class="p">:</span> <span class="nb">bool</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-property"><code>property</code></small>
+      <small class="doc doc-property doc-property-readonly"><code>readonly</code></small>
+  </span>
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Check whether the species is sticking on surface (a surface species)</p>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="naunet.species.Species.mass" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">mass</span><span class="p">:</span> <span class="nb">float</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-property"><code>property</code></small>
+      <small class="doc doc-property doc-property-readonly"><code>readonly</code></small>
+  </span>
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>The mass (amu) of the species, estimated by summing the mass of elements</p>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="naunet.species.Species.massnumber" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">massnumber</span><span class="p">:</span> <span class="nb">float</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-property"><code>property</code></small>
+      <small class="doc doc-property doc-property-readonly"><code>readonly</code></small>
+  </span>
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>The mass number (neutron + proton) of the species</p>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="naunet.species.Species.photon_yield" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">photon_yield</span><span class="p">:</span> <span class="nb">float</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-property"><code>property</code></small>
+      <small class="doc doc-property doc-property-readonly"><code>readonly</code></small>
+  </span>
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>The photodesorption yield of the species (ice-phase only). Return default value
+(1.0e-3) if no value is found. The default value can be changed in
+naunet.chemistry.default_photon_yield</p>
+    </div>
+
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="naunet.species.Species.add_known_elements" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">add_known_elements</span><span class="p">(</span><span class="n">elements</span><span class="p">)</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-classmethod"><code>classmethod</code></small>
+  </span>
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Add names of elements to the list of known elements</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>elements</code></td>
+        <td><code>list</code></td>
+        <td><p>names of elements</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Exceptions:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>TypeError</code></td>
+        <td><p>If argument is not a list</p></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>list</code></td>
+      <td><p>list: the current list of known elements</p></td>
+    </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>naunet/species.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="nd">@classmethod</span>
+<span class="k">def</span> <span class="nf">add_known_elements</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">elements</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Add names of elements to the list of known elements</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        elements (list): names of elements</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        TypeError: If argument is not a list</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: the current list of known elements</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">elements</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">elements</span><span class="si">}</span><span class="s2"> is not a list&quot;</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">ele</span> <span class="ow">in</span> <span class="n">elements</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">ele</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_known_elements</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> exists in element list, skip!&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ele</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="n">ele</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_known_pseudoelements</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> exists in pseudo element list, move to element list!&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="n">ele</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">_known_pseudoelements</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">ele</span><span class="p">)</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">_known_elements</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ele</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">_known_elements</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ele</span><span class="p">)</span>
+    <span class="bp">cls</span><span class="o">.</span><span class="n">_check_elements</span><span class="p">()</span>
+    <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_known_elements</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="naunet.species.Species.add_known_pseudoelements" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">add_known_pseudoelements</span><span class="p">(</span><span class="n">pelements</span><span class="p">)</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-classmethod"><code>classmethod</code></small>
+  </span>
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Add names of elements to the list of known pseudo elements</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>pelements</code></td>
+        <td><code>list</code></td>
+        <td><p>names of pseudo elements</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Exceptions:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>TypeError</code></td>
+        <td><p>If argument is not a list</p></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>list</code></td>
+      <td><p>list: the current list of known pseudo elements</p></td>
+    </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>naunet/species.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="nd">@classmethod</span>
+<span class="k">def</span> <span class="nf">add_known_pseudoelements</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">pelements</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Add names of elements to the list of known pseudo elements</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        pelements (list): names of pseudo elements</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        TypeError: If argument is not a list</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: the current list of known pseudo elements</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">pelements</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">pelements</span><span class="si">}</span><span class="s2"> is not a list&quot;</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">ele</span> <span class="ow">in</span> <span class="n">pelements</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">ele</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_known_pseudoelements</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> exists in pseudo element list, skip!&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ele</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="n">ele</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_known_elements</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> exists in element list, move to pseudo element list!&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="n">ele</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">_known_elements</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">ele</span><span class="p">)</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">_known_pseudoelements</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ele</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">_known_pseudoelements</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ele</span><span class="p">)</span>
+    <span class="bp">cls</span><span class="o">.</span><span class="n">_check_elements</span><span class="p">()</span>
+    <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_known_pseudoelements</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="naunet.species.Species.known_elements" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">known_elements</span><span class="p">()</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-classmethod"><code>classmethod</code></small>
+  </span>
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Returns the current list of known elements</p>
+
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>list</code></td>
+      <td><p>list: the current list of known elements</p></td>
+    </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>naunet/species.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="nd">@classmethod</span>
+<span class="k">def</span> <span class="nf">known_elements</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns the current list of known elements</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: the current list of known elements</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_known_elements</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="naunet.species.Species.known_pseudoelements" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">known_pseudoelements</span><span class="p">()</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-classmethod"><code>classmethod</code></small>
+  </span>
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Returns the current list of known pseudo elements</p>
+
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>list</code></td>
+      <td><p>list: the current list of known pseudo elements</p></td>
+    </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>naunet/species.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="nd">@classmethod</span>
+<span class="k">def</span> <span class="nf">known_pseudoelements</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns the current list of known pseudo elements</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: the current list of known pseudo elements</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_known_pseudoelements</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="naunet.species.Species.remove_known_elements" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">remove_known_elements</span><span class="p">(</span><span class="n">elements</span><span class="p">)</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-classmethod"><code>classmethod</code></small>
+  </span>
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Remove names of elements to the list of known elements</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>elements</code></td>
+        <td><code>list</code></td>
+        <td><p>names of elements</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Exceptions:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>TypeError</code></td>
+        <td><p>If argument is not a list</p></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>list</code></td>
+      <td><p>list: the current list of known elements</p></td>
+    </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>naunet/species.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="nd">@classmethod</span>
+<span class="k">def</span> <span class="nf">remove_known_elements</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">elements</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Remove names of elements to the list of known elements</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        elements (list): names of elements</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        TypeError: If argument is not a list</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: the current list of known elements</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">elements</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">elements</span><span class="si">}</span><span class="s2"> is not a list&quot;</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">ele</span> <span class="ow">in</span> <span class="n">elements</span><span class="p">:</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">_known_elements</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">ele</span><span class="p">)</span>
+    <span class="bp">cls</span><span class="o">.</span><span class="n">_check_elements</span><span class="p">()</span>
+    <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_known_elements</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="naunet.species.Species.remove_known_pseudoelements" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">remove_known_pseudoelements</span><span class="p">(</span><span class="n">pelements</span><span class="p">)</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-classmethod"><code>classmethod</code></small>
+  </span>
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Add names of elements to the list of known pseudo elements</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>pelements</code></td>
+        <td><code>list</code></td>
+        <td><p>names of pseudo elements</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Exceptions:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>TypeError</code></td>
+        <td><p>If argument is not a list</p></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>list</code></td>
+      <td><p>list: the current list of known pseudo elements</p></td>
+    </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>naunet/species.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="nd">@classmethod</span>
+<span class="k">def</span> <span class="nf">remove_known_pseudoelements</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">pelements</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Add names of elements to the list of known pseudo elements</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        pelements (list): names of pseudo elements</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        TypeError: If argument is not a list</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: the current list of known pseudo elements</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">pelements</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">pelements</span><span class="si">}</span><span class="s2"> is not a list&quot;</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">ele</span> <span class="ow">in</span> <span class="n">pelements</span><span class="p">:</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">_known_pseudoelements</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">ele</span><span class="p">)</span>
+    <span class="bp">cls</span><span class="o">.</span><span class="n">_check_elements</span><span class="p">()</span>
+    <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_known_pseudoelements</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="naunet.species.Species.reset" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">reset</span><span class="p">()</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-classmethod"><code>classmethod</code></small>
+  </span>
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Reset class attributes in Species</p>
+<p>Reset known_elements, known_pseudoelements, and surface_prefix.</p>
+
+        <details class="quote">
+          <summary>Source code in <code>naunet/species.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="nd">@classmethod</span>
+<span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Reset class attributes in Species</span>
+
+<span class="sd">    Reset known_elements, known_pseudoelements, and surface_prefix.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">cls</span><span class="o">.</span><span class="n">_known_elements</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="bp">cls</span><span class="o">.</span><span class="n">_known_pseudoelements</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="bp">cls</span><span class="o">.</span><span class="n">surface_prefix</span> <span class="o">=</span> <span class="s2">&quot;#&quot;</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="naunet.species.Species.set_known_elements" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">set_known_elements</span><span class="p">(</span><span class="n">elements</span><span class="p">)</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-classmethod"><code>classmethod</code></small>
+  </span>
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Set the list of known elements to new list</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>elements</code></td>
+        <td><code>list</code></td>
+        <td><p>names of elements</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Exceptions:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>TypeError</code></td>
+        <td><p>If argument is not a list</p></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>None</code></td>
+      <td><p>list: the current list of known elements</p></td>
+    </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>naunet/species.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="nd">@classmethod</span>
+<span class="k">def</span> <span class="nf">set_known_elements</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">elements</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Set the list of known elements to new list</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        elements (list): names of elements</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        TypeError: If argument is not a list</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: the current list of known elements</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">elements</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">elements</span><span class="si">}</span><span class="s2"> is not a list&quot;</span><span class="p">)</span>
+
+    <span class="bp">cls</span><span class="o">.</span><span class="n">_known_elements</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+    <span class="bp">cls</span><span class="o">.</span><span class="n">_known_elements</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">elements</span><span class="p">)</span>
+    <span class="bp">cls</span><span class="o">.</span><span class="n">_check_elements</span><span class="p">()</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="naunet.species.Species.set_known_pseudoelements" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">set_known_pseudoelements</span><span class="p">(</span><span class="n">pelements</span><span class="p">)</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-classmethod"><code>classmethod</code></small>
+  </span>
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Set the list of known pseudo elements to new list</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>pelements</code></td>
+        <td><code>list</code></td>
+        <td><p>names of pseudo elements</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Exceptions:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>TypeError</code></td>
+        <td><p>If argument is not a list</p></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>None</code></td>
+      <td><p>list: the current list of known pseudo elements</p></td>
+    </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>naunet/species.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="nd">@classmethod</span>
+<span class="k">def</span> <span class="nf">set_known_pseudoelements</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">pelements</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Set the list of known pseudo elements to new list</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        pelements (list): names of pseudo elements</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        TypeError: If argument is not a list</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: the current list of known pseudo elements</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">pelements</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">pelements</span><span class="si">}</span><span class="s2"> is not a list&quot;</span><span class="p">)</span>
+
+    <span class="bp">cls</span><span class="o">.</span><span class="n">_known_pseudoelements</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+    <span class="bp">cls</span><span class="o">.</span><span class="n">_known_pseudoelements</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">pelements</span><span class="p">)</span>
+    <span class="bp">cls</span><span class="o">.</span><span class="n">_check_elements</span><span class="p">()</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+
+
+  </div>
+
+    </div>
+
+  </div>
+
+
+
+
+  <div class="doc doc-object doc-function">
+
+
+
+<h2 id="naunet.species.top_abundant_species" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">top_abundant_species</span><span class="p">(</span><span class="n">species_list</span><span class="p">,</span> <span class="n">abundances</span><span class="p">,</span> <span class="n">element</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rank</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span></code>
+
+
+</h2>
+
+    <div class="doc doc-contents ">
+
+      <p>The function returns a tuple list sorted by the abundances of element.</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>species_list</code></td>
+        <td><code>list</code></td>
+        <td><p>list of <code>Molecule()</code> objects.</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>abundances</code></td>
+        <td><code>list</code></td>
+        <td><p>The abundances of the species in the species_list.</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>element</code></td>
+        <td><code>string</code></td>
+        <td><p>The target element. The order is sorted by the abundances weighted by the number of element in the species. Defaults to None.</p></td>
+        <td><code>None</code></td>
+      </tr>
+      <tr>
+        <td><code>rank</code></td>
+        <td><code>int</code></td>
+        <td><p>Return the species in the top number. Defaults to -1 (all sorted species).</p></td>
+        <td><code>-1</code></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Exceptions:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>RuntimeError</code></td>
+        <td><p>The element could doesn't exist in the species_list and return an empty list.</p></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>list</code></td>
+      <td><p>Tuple of <code>(Molecule, float)</code>.</p></td>
+    </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>naunet/species.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">top_abundant_species</span><span class="p">(</span><span class="n">species_list</span><span class="p">,</span> <span class="n">abundances</span><span class="p">,</span> <span class="n">element</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rank</span><span class="o">=-</span><span class="mi">1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The function returns a tuple list sorted by the abundances of element.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        species_list (list): list of `Molecule()` objects.</span>
+<span class="sd">        abundances (list): The abundances of the species in the species_list.</span>
+<span class="sd">        element (string, optional): The target element. The order is sorted by the abundances weighted by the number of element in the species. Defaults to None.</span>
+<span class="sd">        rank (int, optional): Return the species in the top number. Defaults to -1 (all sorted species).</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        RuntimeError: The element could doesn&#39;t exist in the species_list and return an empty list.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: Tuple of `(Molecule, float)`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">sorted_abund</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">element</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">sorted_abund</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
+            <span class="nb">zip</span><span class="p">(</span><span class="n">species_list</span><span class="p">,</span> <span class="n">abundances</span><span class="p">),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span>
+        <span class="p">)[:</span><span class="n">rank</span><span class="p">]</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">filtered_abund</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+            <span class="nb">filter</span><span class="p">(</span>
+                <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">element_count</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span>
+                <span class="nb">zip</span><span class="p">(</span><span class="n">species_list</span><span class="p">,</span> <span class="n">abundances</span><span class="p">),</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">sorted_abund</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
+            <span class="n">filtered_abund</span><span class="p">,</span>
+            <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">element_count</span><span class="p">[</span><span class="n">element</span><span class="p">],</span>
+            <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)[:</span><span class="n">rank</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">sorted_abund</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+            <span class="s2">&quot;Undefined results. please check the element exists in the network.&quot;</span>
+        <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">sorted_abund</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+  </div>
+                
+              
+              
+                
+
+
+              
+            </article>
+          </div>
+        </div>
+        
+      </main>
+      
+        
+<footer class="md-footer">
+  
+    <nav class="md-footer__inner md-grid" aria-label="Footer">
+      
+        
+        <a href="../.." class="md-footer__link md-footer__link--prev" aria-label="Previous: Home" rel="prev">
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+          </div>
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              Home
+            </div>
+          </div>
+        </a>
+      
+      
+        
+        <a href="../reaction/" class="md-footer__link md-footer__link--next" aria-label="Next: reaction" rel="next">
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              reaction
+            </div>
+          </div>
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4z"/></svg>
+          </div>
+        </a>
+      
+    </nav>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-footer-copyright">
+        
+        Made with
+        <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+          Material for MkDocs
+        </a>
+        
+      </div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    <script id="__config" type="application/json">{"base": "../..", "features": [], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../../assets/javascripts/workers/search.409db549.min.js", "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.756773cc.min.js"></script>
+      
+    
+  </body>
+</html>
