@@ -4,25 +4,25 @@
 #include "naunet_data.h"
 
 #ifdef PYMODULE
-#include <pybind11/pybind11.h>
 #include <pybind11/numpy.h>
+#include <pybind11/pybind11.h>
 
 namespace py = pybind11;
 #endif
 
-class Naunet
-{
-private:
+class Naunet {
+   private:
     double m_atol;
     double m_rtol;
 
-public:
+   public:
     Naunet();
     ~Naunet();
     int initSolver();
     int solve(double *ab, double dt, NaunetData *data);
 #ifdef PYMODULE
-    py::array_t<double> wrapper_solve(py::array_t<double> arr, double dt, NaunetData *data);
+    py::array_t<double> wrapper_solve(py::array_t<double> arr, double dt,
+                                      NaunetData *data);
 #endif
 };
 
@@ -37,12 +37,14 @@ PYBIND11_MODULE(PYMODNAME, m) {
 #endif
         .def("solve", &Naunet::wrapper_solve);
 
+    // clang-format off
     py::class_<NaunetData>(m, "NaunetData")
         .def(py::init())
         {% for v in variables.varis -%}
             .def_readwrite("{{ v }}", &NaunetData::{{ v }})
         {% endfor -%}
         ;
+    // clang-format on
 }
 
 #endif

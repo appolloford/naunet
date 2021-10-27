@@ -2,20 +2,19 @@
 #define __NAUNET_ODE_H__
 
 #include <boost/numeric/odeint.hpp>
+
 #include "naunet_data.h"
 
-typedef boost::numeric::ublas::vector< double > vector_type;
-typedef boost::numeric::ublas::matrix< double > matrix_type;
+typedef boost::numeric::ublas::vector<double> vector_type;
+typedef boost::numeric::ublas::matrix<double> matrix_type;
 
 int calculate_rates(double *rates, double *y, NaunetData *user_data);
 
-class fex
-{
-private:
+class fex {
+   private:
     NaunetData *u_data;
 
-public:
-
+   public:
     fex();
     fex(NaunetData *data);
     ~fex();
@@ -23,18 +22,17 @@ public:
     void operator()(const vector_type &y, vector_type &ydot, double t);
 };
 
-class jac
-{
-private:
+class jac {
+   private:
     NaunetData *u_data;
 
-public:
-
+   public:
     jac();
     jac(NaunetData *data);
     ~jac();
 
-    void operator()(const vector_type &y, matrix_type &j, const double &t, vector_type &dfdt);
+    void operator()(const vector_type &y, matrix_type &j, const double &t,
+                    vector_type &dfdt);
 };
 
 #endif

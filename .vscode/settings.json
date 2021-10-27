@@ -1,0 +1,12 @@
+{
+    "files.associations": {
+        "*.ipynb": "jupyter",
+        "*.h.j2": "cpp",
+        "*.cpp.j2": "cpp",
+        "*.C": "cpp",
+        "*.C.j2": "cpp",
+        "CMakeLists.txt.j2": "cmake",
+        "Make.*": "makefile",
+    },
+    "editor.formatOnSave": true
+}

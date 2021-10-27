@@ -1,33 +1,22 @@
-{% if header %}
+/* {% if header %} */
 #include "{{ header }}"
-{% else %}
+/* {% else %} */
 #include "naunet_data.h"
-{% endif %}
-#include "naunet_ode.h"
+/* {% endif %} */
 #include "naunet_macros.h"
+#include "naunet_ode.h"
 
 using namespace boost::numeric::odeint;
 
+Naunet::Naunet() : m_atol(1e-20), m_rtol(1e-5){};
 
-Naunet::Naunet() : m_atol(1e-20),
-                   m_rtol(1e-5)
-{
-};
+Naunet::~Naunet(){};
 
-Naunet::~Naunet()
-{
-};
+int Naunet::initSolver() { return NAUNET_SUCCESS; };
 
-int Naunet::initSolver()
-{
-    return NAUNET_SUCCESS;
-};
-
-int Naunet::solve(double *ab, double dt, NaunetData *data)
-{
+int Naunet::solve(double *ab, double dt, NaunetData *data) {
     vector_type y(NSPECIES);
-    for (int i=0; i<NSPECIES; i++)
-    {
+    for (int i = 0; i < NSPECIES; i++) {
         y[i] = ab[i];
     }
 
@@ -44,11 +33,9 @@ int Naunet::solve(double *ab, double dt, NaunetData *data)
 
     size_t num_of_steps = integrate_adaptive(
         make_controlled<rosenbrock4<double>>(m_atol, m_rtol),
-        std::make_pair(fex(data), jac(data)), y, 0.0, dt, dt
-    );
+        std::make_pair(fex(data), jac(data)), y, 0.0, dt, dt);
 
-    for (int i=0; i<NSPECIES; i++)
-    {
+    for (int i = 0; i < NSPECIES; i++) {
         ab[i] = y[i];
     }
 
@@ -56,14 +43,13 @@ int Naunet::solve(double *ab, double dt, NaunetData *data)
 };
 
 #ifdef PYMODULE
-py::array_t<double> Naunet::wrapper_solve(py::array_t<double> arr, double dt, NaunetData *data)
-{
+py::array_t<double> Naunet::wrapper_solve(py::array_t<double> arr, double dt,
+                                          NaunetData *data) {
     py::buffer_info info = arr.request();
-    double *ab = static_cast<double *>(info.ptr);
+    double *ab           = static_cast<double *>(info.ptr);
 
     solve(ab, dt, data);
 
     return py::array_t<double>(info.shape, ab);
-
 }
 #endif

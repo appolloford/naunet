@@ -1,38 +1,41 @@
 #include <math.h>
-{% if ode.header %}
+/* {% if ode.header %} */
 #include "{{ ode.header }}"
-{% else %}
+/* {% else %} */
 #include <boost/numeric/odeint.hpp>
+
 #include "naunet_data.h"
-{% endif %}
+/* {% endif %} */
 #include "naunet_constants.h"
 #include "naunet_macros.h"
 #include "naunet_physics.h"
 
-{% if ode.header %}
-{% else %}
-typedef boost::numeric::ublas::vector< double > vector_type;
-typedef boost::numeric::ublas::matrix< double > matrix_type;
-{% endif %}
+/* {% if ode.header %} */
+/* {% else %} */
+typedef boost::numeric::ublas::vector<double> vector_type;
+typedef boost::numeric::ublas::matrix<double> matrix_type;
+/* {% endif %} */
+
+/* {% set wrap = "\n        " -%} */
+/* {% set bclose = wrap + "}" -%} */
 
 using namespace boost::numeric::odeint;
 
-int calculate_rates(double *k, double *y, NaunetData *u_data)
-{
-
+int calculate_rates(double *k, double *y, NaunetData *u_data) {
+    // clang-format off
     {% for v in variables.varis -%}
         double {{ v }} = u_data->{{ v }};
     {% endfor %}
+    // clang-format on
 
-    double Te = Tgas*8.617343e-5; //Tgas in eV (eV)
-    double lnTe = log(Te); //ln of Te (#)
-    double T32 = Tgas*0.0033333333333333335; //Tgas/(300 K) (#)
-    double invT = 1.0/Tgas; //inverse of T (1/K)
-    double invTe = 1.0/Te; //inverse of T (1/eV)
-    double sqrTgas = sqrt(Tgas); //Tgas rootsquare (K**0.5)
+    double Te      = Tgas * 8.617343e-5;            // Tgas in eV (eV)
+    double lnTe    = log(Te);                       // ln of Te (#)
+    double T32     = Tgas * 0.0033333333333333335;  // Tgas/(300 K) (#)
+    double invT    = 1.0 / Tgas;                    // inverse of T (1/K)
+    double invTe   = 1.0 / Te;                      // inverse of T (1/eV)
+    double sqrTgas = sqrt(Tgas);                    // Tgas rootsquare (K**0.5)
 
-    {% set wrap = "\n        " -%}
-    {% set bclose = wrap + "}" -%}
+    // clang-format off
     {% for assign in ode.rateeqns -%}
         {{ assign | wordwrap(80) | replace("\n", wrap) | replace(bclose, '\n    }') }}
         {{ "" }}
@@ -41,29 +44,24 @@ int calculate_rates(double *k, double *y, NaunetData *u_data)
     {% for m in ode.ratemodifier -%}
         {{ m }};
     {% endfor %}
+    // clang-format on
 
     return NAUNET_SUCCESS;
 }
 
-fex::fex()
-{
-    u_data = new NaunetData();
-};
+fex::fex() { u_data = new NaunetData(); };
 
-fex::fex(NaunetData *data)
-{
-    u_data = new NaunetData();
+fex::fex(NaunetData *data) {
+    u_data  = new NaunetData();
     *u_data = *data;
 };
 
-fex::~fex()
-{
+fex::~fex(){
     // delete u_data;
 };
 
-void fex::operator()(const vector_type &y, vector_type &ydot, double t)
-{
-
+void fex::operator()(const vector_type &y, vector_type &ydot, double t) {
+    // clang-format off
     {% for v in variables.varis -%}
         double {{ v }} = u_data->{{ v }};
     {% endfor %}
@@ -71,15 +69,16 @@ void fex::operator()(const vector_type &y, vector_type &ydot, double t)
     {% for v in variables.user_var -%}
         {{ v }};
     {% endfor %}
+    // clang-format on
 
     double k[NREACTIONS] = {0.0};
-    double ab[NSPECIES] = {0.0};
-    for (int i=0; i<NSPECIES; i++)
-    {
+    double ab[NSPECIES]  = {0.0};
+    for (int i = 0; i < NSPECIES; i++) {
         ab[i] = y[i];
     }
     calculate_rates(k, ab, u_data);
 
+    // clang-format off
     {% for eq in ode.fex -%}
         {{ eq | wordwrap(80) | replace('\n', wrap) }}
     {% endfor %}
@@ -87,48 +86,42 @@ void fex::operator()(const vector_type &y, vector_type &ydot, double t)
     {% for m in ode.odemodifier -%}
         {{ m }};
     {% endfor %}
-
+    // clang-format on
 };
 
-jac::jac()
-{
-    u_data = new NaunetData();
-};
+jac::jac() { u_data = new NaunetData(); };
 
-jac::jac(NaunetData *data)
-{
-    u_data = new NaunetData();
+jac::jac(NaunetData *data) {
+    u_data  = new NaunetData();
     *u_data = *data;
 };
 
-jac::~jac()
-{
+jac::~jac() {
     // delete u_data;
 }
 
-void jac::operator()(const vector_type &y, matrix_type &j, const double &t, vector_type &dfdt)
-{
-
+void jac::operator()(const vector_type &y, matrix_type &j, const double &t,
+                     vector_type &dfdt) {
+    // clang-format off
     {% for v in variables.varis -%}
         double {{ v }} = u_data->{{ v }};
     {% endfor %}
+    // clang-format on
 
     double k[NREACTIONS] = {0.0};
-    double ab[NSPECIES] = {0.0};
-    for (int i=0; i<NSPECIES; i++)
-    {
+    double ab[NSPECIES]  = {0.0};
+    for (int i = 0; i < NSPECIES; i++) {
         ab[i] = y[i];
     }
     calculate_rates(k, ab, u_data);
 
+    // clang-format off
     {% for eq in ode.jac -%}
         {{ eq | wordwrap(80) | replace('\n', wrap) }}
     {% endfor %}
+    // clang-format on
 
-    for (int i=0; i<NSPECIES; i++)
-    {
+    for (int i = 0; i < NSPECIES; i++) {
         dfdt[i] = 0.0;
     }
-
 };
-

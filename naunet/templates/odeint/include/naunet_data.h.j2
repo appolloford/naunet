@@ -2,11 +2,12 @@
 #define __NAUNET_DATA_H__
 
 // Struct for holding the nessesary additional variables for the problem.
-typedef struct
-{
+typedef struct {
+    // clang-format off
     {% for v in variables.varis -%}
         double {{ v }};
     {% endfor %}
+    // clang-format on
 
 } NaunetData;
 
