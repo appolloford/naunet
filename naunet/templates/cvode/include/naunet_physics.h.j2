@@ -1,44 +1,28 @@
 #ifndef __NAUNET_PHYSICS_H__
 #define __NAUNET_PHYSICS_H__
 
-{% if info.device == "gpu" %}
-__device__ __host__
-{% endif %}
+/* {% if info.device == "gpu" %} */
+__device__ __host__ double mantles(double *y);
+__device__ double shieldingfactor(int specidx, double h2coldens,
+                                  double spcoldens, double tgas, int method);
+__device__ double H2shielding(double coldens, int method);
+__device__ double COshielding(double tgas, double h2col, double coldens,
+                              int method);
+__device__ double N2shielding(double tgas, double h2col, double coldens,
+                              int method);
+__device__ double H2shieldingInt(double coldens);
+__device__ double COshieldingInt(double tgas, double h2col, double coldens);
+__device__ double N2shieldingInt(double tgas, double h2col, double coldens);
+/* {% else %} */
 double mantles(double *y);
-
-{% if info.device == "gpu" %}
-__device__
-{% endif %}
-double shieldingfactor(int specidx, double h2coldens, double spcoldens, double tgas, int method);
-
-{% if info.device == "gpu" %}
-__device__
-{% endif %}
+double shieldingfactor(int specidx, double h2coldens, double spcoldens,
+                       double tgas, int method);
 double H2shielding(double coldens, int method);
-
-{% if info.device == "gpu" %}
-__device__
-{% endif %}
 double COshielding(double tgas, double h2col, double coldens, int method);
-
-{% if info.device == "gpu" %}
-__device__
-{% endif %}
 double N2shielding(double tgas, double h2col, double coldens, int method);
-
-{% if info.device == "gpu" %}
-__device__
-{% endif %}
 double H2shieldingInt(double coldens);
-
-{% if info.device == "gpu" %}
-__device__
-{% endif %}
 double COshieldingInt(double tgas, double h2col, double coldens);
-
-{% if info.device == "gpu" %}
-__device__
-{% endif %}
 double N2shieldingInt(double tgas, double h2col, double coldens);
+/* {% endif %} */
 
 #endif

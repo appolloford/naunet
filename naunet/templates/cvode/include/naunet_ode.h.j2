@@ -1,27 +1,30 @@
 #ifndef __NAUNET_ODE_H__
 #define __NAUNET_ODE_H__
 
-#include <sundials/sundials_types.h>   // defs. of realtype, sunindextype
 #include <sundials/sundials_matrix.h>
 #include <sundials/sundials_nvector.h>
+#include <sundials/sundials_types.h>  // defs. of realtype, sunindextype
 
 #include "naunet_data.h"
 
-{% if info.device == "gpu" -%}
-__device__
-{% endif -%}
+/* {% if info.device == "gpu" -%} */
+__device__ int calculate_rates(realtype *k, realtype *y, NaunetData *user_data);
+/* {% else -%} */
 int calculate_rates(realtype *k, realtype *y, NaunetData *user_data);
+/* {% endif -%} */
 int fex(realtype t, N_Vector u, N_Vector u_dot, void *user_data);
-int jtv(N_Vector v, N_Vector Jv, realtype t, N_Vector u, N_Vector fu, 
+int jtv(N_Vector v, N_Vector Jv, realtype t, N_Vector u, N_Vector fu,
         void *user_data, N_Vector tmp);
-int jac(realtype t, N_Vector u, N_Vector fu, SUNMatrix jmatrix, 
-        void *user_data, N_Vector tmp1, N_Vector tmp2, N_Vector tmp3);
+int jac(realtype t, N_Vector u, N_Vector fu, SUNMatrix jmatrix, void *user_data,
+        N_Vector tmp1, N_Vector tmp2, N_Vector tmp3);
 
-{% if info.method == "cusparse" -%}
+/* {% if info.method == "cusparse" -%} */
 int jacInit(SUNMatrix jmatrix);
-__global__ void f_kernel(realtype *y, realtype *ydot, NaunetData *udata, int nsystem);
-__global__ void j_kernel(realtype *y, realtype *jdata, NaunetData *udata, int nsystem);
+__global__ void f_kernel(realtype *y, realtype *ydot, NaunetData *udata,
+                         int nsystem);
+__global__ void j_kernel(realtype *y, realtype *jdata, NaunetData *udata,
+                         int nsystem);
 
-{% endif -%}
+/* {% endif -%} */
 
 #endif

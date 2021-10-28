@@ -1,31 +1,33 @@
 #include <math.h>
-{% if info.method == "dense" -%}
+/* {% if info.method == "dense" -%} */
 #include <nvector/nvector_serial.h>
-#include <sunmatrix/sunmatrix_dense.h> // access to dense SUNMatrix
-{% elif info.method == "sparse" -%}
+#include <sunmatrix/sunmatrix_dense.h>  // access to dense SUNMatrix
+/* {% elif info.method == "sparse" -%} */
 #include <nvector/nvector_serial.h>
-#include <sunmatrix/sunmatrix_sparse.h> // access to sparse SUNMatrix
-{% elif info.method == "cusparse" -%}
+#include <sunmatrix/sunmatrix_sparse.h>  // access to sparse SUNMatrix
+/* {% elif info.method == "cusparse" -%} */
 #include <nvector/nvector_cuda.h>
 #include <sunmatrix/sunmatrix_cusparse.h>
-{% endif -%}
-{% if ode.header %}
+/* {% endif -%} */
+/* {% if ode.header %} */
 #include "{{ ode.header }}"
-{% else %}
-#include <sundials/sundials_types.h>   // defs. of realtype, sunindextype
+/* {% else %} */
+#include <sundials/sundials_types.h>  // defs. of realtype, sunindextype
+
 #include "naunet_data.h"
-{% endif %}
+/* {% endif %} */
 #include "naunet_constants.h"
 #include "naunet_macros.h"
 #include "naunet_physics.h"
 
-#define IJth(A,i,j) SM_ELEMENT_D(A,i,j)
+#define IJth(A, i, j) SM_ELEMENT_D(A, i, j)
 
-{% if info.device == "gpu" -%}
-__device__
-{% endif -%}
-int calculate_rates(realtype *k, realtype *y, NaunetData *u_data)
-{
+/* {% set wrap = "\n        " -%} */
+/* {% set bclose = wrap + "}" -%} */
+
+// clang-format off
+{% if info.device == "gpu" -%} __device__ {% endif -%}
+int calculate_rates(realtype *k, realtype *y, NaunetData *u_data) {
 
     {% for v in variables.varis -%}
         realtype {{ v }} = u_data->{{ v }};
@@ -35,17 +37,18 @@ int calculate_rates(realtype *k, realtype *y, NaunetData *u_data)
         {{ v }};
     {% endfor %}
 
+    // clang-format on
+
     // Some variable definitions from krome
-    realtype Te = Tgas*8.617343e-5;            // Tgas in eV (eV)
-    realtype lnTe = log(Te);                   // ln of Te (#)
-    realtype T32 = Tgas*0.0033333333333333335; // Tgas/(300 K) (#)
-    realtype invT = 1.0/Tgas;                  // inverse of T (1/K)
-    realtype invTe = 1.0/Te;                   // inverse of T (1/eV)
-    realtype sqrTgas = sqrt(Tgas);             // Tgas rootsquare (K**0.5)
+    realtype Te      = Tgas * 8.617343e-5;            // Tgas in eV (eV)
+    realtype lnTe    = log(Te);                       // ln of Te (#)
+    realtype T32     = Tgas * 0.0033333333333333335;  // Tgas/(300 K) (#)
+    realtype invT    = 1.0 / Tgas;                    // inverse of T (1/K)
+    realtype invTe   = 1.0 / Te;                      // inverse of T (1/eV)
+    realtype sqrTgas = sqrt(Tgas);  // Tgas rootsquare (K**0.5)
 
     // reaaction rate (k) of each reaction
-    {% set wrap = "\n        " -%}
-    {% set bclose = wrap + "}" -%}
+    // clang-format off
     {% for assign in ode.rateeqns -%}
         {{ assign | wordwrap(80) | replace("\n", wrap) | replace(bclose, '\n    }') }}
         {{ "" }}
@@ -54,24 +57,27 @@ int calculate_rates(realtype *k, realtype *y, NaunetData *u_data)
     {% for m in ode.ratemodifier -%}
         {{ m }};
     {% endfor %}
+    // clang-format on
 
     return NAUNET_SUCCESS;
 }
 
-int fex(realtype t, N_Vector u, N_Vector u_dot, void *user_data) 
-{
-
-    {% if info.method == "dense" or info.method == "sparse" -%}
-    realtype *y      = N_VGetArrayPointer(u);
-    realtype *ydot   = N_VGetArrayPointer(u_dot);
-    NaunetData *u_data = (NaunetData*) user_data;
+int fex(realtype t, N_Vector u, N_Vector u_dot, void *user_data) {
+    /* {% if info.method == "dense" or info.method == "sparse" -%} */
+    realtype *y            = N_VGetArrayPointer(u);
+    realtype *ydot         = N_VGetArrayPointer(u_dot);
+    NaunetData *u_data     = (NaunetData *)user_data;
+    // clang-format off
     {% for v in variables.varis -%}
         realtype {{ v }} = u_data->{{ v }};
     {% endfor %}
 
+    // clang-format on
+
     realtype k[NREACTIONS] = {0.0};
     calculate_rates(k, y, u_data);
 
+    // clang-format off
     {% for eq in ode.fex -%}
         {{ eq | wordwrap(80) | replace('\n', wrap) }}
     {% endfor %}
@@ -80,11 +86,13 @@ int fex(realtype t, N_Vector u, N_Vector u_dot, void *user_data)
         {{ m }};
     {% endfor %}
 
-    {% elif info.method == "cusparse" -%}
+    // clang-format on
 
-    realtype *y     = N_VGetDeviceArrayPointer_Cuda(u);
-    realtype *ydot  = N_VGetDeviceArrayPointer_Cuda(u_dot);
-    NaunetData *h_udata = (NaunetData*) user_data;
+    /* {% elif info.method == "cusparse" -%} */
+
+    realtype *y         = N_VGetDeviceArrayPointer_Cuda(u);
+    realtype *ydot      = N_VGetDeviceArrayPointer_Cuda(u_dot);
+    NaunetData *h_udata = (NaunetData *)user_data;
     NaunetData *d_udata;
 
     // check the size of system (number of cells/ a batch)
@@ -93,92 +101,62 @@ int fex(realtype t, N_Vector u, N_Vector u_dot, void *user_data)
     int nsystem = lrw / NSPECIES;
 
     // copy the user data for each system/cell
-    cudaMalloc((void**)&d_udata, sizeof(NaunetData) * nsystem);
-    cudaMemcpy(d_udata, h_udata, sizeof(NaunetData) * nsystem, cudaMemcpyHostToDevice);
-    cudaDeviceSynchronize();    
+    cudaMalloc((void **)&d_udata, sizeof(NaunetData) * nsystem);
+    cudaMemcpy(d_udata, h_udata, sizeof(NaunetData) * nsystem,
+               cudaMemcpyHostToDevice);
+    cudaDeviceSynchronize();
 
     unsigned block_size = min(BLOCKSIZE, nsystem);
-    unsigned grid_size = max(1, min(MAXNGROUPS/BLOCKSIZE, nsystem/BLOCKSIZE));
+    unsigned grid_size =
+        max(1, min(MAXNGROUPS / BLOCKSIZE, nsystem / BLOCKSIZE));
     f_kernel<<<grid_size, block_size>>>(y, ydot, d_udata, nsystem);
 
     cudaDeviceSynchronize();
     cudaError_t cuerr = cudaGetLastError();
     if (cuerr != cudaSuccess) {
-        fprintf(stderr,
-            ">>> ERROR in fex: cudaGetLastError returned %s\n",
-            cudaGetErrorName(cuerr));
+        fprintf(stderr, ">>> ERROR in fex: cudaGetLastError returned %s\n",
+                cudaGetErrorName(cuerr));
         return -1;
     }
     cudaFree(d_udata);
 
-    {% endif -%}
+    /* {% endif -%} */
 
     return NAUNET_SUCCESS;
-
 }
 
-
-{% if info.method != "cusparse" %}
-int jtv(N_Vector v, N_Vector Jv, realtype t, N_Vector u, N_Vector fu, 
-        void *user_data, N_Vector tmp) 
-{
-    realtype *x      = N_VGetArrayPointer(u);
-    realtype *y      = N_VGetArrayPointer(v);
-    realtype *ydot   = N_VGetArrayPointer(Jv);
-    realtype *fx     = N_VGetArrayPointer(fu);
-
-    NaunetData *u_data = (NaunetData*) user_data;
+int jac(realtype t, N_Vector u, N_Vector fu, SUNMatrix jmatrix, void *user_data,
+        N_Vector tmp1, N_Vector tmp2, N_Vector tmp3) {
+    /* {% if info.method == "dense" -%} */
+    realtype *y            = N_VGetArrayPointer(u);
+    NaunetData *u_data     = (NaunetData *)user_data;
+    // clang-format off
     {% for v in variables.varis -%}
         realtype {{ v }} = u_data->{{ v }};
     {% endfor %}
 
-    realtype k[NREACTIONS] = {0.0};
-    calculate_rates(k, y, u_data);
-
-    {% for eq in ode.fex -%}
-        {{ eq | wordwrap(80) | replace('\n', wrap) }}
-    {% endfor %}
-
-    {% for m in ode.odemodifier -%}
-        {{ m }};
-    {% endfor %}
-
-    for (int i=0; i<NSPECIES; i++) {
-        fx[i] = 0.0;
-    }
-
-    return NAUNET_SUCCESS;
-
-}
-{% endif %}
-
-int jac(realtype t, N_Vector u, N_Vector fu, SUNMatrix jmatrix, 
-        void *user_data, N_Vector tmp1, N_Vector tmp2, N_Vector tmp3)
-{
-    {% if info.method == "dense" -%}
-    realtype *y = N_VGetArrayPointer(u);
-    NaunetData *u_data = (NaunetData*) user_data;
-    {% for v in variables.varis -%}
-        realtype {{ v }} = u_data->{{ v }};
-    {% endfor %}
+    // clang-format on
 
     realtype k[NREACTIONS] = {0.0};
     calculate_rates(k, y, u_data);
 
+    // clang-format off
     {% for eq in ode.jac -%}
         {{ eq | wordwrap(80) | replace('\n', wrap) }}
     {% endfor %}
+    // clang-format on
 
-    {% elif info.method == "sparse" -%}
-    realtype *y = N_VGetArrayPointer(u);
-    sunindextype *rowptrs = SUNSparseMatrix_IndexPointers(jmatrix);
-    sunindextype *colvals = SUNSparseMatrix_IndexValues(jmatrix);
-    realtype *data = SUNSparseMatrix_Data(jmatrix);
-    NaunetData *u_data = (NaunetData*) user_data;
+    /* {% elif info.method == "sparse" -%} */
+    realtype *y            = N_VGetArrayPointer(u);
+    sunindextype *rowptrs  = SUNSparseMatrix_IndexPointers(jmatrix);
+    sunindextype *colvals  = SUNSparseMatrix_IndexValues(jmatrix);
+    realtype *data         = SUNSparseMatrix_Data(jmatrix);
+    NaunetData *u_data     = (NaunetData *)user_data;
 
     realtype k[NREACTIONS] = {0.0};
     calculate_rates(k, y, u_data);
 
+    // clang-format off
     // number of non-zero elements in each row
     {% for rptr in ode.spjacrptr -%}
         {{ rptr }}
@@ -194,46 +172,48 @@ int jac(realtype t, N_Vector u, N_Vector fu, SUNMatrix jmatrix,
         {{ data }}
     {% endfor %}
 
-    {% elif info.method == "cusparse" -%}
+    // clang-format on
+
+    /* {% elif info.method == "cusparse" -%} */
     realtype *y         = N_VGetDeviceArrayPointer_Cuda(u);
     realtype *data      = SUNMatrix_cuSparse_Data(jmatrix);
-    NaunetData *h_udata = (NaunetData*) user_data;
+    NaunetData *h_udata = (NaunetData *)user_data;
     NaunetData *d_udata;
 
     int nsystem = SUNMatrix_cuSparse_NumBlocks(jmatrix);
 
-    cudaMalloc((void**)&d_udata, sizeof(NaunetData) * nsystem);
-    cudaMemcpy(d_udata, h_udata, sizeof(NaunetData) * nsystem, cudaMemcpyHostToDevice);
+    cudaMalloc((void **)&d_udata, sizeof(NaunetData) * nsystem);
+    cudaMemcpy(d_udata, h_udata, sizeof(NaunetData) * nsystem,
+               cudaMemcpyHostToDevice);
     cudaDeviceSynchronize();
 
     unsigned block_size = min(BLOCKSIZE, nsystem);
-    unsigned grid_size = max(1, min(MAXNGROUPS/BLOCKSIZE, nsystem/BLOCKSIZE));
+    unsigned grid_size =
+        max(1, min(MAXNGROUPS / BLOCKSIZE, nsystem / BLOCKSIZE));
     j_kernel<<<grid_size, block_size>>>(y, data, d_udata, nsystem);
 
     cudaDeviceSynchronize();
     cudaError_t cuerr = cudaGetLastError();
     if (cuerr != cudaSuccess) {
-        fprintf(stderr,
-            ">>> ERROR in jac: cudaGetLastError returned %s\n",
-            cudaGetErrorName(cuerr));
+        fprintf(stderr, ">>> ERROR in jac: cudaGetLastError returned %s\n",
+                cudaGetErrorName(cuerr));
         return -1;
     }
     cudaFree(d_udata);
 
-    {% endif -%}
+    /* {% endif -%} */
 
     return NAUNET_SUCCESS;
-
 }
 
-{% if info.method == "cusparse" -%}
-int jacInit(SUNMatrix jmatrix)
-{
-    int rowptrs[NSPECIES+1], colvals[NNZ];
+/* {% if info.method == "cusparse" -%} */
+int jacInit(SUNMatrix jmatrix) {
+    int rowptrs[NSPECIES + 1], colvals[NNZ];
 
     // Zero out the Jacobian
-    SUNMatZero(jmatrix); 
+    SUNMatZero(jmatrix);
 
+    // clang-format off
     // number of non-zero elements in each row
     {% for rptr in ode.spjacrptr -%}
         {{ rptr }}
@@ -244,6 +224,8 @@ int jacInit(SUNMatrix jmatrix)
         {{ cval }}
     {% endfor %}
 
+    // clang-format on
+
     // copy rowptrs, colvals to the device
     SUNMatrix_cuSparse_CopyToDevice(jmatrix, NULL, rowptrs, colvals);
     cudaDeviceSynchronize();
@@ -251,25 +233,26 @@ int jacInit(SUNMatrix jmatrix)
     return NAUNET_SUCCESS;
 }
 
-__global__ void f_kernel(realtype *y, realtype *ydot, NaunetData *d_udata, int nsystem)
-{
-    int tidx = blockIdx.x*blockDim.x + threadIdx.x;
+__global__ void f_kernel(realtype *y, realtype *ydot, NaunetData *d_udata,
+                         int nsystem) {
+    int tidx = blockIdx.x * blockDim.x + threadIdx.x;
     int gs   = blockDim.x * gridDim.x;
 
+    // clang-format off
     {% for v in variables.varis -%}
         realtype {{ v }} = d_udata->{{ v }};
     {% endfor %}
+    // clang-format on
 
-    for (int cur = tidx; cur < nsystem; cur += gs)
-    {
-
-        int yistart = cur * NSPECIES;
-        realtype *y_cur = y + yistart;
+    for (int cur = tidx; cur < nsystem; cur += gs) {
+        int yistart            = cur * NSPECIES;
+        realtype *y_cur        = y + yistart;
         realtype k[NREACTIONS] = {0.0};
-        NaunetData *udata = &d_udata[cur];
+        NaunetData *udata      = &d_udata[cur];
 
         calculate_rates(k, y_cur, udata);
 
+        // clang-format off
         {% for eq in ode.fex -%}
             {{ eq | replace("ydot[IDX", "ydot[yistart + IDX") | replace("y[IDX", "y_cur[IDX") | wordwrap(80) | replace('\n', wrap) }}
         {% endfor %}
@@ -277,32 +260,66 @@ __global__ void f_kernel(realtype *y, realtype *ydot, NaunetData *d_udata, int n
         {% for m in ode.odemodifier -%}
             {{ m | replace("ydot[IDX", "ydot[yistart + IDX") | replace("y[IDX", "y_cur[IDX") }};
         {% endfor %}
+        // clang-format on
     }
-
 }
 
-__global__ void j_kernel(realtype *y, realtype *data, NaunetData *d_udata, int nsystem)
-{
-    int tidx = blockIdx.x*blockDim.x + threadIdx.x;
+__global__ void j_kernel(realtype *y, realtype *data, NaunetData *d_udata,
+                         int nsystem) {
+    int tidx = blockIdx.x * blockDim.x + threadIdx.x;
     int gs   = blockDim.x * gridDim.x;
 
-    for (int cur = tidx; cur < nsystem; cur += gs)
-    {
-
-        int yistart = cur * NSPECIES;
-        int jistart = cur * NNZ;
-        realtype *y_cur = y + yistart;
+    for (int cur = tidx; cur < nsystem; cur += gs) {
+        int yistart            = cur * NSPECIES;
+        int jistart            = cur * NNZ;
+        realtype *y_cur        = y + yistart;
         realtype k[NREACTIONS] = {0.0};
-        NaunetData *udata = &d_udata[cur];
+        NaunetData *udata      = &d_udata[cur];
 
         calculate_rates(k, y_cur, udata);
 
+        // clang-format off
         {% for data in ode.spjacdata -%}
             {{ data | replace("data[", "data[jistart + ") | replace("y[IDX", "y_cur[IDX")}}
         {% endfor %}
-
+        // clang-format on
     }
-
 }
 
-{% endif -%}
+/* {% else %} */
+int jtv(N_Vector v, N_Vector Jv, realtype t, N_Vector u, N_Vector fu,
+        void *user_data, N_Vector tmp) {
+    realtype *x            = N_VGetArrayPointer(u);
+    realtype *y            = N_VGetArrayPointer(v);
+    realtype *ydot         = N_VGetArrayPointer(Jv);
+    realtype *fx           = N_VGetArrayPointer(fu);
+
+    NaunetData *u_data     = (NaunetData *)user_data;
+    // clang-format off
+    {% for v in variables.varis -%}
+        realtype {{ v }} = u_data->{{ v }};
+    {% endfor %}
+
+    // clang-format on
+
+    realtype k[NREACTIONS] = {0.0};
+    calculate_rates(k, y, u_data);
+
+    // clang-format off
+    {% for eq in ode.fex -%}
+        {{ eq | wordwrap(80) | replace('\n', wrap) }}
+    {% endfor %}
+
+    {% for m in ode.odemodifier -%}
+        {{ m }};
+    {% endfor %}
+    // clang-format on
+
+    for (int i = 0; i < NSPECIES; i++) {
+        fx[i] = 0.0;
+    }
+
+    return NAUNET_SUCCESS;
+}
+
+/* {% endif -%} */

@@ -1,27 +1,25 @@
 #ifndef __NAUNET_H__
 #define __NAUNET_H__
 
-#include <sundials/sundials_types.h>    // defs. of realtype, sunindextype
-#include <sundials/sundials_math.h>     // contains the macros ABS, SUNSQR, EXP
 #include <sundials/sundials_linearsolver.h>
-{% if info.method == "cusparse" -%}
+#include <sundials/sundials_math.h>   // contains the macros ABS, SUNSQR, EXP
+#include <sundials/sundials_types.h>  // defs. of realtype, sunindextype
+/* {% if info.method == "cusparse" -%} */
 #include <sunlinsol/sunlinsol_cusolversp_batchqr.h>
-{% endif -%}
+/* {% endif -%} */
 
 #include "naunet_data.h"
 #include "naunet_macros.h"
 
 #ifdef PYMODULE
-#include <pybind11/pybind11.h>
 #include <pybind11/numpy.h>
+#include <pybind11/pybind11.h>
 
 namespace py = pybind11;
 #endif
 
-class Naunet
-{
-
-private:
+class Naunet {
+   private:
     // NaunetData *m_data;
     N_Vector m_y;
     SUNMatrix m_a;
@@ -31,21 +29,22 @@ private:
     void *m_cvode_mem;
     SUNLinearSolver m_ls;
 
-    {% if info.method == "cusparse" -%}
+    /* {% if info.method == "cusparse" -%} */
     cusparseHandle_t m_cusp_handle;
     cusolverSpHandle_t m_cusol_handle;
-    {% endif %}
+    /* {% endif %} */
 
-public:
+   public:
     Naunet();
     ~Naunet();
     int initSolver();
-    {% if info.method == "cusparse" -%}
+    /* {% if info.method == "cusparse" -%} */
     int resetSolver(int nsystem);
-    {% endif -%}
+    /* {% endif -%} */
     int solve(realtype *ab, realtype dt, NaunetData *data);
 #ifdef PYMODULE
-    py::array_t<realtype> wrapper_solve(py::array_t<realtype> arr, realtype dt, NaunetData *data);
+    py::array_t<realtype> wrapper_solve(py::array_t<realtype> arr, realtype dt,
+                                        NaunetData *data);
 #endif
 };
 
@@ -60,12 +59,14 @@ PYBIND11_MODULE(PYMODNAME, m) {
 #endif
         .def("solve", &Naunet::wrapper_solve);
 
+    // clang-format off
     py::class_<NaunetData>(m, "NaunetData")
         .def(py::init())
         {% for v in variables.varis -%}
             .def_readwrite("{{ v }}", &NaunetData::{{ v }})
         {% endfor -%}
         ;
+    // clang-format on
 }
 
 #endif
