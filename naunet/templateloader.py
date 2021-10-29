@@ -5,6 +5,7 @@ from typing import List, Dict
 from tqdm import tqdm
 from jinja2 import Environment, PackageLoader
 
+from .utilities import _stmwrap
 
 # class RelativeEnvironment(Environment):
 #     """Override join_path() to enable relative template paths."""
@@ -63,6 +64,7 @@ class TemplateLoader:
         # self._env = RelativeEnvironment(loader=loader)
         self._env = Environment(loader=loader)
         self._env.globals.update(zip=zip)
+        self._env.filters["stmwrap"] = _stmwrap
         self._solver = solver
         self._env.trim_blocks = True
         self._env.rstrip_blocks = True

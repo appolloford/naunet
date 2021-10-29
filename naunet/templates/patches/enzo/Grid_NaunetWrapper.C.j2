@@ -12,7 +12,7 @@
 /    SUCCESS or FAIL
 /
 ************************************************************************/
-
+// clang-format off
 #include "preincludes.h"
 #ifdef USE_NAUNET
 #include "naunet_enzo.h"
@@ -49,7 +49,7 @@ int grid::NaunetWrapper()
 
   LCAPERF_START("grid_NaunetWrapper");
 
-  int {{ declare | wordwrap(80) | replace("\n", "\n      ") }};
+  int {{ declare | stmwrap(80, 6) }};
 
   int DensNum, GENum, Vel1Num, Vel2Num, Vel3Num, TENum;
 
@@ -81,10 +81,10 @@ int grid::NaunetWrapper()
 
   // Find Multi-species fields.
 
-  {{ initial | wordwrap(80) | replace("\n", "\n    ") }};
+  {{ initial | stmwrap(80, 4) }};
  
   if (MultiSpecies == NAUNET_SPECIES)
-    if (IdentifyNaunetSpeciesFields({{ declare | wordwrap(40) | replace("\n", "\n" + " "*36) }}) == FAIL) {
+    if (IdentifyNaunetSpeciesFields({{ declare | stmwrap(80, 36) }}) == FAIL) {
       ENZO_FAIL("Error in grid->IdentifyNaunetSpeciesFields.\n");
     }
  

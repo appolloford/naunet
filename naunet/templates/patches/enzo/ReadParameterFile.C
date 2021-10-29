@@ -16,7 +16,7 @@
 /  RETURNS: SUCCESS or FAIL
 /
 ************************************************************************/
- 
+// clang-format off
 // This routine reads the parameter file in the argument and sets parameters
 //   based on it.
 

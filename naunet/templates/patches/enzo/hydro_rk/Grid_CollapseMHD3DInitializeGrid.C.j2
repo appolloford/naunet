@@ -8,7 +8,7 @@
 /
 /
 ************************************************************************/
-
+// clang-format off
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -101,7 +101,7 @@ int grid::CollapseMHD3DInitializeGrid(int n_sphere,
   int DeNum, HINum, HIINum, HeINum, HeIINum, HeIIINum, HMNum, 
       H2INum, H2IINum, DINum, DIINum, HDINum;
 #ifdef USE_NAUNET
-  int {{ declare | wordwrap(80) | replace("\n", "\n      ") }};
+  int {{ declare | stmwrap(80, 6) }};
 #endif
 
   if (MultiSpecies) {

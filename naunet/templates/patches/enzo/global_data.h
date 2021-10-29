@@ -11,12 +11,13 @@
 /  PURPOSE:
 /    This is the global data, which should be held to a minimum.  Any changes
 /    in this file require changes in: WriteGlobalData,
-/    ReadGlobalData and InitializeNew.  
+/    ReadGlobalData and InitializeNew.
 /    This file is dual-purposed:
 /        1) read with    DEFINE_STORAGE defined for the (single) definition
 /        2) read without DEFINE_STORAGE defined for external linkage
 /
 ************************************************************************/
+// clang-format off
 #ifndef GLOBAL_DATA_DEFINED__
 #define GLOBAL_DATA_DEFINED__
 

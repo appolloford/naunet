@@ -16,7 +16,7 @@
 /  RETURNS: SUCCESS or FAIL
 /
 ************************************************************************/
- 
+// clang-format off
 // This routine intializes a new simulation based on the parameter file.
  
 #ifdef USE_MPI

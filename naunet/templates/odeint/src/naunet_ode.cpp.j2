@@ -37,7 +37,7 @@ int calculate_rates(double *k, double *y, NaunetData *u_data) {
 
     // clang-format off
     {% for assign in ode.rateeqns -%}
-        {{ assign | wordwrap(80) | replace("\n", wrap) | replace(bclose, '\n    }') }}
+        {{ assign | stmwrap(80, 8) }}
         {{ "" }}
     {% endfor %}
 
@@ -80,7 +80,7 @@ void fex::operator()(const vector_type &y, vector_type &ydot, double t) {
 
     // clang-format off
     {% for eq in ode.fex -%}
-        {{ eq | wordwrap(80) | replace('\n', wrap) }}
+        {{ eq | stmwrap(80, 8) }}
     {% endfor %}
 
     {% for m in ode.odemodifier -%}
@@ -117,7 +117,7 @@ void jac::operator()(const vector_type &y, matrix_type &j, const double &t,
 
     // clang-format off
     {% for eq in ode.jac -%}
-        {{ eq | wordwrap(80) | replace('\n', wrap) }}
+        {{ eq | stmwrap(80, 8) }}
     {% endfor %}
     // clang-format on
 

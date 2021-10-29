@@ -4,6 +4,7 @@ from pathlib import Path
 from jinja2 import Environment, PackageLoader
 
 from .species import Species
+from .utilities import _stmwrap
 
 
 class PatchMaker:
@@ -87,6 +88,7 @@ class EnzoPatch:
 
         loader = PackageLoader("naunet", "templates/patches/enzo")
         self._env = Environment(loader=loader)
+        self._env.filters["stmwrap"] = _stmwrap
         self._env.globals.update(zip=zip)
         self._env.trim_blocks = True
         self._env.rstrip_blocks = True

@@ -6,7 +6,7 @@
 /  date:       2021
 /
 ************************************************************************/
-
+// clang-format off
 #include "preincludes.h"
 #include "macros_and_parameters.h"
 #include "typedefs.h"
@@ -22,10 +22,9 @@ int FindField(int f, int farray[], int n);
 
 #ifdef USE_NAUNET
 
-int grid::IdentifyNaunetSpeciesFields(
-    {{ arguments | wordwrap(80) | replace("\n", "\n    ") }})
+int grid::IdentifyNaunetSpeciesFields({{ arguments | stmwrap(80, 38) }})
 {
-    {{ initial | wordwrap(80) | replace("\n", "\n    ") }};
+    {{ initial | stmwrap(80, 4) }};
 
     // Find Fields for the Naunet species
     {% for f in findfield -%}

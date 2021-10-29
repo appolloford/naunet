@@ -1,6 +1,6 @@
 /***********************************************************************
 /
-/  GRID CLASS (RETURNS AN ARRAY OF POINTERS THAT ARE COMPATIBLE WITH 
+/  GRID CLASS (RETURNS AN ARRAY OF POINTERS THAT ARE COMPATIBLE WITH
 /              THE HYDRO_RK SOLVERS)
 /
 /  written by: John Wise
@@ -9,7 +9,7 @@
 /
 /
 ************************************************************************/
-
+// clang-format off
 #include <stdio.h>
 #include <math.h>
 #ifdef USE_NAUNET
@@ -42,7 +42,7 @@ int grid::ReturnOldHydroRKPointers(float **Prim, bool ReturnMassFractions)
   int DeNum, HINum, HIINum, HeINum, HeIINum, HeIIINum, HMNum, H2INum, H2IINum,
       DINum, DIINum, HDINum;
 #ifdef USE_NAUNET
-  int {{ declare | wordwrap(80) | replace("\n", "\n      ") }};
+  int {{ declare | stmwrap(80, 6) }};
 #endif
 
   /* Add the physical quantities */
@@ -84,7 +84,7 @@ int grid::ReturnOldHydroRKPointers(float **Prim, bool ReturnMassFractions)
                                 HMNum, H2INum, H2IINum, DINum, DIINum, HDINum);
 #ifdef USE_NAUNET
   if (MultiSpecies == NAUNET_SPECIES)
-    if (IdentifyNaunetSpeciesFields({{ identify | wordwrap(40) | replace("\n", "\n" + " "*38) }}) == FAIL) {
+    if (IdentifyNaunetSpeciesFields({{ identify | stmwrap(80, 36) }}) == FAIL) {
       ENZO_FAIL("Error in grid->IdentifyNaunetSpeciesFields.");
     }
 #endif

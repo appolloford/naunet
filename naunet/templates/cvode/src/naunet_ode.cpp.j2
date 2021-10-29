@@ -50,7 +50,7 @@ int calculate_rates(realtype *k, realtype *y, NaunetData *u_data) {
     // reaaction rate (k) of each reaction
     // clang-format off
     {% for assign in ode.rateeqns -%}
-        {{ assign | wordwrap(80) | replace("\n", wrap) | replace(bclose, '\n    }') }}
+        {{ assign | stmwrap(80, 8) }}
         {{ "" }}
     {% endfor %}
 
@@ -79,7 +79,7 @@ int fex(realtype t, N_Vector u, N_Vector u_dot, void *user_data) {
 
     // clang-format off
     {% for eq in ode.fex -%}
-        {{ eq | wordwrap(80) | replace('\n', wrap) }}
+        {{ eq | stmwrap(80, 8) }}
     {% endfor %}
 
     {% for m in ode.odemodifier -%}
@@ -142,9 +142,8 @@ int jac(realtype t, N_Vector u, N_Vector fu, SUNMatrix jmatrix, void *user_data,
 
     // clang-format off
     {% for eq in ode.jac -%}
-        {{ eq | wordwrap(80) | replace('\n', wrap) }}
-    {% endfor %}
-    // clang-format on
+        {{ eq | stmwrap(80, 8) }}
+    {% endfor %}  // clang-format on
 
     /* {% elif info.method == "sparse" -%} */
     realtype *y            = N_VGetArrayPointer(u);
@@ -169,7 +168,7 @@ int jac(realtype t, N_Vector u, N_Vector fu, SUNMatrix jmatrix, void *user_data,
 
     // value of each non-zero element
     {% for data in ode.spjacdata -%}
-        {{ data }}
+        {{ data | stmwrap(80, 8) }}
     {% endfor %}
 
     // clang-format on
@@ -254,7 +253,7 @@ __global__ void f_kernel(realtype *y, realtype *ydot, NaunetData *d_udata,
 
         // clang-format off
         {% for eq in ode.fex -%}
-            {{ eq | replace("ydot[IDX", "ydot[yistart + IDX") | replace("y[IDX", "y_cur[IDX") | wordwrap(80) | replace('\n', wrap) }}
+            {{ eq | replace("ydot[IDX", "ydot[yistart + IDX") | replace("y[IDX", "y_cur[IDX") | stmwrap(80, 12) }}
         {% endfor %}
 
         {% for m in ode.odemodifier -%}
@@ -307,7 +306,7 @@ int jtv(N_Vector v, N_Vector Jv, realtype t, N_Vector u, N_Vector fu,
 
     // clang-format off
     {% for eq in ode.fex -%}
-        {{ eq | wordwrap(80) | replace('\n', wrap) }}
+        {{ eq | stmwrap(80, 8) }}
     {% endfor %}
 
     {% for m in ode.odemodifier -%}
