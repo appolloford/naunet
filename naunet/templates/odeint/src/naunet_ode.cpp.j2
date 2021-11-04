@@ -21,7 +21,7 @@ typedef boost::numeric::ublas::matrix<double> matrix_type;
 
 using namespace boost::numeric::odeint;
 
-int calculate_rates(double *k, double *y, NaunetData *u_data) {
+int EvalRates(double *k, double *y, NaunetData *u_data) {
     // clang-format off
     {% for v in variables.varis -%}
         double {{ v }} = u_data->{{ v }};
@@ -49,18 +49,14 @@ int calculate_rates(double *k, double *y, NaunetData *u_data) {
     return NAUNET_SUCCESS;
 }
 
-fex::fex() { u_data = new NaunetData(); };
-
-fex::fex(NaunetData *data) {
+Fex::Fex(NaunetData *data) {
     u_data  = new NaunetData();
     *u_data = *data;
 };
 
-fex::~fex(){
-    // delete u_data;
-};
+Fex::~Fex() { delete u_data; };
 
-void fex::operator()(const vector_type &y, vector_type &ydot, double t) {
+void Fex::operator()(const vector_type &y, vector_type &ydot, double t) {
     // clang-format off
     {% for v in variables.varis -%}
         double {{ v }} = u_data->{{ v }};
@@ -76,7 +72,7 @@ void fex::operator()(const vector_type &y, vector_type &ydot, double t) {
     for (int i = 0; i < NSPECIES; i++) {
         ab[i] = y[i];
     }
-    calculate_rates(k, ab, u_data);
+    EvalRates(k, ab, u_data);
 
     // clang-format off
     {% for eq in ode.fex -%}
@@ -89,18 +85,14 @@ void fex::operator()(const vector_type &y, vector_type &ydot, double t) {
     // clang-format on
 };
 
-jac::jac() { u_data = new NaunetData(); };
-
-jac::jac(NaunetData *data) {
+Jac::Jac(NaunetData *data) {
     u_data  = new NaunetData();
     *u_data = *data;
 };
 
-jac::~jac() {
-    // delete u_data;
-}
+Jac::~Jac() { delete u_data; }
 
-void jac::operator()(const vector_type &y, matrix_type &j, const double &t,
+void Jac::operator()(const vector_type &y, matrix_type &j, const double &t,
                      vector_type &dfdt) {
     // clang-format off
     {% for v in variables.varis -%}
@@ -113,7 +105,7 @@ void jac::operator()(const vector_type &y, matrix_type &j, const double &t,
     for (int i = 0; i < NSPECIES; i++) {
         ab[i] = y[i];
     }
-    calculate_rates(k, ab, u_data);
+    EvalRates(k, ab, u_data);
 
     // clang-format off
     {% for eq in ode.jac -%}

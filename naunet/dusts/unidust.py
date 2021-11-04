@@ -15,7 +15,7 @@ class UniDust(Dust):
         "BranchRatio": "branch",
     }
     user_var = [
-        "double mant = mantles(y)",
+        "double mant = GetMantleDens(y)",
         "double gdens = (y[IDX_GRAIN0I]+y[IDX_GRAINM])",
         "double garea = (4*pi*rG*rG) * gdens",
         "double unisites = sites * (4*pi*rG*rG)",

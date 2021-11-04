@@ -67,172 +67,190 @@ static int check_flag(void *flagvalue, const char *funcname, int opt) {
     return 0;
 }
 
-Naunet::Naunet() : m_atol(1e-20), m_rtol(1e-5){};
+Naunet::Naunet(){};
 
-Naunet::~Naunet() {
-    // N_VDestroy(m_y);
-    N_VFreeEmpty(m_y);
-    SUNMatDestroy(m_a);
-    CVodeFree(&m_cvode_mem);
-    SUNLinSolFree(m_ls);
-    // delete m_data;
+Naunet::~Naunet(){};
 
-    /* {% if info.method == "cusparse" -%} */
-    cusparseDestroy(m_cusp_handle);
-    cusolverSpDestroy(m_cusol_handle);
-    /* {% endif %} */
-};
+int Naunet::Init(int nsystem, double atol, double rtol) {
+    n_system_ = nsystem;
+    atol_     = atol;
+    rtol_     = rtol;
 
-int Naunet::initSolver() {
     /* {% if info.method == "dense" -%} */
+    if (nsystem != 1) {
+        printf("This solver doesn't support nsystem > 1!");
+        return NAUNET_FAIL;
+    }
 
-    m_y  = N_VNew_Serial((sunindextype)NSPECIES);
-    m_a  = SUNDenseMatrix(NSPECIES, NSPECIES);
-    m_ls = SUNLinSol_Dense(m_y, m_a);
+    cv_y_  = N_VNew_Serial((sunindextype)NSPECIES);
+    cv_a_  = SUNDenseMatrix(NSPECIES, NSPECIES);
+    cv_ls_ = SUNLinSol_Dense(cv_y_, cv_a_);
 
     /* {% elif info.method == "sparse" -%} */
+    if (nsystem != 1) {
+        printf("This solver doesn't support nsystem > 1!");
+        return NAUNET_FAIL;
+    }
 
-    m_y  = N_VNew_Serial((sunindextype)NSPECIES);
-    m_a  = SUNSparseMatrix(NSPECIES, NSPECIES, NNZ, CSR_MAT);
-    m_ls = SUNLinSol_KLU(m_y, m_a);
+    cv_y_  = N_VNew_Serial((sunindextype)NSPECIES);
+    cv_a_  = SUNSparseMatrix(NSPECIES, NSPECIES, NNZ, CSR_MAT);
+    cv_ls_ = SUNLinSol_KLU(cv_y_, cv_a_);
 
     /* {% elif info.method == "cusparse" -%} */
 
-    cusparseCreate(&m_cusp_handle);
-    cusolverSpCreate(&m_cusol_handle);
-    m_y  = N_VNew_Cuda(MAXNGROUPS * NSPECIES);
-    m_a  = SUNMatrix_cuSparse_NewBlockCSR(MAXNGROUPS, NSPECIES, NSPECIES, NNZ,
-                                          m_cusp_handle);
-    m_ls = SUNLinSol_cuSolverSp_batchQR(m_y, m_a, m_cusol_handle);
+    cusparseCreate(&cusp_handle_);
+    cusolverSpCreate(&cusol_handle_);
+    cv_y_  = N_VNew_Cuda(MAXNGROUPS * NSPECIES);
+    cv_a_  = SUNMatrix_cuSparse_NewBlockCSR(MAXNGROUPS, NSPECIES, NSPECIES, NNZ,
+                                            cusp_handle_);
+    cv_ls_ = SUNLinSol_cuSolverSp_batchQR(cv_y_, cv_a_, cusol_handle_);
     // abstol = N_VNew_Cuda(neq);
-    SUNMatrix_cuSparse_SetFixedPattern(m_a, 1);
-    jacInit(m_a);
+    SUNMatrix_cuSparse_SetFixedPattern(cv_a_, 1);
+    InitJac(cv_a_);
 
     /* {% elif info.method == "spgmr" -%} */
     // TODO: Try GMRES solvers
-    // m_ls = SUNLinSol_SPGMR(m_y, 0, 0);
-    // if (check_flag((void *)m_ls, "SUNLinSol_SPGMR", 0))
-    //     return 1;
-    // flag = CVSpilsSetLinearSolver(m_cvode_mem, m_ls);
-    // if (check_flag(&flag, "CVSpilsSetLinearSolver", 1))
-    //     return 1;
-    // flag = CVSpilsSetJacTimes(m_cvode_mem, NULL, jtv);
-    // if (check_flag(&flag, "CVSpilsSetJacTimes", 1))
-    //     return 1;
+    // cv_ls_ = SUNLinSol_SPGMR(cv_y_, 0, 0);
+    // if (check_flag((void *)cv_ls_, "SUNLinSol_SPGMR", 0)) return 1;
+    // flag = CVSpilsSetLinearSolver(cv_mem_, cv_ls_);
+    // if (check_flag(&flag, "CVSpilsSetLinearSolver", 1)) return 1;
+    // flag = CVSpilsSetJacTimes(cv_mem_, NULL, Jtv);
+    // if (check_flag(&flag, "CVSpilsSetJacTimes", 1)) return 1;
 
     /* {% endif %} */
 
-    m_cvode_mem = CVodeCreate(CV_BDF);
+    cv_mem_ = CVodeCreate(CV_BDF);
 
     int flag;
-    flag = CVodeInit(m_cvode_mem, fex, 0.0, m_y);
+    flag = CVodeInit(cv_mem_, Fex, 0.0, cv_y_);
     if (check_flag(&flag, "CVodeInit", 1)) return 1;
-    flag = CVodeSStolerances(m_cvode_mem, m_rtol, m_atol);
+    flag = CVodeSStolerances(cv_mem_, rtol_, atol_);
     if (check_flag(&flag, "CVodeSStolerances", 1)) return 1;
-    flag = CVodeSetLinearSolver(m_cvode_mem, m_ls, m_a);
+    flag = CVodeSetLinearSolver(cv_mem_, cv_ls_, cv_a_);
     if (check_flag(&flag, "CVodeSetLinearSolver", 1)) return 1;
-    flag = CVodeSetJacFn(m_cvode_mem, jac);
+    flag = CVodeSetJacFn(cv_mem_, Jac);
     if (check_flag(&flag, "CVodeSetJacFn", 1)) return 1;
 
     // reset the n_vector to empty, maybe not necessary
     /* {% if info.method == "dense" or info.method == "sparse" -%} */
 
-    N_VDestroy(m_y);
-    m_y = N_VNewEmpty_Serial((sunindextype)NSPECIES);
+    // N_VDestroy(cv_y_);
+    // cv_y_ = N_VNewEmpty_Serial((sunindextype)NSPECIES);
 
     /* {% elif info.method == "cusparse" -%} */
 
-    // N_VDestroy(m_y);
-    // m_y = N_VNewEmpty_Cuda();
+    // N_VDestroy(cv_y_);
+    // cv_y_ = N_VNewEmpty_Cuda();
 
     /* {% endif -%} */
 
     return NAUNET_SUCCESS;
 };
 
+int Naunet::Finalize() {
+    N_VDestroy(cv_y_);
+    // N_VFreeEmpty(cv_y_);
+    SUNMatDestroy(cv_a_);
+    CVodeFree(&cv_mem_);
+    SUNLinSolFree(cv_ls_);
+    // delete m_data;
+
+    /* {% if info.method == "cusparse" -%} */
+    cusparseDestroy(cusp_handle_);
+    cusolverSpDestroy(cusol_handle_);
+    /* {% endif %} */
+
+    return NAUNET_SUCCESS;
+};
+
 /* {% if info.method == "cusparse" %} */
 // To reset the size of cusparse solver
-int Naunet::resetSolver(int nsystem) {
-    N_VDestroy(m_y);
-    SUNMatDestroy(m_a);
-    SUNLinSolFree(m_ls);
-    CVodeFree(&m_cvode_mem);
+int Naunet::Reset(int nsystem, double atol, double rtol) {
+    n_system_ = nsystem;
+    atol_     = atol;
+    rtol_     = rtol;
 
-    m_cvode_mem = CVodeCreate(CV_BDF);
-    m_y         = N_VNew_Cuda(nsystem * NSPECIES);
-    m_a  = SUNMatrix_cuSparse_NewBlockCSR(nsystem, NSPECIES, NSPECIES, NNZ,
-                                          m_cusp_handle);
-    m_ls = SUNLinSol_cuSolverSp_batchQR(m_y, m_a, m_cusol_handle);
-    SUNMatrix_cuSparse_SetFixedPattern(m_a, 1);
-    jacInit(m_a);
+    N_VDestroy(cv_y_);
+    SUNMatDestroy(cv_a_);
+    SUNLinSolFree(cv_ls_);
+    CVodeFree(&cv_mem_);
+
+    cv_y_  = N_VNew_Cuda(nsystem * NSPECIES);
+    cv_a_  = SUNMatrix_cuSparse_NewBlockCSR(nsystem, NSPECIES, NSPECIES, NNZ,
+                                            cusp_handle_);
+    cv_ls_ = SUNLinSol_cuSolverSp_batchQR(cv_y_, cv_a_, cusol_handle_);
+    SUNMatrix_cuSparse_SetFixedPattern(cv_a_, 1);
+    InitJac(cv_a_);
+
+    cv_mem_ = CVodeCreate(CV_BDF);
 
     int flag;
-    flag = CVodeInit(m_cvode_mem, fex, 0.0, m_y);
+    flag = CVodeInit(cv_mem_, Fex, 0.0, cv_y_);
     if (check_flag(&flag, "CVodeInit", 1)) return 1;
-    flag = CVodeSStolerances(m_cvode_mem, m_rtol, m_atol);
+    flag = CVodeSStolerances(cv_mem_, rtol_, atol_);
     if (check_flag(&flag, "CVodeSStolerances", 1)) return 1;
-    flag = CVodeSetLinearSolver(m_cvode_mem, m_ls, m_a);
+    flag = CVodeSetLinearSolver(cv_mem_, cv_ls_, cv_a_);
     if (check_flag(&flag, "CVodeSetLinearSolver", 1)) return 1;
-    flag = CVodeSetJacFn(m_cvode_mem, jac);
+    flag = CVodeSetJacFn(cv_mem_, Jac);
     if (check_flag(&flag, "CVodeSetJacFn", 1)) return 1;
 
     // reset the n_vector to empty, maybe not necessary
-    // N_VDestroy(m_y);
-    // m_y = N_VNewEmpty_Cuda();
+    // N_VDestroy(cv_y_);
+    // cv_y_ = N_VNewEmpty_Cuda();
 
     return NAUNET_SUCCESS;
 };
 /* {% endif %} */
 
-int Naunet::solve(realtype *ab, realtype dt, NaunetData *data) {
+int Naunet::Solve(realtype *ab, realtype dt, NaunetData *data) {
     realtype t0 = 0.0;
     int flag;
 
     /* {% if info.method == "dense" or info.method == "sparse" -%} */
 
-    // realtype *ydata = N_VGetArrayPointer(m_y);
+    // realtype *ydata = N_VGetArrayPointer(cv_y_);
     // for (int i=0; i<NSPECIES; i++)
     // {
     //     ydata[i] = ab[i];
     // }
-    N_VSetArrayPointer(ab, m_y);
+    N_VSetArrayPointer(ab, cv_y_);
 
     /* {% elif info.method == "cusparse" -%} */
 
     // This way is too slow
-    // realtype *ydata = N_VGetArrayPointer(m_y);
+    // realtype *ydata = N_VGetArrayPointer(cv_y_);
     // for (int i=0; i<NSPECIES; i++)
     // {
     //     ydata[i] = ab[i];
     // }
-    N_VSetHostArrayPointer_Cuda(ab, m_y);
-    N_VCopyToDevice_Cuda(m_y);
+    N_VSetHostArrayPointer_Cuda(ab, cv_y_);
+    N_VCopyToDevice_Cuda(cv_y_);
 
     /* {% endif %} */
 
 #ifdef NAUNET_DEBUG
     /* {% if info.method == "cusparse" -%} */
     // sunindextype lrw, liw;
-    // N_VSpace_Cuda(m_y, &lrw, &liw);
+    // N_VSpace_Cuda(cv_y_, &lrw, &liw);
     // printf("NVector space: real-%d, int-%d\n", lrw, liw);
     /* {% endif %} */
 #endif
 
-    flag = CVodeReInit(m_cvode_mem, 0.0, m_y);
+    flag = CVodeReInit(cv_mem_, 0.0, cv_y_);
     if (check_flag(&flag, "CVodeReInit", 1)) return 1;
-    flag = CVodeSetUserData(m_cvode_mem, data);
+    flag = CVodeSetUserData(cv_mem_, data);
     if (check_flag(&flag, "CVodeSetUserData", 1)) return 1;
 
-    flag = CVode(m_cvode_mem, dt, m_y, &t0, CV_NORMAL);
+    flag = CVode(cv_mem_, dt, cv_y_, &t0, CV_NORMAL);
 
     /* {% if info.method == "dense" or info.method == "sparse" -%} */
 
-    ab   = N_VGetArrayPointer(m_y);
+    ab   = N_VGetArrayPointer(cv_y_);
 
     /* {% elif info.method == "cusparse" -%} */
 
-    N_VCopyFromDevice_Cuda(m_y);
-    ab = N_VGetHostArrayPointer_Cuda(m_y);
+    N_VCopyFromDevice_Cuda(cv_y_);
+    ab = N_VGetHostArrayPointer_Cuda(cv_y_);
 
     /* {% endif -%} */
 
@@ -240,12 +258,12 @@ int Naunet::solve(realtype *ab, realtype dt, NaunetData *data) {
 };
 
 #ifdef PYMODULE
-py::array_t<realtype> Naunet::wrapper_solve(py::array_t<realtype> arr,
-                                            realtype dt, NaunetData *data) {
+py::array_t<realtype> Naunet::PyWrapSolve(py::array_t<realtype> arr,
+                                          realtype dt, NaunetData *data) {
     py::buffer_info info = arr.request();
     realtype *ab         = static_cast<realtype *>(info.ptr);
 
-    solve(ab, dt, data);
+    Solve(ab, dt, data);
 
     return py::array_t<realtype>(info.shape, ab);
 }

@@ -6,29 +6,29 @@
 
 // clang-format off
 {% if info.device == "gpu" -%} __device__ __host__ {% endif -%}
-double mantles(double *y) {
+double GetMantleDens(double *y) {
     return {{ physics.mantles | stmwrap(80, 8) }};
 }
 // clang-format on
 
 // clang-format off
 {% if info.device == "gpu" -%} __device__ {% endif -%}
-double shieldingfactor(int specidx, double h2coldens, double spcoldens, double tgas, int method) {
+double GetShieldingFactor(int specidx, double h2coldens, double spcoldens, double tgas, int method) {
     // clang-format on
     double factor;
 #ifdef IDX_H2I
     if (specidx == IDX_H2I) {
-        factor = H2shielding(h2coldens, method);
+        factor = GetH2shielding(h2coldens, method);
     }
 #endif
 #ifdef IDX_COI
     if (specidx == IDX_COI) {
-        factor = COshielding(tgas, h2coldens, spcoldens, method);
+        factor = GetCOshielding(tgas, h2coldens, spcoldens, method);
     }
 #endif
 #ifdef IDX_N2I
     if (specidx == IDX_N2I) {
-        factor = N2shielding(tgas, h2coldens, spcoldens, method);
+        factor = GetN2shielding(tgas, h2coldens, spcoldens, method);
     }
 #endif
 
@@ -37,12 +37,12 @@ double shieldingfactor(int specidx, double h2coldens, double spcoldens, double t
 
 // clang-format off
 {% if info.device == "gpu" -%} __device__ {% endif -%}
-double H2shielding(double coldens, int method) {
+double GetH2shielding(double coldens, int method) {
     // clang-format on
     double shielding = -1.0;
     switch (method) {
         case 0:
-            shielding = H2shieldingInt(coldens);
+            shielding = GetH2shieldingInt(coldens);
             break;
         default:
             break;
@@ -52,12 +52,12 @@ double H2shielding(double coldens, int method) {
 
 // clang-format off
 {% if info.device == "gpu" -%} __device__ {% endif -%}
-double COshielding(double tgas, double h2col, double coldens, int method) {
+double GetCOshielding(double tgas, double h2col, double coldens, int method) {
     // clang-format on
     double shielding = -1.0;
     switch (method) {
         case 0:
-            shielding = COshieldingInt(tgas, h2col, coldens);
+            shielding = GetCOshieldingInt(tgas, h2col, coldens);
             break;
         default:
             break;
@@ -67,12 +67,12 @@ double COshielding(double tgas, double h2col, double coldens, int method) {
 
 // clang-format off
 {% if info.device == "gpu" -%} __device__ {% endif -%}
-double N2shielding(double tgas, double h2col, double coldens, int method) {
+double GetN2shielding(double tgas, double h2col, double coldens, int method) {
     // clang-format on
     double shielding = -1.0;
     switch (method) {
         case 0:
-            shielding = N2shieldingInt(tgas, h2col, coldens);
+            shielding = GetN2shieldingInt(tgas, h2col, coldens);
             break;
         default:
             break;
@@ -83,7 +83,7 @@ double N2shielding(double tgas, double h2col, double coldens, int method) {
 // Interpolate/Extropolate from table (must be rendered in naunet constants)
 // clang-format off
 {% if info.device == "gpu" -%} __device__ {% endif -%}
-double H2shieldingInt(double coldens) {
+double GetH2shieldingInt(double coldens) {
     // clang-format on
 
     double shielding = -1.0;
@@ -121,7 +121,7 @@ double H2shieldingInt(double coldens) {
 // Interpolate/Extropolate from table (must be rendered in naunet constants)
 // clang-format off
 {% if info.device == "gpu" -%} __device__ {% endif -%}
-double COshieldingInt(double tgas, double h2col, double coldens) {
+double GetCOshieldingInt(double tgas, double h2col, double coldens) {
     // clang-format on
     double shielding = -1.0;
 
@@ -202,7 +202,7 @@ double COshieldingInt(double tgas, double h2col, double coldens) {
 // Interpolate/Extropolate from table (must be rendered in naunet constants)
 // clang-format off
 {% if info.device == "gpu" -%} __device__ {% endif -%}
-double N2shieldingInt(double tgas, double h2col, double coldens) {
+double GetN2shieldingInt(double tgas, double h2col, double coldens) {
     // clang-format on
 
     double shielding = -1.0;

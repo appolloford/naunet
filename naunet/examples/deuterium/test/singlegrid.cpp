@@ -6,50 +6,46 @@
 #include "naunet_ode.h"
 #include "naunet_timer.h"
 
-int main()
-{
-
-    double spy = 86400.0 * 365.0;
-    double pi = 3.14159265;
-    double rD = 1.0e-5;
-    double rhoD = 3.0;
+int main() {
+    double spy   = 86400.0 * 365.0;
+    double pi    = 3.14159265;
+    double rD    = 1.0e-5;
+    double rhoD  = 3.0;
     double DtoGM = 7.09e-3;
-    double amH = 1.66043e-24;
-    double nH = 1e5;
+    double amH   = 1.66043e-24;
+    double nH    = 1e5;
     double OPRH2 = 0.1;
 
     NaunetData data;
-    data.nH = nH;
-    data.Tgas = 15.0;
-    data.user_Av = 30.0;
+    data.nH          = nH;
+    data.Tgas        = 15.0;
+    data.user_Av     = 30.0;
     data.user_crflux = 2.5e-17;
-    data.user_GtoDN = (4.e0 * pi * rhoD * rD * rD * rD) / (3.e0 * DtoGM * amH);
+    data.user_GtoDN  = (4.e0 * pi * rhoD * rD * rD * rD) / (3.e0 * DtoGM * amH);
 
     Naunet naunet;
-    naunet.initSolver();
+    naunet.Init();
 
 #ifdef USE_CUDA
-    naunet.resetSolver(1);
+    naunet.Reset(1);
 #endif
 
     double y[NSPECIES];
-    for (int i = 0; i < NSPECIES; i++)
-    {
+    for (int i = 0; i < NSPECIES; i++) {
         y[i] = 1.e-40;
     }
-    y[IDX_pH2I] = 1.0 / (1.0 + OPRH2) * 0.5 * nH;
-    y[IDX_oH2I] = OPRH2 / (1.0 + OPRH2) * 0.5 * nH;
-    y[IDX_HDI] = 1.5e-5 * nH;
-    y[IDX_HeI] = 1.0e-1 * nH;
-    y[IDX_NI] = 2.1e-6 * nH;
-    y[IDX_OI] = 1.8e-5 * nH;
-    y[IDX_CI] = 7.3e-6 * nH;
+    y[IDX_pH2I]    = 1.0 / (1.0 + OPRH2) * 0.5 * nH;
+    y[IDX_oH2I]    = OPRH2 / (1.0 + OPRH2) * 0.5 * nH;
+    y[IDX_HDI]     = 1.5e-5 * nH;
+    y[IDX_HeI]     = 1.0e-1 * nH;
+    y[IDX_NI]      = 2.1e-6 * nH;
+    y[IDX_OI]      = 1.8e-5 * nH;
+    y[IDX_CI]      = 7.3e-6 * nH;
     y[IDX_GRAIN0I] = 1.3215e-12 * nH;
 
     double time[10046];
     FILE *tfile = fopen("timeres.dat", "r");
-    for (int i = 0; i < 10046; i++)
-    {
+    for (int i = 0; i < 10046; i++) {
         fscanf(tfile, "%lf\n", time + i);
     }
     fclose(tfile);
@@ -74,13 +70,10 @@ int main()
     //     {
     //         dtyr = 1e5;
     //     }
-    for (int i = 0; i < 10045; i++)
-    {
-
+    for (int i = 0; i < 10045; i++) {
 #ifdef NAUNET_DEBUG
-        calculate_rates(rates, y, &data);
-        for (int j = 0; j < NREACTIONS; j++)
-        {
+        EvalRates(rates, y, &data);
+        for (int j = 0; j < NREACTIONS; j++) {
             fprintf(rtxt, "%13.7e ", rates[j]);
         }
         fprintf(rtxt, "\n");
@@ -92,20 +85,20 @@ int main()
         fwrite(y, sizeof(double), NSPECIES, fbin);
 
         fprintf(ftxt, "%13.7e ", time[i]);
-        for (int j = 0; j < NSPECIES; j++)
-        {
+        for (int j = 0; j < NSPECIES; j++) {
             fprintf(ftxt, "%13.7e ", y[j]);
         }
         fprintf(ftxt, "\n");
 
         Timer timer;
         timer.start();
-        naunet.solve(y, dtyr * spy, &data);
+        naunet.Solve(y, dtyr * spy, &data);
         timer.stop();
         // float duration = (float)timer.elapsed() / 1e6;
         double duration = timer.elapsed();
         fprintf(ttxt, "%8.5e \n", duration);
-        // printf("Time = %13.7e yr, elapsed: %8.5e sec\n", time[i + 1], duration);
+        // printf("Time = %13.7e yr, elapsed: %8.5e sec\n", time[i + 1],
+        // duration);
     }
 
     fclose(fbin);
@@ -114,6 +107,8 @@ int main()
 #ifdef NAUNET_DEBUG
     fclose(rtxt);
 #endif
+
+    naunet.Finalize();
 
     return 0;
 }

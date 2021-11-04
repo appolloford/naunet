@@ -8,48 +8,60 @@
 
 using namespace boost::numeric::odeint;
 
-Naunet::Naunet() : m_atol(1e-20), m_rtol(1e-5){};
+Naunet::Naunet(){};
 
 Naunet::~Naunet(){};
 
-int Naunet::initSolver() { return NAUNET_SUCCESS; };
+int Naunet::Init(int nsystem, double atol, double rtol) {
+    if (nsystem != 1) {
+        printf("This solver doesn't support nsystem > 1!");
+        return NAUNET_FAIL;
+    }
 
-int Naunet::solve(double *ab, double dt, NaunetData *data) {
+    n_system_ = nsystem;
+    atol_     = atol;
+    rtol_     = rtol;
+    return NAUNET_SUCCESS;
+};
+
+int Naunet::Finalize() { return NAUNET_SUCCESS; }
+
+int Naunet::Solve(double *abund, double dt, NaunetData *data) {
     vector_type y(NSPECIES);
     for (int i = 0; i < NSPECIES; i++) {
-        y[i] = ab[i];
+        y[i] = abund[i];
     }
 
     // TODO: test the two methods from odeint stiff system example
     // size_t num_of_steps = integrate_const(
-    //     make_dense_output<rosenbrock4<double>>(m_atol, m_rtol),
+    //     make_dense_output<rosenbrock4<double>>(atol_, rtol_),
     //     make_pair(fex(data), jac(data)), y, 0.0, dt, dt
     // );
 
     // size_t num_of_steps = integrate_const(
-    //     make_dense_output<runge_kutta_dopri5<vector_type>>(m_atol, m_rtol),
+    //     make_dense_output<runge_kutta_dopri5<vector_type>>(atol_, rtol_),
     //     fex(data), y, 0.0, dt, dt
     // );
 
     size_t num_of_steps = integrate_adaptive(
-        make_controlled<rosenbrock4<double>>(m_atol, m_rtol),
-        std::make_pair(fex(data), jac(data)), y, 0.0, dt, dt);
+        make_controlled<rosenbrock4<double>>(atol_, rtol_),
+        std::make_pair(Fex(data), Jac(data)), y, 0.0, dt, dt);
 
     for (int i = 0; i < NSPECIES; i++) {
-        ab[i] = y[i];
+        abund[i] = y[i];
     }
 
     return NAUNET_SUCCESS;
 };
 
 #ifdef PYMODULE
-py::array_t<double> Naunet::wrapper_solve(py::array_t<double> arr, double dt,
-                                          NaunetData *data) {
+py::array_t<double> Naunet::PyWrapSolve(py::array_t<double> arr, double dt,
+                                        NaunetData *data) {
     py::buffer_info info = arr.request();
-    double *ab           = static_cast<double *>(info.ptr);
+    double *abund        = static_cast<double *>(info.ptr);
 
-    solve(ab, dt, data);
+    Solve(abund, dt, data);
 
-    return py::array_t<double>(info.shape, ab);
+    return py::array_t<double>(info.shape, abund);
 }
 #endif

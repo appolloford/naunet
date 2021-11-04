@@ -51,9 +51,9 @@ naunet_data.duty = duty
 naunet_data.Tcr = Tcr
 naunet_data.branch = branch
 
-naunet_solver.initSolver()
+naunet_solver.Init()
 if @USE_CUDA@:
-    naunet_solver.resetSolver(1)
+    naunet_solver.Reset(1)
 
 y = np.ones(len(species)) * 1e-40
 # Only works if the species list in naunet_config.toml has been updated
@@ -73,7 +73,7 @@ y[species.index("Cl")]     = 4.0e-9 * nH
 y[species.index("F")]      = 2.0e-8 * nH
 y[species.index("GRAIN0")] = 1.3e-12 * nH
 
-naunet_solver.solve(y, 1e4, naunet_data)
+naunet_solver.Solve(y, 1e4, naunet_data)
 
 times = np.logspace(3, 8, num=51)
 timesteps = times[1:] - times[:-1]
@@ -82,8 +82,10 @@ with open("evolution_pymodule.dat", "w") as evoldat:
 
     for ti, dtyr in enumerate(timesteps):
         dt = dtyr * spy
-        y = naunet_solver.solve(y, dt, naunet_data)
+        y = naunet_solver.Solve(y, dt, naunet_data)
 
         fmty = [f"{yi:13.7e}" for yi in y]
         evoldat.write(" ".join([f"{times[ti+1]:13.7e}", *fmty]))
         evoldat.write("\n")
+
+naunet_solver.Finalize();

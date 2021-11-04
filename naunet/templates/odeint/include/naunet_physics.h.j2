@@ -1,21 +1,21 @@
 #ifndef __NAUNET_PHYSICS_H__
 #define __NAUNET_PHYSICS_H__
 
-double mantles(double *y);
+double GetMantleDens(double *y);
 
-double shieldingfactor(int specidx, double h2coldens, double spcoldens,
-                       double tgas, int method);
+double GetShieldingFactor(int specidx, double h2coldens, double spcoldens,
+                          double tgas, int method);
 
-double H2shielding(double coldens, int method);
+double GetH2shielding(double coldens, int method);
 
-double COshielding(double tgas, double h2col, double coldens, int method);
+double GetCOshielding(double tgas, double h2col, double coldens, int method);
 
-double N2shielding(double tgas, double h2col, double coldens, int method);
+double GetN2shielding(double tgas, double h2col, double coldens, int method);
 
-double H2shieldingInt(double coldens);
+double GetH2shieldingInt(double coldens);
 
-double COshieldingInt(double tgas, double h2col, double coldens);
+double GetCOshieldingInt(double tgas, double h2col, double coldens);
 
-double N2shieldingInt(double tgas, double h2col, double coldens);
+double GetN2shieldingInt(double tgas, double h2col, double coldens);
 
 #endif

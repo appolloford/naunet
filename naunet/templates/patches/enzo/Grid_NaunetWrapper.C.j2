@@ -196,7 +196,7 @@ int grid::NaunetWrapper()
   float NumberDensityUnits = DensityUnits / mh;
 
   Naunet naunet;
-  naunet.initSolver();
+  naunet.Init();
 
   // TODO: comoving, heating/cooling
   {% if device == "cpu" %}
@@ -213,7 +213,7 @@ int grid::NaunetWrapper()
       {{ ab }} * NumberDensityUnits;
     {% endfor -%}
 
-    naunet.solve(y, dt_chem * TimeUnits, &data);
+    naunet.Solve(y, dt_chem * TimeUnits, &data);
 
     {% for iab in invabund -%}
       {{ iab }} / NumberDensityUnits;
@@ -228,7 +228,7 @@ int grid::NaunetWrapper()
     int nsystem = MAXNGROUPS;
     if (size - cur < MAXNGROUPS) {
       nsystem = size - cur;
-      naunet.resetSolver(nsystem);
+      naunet.Reset(nsystem);
     }
     cur += MAXNGROUPS;
 
@@ -246,7 +246,7 @@ int grid::NaunetWrapper()
       {% endfor -%}
     }
 
-    naunet.solve(y, dt_chem * TimeUnits, data);
+    naunet.Solve(y, dt_chem * TimeUnits, data);
 
     for (sidx=0, i=cur; i<cur+nsystem; sidx+=NSPECIES, i++) {
       {% for iab in invabund -%}
@@ -255,7 +255,8 @@ int grid::NaunetWrapper()
     }
   }
 
-  naunet.resetSolver(MAXNGROUPS);
+  // naunet.Reset(MAXNGROUPS);
+  naunet.Finalize();
 
   {% endif %}
 

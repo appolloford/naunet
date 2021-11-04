@@ -8,28 +8,26 @@
 typedef boost::numeric::ublas::vector<double> vector_type;
 typedef boost::numeric::ublas::matrix<double> matrix_type;
 
-int calculate_rates(double *rates, double *y, NaunetData *user_data);
+int EvalRates(double *k, double *y, NaunetData *user_data);
 
-class fex {
+class Fex {
    private:
     NaunetData *u_data;
 
    public:
-    fex();
-    fex(NaunetData *data);
-    ~fex();
+    Fex(NaunetData *data);
+    ~Fex();
 
     void operator()(const vector_type &y, vector_type &ydot, double t);
 };
 
-class jac {
+class Jac {
    private:
     NaunetData *u_data;
 
    public:
-    jac();
-    jac(NaunetData *data);
-    ~jac();
+    Jac(NaunetData *data);
+    ~Jac();
 
     void operator()(const vector_type &y, matrix_type &j, const double &t,
                     vector_type &dfdt);

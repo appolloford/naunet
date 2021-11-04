@@ -142,7 +142,7 @@ class LEEDSReaction(Reaction):
         elif rtype == 4:
             rate = f"{G0} * {a} * exp(-{c}*{Av})"
             if re1.name in ["H2", "CO", "N2"]:
-                shield = f"shieldingfactor(IDX_{re1.alias}, h2col, {re1.name.lower()}col, {Tgas}, 0)"
+                shield = f"GetshieldingFactor(IDX_{re1.alias}, h2col, {re1.name.lower()}col, {Tgas}, 0)"
                 rate = f"{rate} * {shield}"
 
         # TODO:
@@ -185,7 +185,7 @@ class LEEDSReaction(Reaction):
             if re1.name in ["GH2", "GCO", "GN2"]:
                 spidx = f"IDX_{re1.alias[1:]}"
                 coldens = f"{re1.name[1:].lower()}col"
-                shield = f"shieldingfactor({spidx}, h2col, {coldens}, {Tgas}, 0)"
+                shield = f"GetShieldingFactor({spidx}, h2col, {coldens}, {Tgas}, 0)"
                 rate = f"{rate} * {shield}"
 
         # two-body grain-surface reaction

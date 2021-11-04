@@ -8,22 +8,22 @@
 #include "naunet_data.h"
 
 /* {% if info.device == "gpu" -%} */
-__device__ int calculate_rates(realtype *k, realtype *y, NaunetData *user_data);
+__device__ int EvalRates(realtype *k, realtype *y, NaunetData *user_data);
 /* {% else -%} */
-int calculate_rates(realtype *k, realtype *y, NaunetData *user_data);
+int EvalRates(realtype *k, realtype *y, NaunetData *user_data);
 /* {% endif -%} */
-int fex(realtype t, N_Vector u, N_Vector u_dot, void *user_data);
-int jtv(N_Vector v, N_Vector Jv, realtype t, N_Vector u, N_Vector fu,
+int Fex(realtype t, N_Vector u, N_Vector udot, void *user_data);
+int Jtv(N_Vector v, N_Vector jv, realtype t, N_Vector u, N_Vector fu,
         void *user_data, N_Vector tmp);
-int jac(realtype t, N_Vector u, N_Vector fu, SUNMatrix jmatrix, void *user_data,
+int Jac(realtype t, N_Vector u, N_Vector fu, SUNMatrix jmatrix, void *user_data,
         N_Vector tmp1, N_Vector tmp2, N_Vector tmp3);
 
 /* {% if info.method == "cusparse" -%} */
-int jacInit(SUNMatrix jmatrix);
-__global__ void f_kernel(realtype *y, realtype *ydot, NaunetData *udata,
-                         int nsystem);
-__global__ void j_kernel(realtype *y, realtype *jdata, NaunetData *udata,
-                         int nsystem);
+int InitJac(SUNMatrix jmatrix);
+__global__ void FKernel(realtype *y, realtype *ydot, NaunetData *udata,
+                        int nsystem);
+__global__ void JKernel(realtype *y, realtype *jdata, NaunetData *udata,
+                        int nsystem);
 
 /* {% endif -%} */
 

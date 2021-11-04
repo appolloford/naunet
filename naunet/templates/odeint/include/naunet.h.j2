@@ -11,19 +11,21 @@ namespace py = pybind11;
 #endif
 
 class Naunet {
-   private:
-    double m_atol;
-    double m_rtol;
-
    public:
     Naunet();
     ~Naunet();
-    int initSolver();
-    int solve(double *ab, double dt, NaunetData *data);
+    int Init(int nsystem = 1, double atol = 1e-20, double rtol = 1e-5);
+    int Finalize();
+    int Solve(double *abund, double dt, NaunetData *data);
 #ifdef PYMODULE
-    py::array_t<double> wrapper_solve(py::array_t<double> arr, double dt,
-                                      NaunetData *data);
+    py::array_t<double> PyWrapSolve(py::array_t<double> arr, double dt,
+                                    NaunetData *data);
 #endif
+
+   private:
+    int n_system_;
+    double atol_;
+    double rtol_;
 };
 
 #ifdef PYMODULE
@@ -31,11 +33,8 @@ class Naunet {
 PYBIND11_MODULE(PYMODNAME, m) {
     py::class_<Naunet>(m, "Naunet")
         .def(py::init())
-        .def("initSolver", &Naunet::initSolver)
-#ifdef USE_CUDA
-        .def("resetSolver", &Naunet::resetSolver)
-#endif
-        .def("solve", &Naunet::wrapper_solve);
+        .def("Init", &Naunet::Init)
+        .def("Solve", &Naunet::PyWrapSolve);
 
     // clang-format off
     py::class_<NaunetData>(m, "NaunetData")

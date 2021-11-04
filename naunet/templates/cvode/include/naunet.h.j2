@@ -19,33 +19,35 @@ namespace py = pybind11;
 #endif
 
 class Naunet {
-   private:
-    // NaunetData *m_data;
-    N_Vector m_y;
-    SUNMatrix m_a;
-
-    realtype m_atol;
-    realtype m_rtol;
-    void *m_cvode_mem;
-    SUNLinearSolver m_ls;
-
-    /* {% if info.method == "cusparse" -%} */
-    cusparseHandle_t m_cusp_handle;
-    cusolverSpHandle_t m_cusol_handle;
-    /* {% endif %} */
-
    public:
     Naunet();
     ~Naunet();
-    int initSolver();
+    int Init(int nsystem = 1, double atol = 1e-20, double rtol = 1e-5);
+    int Finalize();
     /* {% if info.method == "cusparse" -%} */
-    int resetSolver(int nsystem);
+    int Reset(int nsystem = 1, double atol = 1e-20, double rtol = 1e-5);
     /* {% endif -%} */
-    int solve(realtype *ab, realtype dt, NaunetData *data);
+    int Solve(realtype *ab, realtype dt, NaunetData *data);
 #ifdef PYMODULE
-    py::array_t<realtype> wrapper_solve(py::array_t<realtype> arr, realtype dt,
-                                        NaunetData *data);
+    py::array_t<realtype> PyWrapSolve(py::array_t<realtype> arr, realtype dt,
+                                      NaunetData *data);
 #endif
+
+   private:
+    int n_system_;
+    realtype atol_;
+    realtype rtol_;
+
+    // NaunetData *m_data;
+    N_Vector cv_y_;
+    SUNMatrix cv_a_;
+    void *cv_mem_;
+    SUNLinearSolver cv_ls_;
+
+    /* {% if info.method == "cusparse" -%} */
+    cusparseHandle_t cusp_handle_;
+    cusolverSpHandle_t cusol_handle_;
+    /* {% endif %} */
 };
 
 #ifdef PYMODULE
@@ -53,11 +55,11 @@ class Naunet {
 PYBIND11_MODULE(PYMODNAME, m) {
     py::class_<Naunet>(m, "Naunet")
         .def(py::init())
-        .def("initSolver", &Naunet::initSolver)
+        .def("Init", &Naunet::Init)
 #ifdef USE_CUDA
-        .def("resetSolver", &Naunet::resetSolver)
+        .def("Reset", &Naunet::Reset)
 #endif
-        .def("solve", &Naunet::wrapper_solve);
+        .def("Solve", &Naunet::PyWrapSolve);
 
     // clang-format off
     py::class_<NaunetData>(m, "NaunetData")
