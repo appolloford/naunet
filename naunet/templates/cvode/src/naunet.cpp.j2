@@ -148,8 +148,8 @@ int Naunet::Init(int nsystem, double atol, double rtol) {
 };
 
 int Naunet::Finalize() {
-    N_VDestroy(cv_y_);
-    // N_VFreeEmpty(cv_y_);
+    // N_VDestroy(cv_y_);
+    N_VFreeEmpty(cv_y_);
     SUNMatDestroy(cv_a_);
     CVodeFree(&cv_mem_);
     SUNLinSolFree(cv_ls_);
