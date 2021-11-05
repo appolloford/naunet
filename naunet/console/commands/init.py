@@ -25,7 +25,7 @@ class InitCommand(Command):
         {--name= : Name of the project}
         {--description= : Description of the project}
         {--elements= : List of elements}
-        {--pseudo-elements= : List of pseudo elements}
+        {--pseudo-elements=? : List of pseudo elements}
         {--species= : List of species}
         {--extra-species=? : List of extra required species}
         {--network= : Source of chemical network file}
