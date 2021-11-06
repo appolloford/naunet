@@ -54,7 +54,9 @@ Fex::Fex(NaunetData *data) {
     *u_data = *data;
 };
 
-Fex::~Fex() { delete u_data; };
+Fex::~Fex(){
+    // delete u_data;
+};
 
 void Fex::operator()(const vector_type &y, vector_type &ydot, double t) {
     // clang-format off
@@ -90,7 +92,9 @@ Jac::Jac(NaunetData *data) {
     *u_data = *data;
 };
 
-Jac::~Jac() { delete u_data; }
+Jac::~Jac(){
+    // delete u_data;
+};
 
 void Jac::operator()(const vector_type &y, matrix_type &j, const double &t,
                      vector_type &dfdt) {

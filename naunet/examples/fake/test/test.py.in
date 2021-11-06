@@ -13,7 +13,7 @@ content = config.read()
 chemistry = content["chemistry"]
 species = chemistry["species"]
 
-times = np.loadtxt("timeres.dat")
+times = np.logspace(5, 8, 51)
 timesteps = times[1:] - times[:-1]
 
 naunet_solver = Naunet()

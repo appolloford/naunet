@@ -85,6 +85,7 @@ class ExampleCommand(Command):
             element = fake_element
             species = fake_species
             network_source = fake_path
+            solver = "odeint" if "rosenbrock4" in case else "cvode"
             device = "gpu" if "cusparse" in case else "cpu"
             method = case.split("/")[-1]
 
@@ -95,7 +96,8 @@ class ExampleCommand(Command):
                     f"--species={','.join(species)}",
                     f"--extra-species=''",
                     f"--network=fake.krome --database=krome",
-                    f"--solver=cvode --device={device} --method={method} --render",
+                    f"--solver={solver} --device={device} --method={method}",
+                    f"--render",
                 ]
             )
 
@@ -109,6 +111,7 @@ class ExampleCommand(Command):
             element = deuterium_element
             species = deuterium_species
             network_source = deuterium_path
+            solver = "odeint" if "rosenbrock4" in case else "cvode"
             device = "gpu" if "cusparse" in case else "cpu"
             method = case.split("/")[-1]
 
@@ -119,7 +122,8 @@ class ExampleCommand(Command):
                     f"--species={','.join(species)}",
                     f"--extra-species=''",
                     f"--network=deuterium.krome --database=krome",
-                    f"--solver=cvode --device={device} --method={method} --render",
+                    f"--solver={solver} --device={device} --method={method}",
+                    f"--render",
                 ]
             )
 
@@ -139,6 +143,7 @@ class ExampleCommand(Command):
             binding_energy = ism_be
             photon_yield = ism_yield
             network_source = ism_path
+            solver = "odeint" if "rosenbrock4" in case else "cvode"
             device = "gpu" if "cusparse" in case else "cpu"
             method = case.split("/")[-1]
 
@@ -161,7 +166,8 @@ class ExampleCommand(Command):
                     f"--ode-modifier='double stick = stick1 + stick2'",
                     f"--ode-modifier='double hloss = stick * garea/4.0 * sqrt(8.0*kerg*Tgas/(pi*amu))'",
                     f"--ode-modifier='ydot[IDX_H2I] += 0.5*hloss*y[IDX_HI]; ydot[IDX_HI] -= hloss*y[IDX_HI]'",
-                    f"--solver=cvode --device={device} --method={method} --render",
+                    f"--solver={solver} --device={device} --method={method}",
+                    f"--render",
                 ]
             )
 
