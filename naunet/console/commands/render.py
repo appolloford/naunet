@@ -145,11 +145,15 @@ class RenderCommand(Command):
         #     dest = os.path.join(Path.cwd(), "src", src)
         #     shutil.copyfile(srcfile, dest)
 
-        inc_path = os.path.join(template_path, "include")
-        for inc in ["naunet_timer.h"]:
-            incfile = os.path.join(inc_path, inc)
-            dest = os.path.join(Path.cwd(), "include", inc)
-            shutil.copyfile(incfile, dest)
+        # inc_path = os.path.join(template_path, "include")
+        # for inc in ["naunet_timer.h"]:
+        #     incfile = os.path.join(inc_path, inc)
+        #     dest = os.path.join(Path.cwd(), "include", inc)
+        #     shutil.copyfile(incfile, dest)
+
+        incfile = src_parent_path / "templates/common/include/naunet_timer.h"
+        dest = os.path.join(Path.cwd(), "include/naunet_timer.h")
+        shutil.copyfile(incfile, dest)
 
         # testfile = os.path.join(template_path, "test", "main.cpp")
         # dest = os.path.join(Path.cwd(), "test", "main.cpp")

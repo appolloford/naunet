@@ -13,8 +13,6 @@ __device__ int EvalRates(realtype *k, realtype *y, NaunetData *user_data);
 int EvalRates(realtype *k, realtype *y, NaunetData *user_data);
 /* {% endif -%} */
 int Fex(realtype t, N_Vector u, N_Vector udot, void *user_data);
-int Jtv(N_Vector v, N_Vector jv, realtype t, N_Vector u, N_Vector fu,
-        void *user_data, N_Vector tmp);
 int Jac(realtype t, N_Vector u, N_Vector fu, SUNMatrix jmatrix, void *user_data,
         N_Vector tmp1, N_Vector tmp2, N_Vector tmp3);
 
@@ -24,7 +22,9 @@ __global__ void FKernel(realtype *y, realtype *ydot, NaunetData *udata,
                         int nsystem);
 __global__ void JKernel(realtype *y, realtype *jdata, NaunetData *udata,
                         int nsystem);
-
+/* {% else -%} */
+int Jtv(N_Vector v, N_Vector jv, realtype t, N_Vector u, N_Vector fu,
+        void *user_data, N_Vector tmp);
 /* {% endif -%} */
 
 #endif

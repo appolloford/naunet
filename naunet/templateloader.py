@@ -279,7 +279,7 @@ class TemplateLoader:
         if header:
             headername = headername if headername else "naunet_constants.h"
             self._variables.header = headername
-            tname = os.path.join(self._solver, "include/naunet_constants.h.j2")
+            tname = "common/include/naunet_constants.h.j2"
             template = self._env.get_template(tname)
             self._render(
                 template,
@@ -291,7 +291,7 @@ class TemplateLoader:
                 physics=self._physics,
             )
 
-        tname = os.path.join(self._solver, "src/naunet_constants.cpp.j2")
+        tname = "common/src/naunet_constants.cpp.j2"
         template = self._env.get_template(tname)
         self._render(
             template,
@@ -309,7 +309,7 @@ class TemplateLoader:
         if not name and save:
             name = "naunet_macros.h"
 
-        tname = os.path.join(self._solver, "include/naunet_macros.h.j2")
+        tname = "common/include/naunet_macros.h.j2"
         template = self._env.get_template(tname)
         self._render(template, prefix, name, save, macros=self._macros, info=self._info)
 
@@ -407,7 +407,7 @@ class TemplateLoader:
         if header:
             headername = headername if headername else "naunet_physics.h"
             self._physics.header = headername
-            tname = os.path.join(self._solver, "include/naunet_physics.h.j2")
+            tname = "common/include/naunet_physics.h.j2"
             template = self._env.get_template(tname)
             self._render(
                 template,
@@ -418,7 +418,7 @@ class TemplateLoader:
                 info=self._info,
             )
 
-        tname = os.path.join(self._solver, "src/naunet_physics.cpp.j2")
+        tname = "common/src/naunet_physics.cpp.j2"
         template = self._env.get_template(tname)
         self._render(
             template,
@@ -435,6 +435,6 @@ class TemplateLoader:
         if not name and save:
             name = "naunet_data.h"
 
-        tname = os.path.join(self._solver, "include/naunet_data.h.j2")
+        tname = "common/include/naunet_data.h.j2"
         template = self._env.get_template(tname)
         self._render(template, prefix, name, save, variables=self._variables)
