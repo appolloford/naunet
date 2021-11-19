@@ -22,9 +22,6 @@
 
 #define IJth(A, i, j) SM_ELEMENT_D(A, i, j)
 
-/* {% set wrap = "\n        " -%} */
-/* {% set bclose = wrap + "}" -%} */
-
 // clang-format off
 {% if info.device == "gpu" -%} __device__ {% endif -%}
 int EvalRates(realtype *k, realtype *y, NaunetData *u_data) {
@@ -61,6 +58,124 @@ int EvalRates(realtype *k, realtype *y, NaunetData *u_data) {
 
     return NAUNET_SUCCESS;
 }
+
+/* {% if info.method == "cusparse" -%} */
+int InitJac(SUNMatrix jmatrix) {
+    int rowptrs[NSPECIES + 1], colvals[NNZ];
+
+    // Zero out the Jacobian
+    SUNMatZero(jmatrix);
+
+    // clang-format off
+    // number of non-zero elements in each row
+    {% for rptr in ode.spjacrptr -%}
+        {{ rptr }}
+    {% endfor %}
+
+    // the column index of non-zero elements
+    {% for cval in ode.spjaccval -%}
+        {{ cval }}
+    {% endfor %}
+
+    // clang-format on
+
+    // copy rowptrs, colvals to the device
+    SUNMatrix_cuSparse_CopyToDevice(jmatrix, NULL, rowptrs, colvals);
+    cudaDeviceSynchronize();
+
+    return NAUNET_SUCCESS;
+}
+
+__global__ void FexKernel(realtype *y, realtype *ydot, NaunetData *d_udata,
+                          int nsystem) {
+    int tidx = blockIdx.x * blockDim.x + threadIdx.x;
+    int gs   = blockDim.x * gridDim.x;
+
+    // clang-format off
+    {% for v in variables.varis -%}
+        realtype {{ v }} = d_udata->{{ v }};
+    {% endfor %}
+    // clang-format on
+
+    for (int cur = tidx; cur < nsystem; cur += gs) {
+        int yistart            = cur * NSPECIES;
+        realtype *y_cur        = y + yistart;
+        realtype k[NREACTIONS] = {0.0};
+        NaunetData *udata      = &d_udata[cur];
+
+        EvalRates(k, y_cur, udata);
+
+        // clang-format off
+        {% for eq in ode.fex -%}
+            {{ eq | replace("ydot[IDX", "ydot[yistart + IDX") | replace("y[IDX", "y_cur[IDX") | stmwrap(80, 12) }}
+        {% endfor %}
+
+        {% for m in ode.odemodifier -%}
+            {{ m | replace("ydot[IDX", "ydot[yistart + IDX") | replace("y[IDX", "y_cur[IDX") }};
+        {% endfor %}
+        // clang-format on
+    }
+}
+
+__global__ void JacKernel(realtype *y, realtype *data, NaunetData *d_udata,
+                          int nsystem) {
+    int tidx = blockIdx.x * blockDim.x + threadIdx.x;
+    int gs   = blockDim.x * gridDim.x;
+
+    for (int cur = tidx; cur < nsystem; cur += gs) {
+        int yistart            = cur * NSPECIES;
+        int jistart            = cur * NNZ;
+        realtype *y_cur        = y + yistart;
+        realtype k[NREACTIONS] = {0.0};
+        NaunetData *udata      = &d_udata[cur];
+
+        EvalRates(k, y_cur, udata);
+
+        // clang-format off
+        {% for data in ode.spjacdata -%}
+            {{ data | replace("data[", "data[jistart + ") | replace("y[IDX", "y_cur[IDX")}}
+        {% endfor %}
+        // clang-format on
+    }
+}
+
+/* {% else %} */
+int Jtv(N_Vector v, N_Vector jv, realtype t, N_Vector u, N_Vector fu,
+        void *user_data, N_Vector tmp) {
+    realtype *x            = N_VGetArrayPointer(u);
+    realtype *y            = N_VGetArrayPointer(v);
+    realtype *ydot         = N_VGetArrayPointer(jv);
+    realtype *fx           = N_VGetArrayPointer(fu);
+
+    NaunetData *u_data     = (NaunetData *)user_data;
+    // clang-format off
+    {% for v in variables.varis -%}
+        realtype {{ v }} = u_data->{{ v }};
+    {% endfor %}
+
+    // clang-format on
+
+    realtype k[NREACTIONS] = {0.0};
+    EvalRates(k, y, u_data);
+
+    // clang-format off
+    {% for eq in ode.fex -%}
+        {{ eq | stmwrap(80, 8) }}
+    {% endfor %}
+
+    {% for m in ode.odemodifier -%}
+        {{ m }};
+    {% endfor %}
+    // clang-format on
+
+    for (int i = 0; i < NSPECIES; i++) {
+        fx[i] = 0.0;
+    }
+
+    return NAUNET_SUCCESS;
+}
+
+/* {% endif -%} */
 
 int Fex(realtype t, N_Vector u, N_Vector udot, void *user_data) {
     /* {% if info.method == "dense" or info.method == "sparse" -%} */
@@ -109,7 +224,7 @@ int Fex(realtype t, N_Vector u, N_Vector udot, void *user_data) {
     unsigned block_size = min(BLOCKSIZE, nsystem);
     unsigned grid_size =
         max(1, min(MAXNGROUPS / BLOCKSIZE, nsystem / BLOCKSIZE));
-    FKernel<<<grid_size, block_size>>>(y, ydot, d_udata, nsystem);
+    FexKernel<<<grid_size, block_size>>>(y, ydot, d_udata, nsystem);
 
     cudaDeviceSynchronize();
     cudaError_t cuerr = cudaGetLastError();
@@ -189,7 +304,7 @@ int Jac(realtype t, N_Vector u, N_Vector fu, SUNMatrix jmatrix, void *user_data,
     unsigned block_size = min(BLOCKSIZE, nsystem);
     unsigned grid_size =
         max(1, min(MAXNGROUPS / BLOCKSIZE, nsystem / BLOCKSIZE));
-    JKernel<<<grid_size, block_size>>>(y, data, d_udata, nsystem);
+    JacKernel<<<grid_size, block_size>>>(y, data, d_udata, nsystem);
 
     cudaDeviceSynchronize();
     cudaError_t cuerr = cudaGetLastError();
@@ -204,121 +319,3 @@ int Jac(realtype t, N_Vector u, N_Vector fu, SUNMatrix jmatrix, void *user_data,
 
     return NAUNET_SUCCESS;
 }
-
-/* {% if info.method == "cusparse" -%} */
-int InitJac(SUNMatrix jmatrix) {
-    int rowptrs[NSPECIES + 1], colvals[NNZ];
-
-    // Zero out the Jacobian
-    SUNMatZero(jmatrix);
-
-    // clang-format off
-    // number of non-zero elements in each row
-    {% for rptr in ode.spjacrptr -%}
-        {{ rptr }}
-    {% endfor %}
-
-    // the column index of non-zero elements
-    {% for cval in ode.spjaccval -%}
-        {{ cval }}
-    {% endfor %}
-
-    // clang-format on
-
-    // copy rowptrs, colvals to the device
-    SUNMatrix_cuSparse_CopyToDevice(jmatrix, NULL, rowptrs, colvals);
-    cudaDeviceSynchronize();
-
-    return NAUNET_SUCCESS;
-}
-
-__global__ void FKernel(realtype *y, realtype *ydot, NaunetData *d_udata,
-                        int nsystem) {
-    int tidx = blockIdx.x * blockDim.x + threadIdx.x;
-    int gs   = blockDim.x * gridDim.x;
-
-    // clang-format off
-    {% for v in variables.varis -%}
-        realtype {{ v }} = d_udata->{{ v }};
-    {% endfor %}
-    // clang-format on
-
-    for (int cur = tidx; cur < nsystem; cur += gs) {
-        int yistart            = cur * NSPECIES;
-        realtype *y_cur        = y + yistart;
-        realtype k[NREACTIONS] = {0.0};
-        NaunetData *udata      = &d_udata[cur];
-
-        EvalRates(k, y_cur, udata);
-
-        // clang-format off
-        {% for eq in ode.fex -%}
-            {{ eq | replace("ydot[IDX", "ydot[yistart + IDX") | replace("y[IDX", "y_cur[IDX") | stmwrap(80, 12) }}
-        {% endfor %}
-
-        {% for m in ode.odemodifier -%}
-            {{ m | replace("ydot[IDX", "ydot[yistart + IDX") | replace("y[IDX", "y_cur[IDX") }};
-        {% endfor %}
-        // clang-format on
-    }
-}
-
-__global__ void JKernel(realtype *y, realtype *data, NaunetData *d_udata,
-                        int nsystem) {
-    int tidx = blockIdx.x * blockDim.x + threadIdx.x;
-    int gs   = blockDim.x * gridDim.x;
-
-    for (int cur = tidx; cur < nsystem; cur += gs) {
-        int yistart            = cur * NSPECIES;
-        int jistart            = cur * NNZ;
-        realtype *y_cur        = y + yistart;
-        realtype k[NREACTIONS] = {0.0};
-        NaunetData *udata      = &d_udata[cur];
-
-        EvalRates(k, y_cur, udata);
-
-        // clang-format off
-        {% for data in ode.spjacdata -%}
-            {{ data | replace("data[", "data[jistart + ") | replace("y[IDX", "y_cur[IDX")}}
-        {% endfor %}
-        // clang-format on
-    }
-}
-
-/* {% else %} */
-int Jtv(N_Vector v, N_Vector jv, realtype t, N_Vector u, N_Vector fu,
-        void *user_data, N_Vector tmp) {
-    realtype *x            = N_VGetArrayPointer(u);
-    realtype *y            = N_VGetArrayPointer(v);
-    realtype *ydot         = N_VGetArrayPointer(jv);
-    realtype *fx           = N_VGetArrayPointer(fu);
-
-    NaunetData *u_data     = (NaunetData *)user_data;
-    // clang-format off
-    {% for v in variables.varis -%}
-        realtype {{ v }} = u_data->{{ v }};
-    {% endfor %}
-
-    // clang-format on
-
-    realtype k[NREACTIONS] = {0.0};
-    EvalRates(k, y, u_data);
-
-    // clang-format off
-    {% for eq in ode.fex -%}
-        {{ eq | stmwrap(80, 8) }}
-    {% endfor %}
-
-    {% for m in ode.odemodifier -%}
-        {{ m }};
-    {% endfor %}
-    // clang-format on
-
-    for (int i = 0; i < NSPECIES; i++) {
-        fx[i] = 0.0;
-    }
-
-    return NAUNET_SUCCESS;
-}
-
-/* {% endif -%} */

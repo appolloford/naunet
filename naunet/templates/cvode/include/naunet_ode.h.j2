@@ -18,10 +18,6 @@ int Jac(realtype t, N_Vector u, N_Vector fu, SUNMatrix jmatrix, void *user_data,
 
 /* {% if info.method == "cusparse" -%} */
 int InitJac(SUNMatrix jmatrix);
-__global__ void FKernel(realtype *y, realtype *ydot, NaunetData *udata,
-                        int nsystem);
-__global__ void JKernel(realtype *y, realtype *jdata, NaunetData *udata,
-                        int nsystem);
 /* {% else -%} */
 int Jtv(N_Vector v, N_Vector jv, realtype t, N_Vector u, N_Vector fu,
         void *user_data, N_Vector tmp);
