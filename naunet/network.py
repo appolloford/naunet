@@ -1,4 +1,7 @@
+from __future__ import annotations
 import logging
+from dataclasses import dataclass
+from typing import Type
 from tqdm import tqdm
 from .patchmaker import PatchMaker
 from .templateloader import TemplateLoader
@@ -61,27 +64,19 @@ def define_reaction(name: str):
 
 
 class Network:
+    @dataclass
     class Info:
-        def __init__(
-            self,
-            species: list,
-            reactions: list,
-            databases: list,
-            dust: Dust = None,
-            shielding: dict = None,
-            odemodifier: list = None,
-            ratemodifier: list = None,
-        ) -> None:
-
-            self.n_spec = len(species)
-            self.n_react = len(reactions)
-            self.species = species
-            self.reactions = reactions
-            self.databases = databases
-            self.dust = dust
-            self.shielding = shielding
-            self.odemodifier = odemodifier
-            self.ratemodifier = ratemodifier
+        n_spec: int
+        n_react: int
+        species: list[Species]
+        reactions: list[Reaction]
+        databases: list[Type[Reaction]]
+        heating: list[str] = None
+        cooling: list[str] = None
+        dust: Dust = None
+        shielding: dict = None
+        odemodifier: list[str] = None
+        ratemodifier: list[str] = None
 
     # TODO: heating/cooling have not been implemented
     def __init__(
@@ -270,6 +265,8 @@ class Network:
 
         databaselist = [supported_reaction_class.get(db) for db in self.database_list]
         self._info = self.Info(
+            len(speclist),
+            len(self.reaction_list),
             speclist,
             self.reaction_list,
             databaselist,
