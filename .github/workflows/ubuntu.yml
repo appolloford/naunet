@@ -3,7 +3,7 @@ name: ubuntu
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, thermal ]
     paths-ignore:
       - 'docs/**'
       - 'notebooks/**'

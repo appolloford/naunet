@@ -3,7 +3,7 @@ name: macos
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, thermal ]
     paths-ignore:
       - 'docs/**'
       - 'notebooks/**'
@@ -109,19 +109,7 @@ jobs:
         run: brew install sundials
 
       - name: Build naunet examples
-        run: |
-          cd $HOME/naunet_example0
-          cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release -DMAKE_PYTHON=ON
-          cmake --build build
-          cd $HOME/naunet_example1
-          cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release -DMAKE_PYTHON=ON
-          cmake --build build
-          cd $HOME/naunet_example3
-          cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release -DMAKE_PYTHON=ON
-          cmake --build build
+        run: source ./scripts/actions/build_examples.sh
 
       - name: Test naunet examples
-        run: |
-          cd $HOME/naunet_example0/build && ctest -R "single|pymodule" -j4 --output-on-failure
-          cd $HOME/naunet_example1/build && ctest -R "single|pymodule" -j4 --output-on-failure
-          cd $HOME/naunet_example3/build && ctest -R "single|pymodule" -j4 --output-on-failure
+        run: source ./scripts/actions/test_examples.sh
