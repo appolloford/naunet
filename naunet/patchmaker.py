@@ -141,9 +141,10 @@ class EnzoPatch:
         template = self._env.get_template("naunet_enzo.h.j2")
 
         nspec = len(self.netinfo.species)
-        neq = len(self.netinfo.species)
+        has_thermal = True if self.netinfo.heating or self.netinfo.cooling else False
+        neqns = nspec + 1
 
-        result = template.render(nspec=nspec, neq=neq, species=self.netinfo.species)
+        result = template.render(nspec=nspec, neqns=neqns, species=self.netinfo.species)
         with open(os.path.join(prefix, "naunet_enzo.h"), "w") as out:
             out.write(result)
 

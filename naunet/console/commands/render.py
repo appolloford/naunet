@@ -45,6 +45,8 @@ class RenderCommand(Command):
         species = chemistry["species"]
         extra_species = chemistry["extra_species"]
         dust = chemistry["dust"]
+        heating = chemistry["heating"]
+        cooling = chemistry["cooling"]
         binding = chemistry["binding_energy"]
         yields = chemistry["photon_yield"]
         shielding = chemistry["shielding"]
@@ -63,12 +65,12 @@ class RenderCommand(Command):
         if len(species) == 0:
             species = None
 
-        from naunet.network import Network, supported_reaction_class
         from naunet.species import Species
 
         Species.set_known_elements(element)
         Species.set_known_pseudoelements(pseudo_element)
 
+        from naunet.network import Network, supported_reaction_class
         from naunet.chemistry import update_binding_energy, update_photon_yield
 
         update_binding_energy(binding)
@@ -114,6 +116,8 @@ class RenderCommand(Command):
             allowed_species=species + extra_species,
             required_species=extra_species,
             dusttype=dust["type"],
+            heating=heating,
+            cooling=cooling,
             shielding=shielding,
         )
         net.add_reaction_from_file(network, database)

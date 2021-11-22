@@ -12,6 +12,8 @@ from cleo import argument, option
 from tomlkit import dumps
 from tomlkit.toml_file import TOMLFile
 
+from naunet.examples import primordial
+
 from .command import Command
 
 
@@ -42,6 +44,7 @@ class ExampleCommand(Command):
         src_parent_path = Path(naunet.__file__).parent
         example_path = os.path.join(src_parent_path, "examples")
         fake_path = os.path.join(example_path, "fake")
+        primordial_path = os.path.join(example_path, "primordial")
         deuterium_path = os.path.join(example_path, "deuterium")
         ism_path = os.path.join(example_path, "ism")
 
@@ -52,6 +55,10 @@ class ExampleCommand(Command):
             "fake/sparse",
             "fake/cusparse",
             "fake/rosenbrock4",
+            "primordial/dense",
+            "primordial/sparse",
+            "primordial/cusparse",
+            "primordial/rosenbrock4",
             "deuterium/dense",
             "deuterium/sparse",
             "deuterium/cusparse",
@@ -96,6 +103,33 @@ class ExampleCommand(Command):
                     f"--species={','.join(species)}",
                     f"--extra-species=''",
                     f"--network=fake.krome --database=krome",
+                    f"--solver={solver} --device={device} --method={method}",
+                    f"--render",
+                ]
+            )
+
+        elif "primordial" in case:
+
+            from naunet.examples.primordial import (
+                element as primordial_element,
+                species as primordial_species,
+            )
+
+            element = primordial_element
+            species = primordial_species
+            network_source = primordial_path
+            solver = "odeint" if "rosenbrock4" in case else "cvode"
+            device = "gpu" if "cusparse" in case else "cpu"
+            method = case.split("/")[-1]
+
+            option = " ".join(
+                [
+                    f"--name={name} --description=example",
+                    f"--elements={','.join(element)} --pseudo-elements=''",
+                    f"--species={','.join(species)}",
+                    f"--extra-species=''",
+                    f"--cooling='CIC_H'",
+                    f"--network=primordial.krome --database=krome",
                     f"--solver={solver} --device={device} --method={method}",
                     f"--render",
                 ]

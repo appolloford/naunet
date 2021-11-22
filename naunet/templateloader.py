@@ -24,6 +24,7 @@ class TemplateLoader:
     @dataclass
     class MacrosContent:
         nspec: str
+        neqns: str
         nreact: str
         speclist: List[str]
         nnz: str = None
@@ -45,6 +46,8 @@ class TemplateLoader:
     @dataclass
     class PhysicsContent:
         mantles: str
+        mu: str
+        gamma: str
         h2shielding: str = None
         coshielding: str = None
         n2shielding: str = None
@@ -56,6 +59,7 @@ class TemplateLoader:
         globs: List[str]
         varis: List[str]
         user_var: List[str]
+        tvaris: List[str]  # variables required by thermal process
         header: str = None
 
     def __init__(self, netinfo: object, solver: str, method: str, device: str) -> None:
@@ -83,22 +87,41 @@ class TemplateLoader:
         species = netinfo.species
         reactions = netinfo.reactions
         databases = netinfo.databases
+        heating = netinfo.heating
+        cooling = netinfo.cooling
         dust = netinfo.dust
         odemodifier = netinfo.odemodifier
         ratemodifier = netinfo.ratemodifier
 
+        has_thermal = True if heating or cooling else False
+        n_eqns = n_spec + has_thermal
+
         self._info = self.InfoContent(method, device)
 
         nspec = f"#define NSPECIES {n_spec}"
+        neqns = f"#define NEQUATIONS {n_eqns}"
         nreact = f"#define NREACTIONS {n_react}"
         speclist = [f"#define IDX_{x.alias} {i}" for i, x in enumerate(species)]
+        if has_thermal:
+            speclist.append(f"#define IDX_TGAS {n_spec}")
 
-        self._macros = self.MacrosContent(nspec, nreact, speclist)
+        self._macros = self.MacrosContent(nspec, neqns, nreact, speclist)
 
         mantles = " + ".join(f"y[IDX_{g.alias}]" for g in species if g.is_surface)
         mantles = mantles if mantles else "0.0"
+
+        # TODO: exclude electron?
+        density = " + ".join(f"y[IDX_{s.alias}]*{s.mass}" for s in species)
+        npartile = " + ".join(f"y[IDX_{s.alias}]" for s in species)
+        mu = "".join(["(", density, ") / (", npartile, ")"])
+
+        # TODO: different ways to get adiabatic index
+        gamma = "5.0 / 3.0"
+
         self._physics = self.PhysicsContent(
             mantles,
+            mu,
+            gamma,
             h2shielding=netinfo.shielding.get("H2", ""),
             coshielding=netinfo.shielding.get("CO", ""),
             n2shielding=netinfo.shielding.get("N2", ""),
@@ -110,24 +133,49 @@ class TemplateLoader:
         dustconsts = (
             {f"{c:<15}": f"{cv}" for c, cv in dust.consts.items()} if dust else {}
         )
+        heatconsts = (
+            {f"{c:<15}": f"{cv}" for p in heating for c, cv in p.consts.items()}
+            if heating
+            else {}
+        )
+        coolconsts = (
+            {f"{c:<15}": f"{cv}" for p in cooling for c, cv in p.consts.items()}
+            if cooling
+            else {}
+        )
         ebs = {
             f"eb_{s.alias:<12}": f"{s.binding_energy}" for s in species if s.is_surface
         }
-        consts = {**reactconsts, **dustconsts, **ebs}
+        consts = {**reactconsts, **dustconsts, **heatconsts, **coolconsts, **ebs}
 
         reactglobs = [f"{v}" for db in databases for v in db.globs.values()]
         dustglobs = [f"{v}" for v in dust.globs.values()] if dust else []
-        globs = [*reactglobs, *dustglobs]
+        heatglobs = (
+            [f"{v}" for p in heating for v in p.globs.values()] if heating else []
+        )
+        coolglobs = (
+            [f"{v}" for p in cooling for v in p.globs.values()] if cooling else []
+        )
+        globs = [*reactglobs, *dustglobs, *heatglobs, *coolglobs]
 
         reactvars = [f"{v}" for db in databases for v in db.varis.values()]
         dustvars = [f"{v}" for v in dust.varis.values() if dust] if dust else []
+        heatvars = (
+            [f"{v}" for p in heating for v in p.varis.values()] if heating else []
+        )
+        coolvars = (
+            [f"{v}" for p in cooling for v in p.varis.values()] if cooling else []
+        )
         varis = [*dustvars, *reactvars]
+        tvaris = ["mu", "gamma", *heatvars, *coolvars] if has_thermal else []
 
         react_uservar = [v for db in databases for v in db.user_var]
         dust_uservar = dust.user_var if dust else []
-        user_var = [*dust_uservar, *react_uservar]
+        heat_uservar = [v for p in heating for v in p.user_var]
+        cool_uservar = [v for p in cooling for v in p.user_var]
+        user_var = [*dust_uservar, *react_uservar, *heat_uservar, *cool_uservar]
 
-        self._variables = self.VariablesContent(consts, globs, varis, user_var)
+        self._variables = self.VariablesContent(consts, globs, varis, user_var, tvaris)
 
         rates = [f"k[{r}]" for r in range(n_react)]
         rateeqns = [
@@ -138,8 +186,10 @@ class TemplateLoader:
         ]
 
         y = [f"y[IDX_{x.alias}]" for x in species]
-        rhs = ["0.0"] * n_spec
-        jacrhs = ["0.0"] * n_spec * n_spec
+        if has_thermal:
+            y.append("y[IDX_TGAS]")
+        rhs = ["0.0"] * n_eqns
+        jacrhs = ["0.0"] * n_eqns * n_eqns
         for rl, react in enumerate(tqdm(reactions, desc="Preparing ODE...")):
 
             rspecidx = [species.index(r) for r in react.reactants]
@@ -160,13 +210,13 @@ class TemplateLoader:
                     rsymcopy = rsym.copy()
                     rsymcopy.remove(y[ri])
                     term = f" - {'*'.join([rates[rl], *rsymcopy])}"
-                    jacrhs[specidx * n_spec + ri] += term
+                    jacrhs[specidx * n_eqns + ri] += term
             for specidx in pspecidx:
                 for ri in rspecidx:
                     rsymcopy = rsym.copy()
                     rsymcopy.remove(y[ri])
                     term = f" + {'*'.join([rates[rl], *rsymcopy])}"
-                    jacrhs[specidx * n_spec + ri] += term
+                    jacrhs[specidx * n_eqns + ri] += term
 
             # for specidx, _ in enumerate(species):
 
@@ -174,17 +224,62 @@ class TemplateLoader:
             #     if rhs[specidx] == "0.0":
             #         rhs[specidx] = "naunet_rate_tiny"
 
+        # fex/jac of thermal process
+        # TODO: erg to K
+        for h in heating:
+
+            rspecidx = [species.index(r) for r in h.reactants]
+            rsym = [y[idx] for idx in rspecidx]
+            rsym_mul = "*".join(rsym)
+
+            # temperature index is n_spec
+            rhs[n_spec] += f" + {h.rate_func()} * {rsym_mul}"
+
+            for ri in rspecidx:
+                rsymcopy = rsym.copy()
+                rsymcopy.remove(y[ri])
+                term = f" + {'*'.join([h.rate_func(), *rsymcopy])}"
+                # only fill the last row of jacobian
+                jacrhs[n_spec * n_eqns + ri] += term
+
+        for c in cooling:
+
+            rspecidx = [species.index(r) for r in c.reactants]
+            rsym = [y[idx] for idx in rspecidx]
+            rsym_mul = "*".join(rsym)
+
+            # temperature index is n_spec
+            rhs[n_spec] += f" - {c.rate_func()} * {rsym_mul}"
+
+            for ri in rspecidx:
+                rsymcopy = rsym.copy()
+                rsymcopy.remove(y[ri])
+                term = f" - {'*'.join([c.rate_func(), *rsymcopy])}"
+                # only fill the last row of jacobian
+                jacrhs[n_spec * n_eqns + ri] += term
+
+        rhs[n_spec] = f"(gamma - 1.0) * ( {rhs[n_spec]} ) / kerg / GetNumDens(y)"
+        jacrhs[n_spec * n_eqns + ri] = "".join(
+            [
+                "(gamma - 1.0) * (",
+                jacrhs[n_spec * n_eqns + ri],
+                " ) / kerg / GetNumDens(y)",
+            ]
+        )
+
         lhs = [f"ydot[IDX_{x.alias}]" for x in species]
+        if has_thermal:
+            lhs.append("ydot[IDX_TGAS]")
         fex = [f"{l} = {r};" for l, r in zip(lhs, rhs)]
 
         if self._solver == "cvode":
             jac = [
-                f"IJth(jmatrix, {idx//n_spec}, {idx%n_spec}) = {j};"
+                f"IJth(jmatrix, {idx//n_eqns}, {idx%n_eqns}) = {j};"
                 for idx, j in enumerate(jacrhs)
             ]
         elif self._solver == "odeint":
             jac = [
-                f"j({idx//n_spec}, {idx%n_spec}) = {j};" for idx, j in enumerate(jacrhs)
+                f"j({idx//n_eqns}, {idx%n_eqns}) = {j};" for idx, j in enumerate(jacrhs)
             ]
 
         spjacrptr = []
@@ -193,15 +288,15 @@ class TemplateLoader:
         if "sparse" in method:
             # TODO: Too slow! Optimize it
             nnz = 0
-            for row in range(n_spec):
+            for row in range(n_eqns):
                 spjacrptr.append(f"rowptrs[{row}] = {nnz};")
-                for col in range(n_spec):
-                    elem = jacrhs[row * n_spec + col]
+                for col in range(n_eqns):
+                    elem = jacrhs[row * n_eqns + col]
                     if elem != "0.0":
                         spjaccval.append(f"colvals[{nnz}] = {col};")
                         spjacdata.append(f"data[{nnz}] = {elem};")
                         nnz += 1
-            spjacrptr.append(f"rowptrs[{n_spec}] = {nnz};")
+            spjacrptr.append(f"rowptrs[{n_eqns}] = {nnz};")
             self._macros.nnz = f"#define NNZ {nnz}"
 
         self._ode = self.ODEContent(

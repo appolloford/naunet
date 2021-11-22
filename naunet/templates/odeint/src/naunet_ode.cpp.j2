@@ -64,14 +64,23 @@ void Fex::operator()(const vector_type &y, vector_type &ydot, double t) {
         double {{ v }} = u_data->{{ v }};
     {% endfor %}
 
+    {% for v in variables.tvaris -%}
+        realtype {{ v }} = u_data->{{ v }};
+    {% endfor %}
+
+    {% if variables.tvaris -%}
+    if (mu < 0) mu = GetMu(y);
+    if (gamma < 0) gamma = GetGamma(y);
+    {% endif -%}
+
     {% for v in variables.user_var -%}
         {{ v }};
     {% endfor %}
     // clang-format on
 
-    double k[NREACTIONS] = {0.0};
-    double ab[NSPECIES]  = {0.0};
-    for (int i = 0; i < NSPECIES; i++) {
+    double k[NREACTIONS]  = {0.0};
+    double ab[NEQUATIONS] = {0.0};
+    for (int i = 0; i < NEQUATIONS; i++) {
         ab[i] = y[i];
     }
     EvalRates(k, ab, u_data);
@@ -102,11 +111,21 @@ void Jac::operator()(const vector_type &y, matrix_type &j, const double &t,
     {% for v in variables.varis -%}
         double {{ v }} = u_data->{{ v }};
     {% endfor %}
+
+    {% for v in variables.tvaris -%}
+        realtype {{ v }} = u_data->{{ v }};
+    {% endfor %}
+
+    {% if variables.tvaris -%}
+    if (mu < 0) mu = GetMu(y);
+    if (gamma < 0) gamma = GetGamma(y);
+    {% endif -%}
+
     // clang-format on
 
-    double k[NREACTIONS] = {0.0};
-    double ab[NSPECIES]  = {0.0};
-    for (int i = 0; i < NSPECIES; i++) {
+    double k[NREACTIONS]  = {0.0};
+    double ab[NEQUATIONS] = {0.0};
+    for (int i = 0; i < NEQUATIONS; i++) {
         ab[i] = y[i];
     }
     EvalRates(k, ab, u_data);
@@ -117,7 +136,7 @@ void Jac::operator()(const vector_type &y, matrix_type &j, const double &t,
     {% endfor %}
     // clang-format on
 
-    for (int i = 0; i < NSPECIES; i++) {
+    for (int i = 0; i < NEQUATIONS; i++) {
         dfdt[i] = 0.0;
     }
 };

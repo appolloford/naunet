@@ -91,7 +91,7 @@ class Species:
 
         # Initialize known elements if not set when the fist species is instanciated
         if not Species._known_elements and not Species._known_pseudoelements:
-            logging.warning("No assigned element list. Use default elements")
+            logging.warning("No assigned known element list. Use default elements")
 
             Species._known_elements.extend(Species.default_elements)
             Species._known_pseudoelements.extend(Species.default_pseudoelements)

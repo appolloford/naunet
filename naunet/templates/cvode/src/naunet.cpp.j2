@@ -82,8 +82,8 @@ int Naunet::Init(int nsystem, double atol, double rtol) {
         return NAUNET_FAIL;
     }
 
-    cv_y_  = N_VNew_Serial((sunindextype)NSPECIES);
-    cv_a_  = SUNDenseMatrix(NSPECIES, NSPECIES);
+    cv_y_  = N_VNew_Serial((sunindextype)NEQUATIONS);
+    cv_a_  = SUNDenseMatrix(NEQUATIONS, NEQUATIONS);
     cv_ls_ = SUNLinSol_Dense(cv_y_, cv_a_);
 
     /* {% elif info.method == "sparse" -%} */
@@ -92,17 +92,17 @@ int Naunet::Init(int nsystem, double atol, double rtol) {
         return NAUNET_FAIL;
     }
 
-    cv_y_  = N_VNew_Serial((sunindextype)NSPECIES);
-    cv_a_  = SUNSparseMatrix(NSPECIES, NSPECIES, NNZ, CSR_MAT);
+    cv_y_  = N_VNew_Serial((sunindextype)NEQUATIONS);
+    cv_a_  = SUNSparseMatrix(NEQUATIONS, NEQUATIONS, NNZ, CSR_MAT);
     cv_ls_ = SUNLinSol_KLU(cv_y_, cv_a_);
 
     /* {% elif info.method == "cusparse" -%} */
 
     cusparseCreate(&cusp_handle_);
     cusolverSpCreate(&cusol_handle_);
-    cv_y_  = N_VNew_Cuda(MAXNGROUPS * NSPECIES);
-    cv_a_  = SUNMatrix_cuSparse_NewBlockCSR(MAXNGROUPS, NSPECIES, NSPECIES, NNZ,
-                                            cusp_handle_);
+    cv_y_  = N_VNew_Cuda(MAXNGROUPS * NEQUATIONS);
+    cv_a_  = SUNMatrix_cuSparse_NewBlockCSR(MAXNGROUPS, NEQUATIONS, NEQUATIONS,
+                                            NNZ, cusp_handle_);
     cv_ls_ = SUNLinSol_cuSolverSp_batchQR(cv_y_, cv_a_, cusol_handle_);
     // abstol = N_VNew_Cuda(neq);
     SUNMatrix_cuSparse_SetFixedPattern(cv_a_, 1);
@@ -135,7 +135,7 @@ int Naunet::Init(int nsystem, double atol, double rtol) {
     /* {% if info.method == "dense" or info.method == "sparse" -%} */
 
     // N_VDestroy(cv_y_);
-    // cv_y_ = N_VNewEmpty_Serial((sunindextype)NSPECIES);
+    // cv_y_ = N_VNewEmpty_Serial((sunindextype)NEQUATIONS);
 
     /* {% elif info.method == "cusparse" -%} */
 
@@ -175,9 +175,9 @@ int Naunet::Reset(int nsystem, double atol, double rtol) {
     SUNLinSolFree(cv_ls_);
     CVodeFree(&cv_mem_);
 
-    cv_y_  = N_VNew_Cuda(nsystem * NSPECIES);
-    cv_a_  = SUNMatrix_cuSparse_NewBlockCSR(nsystem, NSPECIES, NSPECIES, NNZ,
-                                            cusp_handle_);
+    cv_y_ = N_VNew_Cuda(nsystem * NEQUATIONS);
+    cv_a_ = SUNMatrix_cuSparse_NewBlockCSR(nsystem, NEQUATIONS, NEQUATIONS, NNZ,
+                                           cusp_handle_);
     cv_ls_ = SUNLinSol_cuSolverSp_batchQR(cv_y_, cv_a_, cusol_handle_);
     SUNMatrix_cuSparse_SetFixedPattern(cv_a_, 1);
     InitJac(cv_a_);
@@ -209,7 +209,7 @@ int Naunet::Solve(realtype *ab, realtype dt, NaunetData *data) {
     /* {% if info.method == "dense" or info.method == "sparse" -%} */
 
     // realtype *ydata = N_VGetArrayPointer(cv_y_);
-    // for (int i=0; i<NSPECIES; i++)
+    // for (int i=0; i<NEQUATIONS; i++)
     // {
     //     ydata[i] = ab[i];
     // }
@@ -219,7 +219,7 @@ int Naunet::Solve(realtype *ab, realtype dt, NaunetData *data) {
 
     // This way is too slow
     // realtype *ydata = N_VGetArrayPointer(cv_y_);
-    // for (int i=0; i<NSPECIES; i++)
+    // for (int i=0; i<NEQUATIONS; i++)
     // {
     //     ydata[i] = ab[i];
     // }

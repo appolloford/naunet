@@ -204,7 +204,7 @@ int grid::NaunetWrapper()
   // Set your parameters here
   NaunetData data;
 
-  float y[NAUNET_NSPECIES];
+  float y[NAUNET_NEQNS];
 
   for (i=0; i<size; i++) {
     data.nH = BaryonField[iden][i] / (Mu * mh);
@@ -238,9 +238,9 @@ int grid::NaunetWrapper()
       data[i].nH = BaryonField[iden][i] / (Mu * mh);
     }
 
-    float *y = new double[nsystem * NSPECIES];
+    float *y = new double[nsystem * NEQUATIONS];
 
-    for (sidx=0, i=cur; i<cur+nsystem; sidx+=NSPECIES, i++) {
+    for (sidx=0, i=cur; i<cur+nsystem; sidx+=NEQUATIONS, i++) {
       {% for ab in abund -%}
         {{ ab }} * NumberDensityUnits;
       {% endfor -%}
@@ -248,7 +248,7 @@ int grid::NaunetWrapper()
 
     naunet.Solve(y, dt_chem * TimeUnits, data);
 
-    for (sidx=0, i=cur; i<cur+nsystem; sidx+=NSPECIES, i++) {
+    for (sidx=0, i=cur; i<cur+nsystem; sidx+=NEQUATIONS, i++) {
       {% for iab in invabund -%}
         {{ iab }} / NumberDensityUnits;
       {% endfor -%}

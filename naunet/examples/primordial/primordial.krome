@@ -1,0 +1,99 @@
+#primordial rates from several authors mostly based on Abel et al. 1997 (see also Grassi et al. 2014)
+
+#Janev 1987
+1,H,e-,,H+,e-,e-,,NONE,NONE,exp(-32.71396786d0+13.5365560d0*lnTe-5.73932875d0*(lnTe**2)+1.56315498d0*(lnTe**3)-0.28770560d0*(lnTe**4)+3.48255977d-2*(lnTe**5)-2.63197617d-3*(lnTe**6)+1.11954395d-4*(lnTe**7)-2.03914985d-6*(lnTe**8))
+
+#Abel et al. 1997, fit by data from Ferland et al. 1992
+2,H+,e-,,H,GRAIN,,,NONE,.LE.5.5e3,3.92d-13*invTe**0.6353d0
+3,H+,e-,,H,GRAIN,,,>5.5e3,NONE,exp(-28.61303380689232d0-0.7241125657826851d0*lnTe-0.02026044731984691d0*lnTe**2-0.002380861877349834d0*lnTe**3-0.0003212605213188796d0*lnTe**4-0.00001421502914054107d0*lnTe**5+4.989108920299513d-6*lnTe**6+5.755614137575758d-7*lnTe**7-1.856767039775261d-8*lnTe**8-3.071135243196595d-9*lnTe**9)
+
+#Janev 1987
+4,He,e-,,He+,e-,e-,,NONE,NONE,dexp(-44.09864886d0+23.91596563d0*lnTe-10.7532302d0*(lnTe**2)+3.05803875d0*(lnTe**3)-0.56851189d0*(lnTe**4)+6.79539123d-2*(lnTe**5)-5.00905610d-3*(lnTe**6)+2.06723616d-4*(lnTe**7)-3.64916141d-6*(lnTe**8))
+
+#Radiative+dielectronic from Cen 1992, Aldrovandi & Pequignot 1973
+5,He+,e-,,He,GRAIN,,,NONE,.LE.9.28e3,3.92d-13*invTe**0.6353d0
+6,He+,e-,,He,GRAIN,,,>9.28e3,NONE,1.54d-9*(1.d0+0.3d0/exp(8.099328789667d0*invTe))/(exp(40.49664394833662d0*invTe)*Te**1.5d0)+3.92d-13/Te**0.6353d0
+
+#Aladdin database 1989 (see Abel et al. 1997)
+7,He+,e-,,He++,e-,e-,,NONE,NONE,exp(-68.71040990212001d0+43.93347632635d0*lnTe-18.48066993568d0*lnTe**2+4.701626486759002d0*lnTe**3-0.7692466334492d0*lnTe**4+0.08113042097303d0*lnTe**5-0.005324020628287001d0*lnTe**6+0.0001975705312221d0*lnTe**7-3.165581065665d-6*lnTe**8)
+
+#Cen 1992
+8,He++,e-,,He+,GRAIN,,,NONE,NONE,3.36d-10/sqrTgas/(Tgas/1.d3)**0.2d0/(1+(Tgas/1.d6)**0.7d0)
+
+#ENZO
+9,H,e-,,H-,GRAIN,,,NONE,NONE,6.77d-15*Te**0.8779d0
+
+#Abel et al. 1997, fit by data from Janev 1987
+10,H-,H,,H2,e-,,,NONE,1160,1.43d-9
+11,H-,H,,H2,e-,,,>1160,NONE,exp(-20.06913897587003d0+0.2289800603272916d0*lnTe+0.03599837721023835d0*lnTe**2-0.004555120027032095d0*lnTe**3-0.0003105115447124016d0*lnTe**4+0.0001073294010367247d0*lnTe**5-8.36671960467864d-6*lnTe**6+2.238306228891639d-7*lnTe**7)
+
+#Shapiro&Kang 1987
+12,H,H+,,H2+,GRAIN,,,NONE,.LE.6.7e3,1.85d-23*Tgas**1.8d0
+13,H,H+,,H2+,GRAIN,,,>6.7e3,NONE,5.81d-16*(Tgas/5.62d4)**(-0.6657d0*log10(Tgas/5.62d4))
+
+#Karpas 1979
+14,H2+,H,,H2,H+,,,NONE,NONE,6.0d-10
+
+#Abel et al. 1997
+15,H2,H+,,H2+,H,,,>3.48e3,NONE,exp(-24.24914687731536d0+3.400824447095291d0*lnTe-3.898003964650152d0*lnTe**2+2.045587822403071d0*lnTe**3-0.5416182856220388d0*lnTe**4+0.0841077503763412d0*lnTe**5-0.007879026154483455d0*lnTe**6+0.0004138398421504563d0*lnTe**7-9.36345888928611d-6*lnTe**8)
+
+#Donahue&Shull 1991
+16,H2,e-,,H,H,e-,,NONE,NONE,5.6d-11*exp(-102124.d0*invT)*Tgas**0.5d0
+
+#Dove&Mandy 1986
+17,H2,H,,H,H,H,,NONE,NONE,1.0670825d-10*Te**2.012d0*exp(-4.463d0*invTe)/(1.d0+0.2472d0*Te)**3.512d0
+
+#Janev 1987
+18,H-,e-,,H,e-,e-,,NONE,NONE,exp(-18.01849334273d0+2.360852208681d0*lnTe-0.2827443061704d0*lnTe**2+0.01623316639567d0*lnTe**3-0.03365012031362999d0*lnTe**4+0.01178329782711d0*lnTe**5-0.001656194699504d0*lnTe**6+0.0001068275202678d0*lnTe**7-2.631285809207d-6*lnTe**8)
+
+#Abel et al. 1997, based on Janev 1987
+19,H-,H,,H,H,e-,,NONE,.LE.1.16e3,2.56d-9*Te**1.78186d0
+20,H-,H,,H,H,e-,,>1.16e3,NONE,exp(-20.37260896533324d0+1.139449335841631d0*lnTe-0.1421013521554148d0*lnTe**2+0.00846445538663d0*lnTe**3-0.0014327641212992d0*lnTe**4+0.0002012250284791d0*lnTe**5+0.0000866396324309d0*lnTe**6-0.00002585009680264d0*lnTe**7+2.4555011970392d-6*lnTe**8-8.06838246118d-8*lnTe**9)
+
+#Dalgarno & Lepp, 1987
+21,H-,H+,,H,H,,,NONE,NONE,6.5d-9/sqrt(Te)
+
+#Poulart 1978
+22,H-,H+,,H2+,e-,,,NONE,NONE,1.d-8*Tgas**(-0.4d0)
+
+#Abel et al. 1997, fit by data from Schneider 1994
+23,H2+,e-,,H,H,,,NONE,.LE.6.17e2,1.d-8
+24,H2+,e-,,H,H,,,>6.17e2,NONE,1.32d-6*Tgas**(-0.76d0)
+
+#Dalgarno & Lepp 1987
+25,H2+,H-,,H,H2,,,NONE,NONE,5.d-7*sqrt(1.d2*invT)
+
+#Glover&Abel 2008 
+26,H,H,H,H2,H,,,NONE,.LE.3e2,1.3d-32*(T32)**(-0.38d0)
+27,H,H,H,H2,H,,,>3e2,NONE,1.3d-32*(T32)**(-1.00d0)
+
+#Glover&Abel 2008 
+28,H2,H,H,H2,H2,,,NONE,.LE.3e2,1.3d-32*(T32)**(-0.38d0) / 8.d0
+29,H2,H,H,H2,H2,,,>3e2,NONE,1.3d-32*(T32)**(-1.00d0) / 8.d0
+
+#DEUTERIUM CHEMISTRY
+#Galli & Palla 2002 from Wolf Savin 2001
+30,H+,D,,H,D+,,,.GE.5d1,NONE,2.00d-10*Tgas**(0.402d0)*exp(-37.1d0*invT)-3.31d-17*Tgas**(1.48d0)
+
+#Galli & Palla 2002 from Wolf Savin 2001
+31,H,D+,,H+,D,,,.GE.5d1,NONE,2.06d-10*Tgas**(0.396)*exp(-33.d0*invT)+2.03d-9*Tgas**(-0.332)
+
+##Galli&Palla 2002 from Gerlich 1982 
+32,H2,D+,,HD,H+,,,NONE,NONE,1.d-9*(0.417+0.846*log10(Tgas)-0.137*(log10(Tgas))**2)
+
+##Galli & Palla 2002, from Garlich 1982 with modification by Gay et al. 2011
+33,HD,H+,,H2,D+,,,NONE,NONE,1.0d-9 *exp(-4.57d2*invT)
+
+##Glover et al. 2009, from data by Mielke et al. 2003
+34,H2,D,,HD,H,,,NONE,.LE.2.d3,10**(-56.4737+5.88886*log10(Tgas)+7.19692*(log10(Tgas))**2+2.25069*(log10(Tgas))**3-2.16903*(log10(Tgas))**4+0.317887*(log10(Tgas))**5)
+35,H2,D,,HD,H,,,.GT.2d3,NONE,3.17d-10*exp(-5207.*invT)
+
+##Galli & Palla 2002, from Shavitt 1959 (lower limit from Shavitt)
+36,HD,H,,H2,D,,,>2e2,NONE,5.25d-11*exp(-4430.*invT+1.739d5*(invT)**2)
+
+##ENZO
+37,D,H-,,HD,e-,,,NONE,NONE,1.5d-9*(T32)**(-0.1d0)
+
+@format:idx,R,R,P,P,Tmin,Tmax,rate
+#ADDITIONAL DEUTERIUM RATES FROM GP98, SLD98
+38,D+,e-,D,,NONE,NONE,3.6d-12*(Tgas/300)**(-0.75d0)

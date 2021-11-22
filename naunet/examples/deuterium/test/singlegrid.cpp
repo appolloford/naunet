@@ -30,8 +30,8 @@ int main() {
     naunet.Reset(1);
 #endif
 
-    double y[NSPECIES];
-    for (int i = 0; i < NSPECIES; i++) {
+    double y[NEQUATIONS];
+    for (int i = 0; i < NEQUATIONS; i++) {
         y[i] = 1.e-40;
     }
     y[IDX_pH2I]    = 1.0 / (1.0 + OPRH2) * 0.5 * nH;
@@ -82,10 +82,10 @@ int main() {
         dtyr = time[i + 1] - time[i];
 
         fwrite(time + i, sizeof(double), 1, fbin);
-        fwrite(y, sizeof(double), NSPECIES, fbin);
+        fwrite(y, sizeof(double), NEQUATIONS, fbin);
 
         fprintf(ftxt, "%13.7e ", time[i]);
-        for (int j = 0; j < NSPECIES; j++) {
+        for (int j = 0; j < NEQUATIONS; j++) {
             fprintf(ftxt, "%13.7e ", y[j]);
         }
         fprintf(ftxt, "\n");

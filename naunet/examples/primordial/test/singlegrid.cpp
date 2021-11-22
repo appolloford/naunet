@@ -8,7 +8,7 @@
 
 int main() {
     double spy = 86400.0 * 365.0;
-    double nH  = 1e5;
+    double nH  = 1e-2;
 
     NaunetData data;
     data.nH   = nH;
@@ -25,12 +25,17 @@ int main() {
     for (int i = 0; i < NEQUATIONS; i++) {
         y[i] = 1.e-40;
     }
-    y[IDX_HI]  = nH;
-    y[IDX_HDI] = 1.5e-5 * nH;
+    y[IDX_HI]   = nH;
+    y[IDX_HII]  = 1e-4 * nH;
+    y[IDX_HeI]  = 1e-1 * nH;
+    y[IDX_HDI]  = 1.5e-5 * nH;
+    y[IDX_H2I]  = 1.5e-5 * nH;
+    y[IDX_eM]   = 1e-4 * nH;
+    y[IDX_TGAS] = 1e3 * nH;
 
-    FILE *fbin = fopen("evolution_singlegrid.bin", "w");
-    FILE *ftxt = fopen("evolution_singlegrid.txt", "w");
-    FILE *ttxt = fopen("time_singlegrid.txt", "w");
+    FILE *fbin  = fopen("evolution_singlegrid.bin", "w");
+    FILE *ftxt  = fopen("evolution_singlegrid.txt", "w");
+    FILE *ttxt  = fopen("time_singlegrid.txt", "w");
 #ifdef NAUNET_DEBUG
     printf("Initialization is done. Start to evolve.\n");
     FILE *rtxt = fopen("reactionrates.txt", "w");

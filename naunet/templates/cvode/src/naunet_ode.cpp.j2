@@ -61,7 +61,7 @@ int EvalRates(realtype *k, realtype *y, NaunetData *u_data) {
 
 /* {% if info.method == "cusparse" -%} */
 int InitJac(SUNMatrix jmatrix) {
-    int rowptrs[NSPECIES + 1], colvals[NNZ];
+    int rowptrs[NEQUATIONS + 1], colvals[NNZ];
 
     // Zero out the Jacobian
     SUNMatZero(jmatrix);
@@ -95,10 +95,19 @@ __global__ void FexKernel(realtype *y, realtype *ydot, NaunetData *d_udata,
     {% for v in variables.varis -%}
         realtype {{ v }} = d_udata->{{ v }};
     {% endfor %}
+
+    {% for v in variables.tvaris -%}
+        realtype {{ v }} = d_udata->{{ v }};
+    {% endfor %}
+    
+    {% if variables.tvaris -%}
+    if (mu < 0) mu = GetMu(y);
+    if (gamma < 0) gamma = GetGamma(y);
+    {% endif -%}
     // clang-format on
 
     for (int cur = tidx; cur < nsystem; cur += gs) {
-        int yistart            = cur * NSPECIES;
+        int yistart            = cur * NEQUATIONS;
         realtype *y_cur        = y + yistart;
         realtype k[NREACTIONS] = {0.0};
         NaunetData *udata      = &d_udata[cur];
@@ -123,11 +132,23 @@ __global__ void JacKernel(realtype *y, realtype *data, NaunetData *d_udata,
     int gs   = blockDim.x * gridDim.x;
 
     for (int cur = tidx; cur < nsystem; cur += gs) {
-        int yistart            = cur * NSPECIES;
+        int yistart            = cur * NEQUATIONS;
         int jistart            = cur * NNZ;
         realtype *y_cur        = y + yistart;
         realtype k[NREACTIONS] = {0.0};
         NaunetData *udata      = &d_udata[cur];
+
+        // clang-format off
+        {% for v in variables.tvaris -%}
+            realtype {{ v }} = udata->{{ v }};
+        {% endfor %}
+        
+        {% if variables.tvaris -%}
+        if (mu < 0) mu = GetMu(y);
+        if (gamma < 0) gamma = GetGamma(y);
+        {% endif -%}
+
+        // clang-format on
 
         EvalRates(k, y_cur, udata);
 
@@ -153,6 +174,15 @@ int Jtv(N_Vector v, N_Vector jv, realtype t, N_Vector u, N_Vector fu,
         realtype {{ v }} = u_data->{{ v }};
     {% endfor %}
 
+    {% for v in variables.tvaris -%}
+        realtype {{ v }} = u_data->{{ v }};
+    {% endfor %}
+
+    {% if variables.tvaris -%}
+    if (mu < 0) mu = GetMu(y);
+    if (gamma < 0) gamma = GetGamma(y);
+    {% endif -%}
+
     // clang-format on
 
     realtype k[NREACTIONS] = {0.0};
@@ -168,7 +198,7 @@ int Jtv(N_Vector v, N_Vector jv, realtype t, N_Vector u, N_Vector fu,
     {% endfor %}
     // clang-format on
 
-    for (int i = 0; i < NSPECIES; i++) {
+    for (int i = 0; i < NEQUATIONS; i++) {
         fx[i] = 0.0;
     }
 
@@ -186,6 +216,15 @@ int Fex(realtype t, N_Vector u, N_Vector udot, void *user_data) {
     {% for v in variables.varis -%}
         realtype {{ v }} = u_data->{{ v }};
     {% endfor %}
+
+    {% for v in variables.tvaris -%}
+        realtype {{ v }} = u_data->{{ v }};
+    {% endfor %}
+
+    {% if variables.tvaris -%}
+    if (mu < 0) mu = GetMu(y);
+    if (gamma < 0) gamma = GetGamma(y);
+    {% endif -%}
 
     // clang-format on
 
@@ -213,7 +252,7 @@ int Fex(realtype t, N_Vector u, N_Vector udot, void *user_data) {
     // check the size of system (number of cells/ a batch)
     sunindextype lrw, liw;
     N_VSpace_Cuda(u, &lrw, &liw);
-    int nsystem = lrw / NSPECIES;
+    int nsystem = lrw / NEQUATIONS;
 
     // copy the user data for each system/cell
     cudaMalloc((void **)&d_udata, sizeof(NaunetData) * nsystem);
@@ -249,6 +288,15 @@ int Jac(realtype t, N_Vector u, N_Vector fu, SUNMatrix jmatrix, void *user_data,
     {% for v in variables.varis -%}
         realtype {{ v }} = u_data->{{ v }};
     {% endfor %}
+
+    {% for v in variables.tvaris -%}
+        realtype {{ v }} = u_data->{{ v }};
+    {% endfor %}
+    
+    {% if variables.tvaris -%}
+    if (mu < 0) mu = GetMu(y);
+    if (gamma < 0) gamma = GetGamma(y);
+    {% endif -%}
 
     // clang-format on
 

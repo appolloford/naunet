@@ -60,18 +60,18 @@ int main() {
     double **y = new double *[nsystem];
 
     for (int isys = 0; isys < nsystem; isys++) {
-        y[isys] = new double[NSPECIES];
+        y[isys] = new double[NEQUATIONS];
     }
 
     for (int isys = 0; isys < nsystem; isys++) {
-        for (int i = 0; i < NSPECIES; i++) {
+        for (int i = 0; i < NEQUATIONS; i++) {
             y[isys][i] = rawdata[isys][i + 2];
         }
     }
 
 #ifdef NAUNET_DEBUG
     printf("Abundances in the first system\n");
-    for (int i = 0; i < NSPECIES; i++) {
+    for (int i = 0; i < NEQUATIONS; i++) {
         printf("%13.7e ", y[0][i]);
     }
     printf("\n");
@@ -104,11 +104,11 @@ int main() {
         for (int isys = 0; isys < nsystem; isys++) {
             fwrite((double *)&isys, sizeof(double), 1, fbin);
             fwrite(&time, sizeof(double), 1, fbin);
-            fwrite(y[isys], sizeof(double), NSPECIES, fbin);
+            fwrite(y[isys], sizeof(double), NEQUATIONS, fbin);
 
             fprintf(ftxt, "%13.7e ", (double)isys);
             fprintf(ftxt, "%13.7e ", time);
-            for (int j = 0; j < NSPECIES; j++) {
+            for (int j = 0; j < NEQUATIONS; j++) {
                 fprintf(ftxt, "%13.7e ", y[isys][j]);
             }
             fprintf(ftxt, "\n");
@@ -132,11 +132,11 @@ int main() {
     for (int isys = 0; isys < nsystem; isys++) {
         fwrite((double *)&isys, sizeof(double), 1, fbin);
         fwrite(&time, sizeof(double), 1, fbin);
-        fwrite(&y[isys], sizeof(double), NSPECIES, fbin);
+        fwrite(&y[isys], sizeof(double), NEQUATIONS, fbin);
 
         fprintf(ftxt, "%13.7e ", (double)isys);
         fprintf(ftxt, "%13.7e ", time);
-        for (int j = 0; j < NSPECIES; j++) {
+        for (int j = 0; j < NEQUATIONS; j++) {
             fprintf(ftxt, "%13.7e ", y[isys][j]);
         }
         fprintf(ftxt, "\n");

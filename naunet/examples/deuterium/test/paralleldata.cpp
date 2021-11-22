@@ -55,16 +55,16 @@ int main() {
 
     naunet.Reset(nsystem);
 
-    double *y = new double[nsystem * NSPECIES];
+    double *y = new double[nsystem * NEQUATIONS];
     for (int isys = 0; isys < nsystem; isys++) {
-        for (int i = 0; i < NSPECIES; i++) {
-            y[isys * NSPECIES + i] = rawdata[isys][i + 2];
+        for (int i = 0; i < NEQUATIONS; i++) {
+            y[isys * NEQUATIONS + i] = rawdata[isys][i + 2];
         }
     }
 
 #ifdef NAUNET_DEBUG
     printf("Abundances in the first system\n");
-    for (int i = 0; i < NSPECIES; i++) {
+    for (int i = 0; i < NEQUATIONS; i++) {
         printf("%13.7e ", y[i]);
     }
     printf("\n");
@@ -97,12 +97,12 @@ int main() {
         for (int isys = 0; isys < nsystem; isys++) {
             fwrite((double *)&isys, sizeof(double), 1, fbin);
             fwrite(&time, sizeof(double), 1, fbin);
-            fwrite(&y[isys * NSPECIES], sizeof(double), NSPECIES, fbin);
+            fwrite(&y[isys * NEQUATIONS], sizeof(double), NEQUATIONS, fbin);
 
             fprintf(ftxt, "%13.7e ", (double)isys);
             fprintf(ftxt, "%13.7e ", time);
-            for (int j = 0; j < NSPECIES; j++) {
-                fprintf(ftxt, "%13.7e ", y[isys * NSPECIES + j]);
+            for (int j = 0; j < NEQUATIONS; j++) {
+                fprintf(ftxt, "%13.7e ", y[isys * NEQUATIONS + j]);
             }
             fprintf(ftxt, "\n");
         }
@@ -123,12 +123,12 @@ int main() {
     for (int isys = 0; isys < nsystem; isys++) {
         fwrite((double *)&isys, sizeof(double), 1, fbin);
         fwrite(&time, sizeof(double), 1, fbin);
-        fwrite(&y[isys * NSPECIES], sizeof(double), NSPECIES, fbin);
+        fwrite(&y[isys * NEQUATIONS], sizeof(double), NEQUATIONS, fbin);
 
         fprintf(ftxt, "%13.7e ", (double)isys);
         fprintf(ftxt, "%13.7e ", time);
-        for (int j = 0; j < NSPECIES; j++) {
-            fprintf(ftxt, "%13.7e ", y[isys * NSPECIES + j]);
+        for (int j = 0; j < NEQUATIONS; j++) {
+            fprintf(ftxt, "%13.7e ", y[isys * NEQUATIONS + j]);
         }
         fprintf(ftxt, "\n");
     }

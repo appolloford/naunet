@@ -51,29 +51,29 @@ int main() {
     naunet.Reset(1);
 #endif
 
-    double y[NSPECIES] = {0.0};
-    // for (int i = 0; i < NSPECIES; i++)
+    double y[NEQUATIONS] = {0.0};
+    // for (int i = 0; i < NEQUATIONS; i++)
     // {
     //     y[i] = 1.e-40;
     // }
-    y[IDX_H2I]         = 0.5 * nH;
-    y[IDX_HI]          = 5.0e-5 * nH;
-    y[IDX_HeI]         = 9.75e-2 * nH;
-    y[IDX_NI]          = 7.5e-5 * nH;
-    y[IDX_OI]          = 3.2e-4 * nH;
-    y[IDX_CI]          = 1.4e-4 * nH;
-    y[IDX_SI]          = 8.0e-8 * nH;
-    y[IDX_SiI]         = 8.0e-9 * nH;
-    y[IDX_NaI]         = 2.0e-9 * nH;
-    y[IDX_MgI]         = 7.0e-9 * nH;
-    y[IDX_FeI]         = 3.0e-9 * nH;
-    y[IDX_ClI]         = 4.0e-9 * nH;
-    y[IDX_FI]          = 2.0e-8 * nH;
-    y[IDX_GRAIN0I]     = 1.3e-12 * nH;
+    y[IDX_H2I]           = 0.5 * nH;
+    y[IDX_HI]            = 5.0e-5 * nH;
+    y[IDX_HeI]           = 9.75e-2 * nH;
+    y[IDX_NI]            = 7.5e-5 * nH;
+    y[IDX_OI]            = 3.2e-4 * nH;
+    y[IDX_CI]            = 1.4e-4 * nH;
+    y[IDX_SI]            = 8.0e-8 * nH;
+    y[IDX_SiI]           = 8.0e-9 * nH;
+    y[IDX_NaI]           = 2.0e-9 * nH;
+    y[IDX_MgI]           = 7.0e-9 * nH;
+    y[IDX_FeI]           = 3.0e-9 * nH;
+    y[IDX_ClI]           = 4.0e-9 * nH;
+    y[IDX_FI]            = 2.0e-8 * nH;
+    y[IDX_GRAIN0I]       = 1.3e-12 * nH;
 
-    FILE *fbin         = fopen("evolution_singlegrid.bin", "w");
-    FILE *ftxt         = fopen("evolution_singlegrid.txt", "w");
-    FILE *ttxt         = fopen("time_singlegrid.txt", "w");
+    FILE *fbin           = fopen("evolution_singlegrid.bin", "w");
+    FILE *ftxt           = fopen("evolution_singlegrid.txt", "w");
+    FILE *ttxt           = fopen("time_singlegrid.txt", "w");
 #ifdef NAUNET_DEBUG
     // printf("Initialization is done. Start to evolve.\n");
     // FILE *rtxt = fopen("reactionrates.txt", "w");
@@ -95,10 +95,10 @@ int main() {
         dtyr = pow(10.0, logtime) - time;
 
         fwrite(&time, sizeof(double), 1, fbin);
-        fwrite(y, sizeof(double), NSPECIES, fbin);
+        fwrite(y, sizeof(double), NEQUATIONS, fbin);
 
         fprintf(ftxt, "%13.7e ", time);
-        for (int j = 0; j < NSPECIES; j++) {
+        for (int j = 0; j < NEQUATIONS; j++) {
             fprintf(ftxt, "%13.7e ", y[j]);
         }
         fprintf(ftxt, "\n");
@@ -118,10 +118,10 @@ int main() {
 
     // save the final results
     fwrite(&time, sizeof(double), 1, fbin);
-    fwrite(y, sizeof(double), NSPECIES, fbin);
+    fwrite(y, sizeof(double), NEQUATIONS, fbin);
 
     fprintf(ftxt, "%13.7e ", time);
-    for (int j = 0; j < NSPECIES; j++) {
+    for (int j = 0; j < NEQUATIONS; j++) {
         fprintf(ftxt, "%13.7e ", y[j]);
     }
     fprintf(ftxt, "\n");

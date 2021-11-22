@@ -27,8 +27,8 @@ int Naunet::Init(int nsystem, double atol, double rtol) {
 int Naunet::Finalize() { return NAUNET_SUCCESS; }
 
 int Naunet::Solve(double *abund, double dt, NaunetData *data) {
-    vector_type y(NSPECIES);
-    for (int i = 0; i < NSPECIES; i++) {
+    vector_type y(NEQUATIONS);
+    for (int i = 0; i < NEQUATIONS; i++) {
         y[i] = abund[i];
     }
 
@@ -47,7 +47,7 @@ int Naunet::Solve(double *abund, double dt, NaunetData *data) {
         make_controlled<rosenbrock4<double>>(atol_, rtol_),
         std::make_pair(Fex(data), Jac(data)), y, 0.0, dt, dt);
 
-    for (int i = 0; i < NSPECIES; i++) {
+    for (int i = 0; i < NEQUATIONS; i++) {
         abund[i] = y[i];
     }
 

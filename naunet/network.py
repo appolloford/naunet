@@ -12,6 +12,7 @@ from .reactions.leedsreaction import LEEDSReaction
 from .reactions.kromereaction import KROMEReaction
 from .dusts.dust import Dust
 from .dusts.unidust import UniDust
+from .thermalprocess import supported_cooling_process, supported_heating_process
 
 
 logging.basicConfig(level=logging.DEBUG)
@@ -106,6 +107,12 @@ class Network:
         self._allowed_species = allowed_species.copy() if allowed_species else []
         self._required_species = required_species.copy() if required_species else []
         self._shielding = shielding if shielding else {}
+        self._heating = (
+            [supported_heating_process.get(h) for h in heating] if heating else []
+        )
+        self._cooling = (
+            [supported_cooling_process.get(c) for c in cooling] if cooling else []
+        )
 
         if allowed_species and required_species:
 
@@ -270,6 +277,8 @@ class Network:
             speclist,
             self.reaction_list,
             databaselist,
+            heating=self._heating,
+            cooling=self._cooling,
             dust=self.dust,
             shielding=self._shielding,
             odemodifier=self.ode_modifier,

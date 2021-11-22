@@ -32,19 +32,19 @@ int main() {
 
     naunet.Reset(nsystem);
 
-    double *y = new double[nsystem * NSPECIES];
+    double *y = new double[nsystem * NEQUATIONS];
     for (int isys = 0; isys < nsystem; isys++) {
-        for (int i = 0; i < NSPECIES; i++) {
-            y[isys * NSPECIES + i] = 1.e-40;
+        for (int i = 0; i < NEQUATIONS; i++) {
+            y[isys * NEQUATIONS + i] = 1.e-40;
         }
-        y[isys * NSPECIES + IDX_pH2I]    = 1.0 / (1.0 + OPRH2) * 0.5 * nH;
-        y[isys * NSPECIES + IDX_oH2I]    = OPRH2 / (1.0 + OPRH2) * 0.5 * nH;
-        y[isys * NSPECIES + IDX_HDI]     = 1.5e-5 * nH;
-        y[isys * NSPECIES + IDX_HeI]     = 1.0e-1 * nH;
-        y[isys * NSPECIES + IDX_NI]      = 2.1e-6 * nH;
-        y[isys * NSPECIES + IDX_OI]      = 1.8e-5 * nH;
-        y[isys * NSPECIES + IDX_CI]      = 7.3e-6 * nH;
-        y[isys * NSPECIES + IDX_GRAIN0I] = 1.3215e-12 * nH;
+        y[isys * NEQUATIONS + IDX_pH2I]    = 1.0 / (1.0 + OPRH2) * 0.5 * nH;
+        y[isys * NEQUATIONS + IDX_oH2I]    = OPRH2 / (1.0 + OPRH2) * 0.5 * nH;
+        y[isys * NEQUATIONS + IDX_HDI]     = 1.5e-5 * nH;
+        y[isys * NEQUATIONS + IDX_HeI]     = 1.0e-1 * nH;
+        y[isys * NEQUATIONS + IDX_NI]      = 2.1e-6 * nH;
+        y[isys * NEQUATIONS + IDX_OI]      = 1.8e-5 * nH;
+        y[isys * NEQUATIONS + IDX_CI]      = 7.3e-6 * nH;
+        y[isys * NEQUATIONS + IDX_GRAIN0I] = 1.3215e-12 * nH;
     }
 
     double time[10046];
@@ -90,12 +90,12 @@ int main() {
         for (int isys = 0; isys < nsystem; isys++) {
             fwrite((double *)&isys, sizeof(double), 1, fbin);
             fwrite(time + i, sizeof(double), 1, fbin);
-            fwrite(&y[isys * NSPECIES], sizeof(double), NSPECIES, fbin);
+            fwrite(&y[isys * NEQUATIONS], sizeof(double), NEQUATIONS, fbin);
 
             fprintf(ftxt, "%13.7e ", (double)isys);
             fprintf(ftxt, "%13.7e ", time[i]);
-            for (int j = 0; j < NSPECIES; j++) {
-                fprintf(ftxt, "%13.7e ", y[isys * NSPECIES + j]);
+            for (int j = 0; j < NEQUATIONS; j++) {
+                fprintf(ftxt, "%13.7e ", y[isys * NEQUATIONS + j]);
             }
             fprintf(ftxt, "\n");
         }

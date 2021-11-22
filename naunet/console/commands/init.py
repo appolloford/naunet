@@ -31,6 +31,8 @@ class InitCommand(Command):
         {--network= : Source of chemical network file}
         {--database= : The database/format of the chemical network}
         {--dust= : Type of dust model}
+        {--heating= : List of heating processes}
+        {--cooling= : List of cooling processes}
         {--binding= : List of binding energy of ice species}
         {--yield= : List of photodesorption yields of ice species}
         {--shielding= : List of shielding functions}
@@ -110,7 +112,9 @@ class InitCommand(Command):
 
         pseudo_element = self.option("pseudo-elements")
         if pseudo_element:
-            pseudo_element = pseudo_element.split(",")
+            pseudo_element = (
+                [] if pseudo_element == "null" else pseudo_element.split(",")
+            )
 
         else:
             pseudo_element = Species.default_pseudoelements
@@ -190,6 +194,20 @@ class InitCommand(Command):
         dust.add("type", dustype)
 
         chemistry.add("dust", dust)
+
+        heating = table()
+
+        heating = self.option("heating")
+        heating = heating.split(",") if heating else []
+
+        chemistry.add("heating", heating)
+
+        cooling = table()
+
+        cooling = self.option("cooling")
+        cooling = cooling.split(",") if cooling else []
+
+        chemistry.add("cooling", cooling)
 
         binding = table()
 
