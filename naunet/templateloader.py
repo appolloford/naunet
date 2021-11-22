@@ -258,18 +258,18 @@ class TemplateLoader:
                 # only fill the last row of jacobian
                 jacrhs[n_spec * n_eqns + ri] += term
 
-        rhs[n_spec] = f"(gamma - 1.0) * ( {rhs[n_spec]} ) / kerg / GetNumDens(y)"
-        jacrhs[n_spec * n_eqns + ri] = "".join(
-            [
-                "(gamma - 1.0) * (",
-                jacrhs[n_spec * n_eqns + ri],
-                " ) / kerg / GetNumDens(y)",
-            ]
-        )
-
         lhs = [f"ydot[IDX_{x.alias}]" for x in species]
         if has_thermal:
             lhs.append("ydot[IDX_TGAS]")
+            rhs[n_spec] = f"(gamma - 1.0) * ( {rhs[n_spec]} ) / kerg / GetNumDens(y)"
+            jacrhs[n_spec * n_eqns + ri] = "".join(
+                [
+                    "(gamma - 1.0) * (",
+                    jacrhs[n_spec * n_eqns + ri],
+                    " ) / kerg / GetNumDens(y)",
+                ]
+            )
+
         fex = [f"{l} = {r};" for l, r in zip(lhs, rhs)]
 
         if self._solver == "cvode":
