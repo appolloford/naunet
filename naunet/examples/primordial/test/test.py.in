@@ -26,9 +26,10 @@ naunet_data = NaunetData()
 
 spy = 86400.0 * 365.0
 nH = 1e5
+tgas = 100000.0
 
 naunet_data.nH = nH
-naunet_data.Tgas = 15.0
+naunet_data.Tgas = tgas
 
 naunet_solver.Init()
 if @USE_CUDA@:
@@ -44,7 +45,7 @@ y[species.index("HD")]     = 1.5e-5 * nH
 y[species.index("H2")]     = 1.5e-5 *nH
 y[species.index("e-")]     = 1e-4 * nH
 if has_thermal:
-    y[nspec]               = 1000.0 # Temperature
+    y[nspec]               = tgas # Temperature
 
 naunet_solver.Solve(y, 1e4, naunet_data)
 

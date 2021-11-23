@@ -7,12 +7,13 @@
 #include "naunet_timer.h"
 
 int main() {
-    double spy = 86400.0 * 365.0;
-    double nH  = 1e-2;
+    double spy  = 86400.0 * 365.0;
+    double nH   = 1e-2;
+    double Tgas = 100000.0;
 
     NaunetData data;
     data.nH   = nH;
-    data.Tgas = 15.0;
+    data.Tgas = Tgas;
 
     Naunet naunet;
     naunet.Init();
@@ -31,7 +32,7 @@ int main() {
     y[IDX_HDI]  = 1.5e-5 * nH;
     y[IDX_H2I]  = 1.5e-5 * nH;
     y[IDX_eM]   = 1e-4 * nH;
-    y[IDX_TGAS] = 1e3 * nH;
+    y[IDX_TGAS] = Tgas;
 
     FILE *fbin  = fopen("evolution_singlegrid.bin", "w");
     FILE *ftxt  = fopen("evolution_singlegrid.txt", "w");
@@ -54,7 +55,11 @@ int main() {
         // fprintf(rtxt, "\n");
 #endif
 
-        dtyr = pow(10.0, logtime) - time;
+        /* synchronize the temperature if you want to make chemistry and
+           heating/cooling consistent */
+        data.Tgas = y[IDX_TGAS];
+
+        dtyr      = pow(10.0, logtime) - time;
 
         fwrite(&time, sizeof(double), 1, fbin);
         fwrite(y, sizeof(double), NEQUATIONS, fbin);

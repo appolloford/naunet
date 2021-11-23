@@ -240,6 +240,12 @@ int Fex(realtype t, N_Vector u, N_Vector udot, void *user_data) {
         {{ m }};
     {% endfor %}
 
+{% if variables.tvaris -%}
+#if NAUNET_DEBUG
+    printf("Total heating/cooling rate: %13.7e\n", ydot[IDX_TGAS]);
+#endif
+{% endif -%}
+
     // clang-format on
 
     /* {% elif info.method == "cusparse" -%} */
