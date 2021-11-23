@@ -18,7 +18,7 @@ class Fex {
     Fex(NaunetData *data);
     ~Fex();
 
-    void operator()(const vector_type &y, vector_type &ydot, double t);
+    void operator()(const vector_type &abund, vector_type &ydot, double t);
 };
 
 class Jac {
@@ -29,7 +29,7 @@ class Jac {
     Jac(NaunetData *data);
     ~Jac();
 
-    void operator()(const vector_type &y, matrix_type &j, const double &t,
+    void operator()(const vector_type &abund, matrix_type &j, const double &t,
                     vector_type &dfdt);
 };
 

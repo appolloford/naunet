@@ -315,6 +315,18 @@ int Jac(realtype t, N_Vector u, N_Vector fu, SUNMatrix jmatrix, void *user_data,
     realtype *data         = SUNSparseMatrix_Data(jmatrix);
     NaunetData *u_data     = (NaunetData *)user_data;
 
+    // clang-format off
+    {% for v in variables.tvaris -%}
+        realtype {{ v }} = u_data->{{ v }};
+    {% endfor %}
+    
+    {% if variables.tvaris -%}
+    if (mu < 0) mu = GetMu(y);
+    if (gamma < 0) gamma = GetGamma(y);
+    {% endif -%}
+
+    // clang-format on
+
     realtype k[NREACTIONS] = {0.0};
     EvalRates(k, y, u_data);
 

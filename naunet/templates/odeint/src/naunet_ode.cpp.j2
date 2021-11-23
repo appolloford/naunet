@@ -58,14 +58,21 @@ Fex::~Fex(){
     // delete u_data;
 };
 
-void Fex::operator()(const vector_type &y, vector_type &ydot, double t) {
+void Fex::operator()(const vector_type &abund, vector_type &ydot, double t) {
     // clang-format off
+
+    double k[NREACTIONS]  = {0.0};
+    double y[NEQUATIONS] = {0.0};
+    for (int i = 0; i < NEQUATIONS; i++) {
+        y[i] = abund[i];
+    }
+
     {% for v in variables.varis -%}
         double {{ v }} = u_data->{{ v }};
     {% endfor %}
 
     {% for v in variables.tvaris -%}
-        realtype {{ v }} = u_data->{{ v }};
+        double {{ v }} = u_data->{{ v }};
     {% endfor %}
 
     {% if variables.tvaris -%}
@@ -75,15 +82,9 @@ void Fex::operator()(const vector_type &y, vector_type &ydot, double t) {
 
     {% for v in variables.user_var -%}
         {{ v }};
-    {% endfor %}
-    // clang-format on
+    {% endfor %}  // clang-format on
 
-    double k[NREACTIONS]  = {0.0};
-    double ab[NEQUATIONS] = {0.0};
-    for (int i = 0; i < NEQUATIONS; i++) {
-        ab[i] = y[i];
-    }
-    EvalRates(k, ab, u_data);
+    EvalRates(k, y, u_data);
 
     // clang-format off
     {% for eq in ode.fex -%}
@@ -105,15 +106,22 @@ Jac::~Jac(){
     // delete u_data;
 };
 
-void Jac::operator()(const vector_type &y, matrix_type &j, const double &t,
+void Jac::operator()(const vector_type &abund, matrix_type &j, const double &t,
                      vector_type &dfdt) {
     // clang-format off
+
+    double k[NREACTIONS]  = {0.0};
+    double y[NEQUATIONS] = {0.0};
+    for (int i = 0; i < NEQUATIONS; i++) {
+        y[i] = abund[i];
+    }
+
     {% for v in variables.varis -%}
         double {{ v }} = u_data->{{ v }};
     {% endfor %}
 
     {% for v in variables.tvaris -%}
-        realtype {{ v }} = u_data->{{ v }};
+        double {{ v }} = u_data->{{ v }};
     {% endfor %}
 
     {% if variables.tvaris -%}
@@ -123,12 +131,7 @@ void Jac::operator()(const vector_type &y, matrix_type &j, const double &t,
 
     // clang-format on
 
-    double k[NREACTIONS]  = {0.0};
-    double ab[NEQUATIONS] = {0.0};
-    for (int i = 0; i < NEQUATIONS; i++) {
-        ab[i] = y[i];
-    }
-    EvalRates(k, ab, u_data);
+    EvalRates(k, y, u_data);
 
     // clang-format off
     {% for eq in ode.jac -%}
