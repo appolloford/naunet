@@ -12,6 +12,11 @@ config = TOMLFile(os.path.join(config_path, "naunet_config.toml"))
 content = config.read()
 chemistry = content["chemistry"]
 species = chemistry["species"]
+heating = chemistry["heating"]
+cooling = chemistry["cooling"]
+has_thermal = True if heating or cooling else False
+nspec = len(species)
+neqns = nspec + has_thermal
 
 times = np.logspace(5, 8, 51)
 timesteps = times[1:] - times[:-1]
@@ -29,7 +34,7 @@ naunet_solver.Init()
 if @USE_CUDA@:
     naunet_solver.Reset(1)
 
-y = np.ones(len(species)) * 1e-40
+y = np.ones(neqns) * 1e-40
 # Only works if the species list in naunet_config.toml has been updated
 # Otherwise check the macros in naunet_macros.h
 y[species.index("H")]      = nH
@@ -38,7 +43,8 @@ y[species.index("He")]     = 1e-1 * nH
 y[species.index("HD")]     = 1.5e-5 * nH
 y[species.index("H2")]     = 1.5e-5 *nH
 y[species.index("e-")]     = 1e-4 * nH
-y[len(species)]            = 1000.0 # Temperature
+if has_thermal:
+    y[nspec]               = 1000.0 # Temperature
 
 naunet_solver.Solve(y, 1e4, naunet_data)
 
