@@ -24,10 +24,12 @@ if("CUDA" IN_LIST languages)
     set(USE_CUDA True)
 
     list(
-        APPEND ${TESTTARGETS}
+        APPEND TESTTARGETS
             multiplegrid
     )
 endif()
+
+message(STATUS "Test targets               = ${TESTTARGETS}")
 
 foreach(name ${TESTTARGETS})
 
