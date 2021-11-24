@@ -117,6 +117,19 @@ class ExampleCommand(Command):
 
             element = primordial_element
             species = primordial_species
+            cooling = [
+                "CIC_HI",
+                "CIC_HeI",
+                "CIC_HeII",
+                "CIC_He_2S",
+                "RC_HII",
+                "RC_HeI",
+                "RC_HeII",
+                "RC_HeIII",
+                "CEC_HI",
+                "CEC_HeI",
+                "CEC_HeII",
+            ]
             network_source = primordial_path
             solver = "odeint" if "rosenbrock4" in case else "cvode"
             device = "gpu" if "cusparse" in case else "cpu"
@@ -128,7 +141,7 @@ class ExampleCommand(Command):
                     f"--elements={','.join(element)} --pseudo-elements=''",
                     f"--species={','.join(species)}",
                     f"--extra-species=''",
-                    f"--cooling='CIC_H'",
+                    f"--cooling={','.join(cooling)}",
                     f"--network=primordial.krome --database=krome",
                     f"--solver={solver} --device={device} --method={method}",
                     f"--render",

@@ -32,16 +32,75 @@ class ThermalProcess:
         return self._rate
 
 
-HCollisionalIonizationCooling = ThermalProcess(
+HICollisionalIonizationCooling = ThermalProcess(
     ["H", "e-"],
     "1.27e-21 * sqrt(y[IDX_TGAS]) / (1.0 + sqrt(y[IDX_TGAS]/1e5)) * exp(-1.578091e5/y[IDX_TGAS])",
 )
 
+HeICollisionalIonizationCooling = ThermalProcess(
+    ["He", "e-"],
+    "9.38e-22 * sqrt(y[IDX_TGAS]) / (1.0 + sqrt(y[IDX_TGAS]/1e5)) * exp(-2.853354e5/y[IDX_TGAS])",
+)
+
+HeIICollisionalIonizationCooling = ThermalProcess(
+    ["He+", "e-"],
+    "4.95e-22 * sqrt(y[IDX_TGAS]) / (1.0 + sqrt(y[IDX_TGAS]/1e5)) * exp(-6.31515e5/y[IDX_TGAS])",
+)
+
+He_2SCollisionalIonizationCooling = ThermalProcess(
+    ["He+", "e-", "e-"],
+    "5.01e-27 * pow(y[IDX_TGAS], -0.1687) / (1.0 + sqrt(y[IDX_TGAS]/1e5)) * exp(-5.5338e4/y[IDX_TGAS])",
+)
+
+HIIRecombinationCooling = ThermalProcess(
+    ["H+", "e-"],
+    "8.7e-27 * sqrt(y[IDX_TGAS]) * pow(y[IDX_TGAS]/1e3, -0.2) / (1.0+pow(y[IDX_TGAS]/1e6, 0.7))",
+)
+
+# Dielectronic recombination cooling
+HeIRecombinationCooling = ThermalProcess(
+    ["He+", "e-"],
+    "1.24e-13 * pow(y[IDX_TGAS], -1.5) * exp(-4.7e5/y[IDX_TGAS]) * (1.0+0.3*exp(-9.4e4/y[IDX_TGAS]))",
+)
+
+HeIIRecombinationCooling = ThermalProcess(
+    ["He+", "e-"], "1.55e-26 * pow(y[IDX_TGAS], 0.3647)"
+)
+
+HeIIIRecombinationCooling = ThermalProcess(
+    ["He++", "e-"],
+    "3.48e-26 * sqrt(y[IDX_TGAS]) * pow(y[IDX_TGAS]/1e3, -0.2) / (1.0+pow(y[IDX_TGAS]/1e6, 0.7))",
+)
+
+HICollisionalExcitationCooling = ThermalProcess(
+    ["H", "e-", "e-"],
+    "9.1e-27 * pow(y[IDX_TGAS], -0.1687) / (1.0+sqrt(y[IDX_TGAS]/1e5)) * exp(-1.3179e4/y[IDX_TGAS])",
+)
+
+HeICollisionalExcitationCooling = ThermalProcess(
+    ["He+", "e-"],
+    "5.54e-17 * pow(y[IDX_TGAS], -.0397) / (1.0+sqrt(y[IDX_TGAS]/1e5)) *exp(-4.73638e5/y[IDX_TGAS])",
+)
+
+HeIICollisionalExcitationCooling = ThermalProcess(
+    ["He+", "e-"],
+    "5.54e-17 * pow(y[IDX_TGAS], -.0397) / (1.0+sqrt(y[IDX_TGAS]/1e5)) *exp(-4.73638e5/y[IDX_TGAS])",
+)
 
 supported_heating_process = {}
 
 supported_cooling_process = {
-    "CIC_H": HCollisionalIonizationCooling,
+    "CIC_HI": HICollisionalIonizationCooling,
+    "CIC_HeI": HeICollisionalIonizationCooling,
+    "CIC_HeII": HeIICollisionalIonizationCooling,
+    "CIC_He_2S": He_2SCollisionalIonizationCooling,
+    "RC_HII": HIIRecombinationCooling,
+    "RC_HeI": HeIRecombinationCooling,
+    "RC_HeII": HeIIRecombinationCooling,
+    "RC_HeIII": HeIIIRecombinationCooling,
+    "CEC_HI": HICollisionalExcitationCooling,
+    "CEC_HeI": HeICollisionalExcitationCooling,
+    "CEC_HeII": HeIICollisionalExcitationCooling,
 }
 
 

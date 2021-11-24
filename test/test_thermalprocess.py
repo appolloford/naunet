@@ -13,4 +13,4 @@ def test_get_allowed_cooling():
     specnamelist = ["e-", "H"]
     speclist = [Species(s) for s in specnamelist]
 
-    assert set(tp.get_allowed_cooling(speclist).keys()) == set(["CIC_H"])
+    assert set(tp.get_allowed_cooling(speclist).keys()) == set(["CIC_HI", "CEC_HI"])
