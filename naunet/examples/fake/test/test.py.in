@@ -13,8 +13,9 @@ content = config.read()
 chemistry = content["chemistry"]
 species = chemistry["species"]
 
-times = np.logspace(5, 8, 51)
-timesteps = times[1:] - times[:-1]
+times = np.logspace(3, 8, 51)
+timesteps = times[0]
+timesteps = np.append(timesteps, times[1:] - times[:-1])
 
 naunet_solver = Naunet()
 naunet_data = NaunetData()
@@ -35,16 +36,17 @@ y = np.ones(len(species)) * 1e-40
 y[species.index("H")]      = nH
 y[species.index("HD")]     = 1.5e-5 * nH
 
-naunet_solver.Solve(y, 1e4, naunet_data)
-
 with open("evolution_pymodule.dat", "w") as evoldat:
 
+    curtime = 0.0
+
     for ti, dtyr in enumerate(timesteps):
+        curtime += dtyr
         dt = dtyr * spy
         y = naunet_solver.Solve(y, dt, naunet_data)
 
         fmty = [f"{yi:13.7e}" for yi in y]
-        evoldat.write(" ".join([f"{times[ti+1]:13.7e}", *fmty]))
+        evoldat.write(" ".join([f"{curtime:13.7e}", *fmty]))
         evoldat.write("\n")
 
 naunet_solver.Finalize();

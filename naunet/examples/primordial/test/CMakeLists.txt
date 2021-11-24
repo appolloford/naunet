@@ -22,6 +22,10 @@ set(USE_CUDA False)
 
 if("CUDA" IN_LIST languages)
     set(USE_CUDA True)
+    list(
+        APPEND ${TESTTARGETS}
+            multiplegrid
+    )
 endif()
 
 foreach(name ${TESTTARGETS})
