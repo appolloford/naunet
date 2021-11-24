@@ -12,7 +12,7 @@ from .reactions.leedsreaction import LEEDSReaction
 from .reactions.kromereaction import KROMEReaction
 from .dusts.dust import Dust
 from .dusts.unidust import UniDust
-from .thermalprocess import supported_cooling_process, supported_heating_process
+from .thermalprocess import ThermalProcess, get_allowed_cooling, get_allowed_heating
 
 
 logging.basicConfig(level=logging.DEBUG)
@@ -106,13 +106,11 @@ class Network:
         self._dust = dust_model() if dust_model else None
         self._allowed_species = allowed_species.copy() if allowed_species else []
         self._required_species = required_species.copy() if required_species else []
+        self._allowed_heating = None
+        self._allowed_cooling = None
         self._shielding = shielding if shielding else {}
-        self._heating = (
-            [supported_heating_process.get(h) for h in heating] if heating else []
-        )
-        self._cooling = (
-            [supported_cooling_process.get(c) for c in cooling] if cooling else []
-        )
+        self._heating_names = heating.copy() if heating else []
+        self._cooling_names = cooling.copy() if cooling else []
 
         if allowed_species and required_species:
 
@@ -199,6 +197,44 @@ class Network:
         self._info = None
 
     @property
+    def allowed_cooling(self) -> dict[str, ThermalProcess]:
+        """
+        Based on the network species to get a dict of allowed cooling processes from
+        all support cooling models.
+
+        Returns:
+            dict[str, ThermalProcess]: allowed cooling processes.
+            Dictionary of {name: <cooling process>}
+        """
+        if self._allowed_cooling:
+            return self._allowed_cooling
+
+        rqdsp = set([Species(s) for s in self._required_species])
+        speclist = sorted(self.reactants_in_network | self.products_in_network | rqdsp)
+
+        self._allowed_cooling = get_allowed_cooling(speclist)
+        return self._allowed_cooling
+
+    @property
+    def allowed_heating(self) -> dict[str, ThermalProcess]:
+        """
+        Based on the network species to get a dict of allowed heating processes from
+        all support heating models.
+
+        Returns:
+            dict[str, ThermalProcess]: allowed heating processes.
+                                       Dictionary of {name: <heating process>}
+        """
+        if self._allowed_heating:
+            return self._allowed_heating
+
+        rqdsp = set([Species(s) for s in self._required_species])
+        speclist = sorted(self.reactants_in_network | self.products_in_network | rqdsp)
+
+        self._allowed_heating = get_allowed_heating(speclist)
+        return self._allowed_heating
+
+    @property
     def allowed_species(self):
         return self._allowed_species
 
@@ -270,6 +306,9 @@ class Network:
         rqdsp = set([Species(s) for s in self._required_species])
         speclist = sorted(self.reactants_in_network | self.products_in_network | rqdsp)
 
+        heating = [self.allowed_heating.get(h) for h in self._heating_names]
+        cooling = [self.allowed_cooling.get(c) for c in self._cooling_names]
+
         databaselist = [supported_reaction_class.get(db) for db in self.database_list]
         self._info = self.Info(
             len(speclist),
@@ -277,8 +316,8 @@ class Network:
             speclist,
             self.reaction_list,
             databaselist,
-            heating=self._heating,
-            cooling=self._cooling,
+            heating=heating,
+            cooling=cooling,
             dust=self.dust,
             shielding=self._shielding,
             odemodifier=self.ode_modifier,
