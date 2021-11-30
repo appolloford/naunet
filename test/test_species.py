@@ -90,6 +90,7 @@ def test_element_counting():
 def test_mass():
     Species.reset()
     assert Species("H").mass == 1.007
+    assert Species("D").mass == 2.014
     assert Species("H2").mass == 1.007 * 2
     assert Species("He").mass == 4.002
     assert Species("CO").mass == 12.011 + 15.999
@@ -97,6 +98,7 @@ def test_mass():
 
 def test_massnumber():
     Species.reset()
+    assert Species("D").massnumber == 2.0
     assert Species("H2").massnumber == 2.0
     assert Species("He").massnumber == 4.0
     assert Species("CO").massnumber == 28.0

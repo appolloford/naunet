@@ -79,6 +79,7 @@ class Species:
     _known_elements = []
     _known_pseudoelements = []
     _periodic_table = []
+    _isotopes_table = []
 
     def __init__(self, name):
         self.name = name
@@ -101,12 +102,19 @@ class Species:
             path = os.path.dirname(chemistry.__file__)
             # Load the periodic table as a list of namedtuple
             # Source: https://gist.github.com/GoodmanSciences/c2dd862cd38f21b0ad36b8f96b4bf1ee
-            # TODO: isotopes
             with open(os.path.join(path, "periodictable.csv"), newline="") as infile:
                 # remove comment lines in case
                 reader = csv.reader(filter(lambda row: row[0] != "#", infile))
                 Element = namedtuple("Element", next(reader))
                 Species._periodic_table = list(map(Element._make, reader))
+
+        if not Species._isotopes_table:
+            path = os.path.dirname(chemistry.__file__)
+            with open(os.path.join(path, "isotopestable.csv"), newline="") as infile:
+                # remove comment lines in case
+                reader = csv.reader(filter(lambda row: row[0] != "#", infile))
+                Isotope = namedtuple("Isotope", next(reader))
+                Species._isotopes_table = list(map(Isotope._make, reader))
 
         self._parse_molecule_name()
 
@@ -393,13 +401,16 @@ class Species:
         if self._mass:
             return self._mass
 
-        for e in Species._periodic_table:
+        self._mass = 0.0
+        for e in Species._periodic_table + Species._isotopes_table:
             self._mass += self.element_count.get(e.Symbol, 0) * float(e.AtomicMass)
 
         # ? electron mass
         # self._mass -= 0.00054858 * self.charge
 
-        # TODO: GRAIN, electron and isotopes
+        # TODO: PAH, GRAIN, electron
+        if self._mass <= 0.0:
+            logging.warning(f"{self.name} has zero or negative mass (amu)!")
 
         return self._mass
 
@@ -411,14 +422,17 @@ class Species:
         if self._massnumber:
             return self._massnumber
 
-        for e in Species._periodic_table:
+        self._massnumber = 0.0
+        for e in Species._periodic_table + Species._isotopes_table:
             self._massnumber += self.element_count.get(e.Symbol, 0) * (
                 float(e.NumberofNeutrons) + float(e.NumberofProtons)
             )
 
-        # TODO: GRAIN, electron and isotopes
-        self._massnumber += self.element_count.get("D", 0) * 2.0
-        self._massnumber += self.element_count.get("GRAIN", 0) * 1200.0
+        # TODO: PAH, GRAIN, electron
+        # self._massnumber += self.element_count.get("GRAIN", 0) * 1200.0
+
+        if self._massnumber <= 0.0:
+            logging.warning(f"{self.name} has zero or negative mass number!")
 
         return self._massnumber
 

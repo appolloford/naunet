@@ -79,7 +79,6 @@ class Network:
         odemodifier: list[str] = None
         ratemodifier: list[str] = None
 
-    # TODO: heating/cooling have not been implemented
     def __init__(
         self,
         allowed_species: list = None,

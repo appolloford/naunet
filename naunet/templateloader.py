@@ -110,8 +110,8 @@ class TemplateLoader:
         mantles = " + ".join(f"y[IDX_{g.alias}]" for g in species if g.is_surface)
         mantles = mantles if mantles else "0.0"
 
-        # TODO: exclude electron?
-        density = " + ".join(f"y[IDX_{s.alias}]*{s.mass}" for s in species)
+        # TODO: exclude electron, grain?
+        density = " + ".join(f"y[IDX_{s.alias}]*{s.massnumber}" for s in species)
         npartile = " + ".join(f"y[IDX_{s.alias}]" for s in species)
         mu = "".join(["(", density, ") / (", npartile, ")"])
 
@@ -225,7 +225,6 @@ class TemplateLoader:
             #         rhs[specidx] = "naunet_rate_tiny"
 
         # fex/jac of thermal process
-        # TODO: erg to K
         for h in heating:
 
             rspecidx = [species.index(r) for r in h.reactants]
