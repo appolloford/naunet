@@ -38,6 +38,8 @@ class TemplateLoader:
         jac: List[str]
         spjacrptr: List[str] = None
         spjaccval: List[str] = None
+        spjacrptrarr: str = None
+        spjaccvalarr: str = None
         spjacdata: List[str] = None
         header: str = None
         odemodifier: List[str] = None
@@ -284,19 +286,27 @@ class TemplateLoader:
         spjacrptr = []
         spjaccval = []
         spjacdata = []
+        spjacrptrarr = []
+        spjaccvalarr = []
         if "sparse" in method:
             # TODO: Too slow! Optimize it
             nnz = 0
             for row in range(n_eqns):
                 spjacrptr.append(f"rowptrs[{row}] = {nnz};")
+                spjacrptrarr.append(str(nnz))
                 for col in range(n_eqns):
                     elem = jacrhs[row * n_eqns + col]
                     if elem != "0.0":
                         spjaccval.append(f"colvals[{nnz}] = {col};")
+                        spjaccvalarr.append(str(col))
                         spjacdata.append(f"data[{nnz}] = {elem};")
                         nnz += 1
             spjacrptr.append(f"rowptrs[{n_eqns}] = {nnz};")
+            spjacrptrarr.append(str(nnz))
             self._macros.nnz = f"#define NNZ {nnz}"
+
+        spjacrptrarr = ", ".join(spjacrptrarr)
+        spjaccvalarr = ", ".join(spjaccvalarr)
 
         self._ode = self.ODEContent(
             method,
@@ -306,6 +316,8 @@ class TemplateLoader:
             jac,
             spjacrptr=spjacrptr,
             spjaccval=spjaccval,
+            spjacrptrarr=spjacrptrarr,
+            spjaccvalarr=spjaccvalarr,
             spjacdata=spjacdata,
             odemodifier=odemodifier,
             ratemodifier=ratemodifier,

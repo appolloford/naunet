@@ -61,21 +61,19 @@ int EvalRates(realtype *k, realtype *y, NaunetData *u_data) {
 
 /* {% if info.method == "cusparse" -%} */
 int InitJac(SUNMatrix jmatrix) {
-    int rowptrs[NEQUATIONS + 1], colvals[NNZ];
-
     // Zero out the Jacobian
     SUNMatZero(jmatrix);
 
     // clang-format off
     // number of non-zero elements in each row
-    {% for rptr in ode.spjacrptr -%}
-        {{ rptr }}
-    {% endfor %}
+    int rowptrs[NEQUATIONS + 1] = { 
+        {{ ode.spjacrptrarr | stmwrap(80, 8) }}
+    };
 
     // the column index of non-zero elements
-    {% for cval in ode.spjaccval -%}
-        {{ cval }}
-    {% endfor %}
+    int colvals[NNZ] = {
+        {{ ode.spjaccvalarr | stmwrap(80, 8) }}
+    };
 
     // clang-format on
 
@@ -91,26 +89,27 @@ __global__ void FexKernel(realtype *y, realtype *ydot, NaunetData *d_udata,
     int tidx = blockIdx.x * blockDim.x + threadIdx.x;
     int gs   = blockDim.x * gridDim.x;
 
-    // clang-format off
-    {% for v in variables.varis -%}
-        realtype {{ v }} = d_udata->{{ v }};
-    {% endfor %}
-
-    {% for v in variables.tvaris -%}
-        realtype {{ v }} = d_udata->{{ v }};
-    {% endfor %}
-    
-    {% if variables.tvaris -%}
-    if (mu < 0) mu = GetMu(y);
-    if (gamma < 0) gamma = GetGamma(y);
-    {% endif -%}
-    // clang-format on
-
     for (int cur = tidx; cur < nsystem; cur += gs) {
         int yistart            = cur * NEQUATIONS;
         realtype *y_cur        = y + yistart;
         realtype k[NREACTIONS] = {0.0};
         NaunetData *udata      = &d_udata[cur];
+
+        // clang-format off
+        {% for v in variables.varis -%}
+            realtype {{ v }} = udata->{{ v }};
+        {% endfor %}
+
+        {% for v in variables.tvaris -%}
+            realtype {{ v }} = udata->{{ v }};
+        {% endfor %}
+        
+        {% if variables.tvaris -%}
+        if (mu < 0) mu = GetMu(y_cur);
+        if (gamma < 0) gamma = GetGamma(y_cur);
+        {% endif -%}
+
+        // clang-format on
 
         EvalRates(k, y_cur, udata);
 
@@ -144,8 +143,8 @@ __global__ void JacKernel(realtype *y, realtype *data, NaunetData *d_udata,
         {% endfor %}
         
         {% if variables.tvaris -%}
-        if (mu < 0) mu = GetMu(y);
-        if (gamma < 0) gamma = GetGamma(y);
+        if (mu < 0) mu = GetMu(y_cur);
+        if (gamma < 0) gamma = GetGamma(y_cur);
         {% endif -%}
 
         // clang-format on
@@ -154,7 +153,7 @@ __global__ void JacKernel(realtype *y, realtype *data, NaunetData *d_udata,
 
         // clang-format off
         {% for data in ode.spjacdata -%}
-            {{ data | replace("data[", "data[jistart + ") | replace("y[IDX", "y_cur[IDX")}}
+            {{ data | replace("data[", "data[jistart + ") | replace("y[IDX", "y_cur[IDX") | stmwrap(80, 12) }}
         {% endfor %}
         // clang-format on
     }

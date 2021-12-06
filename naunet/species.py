@@ -110,6 +110,7 @@ class Species:
 
         if not Species._isotopes_table:
             path = os.path.dirname(chemistry.__file__)
+            # reference: http://moltensalt.org/references/static/downloads/pdf/stable-isotopes.pdf
             with open(os.path.join(path, "isotopestable.csv"), newline="") as infile:
                 # remove comment lines in case
                 reader = csv.reader(filter(lambda row: row[0] != "#", infile))

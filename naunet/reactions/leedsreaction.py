@@ -62,6 +62,8 @@ class LEEDSReaction(Reaction):
         20: ReactionType.LEEDS_EC,
     }
 
+    # TODO: add reaction option into globs
+
     consts = {
         "gism": 1.6e-3,
         "habing": 1e8,
@@ -142,7 +144,7 @@ class LEEDSReaction(Reaction):
         elif rtype == 4:
             rate = f"{G0} * {a} * exp(-{c}*{Av})"
             if re1.name in ["H2", "CO", "N2"]:
-                shield = f"GetshieldingFactor(IDX_{re1.alias}, h2col, {re1.name.lower()}col, {Tgas}, 0)"
+                shield = f"GetShieldingFactor(IDX_{re1.alias}, h2col, {re1.name.lower()}col, {Tgas}, 0)"
                 rate = f"{rate} * {shield}"
 
         # TODO:
