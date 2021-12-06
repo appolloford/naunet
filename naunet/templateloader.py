@@ -482,17 +482,53 @@ class TemplateLoader:
                 info=self._info,
             )
 
-        tname = os.path.join(self._solver, "src/naunet_ode.cpp.j2")
-        template = self._env.get_template(tname)
-        self._render(
-            template,
-            prefix,
-            name,
-            save,
-            ode=self._ode,
-            info=self._info,
-            variables=self._variables,
-        )
+        if self._solver == "cvode":
+            tname = os.path.join(self._solver, "src/naunet_rates.cpp.j2")
+            template = self._env.get_template(tname)
+            self._render(
+                template,
+                prefix,
+                f"naunet_rates.{suffix}",
+                save,
+                ode=self._ode,
+                info=self._info,
+                variables=self._variables,
+            )
+            tname = os.path.join(self._solver, "src/naunet_fex.cpp.j2")
+            template = self._env.get_template(tname)
+            self._render(
+                template,
+                prefix,
+                f"naunet_fex.{suffix}",
+                save,
+                ode=self._ode,
+                info=self._info,
+                variables=self._variables,
+            )
+            tname = os.path.join(self._solver, "src/naunet_jac.cpp.j2")
+            template = self._env.get_template(tname)
+            self._render(
+                template,
+                prefix,
+                f"naunet_jac.{suffix}",
+                save,
+                ode=self._ode,
+                info=self._info,
+                variables=self._variables,
+            )
+
+        else:
+            tname = os.path.join(self._solver, "src/naunet_ode.cpp.j2")
+            template = self._env.get_template(tname)
+            self._render(
+                template,
+                prefix,
+                name,
+                save,
+                ode=self._ode,
+                info=self._info,
+                variables=self._variables,
+            )
 
     def render_physics(
         self,

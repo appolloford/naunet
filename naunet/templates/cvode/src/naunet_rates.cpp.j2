@@ -1,0 +1,60 @@
+#include <math.h>
+/* {% if info.method == "dense" -%} */
+#include <nvector/nvector_serial.h>
+#include <sunmatrix/sunmatrix_dense.h>  // access to dense SUNMatrix
+/* {% elif info.method == "sparse" -%} */
+#include <nvector/nvector_serial.h>
+#include <sunmatrix/sunmatrix_sparse.h>  // access to sparse SUNMatrix
+/* {% elif info.method == "cusparse" -%} */
+#include <nvector/nvector_cuda.h>
+#include <sunmatrix/sunmatrix_cusparse.h>
+/* {% endif -%} */
+/* {% if ode.header %} */
+#include "{{ ode.header }}"
+/* {% else %} */
+#include <sundials/sundials_types.h>  // defs. of realtype, sunindextype
+
+#include "naunet_data.h"
+/* {% endif %} */
+#include "naunet_constants.h"
+#include "naunet_macros.h"
+#include "naunet_physics.h"
+
+#define IJth(A, i, j) SM_ELEMENT_D(A, i, j)
+
+// clang-format off
+{% if info.device == "gpu" -%} __device__ {% endif -%}
+int EvalRates(realtype *k, realtype *y, NaunetData *u_data) {
+
+    {% for v in variables.varis -%}
+        realtype {{ v }} = u_data->{{ v }};
+    {% endfor %}
+
+    {% for v in variables.user_var -%}
+        {{ v }};
+    {% endfor %}
+
+    // clang-format on
+
+    // Some variable definitions from krome
+    realtype Te      = Tgas * 8.617343e-5;            // Tgas in eV (eV)
+    realtype lnTe    = log(Te);                       // ln of Te (#)
+    realtype T32     = Tgas * 0.0033333333333333335;  // Tgas/(300 K) (#)
+    realtype invT    = 1.0 / Tgas;                    // inverse of T (1/K)
+    realtype invTe   = 1.0 / Te;                      // inverse of T (1/eV)
+    realtype sqrTgas = sqrt(Tgas);  // Tgas rootsquare (K**0.5)
+
+    // reaaction rate (k) of each reaction
+    // clang-format off
+    {% for assign in ode.rateeqns -%}
+        {{ assign | stmwrap(80, 8) }}
+        {{ "" }}
+    {% endfor %}
+
+    {% for m in ode.ratemodifier -%}
+        {{ m }};
+    {% endfor %}
+    // clang-format on
+
+    return NAUNET_SUCCESS;
+}
