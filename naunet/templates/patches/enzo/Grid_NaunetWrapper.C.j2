@@ -225,12 +225,12 @@ int grid::NaunetWrapper()
   int cur = 0, sidx;
 
   while (cur < size) {
-    int nsystem = MAXNGROUPS;
-    if (size - cur < MAXNGROUPS) {
+    int nsystem = MAX_NSYSTEMS;
+    if (size - cur < MAX_NSYSTEMS) {
       nsystem = size - cur;
       naunet.Reset(nsystem);
     }
-    cur += MAXNGROUPS;
+    cur += MAX_NSYSTEMS;
 
     // set your parameters here
     NaunetData *data = new NaunetData[nsystem];
@@ -255,7 +255,7 @@ int grid::NaunetWrapper()
     }
   }
 
-  // naunet.Reset(MAXNGROUPS);
+  // naunet.Reset(MAX_NSYSTEMS);
   naunet.Finalize();
 
   {% endif %}

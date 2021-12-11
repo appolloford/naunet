@@ -7,44 +7,15 @@
 #include "naunet_timer.h"
 
 int main() {
-    int nsystem      = 64;
+    int nsystem      = 2048;
     double spy       = 86400.0 * 365.0;
 
-    double nH        = 2e4;
-    double zeta_cr   = 1.3e-17;
-    double zeta_xr   = 0.0;
-    double Tgas      = 10.0;
-    double Tdust     = 10.0;
-    double Av        = 10.0;
-    double G0        = 1.0;
-    double rG        = 1e-5;
-    double omega     = 0.5;
-    double barr      = 1.5e-8;
-    double sites     = 1.5e15;
-    double hop       = 0.3;
-    double nMono     = 2.0;
-    double duty      = 3.16e-19;
-    double Tcr       = 70.0;
-    double branch    = 1e-2;
+    double nH        = 1e5;
 
     NaunetData *data = new NaunetData[nsystem];
     for (int isys = 0; isys < nsystem; isys++) {
         data[isys].nH      = nH;
-        data[isys].zeta_cr = zeta_cr;
-        data[isys].zeta_xr = zeta_xr;
-        data[isys].Tgas    = Tgas;
-        data[isys].Tdust   = Tdust;
-        data[isys].Av      = Av;
-        data[isys].G0      = G0;
-        data[isys].rG      = rG;
-        data[isys].omega   = omega;
-        data[isys].barr    = barr;
-        data[isys].sites   = sites;
-        data[isys].hop     = hop;
-        data[isys].nMono   = nMono;
-        data[isys].duty    = duty;
-        data[isys].Tcr     = Tcr;
-        data[isys].branch  = branch;
+        data[isys].Tgas    = 15.0;
     }
 
     Naunet naunet;
@@ -57,20 +28,8 @@ int main() {
         for (int i = 0; i < NEQUATIONS; i++) {
             y[isys * NEQUATIONS + i] = 1.e-40;
         }
-        y[isys * NEQUATIONS + IDX_H2I]     = 0.5 * nH;
-        y[isys * NEQUATIONS + IDX_HI]      = 5.0e-5 * nH;
-        y[isys * NEQUATIONS + IDX_HeI]     = 9.75e-2 * nH;
-        y[isys * NEQUATIONS + IDX_NI]      = 7.5e-5 * nH;
-        y[isys * NEQUATIONS + IDX_OI]      = 3.2e-4 * nH;
-        y[isys * NEQUATIONS + IDX_CI]      = 1.4e-4 * nH;
-        y[isys * NEQUATIONS + IDX_SI]      = 8.0e-8 * nH;
-        y[isys * NEQUATIONS + IDX_SiI]     = 8.0e-9 * nH;
-        y[isys * NEQUATIONS + IDX_NaI]     = 2.0e-9 * nH;
-        y[isys * NEQUATIONS + IDX_MgI]     = 7.0e-9 * nH;
-        y[isys * NEQUATIONS + IDX_FeI]     = 3.0e-9 * nH;
-        y[isys * NEQUATIONS + IDX_ClI]     = 4.0e-9 * nH;
-        y[isys * NEQUATIONS + IDX_FI]      = 2.0e-8 * nH;
-        y[isys * NEQUATIONS + IDX_GRAIN0I] = 1.3e-12 * nH;
+        y[isys * NEQUATIONS + IDX_HDI]     = 1.5e-5 * nH;
+        y[isys * NEQUATIONS + IDX_HI]      = nH;
     }
 
     FILE *fbin = fopen("evolution_multiplegrid.bin", "w");

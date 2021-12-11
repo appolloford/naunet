@@ -37,8 +37,8 @@ int main() {
         y[isys * NEQUATIONS + IDX_TGAS] = Tgas;
     }
 
-    FILE *fbin = fopen("evolution_parallel.bin", "w");
-    FILE *ftxt = fopen("evolution_parallel.txt", "w");
+    FILE *fbin = fopen("evolution_multiplegrid.bin", "w");
+    FILE *ftxt = fopen("evolution_multiplegrid.txt", "w");
     FILE *ttxt = fopen("time_parallel.txt", "w");
 
 #ifdef NAUNET_DEBUG

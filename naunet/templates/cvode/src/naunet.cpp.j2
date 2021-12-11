@@ -86,6 +86,19 @@ int Naunet::Init(int nsystem, double atol, double rtol) {
     cv_a_  = SUNDenseMatrix(NEQUATIONS, NEQUATIONS);
     cv_ls_ = SUNLinSol_Dense(cv_y_, cv_a_);
 
+    cv_mem_ = CVodeCreate(CV_BDF);
+
+    int flag;
+
+    flag = CVodeInit(cv_mem_, Fex, 0.0, cv_y_);
+    if (check_flag(&flag, "CVodeInit", 1)) return 1;
+    flag = CVodeSStolerances(cv_mem_, rtol_, atol_);
+    if (check_flag(&flag, "CVodeSStolerances", 1)) return 1;
+    flag = CVodeSetLinearSolver(cv_mem_, cv_ls_, cv_a_);
+    if (check_flag(&flag, "CVodeSetLinearSolver", 1)) return 1;
+    flag = CVodeSetJacFn(cv_mem_, Jac);
+    if (check_flag(&flag, "CVodeSetJacFn", 1)) return 1;
+
     /* {% elif info.method == "sparse" -%} */
     if (nsystem != 1) {
         printf("This solver doesn't support nsystem > 1!");
@@ -96,17 +109,61 @@ int Naunet::Init(int nsystem, double atol, double rtol) {
     cv_a_  = SUNSparseMatrix(NEQUATIONS, NEQUATIONS, NNZ, CSR_MAT);
     cv_ls_ = SUNLinSol_KLU(cv_y_, cv_a_);
 
+    cv_mem_ = CVodeCreate(CV_BDF);
+
+    int flag;
+
+    flag = CVodeInit(cv_mem_, Fex, 0.0, cv_y_);
+    if (check_flag(&flag, "CVodeInit", 1)) return 1;
+    flag = CVodeSStolerances(cv_mem_, rtol_, atol_);
+    if (check_flag(&flag, "CVodeSStolerances", 1)) return 1;
+    flag = CVodeSetLinearSolver(cv_mem_, cv_ls_, cv_a_);
+    if (check_flag(&flag, "CVodeSetLinearSolver", 1)) return 1;
+    flag = CVodeSetJacFn(cv_mem_, Jac);
+    if (check_flag(&flag, "CVodeSetJacFn", 1)) return 1;
+
     /* {% elif info.method == "cusparse" -%} */
 
-    cusparseCreate(&cusp_handle_);
-    cusolverSpCreate(&cusol_handle_);
-    cv_y_  = N_VNew_Cuda(MAXNGROUPS * NEQUATIONS);
-    cv_a_  = SUNMatrix_cuSparse_NewBlockCSR(MAXNGROUPS, NEQUATIONS, NEQUATIONS,
-                                            NNZ, cusp_handle_);
-    cv_ls_ = SUNLinSol_cuSolverSp_batchQR(cv_y_, cv_a_, cusol_handle_);
-    // abstol = N_VNew_Cuda(neq);
-    SUNMatrix_cuSparse_SetFixedPattern(cv_a_, 1);
-    InitJac(cv_a_);
+    if (nsystem < NSTREAMS ||  nsystem % NSTREAMS != 0) {
+        printf("Invalid size of system!");
+        return NAUNET_FAIL;
+    }
+
+    cudaError_t cuerr;
+    int flag;
+
+    for (int i = 0; i < NSTREAMS; i++) {
+
+        cuerr = cudaStreamCreate(&custream_[i]);
+        // SUNCudaThreadDirectExecPolicy stream_exec_policy(nsystem / NSTREAMS, custream_[i]);
+        // SUNCudaBlockReduceExecPolicy reduce_exec_policy(nsystem / NSTREAMS, 0, custream_[i]);
+        stream_exec_policy_[i] = new SUNCudaThreadDirectExecPolicy(nsystem / NSTREAMS, custream_[i]);
+        reduce_exec_policy_[i] = new SUNCudaBlockReduceExecPolicy(nsystem / NSTREAMS, 0, custream_[i]);
+
+        cusparseCreate(&cusp_handle_[i]);
+        cusolverSpCreate(&cusol_handle_[i]);
+        cv_y_[i]  = N_VNew_Cuda(NEQUATIONS * nsystem / NSTREAMS);
+        flag = N_VSetKernelExecPolicy_Cuda(cv_y_[i], stream_exec_policy_[i], reduce_exec_policy_[i]);
+        if (check_flag(&flag, "N_VSetKernelExecPolicy_Cuda", 0)) return 1;
+        cv_a_[i]  = SUNMatrix_cuSparse_NewBlockCSR(nsystem / NSTREAMS, NEQUATIONS, NEQUATIONS,
+                                                NNZ, cusp_handle_[i]);
+        cv_ls_[i] = SUNLinSol_cuSolverSp_batchQR(cv_y_[i], cv_a_[i], cusol_handle_[i]);
+        // abstol = N_VNew_Cuda(neq);
+        SUNMatrix_cuSparse_SetFixedPattern(cv_a_[i], 1);
+        InitJac(cv_a_[i]);
+
+        cv_mem_[i] = CVodeCreate(CV_BDF);
+
+        flag = CVodeInit(cv_mem_[i], Fex, 0.0, cv_y_[i]);
+        if (check_flag(&flag, "CVodeInit", 1)) return 1;
+        flag = CVodeSStolerances(cv_mem_[i], rtol_, atol_);
+        if (check_flag(&flag, "CVodeSStolerances", 1)) return 1;
+        flag = CVodeSetLinearSolver(cv_mem_[i], cv_ls_[i], cv_a_[i]);
+        if (check_flag(&flag, "CVodeSetLinearSolver", 1)) return 1;
+        flag = CVodeSetJacFn(cv_mem_[i], Jac);
+        if (check_flag(&flag, "CVodeSetJacFn", 1)) return 1;
+
+    }
 
     /* {% elif info.method == "spgmr" -%} */
     // TODO: Try GMRES solvers
@@ -118,18 +175,6 @@ int Naunet::Init(int nsystem, double atol, double rtol) {
     // if (check_flag(&flag, "CVSpilsSetJacTimes", 1)) return 1;
 
     /* {% endif %} */
-
-    cv_mem_ = CVodeCreate(CV_BDF);
-
-    int flag;
-    flag = CVodeInit(cv_mem_, Fex, 0.0, cv_y_);
-    if (check_flag(&flag, "CVodeInit", 1)) return 1;
-    flag = CVodeSStolerances(cv_mem_, rtol_, atol_);
-    if (check_flag(&flag, "CVodeSStolerances", 1)) return 1;
-    flag = CVodeSetLinearSolver(cv_mem_, cv_ls_, cv_a_);
-    if (check_flag(&flag, "CVodeSetLinearSolver", 1)) return 1;
-    flag = CVodeSetJacFn(cv_mem_, Jac);
-    if (check_flag(&flag, "CVodeSetJacFn", 1)) return 1;
 
     // reset the n_vector to empty, maybe not necessary
     /* {% if info.method == "dense" or info.method == "sparse" -%} */
@@ -148,6 +193,9 @@ int Naunet::Init(int nsystem, double atol, double rtol) {
 };
 
 int Naunet::Finalize() {
+
+    /* {% if info.method == "dense" or info.method == "sparse" -%} */
+
     // N_VDestroy(cv_y_);
     N_VFreeEmpty(cv_y_);
     SUNMatDestroy(cv_a_);
@@ -155,9 +203,17 @@ int Naunet::Finalize() {
     SUNLinSolFree(cv_ls_);
     // delete m_data;
 
-    /* {% if info.method == "cusparse" -%} */
-    cusparseDestroy(cusp_handle_);
-    cusolverSpDestroy(cusol_handle_);
+    /* {% elif info.method == "cusparse" -%} */
+    for (int i = 0; i < NSTREAMS; i++) {
+        N_VFreeEmpty(cv_y_[i]);
+        SUNMatDestroy(cv_a_[i]);
+        CVodeFree(&cv_mem_[i]);
+        SUNLinSolFree(cv_ls_[i]);
+
+        cusparseDestroy(cusp_handle_[i]);
+        cusolverSpDestroy(cusol_handle_[i]);
+        cudaStreamDestroy(custream_[i]);
+    }
     /* {% endif %} */
 
     return NAUNET_SUCCESS;
@@ -166,44 +222,58 @@ int Naunet::Finalize() {
 /* {% if info.method == "cusparse" %} */
 // To reset the size of cusparse solver
 int Naunet::Reset(int nsystem, double atol, double rtol) {
+
+    if (nsystem < NSTREAMS ||  nsystem % NSTREAMS != 0) {
+        printf("Invalid size of system!");
+        return NAUNET_FAIL;
+    }
+
     n_system_ = nsystem;
     atol_     = atol;
     rtol_     = rtol;
 
-    N_VDestroy(cv_y_);
-    SUNMatDestroy(cv_a_);
-    SUNLinSolFree(cv_ls_);
-    CVodeFree(&cv_mem_);
-
-    cv_y_ = N_VNew_Cuda(nsystem * NEQUATIONS);
-    cv_a_ = SUNMatrix_cuSparse_NewBlockCSR(nsystem, NEQUATIONS, NEQUATIONS, NNZ,
-                                           cusp_handle_);
-    cv_ls_ = SUNLinSol_cuSolverSp_batchQR(cv_y_, cv_a_, cusol_handle_);
-    SUNMatrix_cuSparse_SetFixedPattern(cv_a_, 1);
-    InitJac(cv_a_);
-
-    cv_mem_ = CVodeCreate(CV_BDF);
-
     int flag;
-    flag = CVodeInit(cv_mem_, Fex, 0.0, cv_y_);
-    if (check_flag(&flag, "CVodeInit", 1)) return 1;
-    flag = CVodeSStolerances(cv_mem_, rtol_, atol_);
-    if (check_flag(&flag, "CVodeSStolerances", 1)) return 1;
-    flag = CVodeSetLinearSolver(cv_mem_, cv_ls_, cv_a_);
-    if (check_flag(&flag, "CVodeSetLinearSolver", 1)) return 1;
-    flag = CVodeSetJacFn(cv_mem_, Jac);
-    if (check_flag(&flag, "CVodeSetJacFn", 1)) return 1;
 
-    // reset the n_vector to empty, maybe not necessary
-    // N_VDestroy(cv_y_);
-    // cv_y_ = N_VNewEmpty_Cuda();
+    for (int i = 0; i < NSTREAMS; i++) {
+        N_VDestroy(cv_y_[i]);
+        SUNMatDestroy(cv_a_[i]);
+        SUNLinSolFree(cv_ls_[i]);
+        CVodeFree(&cv_mem_[i]);
+
+        // SUNCudaThreadDirectExecPolicy stream_exec_policy(nsystem / NSTREAMS, custream_[i]);
+        // SUNCudaBlockReduceExecPolicy reduce_exec_policy(nsystem / NSTREAMS, 0, custream_[i]);
+
+        cv_y_[i] = N_VNew_Cuda(NEQUATIONS * nsystem / NSTREAMS);
+        flag = N_VSetKernelExecPolicy_Cuda(cv_y_[i], stream_exec_policy_[i], reduce_exec_policy_[i]);
+        if (check_flag(&flag, "N_VSetKernelExecPolicy_Cuda", 0)) return 1;
+        cv_a_[i] = SUNMatrix_cuSparse_NewBlockCSR(nsystem / NSTREAMS, NEQUATIONS, NEQUATIONS, NNZ,
+                                                  cusp_handle_[i]);
+        cv_ls_[i] = SUNLinSol_cuSolverSp_batchQR(cv_y_[i], cv_a_[i], cusol_handle_[i]);
+        SUNMatrix_cuSparse_SetFixedPattern(cv_a_[i], 1);
+        InitJac(cv_a_[i]);
+
+        cv_mem_[i] = CVodeCreate(CV_BDF);
+
+        flag = CVodeInit(cv_mem_[i], Fex, 0.0, cv_y_[i]);
+        if (check_flag(&flag, "CVodeInit", 1)) return 1;
+        flag = CVodeSStolerances(cv_mem_[i], rtol_, atol_);
+        if (check_flag(&flag, "CVodeSStolerances", 1)) return 1;
+        flag = CVodeSetLinearSolver(cv_mem_[i], cv_ls_[i], cv_a_[i]);
+        if (check_flag(&flag, "CVodeSetLinearSolver", 1)) return 1;
+        flag = CVodeSetJacFn(cv_mem_[i], Jac);
+        if (check_flag(&flag, "CVodeSetJacFn", 1)) return 1;
+
+        // reset the n_vector to empty, maybe not necessary
+        // N_VDestroy(cv_y_);
+        // cv_y_ = N_VNewEmpty_Cuda();
+    }
 
     return NAUNET_SUCCESS;
 };
 /* {% endif %} */
 
 int Naunet::Solve(realtype *ab, realtype dt, NaunetData *data) {
-    realtype t0 = 0.0;
+
     int flag;
 
     /* {% if info.method == "dense" or info.method == "sparse" -%} */
@@ -215,42 +285,72 @@ int Naunet::Solve(realtype *ab, realtype dt, NaunetData *data) {
     // }
     N_VSetArrayPointer(ab, cv_y_);
 
-    /* {% elif info.method == "cusparse" -%} */
-
-    // This way is too slow
-    // realtype *ydata = N_VGetArrayPointer(cv_y_);
-    // for (int i=0; i<NEQUATIONS; i++)
-    // {
-    //     ydata[i] = ab[i];
-    // }
-    N_VSetHostArrayPointer_Cuda(ab, cv_y_);
-    N_VCopyToDevice_Cuda(cv_y_);
-
-    /* {% endif %} */
-
-#ifdef NAUNET_DEBUG
-    /* {% if info.method == "cusparse" -%} */
-    // sunindextype lrw, liw;
-    // N_VSpace_Cuda(cv_y_, &lrw, &liw);
-    // printf("NVector space: real-%d, int-%d\n", lrw, liw);
-    /* {% endif %} */
-#endif
-
     flag = CVodeReInit(cv_mem_, 0.0, cv_y_);
     if (check_flag(&flag, "CVodeReInit", 1)) return 1;
     flag = CVodeSetUserData(cv_mem_, data);
     if (check_flag(&flag, "CVodeSetUserData", 1)) return 1;
 
+    realtype t0 = 0.0;
     flag = CVode(cv_mem_, dt, cv_y_, &t0, CV_NORMAL);
-
-    /* {% if info.method == "dense" or info.method == "sparse" -%} */
 
     ab   = N_VGetArrayPointer(cv_y_);
 
     /* {% elif info.method == "cusparse" -%} */
 
-    N_VCopyFromDevice_Cuda(cv_y_);
-    ab = N_VGetHostArrayPointer_Cuda(cv_y_);
+    for (int i = 0; i < NSTREAMS; i++) {
+        realtype t0 = 0.0;
+
+        realtype *local_ab;
+        NaunetData *local_data;
+
+        cudaMallocHost((void **)&local_ab, sizeof(realtype) * n_system_ * NEQUATIONS / NSTREAMS);
+        cudaMallocHost((void **)&local_data, sizeof(NaunetData) * n_system_ / NSTREAMS);
+        for (int idx = 0; idx < n_system_ * NEQUATIONS / NSTREAMS; idx++)
+        {
+            local_ab[idx] = ab[idx + i * n_system_ * NEQUATIONS / NSTREAMS];
+        }
+        for (int idx = 0; idx < n_system_ / NSTREAMS; idx++)
+        {
+            local_data[idx] = data[i * n_system_ / NSTREAMS + idx];
+        }
+
+        // ! Bug: I don't know why n_vector does not save the stream_exec_policy and reduce_exec_policy
+        N_VSetKernelExecPolicy_Cuda(cv_y_[i], stream_exec_policy_[i], reduce_exec_policy_[i]);
+
+        // This way is too slow
+        // realtype *ydata = N_VGetArrayPointer(cv_y_[i]);
+        // for (int i = 0; i < NEQUATIONS; i++)
+        // {
+        //     ydata[i] = ab[i];
+        // }
+        N_VSetHostArrayPointer_Cuda(local_ab, cv_y_[i]);
+        N_VCopyToDevice_Cuda(cv_y_[i]);
+
+#ifdef NAUNET_DEBUG
+        // sunindextype lrw, liw;
+        // N_VSpace_Cuda(cv_y_[i], &lrw, &liw);
+        // printf("NVector space: real-%d, int-%d\n", lrw, liw);
+#endif
+
+        flag = CVodeReInit(cv_mem_[i], 0.0, cv_y_[i]);
+        if (check_flag(&flag, "CVodeReInit", 1)) return 1;
+        flag = CVodeSetUserData(cv_mem_[i], local_data);
+        if (check_flag(&flag, "CVodeSetUserData", 1)) return 1;
+
+        flag = CVode(cv_mem_[i], dt, cv_y_[i], &t0, CV_NORMAL);
+
+        N_VCopyFromDevice_Cuda(cv_y_[i]);
+        local_ab = N_VGetHostArrayPointer_Cuda(cv_y_[i]);
+        for (int idx = 0; idx < n_system_ * NEQUATIONS / NSTREAMS; idx++)
+        {
+            ab[idx + i * n_system_ * NEQUATIONS / NSTREAMS] = local_ab[idx];
+        }
+
+        cudaDeviceSynchronize();
+
+        cudaFreeHost(local_ab);
+        cudaFreeHost(local_data);
+    }
 
     /* {% endif -%} */
 
