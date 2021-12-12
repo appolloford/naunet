@@ -1,7 +1,8 @@
+from __future__ import annotations
+
 import os
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Dict
 from tqdm import tqdm
 from jinja2 import Environment, PackageLoader
 
@@ -16,37 +17,65 @@ from .utilities import _stmwrap
 
 
 class TemplateLoader:
+    """Class to render main templates
+
+    The class receive the information provided by network and prepare
+    the variables needed by the main templates (i.e. the required files
+    to build the static/shared lib or python module of the chemical
+    network).
+    """
+
     @dataclass
     class InfoContent:
+        """
+        General solver information
+        """
+
         method: str
         device: str
 
     @dataclass
     class MacrosContent:
+        """
+        The variables required by macros file
+        """
+
         nspec: str
         neqns: str
         nreact: str
-        speclist: List[str]
+        nheating: str
+        ncooling: str
+        speclist: list[str]
         nnz: str = None
 
     @dataclass
     class ODEContent:
+        """
+        The information required by ode expressions
+        """
+
         method: str
         device: str
-        rateeqns: List[str]
-        fex: List[str]
-        jac: List[str]
-        spjacrptr: List[str] = None
-        spjaccval: List[str] = None
+        rateeqns: list[str]
+        hrateeqns: list[str]
+        crateeqns: list[str]
+        fex: list[str]
+        jac: list[str]
+        spjacrptr: list[str] = None
+        spjaccval: list[str] = None
         spjacrptrarr: str = None
         spjaccvalarr: str = None
-        spjacdata: List[str] = None
+        spjacdata: list[str] = None
         header: str = None
-        odemodifier: List[str] = None
-        ratemodifier: List[str] = None
+        odemodifier: list[str] = None
+        ratemodifier: list[str] = None
 
     @dataclass
     class PhysicsContent:
+        """
+        The information required by general physics function
+        """
+
         mantles: str
         mu: str
         gamma: str
@@ -57,11 +86,15 @@ class TemplateLoader:
 
     @dataclass
     class VariablesContent:
-        consts: Dict[str, str]
-        globs: List[str]
-        varis: List[str]
-        user_var: List[str]
-        tvaris: List[str]  # variables required by thermal process
+        """
+        The variables defined in reactions or thermal processes
+        """
+
+        consts: dict[str, str]
+        globs: list[str]
+        varis: list[str]
+        user_var: list[str]
+        tvaris: list[str]  # variables required by thermal process
         header: str = None
 
     def __init__(self, netinfo: object, solver: str, method: str, device: str) -> None:
@@ -103,11 +136,20 @@ class TemplateLoader:
         nspec = f"#define NSPECIES {n_spec}"
         neqns = f"#define NEQUATIONS {n_eqns}"
         nreact = f"#define NREACTIONS {n_react}"
+        nheating = f"#define NHEATPROCS {len(heating) if heating else 0}"
+        ncooling = f"#define NCOOLPROCS {len(cooling) if cooling else 0}"
         speclist = [f"#define IDX_{x.alias} {i}" for i, x in enumerate(species)]
         if has_thermal:
             speclist.append(f"#define IDX_TGAS {n_spec}")
 
-        self._macros = self.MacrosContent(nspec, neqns, nreact, speclist)
+        self._macros = self.MacrosContent(
+            nspec,
+            neqns,
+            nreact,
+            nheating,
+            ncooling,
+            speclist,
+        )
 
         mantles = " + ".join(f"y[IDX_{g.alias}]" for g in species if g.is_surface)
         mantles = mantles if mantles else "0.0"
@@ -179,6 +221,7 @@ class TemplateLoader:
 
         self._variables = self.VariablesContent(consts, globs, varis, user_var, tvaris)
 
+        # prepare reaction rate expressions
         rates = [f"k[{r}]" for r in range(n_react)]
         rateeqns = [
             f"if (Tgas>{reac.temp_min} && Tgas<{reac.temp_max}) {{\n{' = '.join([rate, reac.rate_func()])}; \n}}"
@@ -226,36 +269,54 @@ class TemplateLoader:
             #     if rhs[specidx] == "0.0":
             #         rhs[specidx] = "naunet_rate_tiny"
 
+        # prepare heating rate expressions
+        hrates = [f"kh[{hidx}]" for hidx, _ in enumerate(heating)]
+        hrateeqns = [
+            f"if (Tgas>{h.temp_min} && Tgas<{h.temp_max}) {{\n{' = '.join([hrate, h.rate_func()])}; \n}}"
+            if h.temp_min < h.temp_max
+            else f"{' = '.join([hrate, h.rate_func()])};"
+            for hrate, h in zip(hrates, heating)
+        ]
+
         # fex/jac of thermal process
-        for h in heating:
+        for hidx, h in enumerate(heating):
 
             rspecidx = [species.index(r) for r in h.reactants]
             rsym = [y[idx] for idx in rspecidx]
             rsym_mul = "*".join(rsym)
 
             # temperature index is n_spec
-            rhs[n_spec] += f" + {h.rate_func()} * {rsym_mul}"
+            rhs[n_spec] += f" + {hrates[hidx]} * {rsym_mul}"
 
             for ri in rspecidx:
                 rsymcopy = rsym.copy()
                 rsymcopy.remove(y[ri])
-                term = f" + {'*'.join([h.rate_func(), *rsymcopy])}"
+                term = f" + {'*'.join([hrates[hidx], *rsymcopy])}"
                 # only fill the last row of jacobian
                 jacrhs[n_spec * n_eqns + ri] += term
 
-        for c in cooling:
+        # prepare cooling rate expressions
+        crates = [f"kc[{cidx}]" for cidx, _ in enumerate(cooling)]
+        crateeqns = [
+            f"if (Tgas>{c.temp_min} && Tgas<{c.temp_max}) {{\n{' = '.join([crate, c.rate_func()])}; \n}}"
+            if c.temp_min < c.temp_max
+            else f"{' = '.join([crate, c.rate_func()])};"
+            for crate, c in zip(crates, cooling)
+        ]
+
+        for cidx, c in enumerate(cooling):
 
             rspecidx = [species.index(r) for r in c.reactants]
             rsym = [y[idx] for idx in rspecidx]
             rsym_mul = "*".join(rsym)
 
             # temperature index is n_spec
-            rhs[n_spec] += f" - {c.rate_func()} * {rsym_mul}"
+            rhs[n_spec] += f" - {crates[cidx]} * {rsym_mul}"
 
             for ri in rspecidx:
                 rsymcopy = rsym.copy()
                 rsymcopy.remove(y[ri])
-                term = f" - {'*'.join([c.rate_func(), *rsymcopy])}"
+                term = f" - {'*'.join([crates[cidx], *rsymcopy])}"
                 # only fill the last row of jacobian
                 jacrhs[n_spec * n_eqns + ri] += term
 
@@ -312,6 +373,8 @@ class TemplateLoader:
             method,
             device,
             rateeqns,
+            hrateeqns,
+            crateeqns,
             fex,
             jac,
             spjacrptr=spjacrptr,

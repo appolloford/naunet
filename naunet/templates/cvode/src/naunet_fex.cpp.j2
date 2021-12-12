@@ -31,7 +31,6 @@ __global__ void FexKernel(realtype *y, realtype *ydot, NaunetData *d_udata,
     for (int cur = tidx; cur < nsystem; cur += gs) {
         int yistart            = cur * NEQUATIONS;
         realtype *y_cur        = y + yistart;
-        realtype k[NREACTIONS] = {0.0};
         NaunetData *udata      = &d_udata[cur];
 
         // clang-format off
@@ -50,7 +49,18 @@ __global__ void FexKernel(realtype *y, realtype *ydot, NaunetData *d_udata,
 
         // clang-format on
 
+        realtype k[NREACTIONS] = {0.0};
         EvalRates(k, y_cur, udata);
+
+#if NHEATPROCS
+        realtype kh[NHEATPROCS] = {0.0};
+        EvalHeatingRates(kh, y_cur, u_data);
+#endif 
+
+#if NCOOLPROCS
+        realtype kc[NCOOLPROCS] = {0.0};
+        EvalCoolingRates(kc, y_cur, u_data);
+#endif
 
         // clang-format off
         {% for eq in ode.fex -%}
@@ -89,6 +99,16 @@ int Fex(realtype t, N_Vector u, N_Vector udot, void *user_data) {
 
     realtype k[NREACTIONS] = {0.0};
     EvalRates(k, y, u_data);
+
+#if NHEATPROCS
+    realtype kh[NHEATPROCS] = {0.0};
+    EvalHeatingRates(kh, y, u_data);
+#endif 
+
+#if NCOOLPROCS
+    realtype kc[NCOOLPROCS] = {0.0};
+    EvalCoolingRates(kc, y, u_data);
+#endif
 
     // clang-format off
     {% for eq in ode.fex -%}

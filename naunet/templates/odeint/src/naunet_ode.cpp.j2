@@ -49,6 +49,55 @@ int EvalRates(double *k, double *y, NaunetData *u_data) {
     return NAUNET_SUCCESS;
 }
 
+int EvalHeatingRates(double *kh, double *y, NaunetData *u_data) {
+    // clang-format off
+    {% for v in variables.varis -%}
+        double {{ v }} = u_data->{{ v }};
+    {% endfor %}
+    // clang-format on
+
+    double Te      = Tgas * 8.617343e-5;            // Tgas in eV (eV)
+    double lnTe    = log(Te);                       // ln of Te (#)
+    double T32     = Tgas * 0.0033333333333333335;  // Tgas/(300 K) (#)
+    double invT    = 1.0 / Tgas;                    // inverse of T (1/K)
+    double invTe   = 1.0 / Te;                      // inverse of T (1/eV)
+    double sqrTgas = sqrt(Tgas);                    // Tgas rootsquare (K**0.5)
+
+    // clang-format off
+    {% for assign in ode.hrateeqns -%}
+        {{ assign | stmwrap(80, 8) }}
+        {{ "" }}
+    {% endfor %}
+
+    // clang-format on
+
+    return NAUNET_SUCCESS;
+}
+
+int EvalCoolingRates(double *kc, double *y, NaunetData *u_data) {
+    // clang-format off
+    {% for v in variables.varis -%}
+        double {{ v }} = u_data->{{ v }};
+    {% endfor %}
+    // clang-format on
+
+    double Te      = Tgas * 8.617343e-5;            // Tgas in eV (eV)
+    double lnTe    = log(Te);                       // ln of Te (#)
+    double T32     = Tgas * 0.0033333333333333335;  // Tgas/(300 K) (#)
+    double invT    = 1.0 / Tgas;                    // inverse of T (1/K)
+    double invTe   = 1.0 / Te;                      // inverse of T (1/eV)
+    double sqrTgas = sqrt(Tgas);                    // Tgas rootsquare (K**0.5)
+
+    // clang-format off
+    {% for assign in ode.crateeqns -%}
+        {{ assign | stmwrap(80, 8) }}
+        {{ "" }}
+    {% endfor %}
+    // clang-format on
+
+    return NAUNET_SUCCESS;
+}
+
 Fex::Fex(NaunetData *data) {
     u_data  = new NaunetData();
     *u_data = *data;
@@ -61,7 +110,6 @@ Fex::~Fex(){
 void Fex::operator()(const vector_type &abund, vector_type &ydot, double t) {
     // clang-format off
 
-    double k[NREACTIONS]  = {0.0};
     double y[NEQUATIONS] = {0.0};
     for (int i = 0; i < NEQUATIONS; i++) {
         y[i] = abund[i];
@@ -84,7 +132,18 @@ void Fex::operator()(const vector_type &abund, vector_type &ydot, double t) {
         {{ v }};
     {% endfor %}  // clang-format on
 
+    double k[NREACTIONS] = {0.0};
     EvalRates(k, y, u_data);
+
+#if NHEATPROCS
+    double kh[NHEATPROCS] = {0.0};
+    EvalHeatingRates(kh, y, u_data);
+#endif 
+
+#if NCOOLPROCS
+    double kc[NCOOLPROCS] = {0.0};
+    EvalCoolingRates(kc, y, u_data);
+#endif
 
     // clang-format off
     {% for eq in ode.fex -%}
@@ -110,7 +169,6 @@ void Jac::operator()(const vector_type &abund, matrix_type &j, const double &t,
                      vector_type &dfdt) {
     // clang-format off
 
-    double k[NREACTIONS]  = {0.0};
     double y[NEQUATIONS] = {0.0};
     for (int i = 0; i < NEQUATIONS; i++) {
         y[i] = abund[i];
@@ -131,7 +189,18 @@ void Jac::operator()(const vector_type &abund, matrix_type &j, const double &t,
 
     // clang-format on
 
+    double k[NREACTIONS] = {0.0};
     EvalRates(k, y, u_data);
+
+#if NHEATPROCS
+    double kh[NHEATPROCS] = {0.0};
+    EvalHeatingRates(kh, y, u_data);
+#endif 
+
+#if NCOOLPROCS
+    double kc[NCOOLPROCS] = {0.0};
+    EvalCoolingRates(kc, y, u_data);
+#endif
 
     // clang-format off
     {% for eq in ode.jac -%}

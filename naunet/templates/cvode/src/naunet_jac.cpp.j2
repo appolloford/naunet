@@ -73,6 +73,16 @@ __global__ void JacKernel(realtype *y, realtype *data, NaunetData *d_udata,
 
         EvalRates(k, y_cur, udata);
 
+#if NHEATPROCS
+        realtype kh[NHEATPROCS] = {0.0};
+        EvalHeatingRates(kh, y_cur, udata);
+#endif 
+
+#if NCOOLPROCS
+        realtype kc[NCOOLPROCS] = {0.0};
+        EvalCoolingRates(kc, y_cur, udata);
+#endif
+
         // clang-format off
         {% for data in ode.spjacdata -%}
             {{ data | replace("data[", "data[jistart + ") | replace("y[IDX", "y_cur[IDX") | stmwrap(80, 12) }}
@@ -106,6 +116,16 @@ int Jac(realtype t, N_Vector u, N_Vector fu, SUNMatrix jmatrix, void *user_data,
     realtype k[NREACTIONS] = {0.0};
     EvalRates(k, y, u_data);
 
+#if NHEATPROCS
+    realtype kh[NHEATPROCS] = {0.0};
+    EvalHeatingRates(kh, y, u_data);
+#endif 
+
+#if NCOOLPROCS
+    realtype kc[NCOOLPROCS] = {0.0};
+    EvalCoolingRates(kc, y, u_data);
+#endif
+
     // clang-format off
     {% for eq in ode.jac -%}
         {{ eq | stmwrap(80, 8) }}
@@ -132,6 +152,16 @@ int Jac(realtype t, N_Vector u, N_Vector fu, SUNMatrix jmatrix, void *user_data,
 
     realtype k[NREACTIONS] = {0.0};
     EvalRates(k, y, u_data);
+
+#if NHEATPROCS
+    realtype kh[NHEATPROCS] = {0.0};
+    EvalHeatingRates(kh, y, u_data);
+#endif 
+
+#if NCOOLPROCS
+    realtype kc[NCOOLPROCS] = {0.0};
+    EvalCoolingRates(kc, y, u_data);
+#endif
 
     // clang-format off
     // number of non-zero elements in each row

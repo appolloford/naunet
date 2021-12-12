@@ -3,12 +3,19 @@
 
 #include <boost/numeric/odeint.hpp>
 
+#include "naunet_macros.h"
 #include "naunet_data.h"
 
 typedef boost::numeric::ublas::vector<double> vector_type;
 typedef boost::numeric::ublas::matrix<double> matrix_type;
 
 int EvalRates(double *k, double *y, NaunetData *user_data);
+#if NHEATPROCS
+int EvalHeatingRates(double *kc, double *y, NaunetData *user_data);
+#endif
+#if NCOOLPROCS
+int EvalCoolingRates(double *kc, double *y, NaunetData *user_data);
+#endif
 
 class Fex {
    private:

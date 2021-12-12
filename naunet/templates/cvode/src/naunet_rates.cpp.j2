@@ -58,3 +58,72 @@ int EvalRates(realtype *k, realtype *y, NaunetData *u_data) {
 
     return NAUNET_SUCCESS;
 }
+
+// clang-format off
+{% if info.device == "gpu" -%} __device__ {% endif -%}
+int EvalHeatingRates(realtype *kh, realtype *y, NaunetData *u_data) {
+
+    {% for v in variables.varis -%}
+        realtype {{ v }} = u_data->{{ v }};
+    {% endfor %}
+
+    {% for v in variables.user_var -%}
+        {{ v }};
+    {% endfor %}
+
+    // clang-format on
+
+    // Some variable definitions from krome
+    realtype Te      = Tgas * 8.617343e-5;            // Tgas in eV (eV)
+    realtype lnTe    = log(Te);                       // ln of Te (#)
+    realtype T32     = Tgas * 0.0033333333333333335;  // Tgas/(300 K) (#)
+    realtype invT    = 1.0 / Tgas;                    // inverse of T (1/K)
+    realtype invTe   = 1.0 / Te;                      // inverse of T (1/eV)
+    realtype sqrTgas = sqrt(Tgas);  // Tgas rootsquare (K**0.5)
+
+    // reaaction rate (k) of each reaction
+    // clang-format off
+    {% for assign in ode.hrateeqns -%}
+        {{ assign | stmwrap(80, 8) }}
+        {{ "" }}
+    {% endfor %}
+
+    // clang-format on
+
+    return NAUNET_SUCCESS;
+}
+
+// clang-format off
+{% if info.device == "gpu" -%} __device__ {% endif -%}
+int EvalCoolingRates(realtype *kc, realtype *y, NaunetData *u_data) {
+
+    {% for v in variables.varis -%}
+        realtype {{ v }} = u_data->{{ v }};
+    {% endfor %}
+
+    {% for v in variables.user_var -%}
+        {{ v }};
+    {% endfor %}
+
+    // clang-format on
+
+    // Some variable definitions from krome
+    realtype Te      = Tgas * 8.617343e-5;            // Tgas in eV (eV)
+    realtype lnTe    = log(Te);                       // ln of Te (#)
+    realtype T32     = Tgas * 0.0033333333333333335;  // Tgas/(300 K) (#)
+    realtype invT    = 1.0 / Tgas;                    // inverse of T (1/K)
+    realtype invTe   = 1.0 / Te;                      // inverse of T (1/eV)
+    realtype sqrTgas = sqrt(Tgas);  // Tgas rootsquare (K**0.5)
+
+    // reaaction rate (k) of each reaction
+    // clang-format off
+    {% for assign in ode.crateeqns -%}
+        {{ assign | stmwrap(80, 8) }}
+        {{ "" }}
+    {% endfor %}
+
+    // clang-format on
+
+    return NAUNET_SUCCESS;
+}
+
