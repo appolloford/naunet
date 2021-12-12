@@ -59,6 +59,12 @@ int main() {
         // fprintf(rtxt, "\n");
 #endif
 
+        // synchronize the temperature if you want to make chemistry and
+        // heating/cooling consistent
+        for (int isys = 0; isys < nsystem; isys++) {
+            data[isys].Tgas = y[isys * NEQUATIONS + IDX_TGAS];
+        }
+
         dtyr = pow(10.0, logtime) - time;
 
         for (int isys = 0; isys < nsystem; isys++) {

@@ -48,13 +48,13 @@ y[species.index("e-")]     = 1e-4 * nH
 if has_thermal:
     y[nspec]               = tgas # Temperature
 
-naunet_solver.Solve(y, 1e4, naunet_data)
-
 with open("evolution_pymodule.dat", "w") as evoldat:
 
     curtime = 0.0
 
     for ti, dtyr in enumerate(timesteps):
+        if has_thermal:
+            naunet_data.Tgas = y[nspec] # synchronize temperature
         curtime += dtyr
         dt = dtyr * spy
         y = naunet_solver.Solve(y, dt, naunet_data)

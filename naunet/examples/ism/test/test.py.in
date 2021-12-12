@@ -73,10 +73,9 @@ y[species.index("Cl")]     = 4.0e-9 * nH
 y[species.index("F")]      = 2.0e-8 * nH
 y[species.index("GRAIN0")] = 1.3e-12 * nH
 
-naunet_solver.Solve(y, 1e4, naunet_data)
-
-times = np.logspace(3, 8, num=51)
-timesteps = times[1:] - times[:-1]
+times = np.logspace(3, 8, 51)
+timesteps = times[0]
+timesteps = np.append(timesteps, times[1:] - times[:-1])
 
 with open("evolution_pymodule.dat", "w") as evoldat:
 
