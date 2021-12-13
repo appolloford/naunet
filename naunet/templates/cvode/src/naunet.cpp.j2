@@ -129,6 +129,9 @@ int Naunet::Init(int nsystem, double atol, double rtol) {
     //     return NAUNET_FAIL;
     // }
 
+    cudaMallocHost((void **)&h_ab, sizeof(realtype) * n_system_ * NEQUATIONS);
+    cudaMallocHost((void **)&h_data, sizeof(NaunetData) * n_system_);
+
     n_stream_in_use_ = nsystem / NSTREAMS >= 32 ? NSTREAMS : 1;
 
     cudaError_t cuerr;
@@ -216,6 +219,10 @@ int Naunet::Finalize() {
         cusolverSpDestroy(cusol_handle_[i]);
         cudaStreamDestroy(custream_[i]);
     }
+
+    cudaFreeHost(h_ab);
+    cudaFreeHost(h_data);
+
     /* {% endif %} */
 
     return NAUNET_SUCCESS;
@@ -235,6 +242,12 @@ int Naunet::Reset(int nsystem, double atol, double rtol) {
     n_system_ = nsystem;
     atol_     = atol;
     rtol_     = rtol;
+
+    cudaFreeHost(h_ab);
+    cudaFreeHost(h_data);
+
+    cudaMallocHost((void **)&h_ab, sizeof(realtype) * n_system_ * NEQUATIONS);
+    cudaMallocHost((void **)&h_data, sizeof(NaunetData) * n_system_);
 
     int flag;
 
@@ -301,11 +314,6 @@ int Naunet::Solve(realtype *ab, realtype dt, NaunetData *data) {
 
     /* {% elif info.method == "cusparse" -%} */
 
-    realtype *h_ab;
-    NaunetData *h_data;
-
-    cudaMallocHost((void **)&h_ab, sizeof(realtype) * n_system_ * NEQUATIONS);
-    cudaMallocHost((void **)&h_data, sizeof(NaunetData) * n_system_);
     for (int i = 0; i < n_system_ ; i++)
     {
         h_data[i] = data[i];
@@ -353,9 +361,6 @@ int Naunet::Solve(realtype *ab, realtype dt, NaunetData *data) {
     }
 
     cudaDeviceSynchronize();
-
-    cudaFreeHost(h_ab);
-    cudaFreeHost(h_data);
 
     /* {% endif -%} */
 
