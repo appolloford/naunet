@@ -23,10 +23,10 @@ class Naunet {
    public:
     Naunet();
     ~Naunet();
-    int Init(int nsystem = MAX_NSYSTEMS, double atol = 1e-20, double rtol = 1e-5);
+    int Init(int nsystem = MAX_NSYSTEMS, double atol = 1e-20, double rtol = 1e-5, int mxsteps=500);
     int Finalize();
     /* {% if info.method == "cusparse" -%} */
-    int Reset(int nsystem = MAX_NSYSTEMS, double atol = 1e-20, double rtol = 1e-5);
+    int Reset(int nsystem = MAX_NSYSTEMS, double atol = 1e-20, double rtol = 1e-5, int mxsteps=500);
     /* {% endif -%} */
     int Solve(realtype *ab, realtype dt, NaunetData *data);
 #ifdef PYMODULE
@@ -36,11 +36,13 @@ class Naunet {
 
    private:
     int n_system_;
-    int n_stream_in_use_;
+    int mxsteps_;
     realtype atol_;
     realtype rtol_;
 
     /* {% if info.method == "cusparse" -%} */
+
+    int n_stream_in_use_;
 
     N_Vector cv_y_[NSTREAMS];
     SUNMatrix cv_a_[NSTREAMS];
