@@ -24,6 +24,7 @@ class Naunet {
     Naunet();
     ~Naunet();
     int Init(int nsystem = MAX_NSYSTEMS, double atol = 1e-20, double rtol = 1e-5, int mxsteps=500);
+    int DebugInfo();
     int Finalize();
     /* {% if info.method == "cusparse" -%} */
     int Reset(int nsystem = MAX_NSYSTEMS, double atol = 1e-20, double rtol = 1e-5, int mxsteps=500);
