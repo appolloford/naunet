@@ -138,6 +138,8 @@ int Naunet::Init(int nsystem, double atol, double rtol, int mxsteps) {
     cudaMallocHost((void **)&h_data, sizeof(NaunetData) * n_system_);
 
     n_stream_in_use_ = nsystem / NSTREAMS >= 32 ? NSTREAMS : 1;
+    int n_system_per_stream = nsystem / n_stream_in_use_;
+    int n_thread_per_stream = std::min(BLOCKSIZE, n_system_per_stream);
 
     cudaError_t cuerr;
     int flag;
@@ -145,20 +147,20 @@ int Naunet::Init(int nsystem, double atol, double rtol, int mxsteps) {
     for (int i = 0; i < n_stream_in_use_; i++) {
 
         cuerr = cudaStreamCreate(&custream_[i]);
-        // SUNCudaThreadDirectExecPolicy stream_exec_policy(nsystem / n_stream_in_use_, custream_[i]);
-        // SUNCudaBlockReduceExecPolicy reduce_exec_policy(nsystem / n_stream_in_use_, 0, custream_[i]);
-        stream_exec_policy_[i] = new SUNCudaThreadDirectExecPolicy(nsystem / n_stream_in_use_, custream_[i]);
-        reduce_exec_policy_[i] = new SUNCudaBlockReduceExecPolicy(nsystem / n_stream_in_use_, 0, custream_[i]);
+        // SUNCudaThreadDirectExecPolicy stream_exec_policy(n_thread_per_stream, custream_[i]);
+        // SUNCudaBlockReduceExecPolicy reduce_exec_policy(n_thread_per_stream, 0, custream_[i]);
+        stream_exec_policy_[i] = new SUNCudaThreadDirectExecPolicy(n_thread_per_stream, custream_[i]);
+        reduce_exec_policy_[i] = new SUNCudaBlockReduceExecPolicy(n_thread_per_stream, 0, custream_[i]);
 
         cusparseCreate(&cusp_handle_[i]);
         cusparseSetStream(cusp_handle_[i], custream_[i]);
         cusolverSpCreate(&cusol_handle_[i]);
         cusolverSpSetStream(cusol_handle_[i], custream_[i]);
-        cv_y_[i]  = N_VNew_Cuda(NEQUATIONS * nsystem / n_stream_in_use_);
+        cv_y_[i]  = N_VNew_Cuda(NEQUATIONS * n_system_per_stream);
         flag = N_VSetKernelExecPolicy_Cuda(cv_y_[i], stream_exec_policy_[i], reduce_exec_policy_[i]);
         if (check_flag(&flag, "N_VSetKernelExecPolicy_Cuda", 0)) return 1;
-        cv_a_[i]  = SUNMatrix_cuSparse_NewBlockCSR(nsystem / n_stream_in_use_, NEQUATIONS, NEQUATIONS,
-                                                NNZ, cusp_handle_[i]);
+        cv_a_[i]  = SUNMatrix_cuSparse_NewBlockCSR(n_system_per_stream, NEQUATIONS, NEQUATIONS,
+                                                   NNZ, cusp_handle_[i]);
         cv_ls_[i] = SUNLinSol_cuSolverSp_batchQR(cv_y_[i], cv_a_[i], cusol_handle_[i]);
         // abstol = N_VNew_Cuda(neq);
         SUNMatrix_cuSparse_SetFixedPattern(cv_a_[i], 1);
@@ -313,12 +315,14 @@ int Naunet::Reset(int nsystem, double atol, double rtol, int mxsteps) {
     //     return NAUNET_FAIL;
     // }
 
-    n_stream_in_use_ = nsystem / NSTREAMS >= 32 ? NSTREAMS : 1;
-
     n_system_ = nsystem;
     mxsteps_  = mxsteps;
     atol_     = atol;
     rtol_     = rtol;
+
+    n_stream_in_use_ = nsystem / NSTREAMS >= 32 ? NSTREAMS : 1;
+    int n_system_per_stream = nsystem / n_stream_in_use_;
+    int n_thread_per_stream = std::min(BLOCKSIZE, n_system_per_stream);
 
     cudaFreeHost(h_ab);
     cudaFreeHost(h_data);
@@ -334,13 +338,19 @@ int Naunet::Reset(int nsystem, double atol, double rtol, int mxsteps) {
         SUNLinSolFree(cv_ls_[i]);
         CVodeFree(&cv_mem_[i]);
 
-        // SUNCudaThreadDirectExecPolicy stream_exec_policy(nsystem / n_stream_in_use_, custream_[i]);
-        // SUNCudaBlockReduceExecPolicy reduce_exec_policy(nsystem / n_stream_in_use_, 0, custream_[i]);
+        delete stream_exec_policy_[i];
+        delete reduce_exec_policy_[i];
 
-        cv_y_[i] = N_VNew_Cuda(NEQUATIONS * nsystem / n_stream_in_use_);
+        // SUNCudaThreadDirectExecPolicy stream_exec_policy(n_thread_per_stream, custream_[i]);
+        // SUNCudaBlockReduceExecPolicy reduce_exec_policy(n_thread_per_stream, 0, custream_[i]);
+
+        stream_exec_policy_[i] = new SUNCudaThreadDirectExecPolicy(n_thread_per_stream, custream_[i]);
+        reduce_exec_policy_[i] = new SUNCudaBlockReduceExecPolicy(n_thread_per_stream, 0, custream_[i]);
+
+        cv_y_[i] = N_VNew_Cuda(NEQUATIONS * n_system_per_stream);
         flag = N_VSetKernelExecPolicy_Cuda(cv_y_[i], stream_exec_policy_[i], reduce_exec_policy_[i]);
         if (check_flag(&flag, "N_VSetKernelExecPolicy_Cuda", 0)) return 1;
-        cv_a_[i] = SUNMatrix_cuSparse_NewBlockCSR(nsystem / n_stream_in_use_, NEQUATIONS, NEQUATIONS, NNZ,
+        cv_a_[i] = SUNMatrix_cuSparse_NewBlockCSR(n_system_per_stream, NEQUATIONS, NEQUATIONS, NNZ,
                                                   cusp_handle_[i]);
         cv_ls_[i] = SUNLinSol_cuSolverSp_batchQR(cv_y_[i], cv_a_[i], cusol_handle_[i]);
         SUNMatrix_cuSparse_SetFixedPattern(cv_a_[i], 1);
