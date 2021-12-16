@@ -2,6 +2,7 @@
 #define __NAUNET_H__
 
 #include "naunet_data.h"
+#include "naunet_macros.h"
 
 #ifdef PYMODULE
 #include <pybind11/numpy.h>
@@ -14,7 +15,7 @@ class Naunet {
    public:
     Naunet();
     ~Naunet();
-    int Init(int nsystem = 1, double atol = 1e-20, double rtol = 1e-5, int mxsteps = 500);
+    int Init(int nsystem = MAX_NSYSTEMS, double atol = 1e-20, double rtol = 1e-5, int mxsteps = 500);
     int DebugInfo();
     int Finalize();
     int Solve(double *abund, double dt, NaunetData *data);

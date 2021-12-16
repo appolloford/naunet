@@ -14,7 +14,7 @@
 {% if info.method == "cusparse" -%}
 #define USE_CUDA
 #define MAX_NSYSTEMS 4096
-#define NSTREAMS 16
+#define NSTREAMS 1 // looks no benefit to use multiple streams
 #define MAX_NSYSTEMS_PER_STREAM (MAX_NSYSTEMS/NSTREAMS)
 #define BLOCKSIZE 64
 {% else %}

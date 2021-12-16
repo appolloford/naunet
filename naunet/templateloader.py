@@ -36,6 +36,7 @@ class TemplateLoader:
         rateeqns: List[str]
         fex: List[str]
         jac: List[str]
+        jacpattern: List[str]
         spjacrptr: List[str] = None
         spjaccval: List[str] = None
         spjacrptrarr: str = None
@@ -283,6 +284,15 @@ class TemplateLoader:
                 f"j({idx//n_eqns}, {idx%n_eqns}) = {j};" for idx, j in enumerate(jacrhs)
             ]
 
+        jacpattern = [0 if j == "0.0" else 1 for j in jacrhs]
+
+        rowpattern = []
+        for row in range(n_eqns):
+            rowdata = jacpattern[row * n_eqns : (row + 1) * n_eqns]
+            rowpattern.append(" ".join(str(e) for e in rowdata))
+
+        patternstr = "\n".join(rowpattern)
+
         spjacrptr = []
         spjaccval = []
         spjacdata = []
@@ -314,6 +324,7 @@ class TemplateLoader:
             rateeqns,
             fex,
             jac,
+            jacpattern=patternstr,
             spjacrptr=spjacrptr,
             spjaccval=spjaccval,
             spjacrptrarr=spjacrptrarr,
@@ -580,3 +591,8 @@ class TemplateLoader:
         tname = "common/include/naunet_data.h.j2"
         template = self._env.get_template(tname)
         self._render(template, prefix, name, save, variables=self._variables)
+
+    def render_jac_pattern(self, prefix: str = "./") -> None:
+
+        with open(f"{prefix}/jac_pattern.dat", "w") as outf:
+            outf.write(self._ode.jacpattern)

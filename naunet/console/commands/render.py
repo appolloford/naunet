@@ -24,6 +24,7 @@ class RenderCommand(Command):
         {--f|force : forced to override the existing files}
         {--update-species=? : allow to update the species list in toml configure file}
         {--patch= : create patch for target code}
+        {--with-pattern : render the jacobian pattern}
     """
 
     def __init__(self):
@@ -139,6 +140,10 @@ class RenderCommand(Command):
         tl.render_physics(prefix=source_prefix, headerprefix=header_prefix)
         tl.render_data(prefix=header_prefix)
         tl.render_cmake(prefix=Path.cwd(), version=ver)
+
+        pattern = self.option("with-pattern")
+        if pattern:
+            tl.render_sparsity(prefix=Path.cwd())
 
         src_parent_path = Path(naunet.__file__).parent
         template_path = os.path.join(src_parent_path, "templates", solver)
