@@ -14,7 +14,8 @@ class Naunet {
    public:
     Naunet();
     ~Naunet();
-    int Init(int nsystem = 1, double atol = 1e-20, double rtol = 1e-5);
+    int Init(int nsystem = 1, double atol = 1e-20, double rtol = 1e-5, int mxsteps = 500);
+    int DebugInfo();
     int Finalize();
     int Solve(double *abund, double dt, NaunetData *data);
 #ifdef PYMODULE
@@ -24,6 +25,8 @@ class Naunet {
 
    private:
     int n_system_;
+    int mxsteps_;
+    int step_;
     double atol_;
     double rtol_;
 };
@@ -34,7 +37,8 @@ PYBIND11_MODULE(PYMODNAME, m) {
     py::class_<Naunet>(m, "Naunet")
         .def(py::init())
         .def("Init", &Naunet::Init, py::arg("nsystem") = 1,
-             py::arg("atol") = 1e-20, py::arg("rtol") = 1e-5)
+             py::arg("atol") = 1e-20, py::arg("rtol") = 1e-5,
+             py::arg("mxsteps") = 500)
         .def("Finalize", &Naunet::Finalize)
         .def("Solve", &Naunet::PyWrapSolve);
 

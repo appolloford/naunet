@@ -10,6 +10,19 @@ typedef boost::numeric::ublas::matrix<double> matrix_type;
 
 int EvalRates(double *k, double *y, NaunetData *user_data);
 
+class Observer {
+   private:
+    int mxsteps_;
+    int step_;
+    double time_;
+
+   public:
+    Observer(int mxsteps);
+    ~Observer();
+
+    void operator()( const vector_type &x , double t );
+};
+
 class Fex {
    private:
     NaunetData *u_data;

@@ -12,15 +12,24 @@ Naunet::Naunet(){};
 
 Naunet::~Naunet(){};
 
-int Naunet::Init(int nsystem, double atol, double rtol) {
+int Naunet::Init(int nsystem, double atol, double rtol, int mxsteps) {
     if (nsystem != 1) {
         printf("This solver doesn't support nsystem > 1!");
         return NAUNET_FAIL;
     }
 
     n_system_ = nsystem;
+    mxsteps_  = mxsteps;
     atol_     = atol;
     rtol_     = rtol;
+    return NAUNET_SUCCESS;
+};
+
+int Naunet::DebugInfo() {
+
+    printf("\nFinal Statistics:\n");
+    printf("nst = %-6ld\n", step_);
+
     return NAUNET_SUCCESS;
 };
 
@@ -31,6 +40,8 @@ int Naunet::Solve(double *abund, double dt, NaunetData *data) {
     for (int i = 0; i < NEQUATIONS; i++) {
         y[i] = abund[i];
     }
+
+    Observer observer(mxsteps_);
 
     // TODO: test the two methods from odeint stiff system example
     // size_t num_of_steps = integrate_const(
@@ -43,9 +54,14 @@ int Naunet::Solve(double *abund, double dt, NaunetData *data) {
     //     fex(data), y, 0.0, dt, dt
     // );
 
-    size_t num_of_steps = integrate_adaptive(
-        make_controlled<rosenbrock4<double>>(atol_, rtol_),
-        std::make_pair(Fex(data), Jac(data)), y, 0.0, dt, dt);
+    step_ = 0;
+    try {
+        step_ = integrate_adaptive(
+            make_controlled<rosenbrock4<double>>(atol_, rtol_),
+            std::make_pair(Fex(data), Jac(data)), y, 0.0, dt, dt, observer);
+    } catch(const std::runtime_error& e) {
+        printf("%s\n", e.what());
+    }
 
     for (int i = 0; i < NEQUATIONS; i++) {
         abund[i] = y[i];
