@@ -96,7 +96,25 @@ int EvalCoolingRates(double *kc, double *y, NaunetData *u_data) {
     // clang-format on
 
     return NAUNET_SUCCESS;
-}
+};
+
+Observer::Observer(int mxsteps) {
+    mxsteps_ = mxsteps;
+    step_ = 0;
+    time_ = 0.0;
+};
+
+Observer::~Observer(){};
+
+void Observer::operator()( const vector_type &x , double t ) {
+    step_ += 1;
+    time_ = t;
+    if( step_ > mxsteps_ ) {
+        char err[70];
+        sprintf(err, "mxstep steps taken before reaching tout. t=%13.7e", time_);
+        throw std::runtime_error(err);
+    }
+};
 
 Fex::Fex(NaunetData *data) {
     u_data  = new NaunetData();

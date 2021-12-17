@@ -17,6 +17,19 @@ int EvalHeatingRates(double *kc, double *y, NaunetData *user_data);
 int EvalCoolingRates(double *kc, double *y, NaunetData *user_data);
 #endif
 
+class Observer {
+   private:
+    int mxsteps_;
+    int step_;
+    double time_;
+
+   public:
+    Observer(int mxsteps);
+    ~Observer();
+
+    void operator()( const vector_type &x , double t );
+};
+
 class Fex {
    private:
     NaunetData *u_data;

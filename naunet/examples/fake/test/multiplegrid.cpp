@@ -7,15 +7,15 @@
 #include "naunet_timer.h"
 
 int main() {
-    int nsystem      = 64;
+    int nsystem      = 2048;
     double spy       = 86400.0 * 365.0;
-    double nH        = 1e-2;
-    double Tgas      = 100000.0;
+
+    double nH        = 1e5;
 
     NaunetData *data = new NaunetData[nsystem];
     for (int isys = 0; isys < nsystem; isys++) {
-        data[isys].nH   = nH;
-        data[isys].Tgas = Tgas;
+        data[isys].nH      = nH;
+        data[isys].Tgas    = 15.0;
     }
 
     Naunet naunet;
@@ -28,13 +28,8 @@ int main() {
         for (int i = 0; i < NEQUATIONS; i++) {
             y[isys * NEQUATIONS + i] = 1.e-40;
         }
-        y[isys * NEQUATIONS + IDX_HI]   = nH;
-        y[isys * NEQUATIONS + IDX_HII]  = 1e-4 * nH;
-        y[isys * NEQUATIONS + IDX_HeI]  = 1e-1 * nH;
-        y[isys * NEQUATIONS + IDX_HDI]  = 1.5e-5 * nH;
-        y[isys * NEQUATIONS + IDX_H2I]  = 1.5e-5 * nH;
-        y[isys * NEQUATIONS + IDX_eM]   = 1e-4 * nH;
-        y[isys * NEQUATIONS + IDX_TGAS] = Tgas;
+        y[isys * NEQUATIONS + IDX_HDI]     = 1.5e-5 * nH;
+        y[isys * NEQUATIONS + IDX_HI]      = nH;
     }
 
     FILE *fbin = fopen("evolution_multiplegrid.bin", "w");
@@ -58,12 +53,6 @@ int main() {
         // }
         // fprintf(rtxt, "\n");
 #endif
-
-        // synchronize the temperature if you want to make chemistry and
-        // heating/cooling consistent
-        for (int isys = 0; isys < nsystem; isys++) {
-            data[isys].Tgas = y[isys * NEQUATIONS + IDX_TGAS];
-        }
 
         dtyr = pow(10.0, logtime) - time;
 
