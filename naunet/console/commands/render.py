@@ -77,12 +77,13 @@ class RenderCommand(Command):
         update_binding_energy(binding)
         update_photon_yield(yields)
 
-        if not supported_reaction_class.get(database):
-            from importlib import util
+        for db in database:
+            if not supported_reaction_class.get(db):
+                from importlib import util
 
-            spec = util.spec_from_file_location(database, f"{database}.py")
-            module = util.module_from_spec(spec)
-            spec.loader.exec_module(module)
+                spec = util.spec_from_file_location(db, f"{db}.py")
+                module = util.module_from_spec(spec)
+                spec.loader.exec_module(module)
 
         # patches are rendered independently
         patch = self.option("patch")
@@ -116,6 +117,8 @@ class RenderCommand(Command):
         rate_modifier = {int(key): value for key, value in rate_modifier.items()}
 
         net = Network(
+            filelist=network,
+            filesources=database,
             allowed_species=species + extra_species,
             required_species=extra_species,
             dusttype=dust["type"],
@@ -124,7 +127,6 @@ class RenderCommand(Command):
             shielding=shielding,
             ratemodifier=rate_modifier,
         )
-        net.add_reaction_from_file(network, database)
         net.ode_modifier = ode_modifier
 
         # Don't change the include/src/test when rendering patches

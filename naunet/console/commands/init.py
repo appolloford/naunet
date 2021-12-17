@@ -158,7 +158,10 @@ class InitCommand(Command):
 
         network = self.option("network")
 
-        if not network:
+        if network:
+            network = network.split(",")
+
+        else:
 
             network = ""
 
@@ -172,7 +175,10 @@ class InitCommand(Command):
 
         database = self.option("database")
 
-        if not database:
+        if database:
+            database = database.split(",")
+
+        else:
 
             database = ""
 

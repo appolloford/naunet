@@ -17,7 +17,6 @@ def test_init_leedsreaction():
     with open("test/test_input/rate12_full_HO.rates", "r") as react_file:
         for line in react_file.readlines():
             leeds_reactions.append(LEEDSReaction(line))
-    LEEDSReaction.finalize()
 
 
 def test_init_uminstreaction():

@@ -81,12 +81,14 @@ class Network:
 
     def __init__(
         self,
-        allowed_species: list = None,
-        required_species: list = None,
-        heating: list = None,
-        cooling: list = None,
-        shielding: dict = None,
-        dusttype: str = None,
+        filelist: str | list[str] = None,
+        filesources: str | list[str] = None,
+        allowed_species: list[str] = None,
+        required_species: list[str] = None,
+        heating: list[str] = None,
+        cooling: list[str] = None,
+        shielding: dict[str, str] = None,
+        dusttype: str[str] = None,
         ratemodifier: dict[int, str] = None,
     ) -> None:
 
@@ -123,6 +125,44 @@ class Network:
                     Otherwise leave one of them to be "None"."""
                 )
 
+        # check the lists of files and databases are matching
+        # and add them into the network if possible
+        if isinstance(filelist, list):
+
+            if isinstance(filesources, list):
+
+                if len(filelist) != len(filesources):
+                    raise RuntimeError(
+                        "Sizes of input files and sources are mismatching."
+                    )
+                else:
+                    for fname, db in zip(filelist, filesources):
+                        self.add_reaction_from_file(fname, db)
+
+            elif isinstance(filesources, str):
+
+                for fname in filelist:
+                    self.add_reaction_from_file(fname, filesources)
+
+            else:
+                raise RuntimeError(f"Unknown format: {filesources}")
+
+        elif isinstance(filelist, str):
+
+            if isinstance(filesources, list):
+                if len(filesources) != 1:
+                    raise RuntimeError(
+                        "Sizes of input files and sources are mismatching."
+                    )
+                else:
+                    self.add_reaction_from_file(filelist, filesources[0])
+
+            elif isinstance(filesources, str):
+                self.add_reaction_from_file(filelist, filesources)
+
+            else:
+                raise RuntimeError(f"Unknown format: {filesources}")
+
     def _add_reaction(self, react_string: str, database: str) -> list:
 
         reaction = _reaction_factory(react_string, database, self._dust)
@@ -158,9 +198,13 @@ class Network:
         rclass = supported_reaction_class.get(database)
         if rclass:
             rclass.initialize()
+        else:
+            raise RuntimeError(f"Unknown format: {database}")
 
         new_species = self._add_reaction(react_string, database)
         logger.info("New species are added: {}".format(new_species))
+
+        rclass.finalize()
 
         # reset network information if content is changed
         self._info = None
@@ -185,6 +229,8 @@ class Network:
         rclass = supported_reaction_class.get(database)
         if rclass:
             rclass.initialize()
+        else:
+            raise RuntimeError(f"Unknown format: {database}")
 
         with open(filename, "r") as networkfile:
             for _, line in enumerate(
@@ -193,6 +239,8 @@ class Network:
                 new_species.update(self._add_reaction(line, database))
 
             # print("New species: \n{}".format("\n".join(str(x) for x in new_species)))
+
+        rclass.finalize()
 
         self._info = None
 
@@ -292,11 +340,6 @@ class Network:
             print("Found sources: ", source)
         elif len(sink) != 0:
             print("Found sinks: ", sink)
-
-    def finalize(self):
-        for db in list(self.database_list):
-            if supported_reaction_class.get(db):
-                supported_reaction_class.get(db).finalize()
 
     @property
     def info(self):
