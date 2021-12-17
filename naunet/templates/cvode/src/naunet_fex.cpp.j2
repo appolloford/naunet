@@ -54,12 +54,12 @@ __global__ void FexKernel(realtype *y, realtype *ydot, NaunetData *d_udata,
 
 #if NHEATPROCS
         realtype kh[NHEATPROCS] = {0.0};
-        EvalHeatingRates(kh, y_cur, u_data);
+        EvalHeatingRates(kh, y_cur, udata);
 #endif 
 
 #if NCOOLPROCS
         realtype kc[NCOOLPROCS] = {0.0};
-        EvalCoolingRates(kc, y_cur, u_data);
+        EvalCoolingRates(kc, y_cur, udata);
 #endif
 
         // clang-format off

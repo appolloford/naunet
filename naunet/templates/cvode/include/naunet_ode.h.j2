@@ -10,6 +10,12 @@
 
 /* {% if info.device == "gpu" -%} */
 __device__ int EvalRates(realtype *k, realtype *y, NaunetData *user_data);
+#if NHEATPROCS
+__device__ int EvalHeatingRates(realtype *kc, realtype *y, NaunetData *user_data);
+#endif
+#if NCOOLPROCS
+__device__ int EvalCoolingRates(realtype *kc, realtype *y, NaunetData *user_data);
+#endif
 /* {% else -%} */
 int EvalRates(realtype *k, realtype *y, NaunetData *user_data);
 #if NHEATPROCS
