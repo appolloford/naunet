@@ -127,7 +127,13 @@ class TemplateLoader:
         cooling = netinfo.cooling
         dust = netinfo.dust
         odemodifier = netinfo.odemodifier
-        ratemodifier = netinfo.ratemodifier
+
+        ratemodifier = [
+            f"k[{idx}] = {value}"
+            for idx, reac in enumerate(reactions)
+            for key, value in netinfo.ratemodifier.items()
+            if key == reac.idxfromfile
+        ]
 
         has_thermal = True if heating or cooling else False
         n_eqns = n_spec + has_thermal

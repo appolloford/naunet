@@ -241,9 +241,17 @@ class InitCommand(Command):
 
         chemistry.add("shielding", shielding)
 
-        rate_modifier = self.option("rate-modifier")
-        if rate_modifier:
-            rate_modifier = [rm.strip() for l in rate_modifier for rm in l.split(";")]
+        rate_modifier = table()
+
+        rate_modifier_list = self.option("rate-modifier")
+        if rate_modifier_list:
+            rate_modifier_list = [
+                rm.strip() for l in rate_modifier_list for rm in l.split(",")
+            ]
+            rate_modifier_list = [it.split(":") for it in rate_modifier_list]
+            rate_modifier.update(
+                {it[0].strip(): it[1].strip() for it in rate_modifier_list}
+            )
 
         chemistry.add("rate_modifier", rate_modifier)
 

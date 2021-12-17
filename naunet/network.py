@@ -87,6 +87,7 @@ class Network:
         cooling: list = None,
         shielding: dict = None,
         dusttype: str = None,
+        ratemodifier: dict[int, str] = None,
     ) -> None:
 
         self.database_list = set()
@@ -94,7 +95,7 @@ class Network:
         self.reactants_in_network = set()
         self.products_in_network = set()
         self.ode_modifier = []
-        self.rate_modifier = []
+        self._rate_modifier = ratemodifier.copy() if ratemodifier else {}
         self._skipped_reactions = []
         self._info = None
         self._patchmaker = None
@@ -320,7 +321,7 @@ class Network:
             dust=self.dust,
             shielding=self._shielding,
             odemodifier=self.ode_modifier,
-            ratemodifier=self.rate_modifier,
+            ratemodifier=self._rate_modifier,
         )
 
         logger.info(
@@ -344,6 +345,14 @@ class Network:
 
         self._patchmaker = PatchMaker(self.info, target, device, *args, **kwargs)
         return self._patchmaker
+
+    @property
+    def ratemodifier(self) -> dict[int, str]:
+        return self._rate_modifier
+
+    @ratemodifier.setter
+    def ratemodifier(self, ratemodifier: dict[int, str]) -> None:
+        self._rate_modifier = ratemodifier.copy()
 
     def templateloader(self, solver: str, method: str, device: str):
 

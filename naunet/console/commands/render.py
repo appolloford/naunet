@@ -113,6 +113,8 @@ class RenderCommand(Command):
         header_prefix = os.path.join(Path.cwd(), "include")
         source_prefix = os.path.join(Path.cwd(), "src")
 
+        rate_modifier = {int(key): value for key, value in rate_modifier.items()}
+
         net = Network(
             allowed_species=species + extra_species,
             required_species=extra_species,
@@ -120,9 +122,9 @@ class RenderCommand(Command):
             heating=heating,
             cooling=cooling,
             shielding=shielding,
+            ratemodifier=rate_modifier,
         )
         net.add_reaction_from_file(network, database)
-        net.rate_modifier = rate_modifier
         net.ode_modifier = ode_modifier
 
         # Don't change the include/src/test when rendering patches

@@ -206,7 +206,7 @@ class ExampleCommand(Command):
                     f"--binding={','.join(f'{s}={sv}' for s, sv in binding_energy.items())}",
                     f"--yield={','.join(f'{s}={sv}' for s, sv in photon_yield.items())}",
                     f"--shielding='H2: L96Table, CO: V09Table, N2: L13Table'",
-                    f"--rate-modifier='k[8273] = 0.0'",
+                    f"--rate-modifier='8274: 0.0'",
                     f"--ode-modifier='double garea = (4*pi*rG*rG) * (y[IDX_GRAIN0I]+y[IDX_GRAINM])'",
                     f"--ode-modifier='double stick1 = (1.0 / (1.0 + 4.2e-2*sqrt(Tgas+Tdust) + 2.3e-3*Tgas - 1.3e-7*Tgas*Tgas))'",
                     f"--ode-modifier='double stick2 = exp(-1741.0/Tgas) / (1.0 + 5e-2*sqrt(Tgas+Tdust) + 1e-14*pow(Tgas, 4.0))'",
