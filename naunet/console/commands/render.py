@@ -63,9 +63,6 @@ class RenderCommand(Command):
         from pathlib import Path
         import naunet
 
-        if len(species) == 0:
-            species = None
-
         from naunet.species import Species
 
         Species.set_known_elements(element)

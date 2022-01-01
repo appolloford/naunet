@@ -10,8 +10,10 @@ from .reactions.reaction import Reaction
 from .reactions.kidareaction import KIDAReaction
 from .reactions.leedsreaction import LEEDSReaction
 from .reactions.kromereaction import KROMEReaction
+from .reactions.uclchemreaction import UCLCHEMReaction
 from .dusts.dust import Dust
 from .dusts.unidust import UniDust
+from .dusts.rr07dust import RR07Dust
 from .thermalprocess import ThermalProcess, get_allowed_cooling, get_allowed_heating
 
 
@@ -21,12 +23,14 @@ logger = logging.getLogger()
 
 supported_dust_model = {
     "uniform": UniDust,
+    "RR07": RR07Dust,
 }
 
 supported_reaction_class = {
     "kida": KIDAReaction,
     "leeds": LEEDSReaction,
     "krome": KROMEReaction,
+    "uclchem": UCLCHEMReaction,
 }
 
 

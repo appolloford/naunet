@@ -45,6 +45,9 @@ class ReactionType(IntEnum):
     SURFACE_COSMICRAY = 301
     SURFACE_PHOTON = 302
 
+    # 31x: surface diffusion
+    SURFACE_DIFFUSION = 310
+
     UNKNOWN = 999
 
 

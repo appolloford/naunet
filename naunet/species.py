@@ -119,6 +119,11 @@ class Species:
 
         self._parse_molecule_name()
 
+        # create a element count dict in all caps to search in periodic table
+        self._allcaps_element_count = {
+            key.upper(): value for key, value in self.element_count.items()
+        }
+
     def __eq__(self, o: object) -> bool:
         if isinstance(o, Species):
             return self.name == o.name
@@ -348,6 +353,9 @@ class Species:
         """
         Total charge of the species. Calculate the number of "+" and "-" in the end
         """
+        if self.iselectron:
+            return -1
+
         pcharge = "".join(re.findall(r"\+*$", self.name)).count("+")
         ncharge = "".join(re.findall(r"-*$", self.name)).count("-")
         return pcharge - ncharge
@@ -363,6 +371,16 @@ class Species:
             if self.is_surface
             else self.name
         )
+
+    @property
+    def iselectron(self) -> bool:
+        """
+        A conveninent function to check whether the species is electron.
+
+        Returns:
+            bool: True if the species is electron
+        """
+        return self.name.upper() in ["E", "E-"]
 
     @property
     def is_surface(self) -> bool:
@@ -404,7 +422,9 @@ class Species:
 
         self._mass = 0.0
         for e in Species._periodic_table + Species._isotopes_table:
-            self._mass += self.element_count.get(e.Symbol, 0) * float(e.AtomicMass)
+            self._mass += self._allcaps_element_count.get(e.Symbol.upper(), 0) * float(
+                e.AtomicMass
+            )
 
         # ? electron mass
         # self._mass -= 0.00054858 * self.charge
@@ -425,7 +445,7 @@ class Species:
 
         self._massnumber = 0.0
         for e in Species._periodic_table + Species._isotopes_table:
-            self._massnumber += self.element_count.get(e.Symbol, 0) * (
+            self._massnumber += self._allcaps_element_count.get(e.Symbol.upper(), 0) * (
                 float(e.NumberofNeutrons) + float(e.NumberofProtons)
             )
 
