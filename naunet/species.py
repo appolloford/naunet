@@ -286,12 +286,15 @@ class Species:
         """
         Alias of the species.
 
-        Replace surface symbol by `G` and charges by `M`(-), `I`(+). Used in
+        Replace surface symbol by `G` and charges by `M`(-), `I`(+). Capital
+        element symbols are replaced by standard element symbols. Used in
         indexing species in codes. Can be customized by setter if needed.
         """
 
         if not self._alias:
             basename = self.basename
+            for e in Species._periodic_table + Species._isotopes_table:
+                basename = basename.replace(e.Symbol.upper(), e.Symbol)
             self._alias = "{}{}{}".format(
                 "G" if self.is_surface else "",
                 basename,

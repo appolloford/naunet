@@ -54,8 +54,6 @@ class TemplateLoader:
         The information required by ode expressions
         """
 
-        method: str
-        device: str
         rateeqns: list[str]
         hrateeqns: list[str]
         crateeqns: list[str]
@@ -391,8 +389,6 @@ class TemplateLoader:
         spjaccvalarr = ", ".join(spjaccvalarr)
 
         self._ode = self.ODEContent(
-            method,
-            device,
             rateeqns,
             hrateeqns,
             crateeqns,
