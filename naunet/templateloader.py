@@ -426,6 +426,7 @@ class TemplateLoader:
         self.render_ode(prefix=prefix, save=save)
         self.render_physics(prefix=prefix, save=save)
         self.render_naunet(prefix=prefix, save=save)
+        self.render_utilities(prefix=prefix, save=save)
 
     # This function should not be used outside console commands
     def render_cmake(self, prefix: str = "./", version: str = None) -> None:
@@ -666,3 +667,29 @@ class TemplateLoader:
 
         with open(f"{prefix}/jac_pattern.dat", "w") as outf:
             outf.write(self._ode.jacpattern)
+
+    def render_utilities(
+        self,
+        prefix: str = "./",
+        name: str = None,
+        save: bool = True,
+        headerprefix: str = None,
+        headername: str = None,
+        header: bool = True,
+    ):
+
+        if save:
+            name = name if name else f"naunet_utilities.cpp"
+            headername = headername if headername else "naunet_utilities.h"
+            headerprefix = headerprefix if headerprefix else prefix
+
+        if header:
+            headername = headername if headername else "naunet_utilities.h"
+            self._physics.header = headername
+            tname = "common/include/naunet_utilities.h.j2"
+            template = self._env.get_template(tname)
+            self._render(template, headerprefix, headername, save)
+
+        tname = "common/src/naunet_utilities.cpp.j2"
+        template = self._env.get_template(tname)
+        self._render(template, prefix, name, save)
