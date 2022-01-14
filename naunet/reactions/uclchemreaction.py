@@ -60,6 +60,15 @@ class UCLCHEMReaction(Reaction):
         "UVCREFF": "uvcreff",  # UVCREFF is ratio of CR induced UV to ISRF UV
     }
 
+    user_var = [
+        "double h2col = 0.5*1.59e21*Av",
+        "double cocol = 1e-5 * h2col",
+        "double lamdabar = GetCharactWavelength(h2col, cocol)",
+        "double H2shielding = GetShieldingFactor(IDX_H2I, h2col, h2col, Tgas, 1)",
+        "double H2formation = 1.0e-17 * sqrt(Tgas)",
+        "double H2dissociation = 5.1e-11 * G0 * GetGrainScattering(Av, 1000.0) * H2shielding",
+    ]
+
     def __init__(self, react_string, *args, dust: Dust = None, **kwargs) -> None:
         super().__init__(react_string)
 
@@ -107,7 +116,7 @@ class UCLCHEMReaction(Reaction):
             rate = f"{G0} * {a} * exp(-{c}*{Av}) / 1.7"  # convert habing to Draine
             if re1.name in ["CO"]:
                 shield = f"GetShieldingFactor(IDX_{re1.alias}, h2col, {re1.name.lower()}col, {Tgas}, 1)"
-                rate = f"{rate} * {shield}"
+                rate = f"(2.0e-10) * {G0} * {shield} * GetGrainScattering(Av, lamdabar) / 1.7"
 
         # accretion
         elif rtype == self.ReactionType.UCLCHEM_FR:

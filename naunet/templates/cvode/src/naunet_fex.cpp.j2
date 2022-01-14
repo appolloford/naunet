@@ -42,6 +42,10 @@ __global__ void FexKernel(realtype *y, realtype *ydot, NaunetData *d_udata,
             realtype {{ v }} = udata->{{ v }};
         {% endfor %}
 
+        {% for v in variables.user_var -%}
+            {{ v }};
+        {% endfor %}
+
         {% for v in variables.tvaris -%}
             realtype {{ v }} = udata->{{ v }};
         {% endfor %}
@@ -88,6 +92,10 @@ int Fex(realtype t, N_Vector u, N_Vector udot, void *user_data) {
     // clang-format off
     {% for v in variables.varis -%}
         realtype {{ v }} = u_data->{{ v }};
+    {% endfor %}
+
+    {% for v in variables.user_var -%}
+        {{ v }};
     {% endfor %}
 
     {% for v in variables.tvaris -%}

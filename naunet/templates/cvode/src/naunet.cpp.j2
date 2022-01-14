@@ -26,6 +26,9 @@
 #include "naunet_data.h"
 /* {% endif %} */
 #include "naunet_ode.h"
+/* {% if "VB88Table" in physics.coshielding -%} */
+#include "naunet_utilities.h"
+/* {% endif -%} */
 
 // check_flag function is from the cvDiurnals_ky.c example from the CVODE
 // package. Check function return value...
@@ -202,6 +205,11 @@ int Naunet::Init(int nsystem, double atol, double rtol, int mxsteps) {
 
     // N_VDestroy(cv_y_);
     // cv_y_ = N_VNewEmpty_Cuda();
+
+    /* {% endif -%} */
+
+    /* {% if "VB88Table" in physics.coshielding -%} */
+    splie2(COShieldingTableX, COShieldingTableY, COShieldingTable, 6, 7, COShieldingTableD2);
 
     /* {% endif -%} */
 

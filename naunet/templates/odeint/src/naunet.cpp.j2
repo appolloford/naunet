@@ -5,6 +5,9 @@
 /* {% endif %} */
 #include "naunet_macros.h"
 #include "naunet_ode.h"
+/* {% if "VB88Table" in physics.coshielding -%} */
+#include "naunet_utilities.h"
+/* {% endif -%} */
 
 using namespace boost::numeric::odeint;
 
@@ -22,6 +25,12 @@ int Naunet::Init(int nsystem, double atol, double rtol, int mxsteps) {
     mxsteps_  = mxsteps;
     atol_     = atol;
     rtol_     = rtol;
+
+    /* {% if "VB88Table" in physics.coshielding -%} */
+    splie2(COShieldingTableX, COShieldingTableY, COShieldingTable, 6, 7, COShieldingTableD2);
+
+    /* {% endif -%} */
+
     return NAUNET_SUCCESS;
 };
 

@@ -532,7 +532,15 @@ class TemplateLoader:
 
         tname = os.path.join(self._solver, "src/naunet.cpp.j2")
         template = self._env.get_template(tname)
-        self._render(template, prefix, name, save, info=self._info, header=headername)
+        self._render(
+            template,
+            prefix,
+            name,
+            save,
+            info=self._info,
+            header=headername,
+            physics=self._physics,
+        )
 
     def render_ode(
         self,

@@ -109,6 +109,16 @@ extern const double COShieldingTableY[41];
 extern const double COShieldingTableZ[46];
 // CO shielding factor
 extern const double COShieldingTable[5][41][46];
+{% elif physics.coshielding == "VB88Table" %}
+// van Dishoeck & Black (1988)
+// H2 column density
+extern const double COShieldingTableX[6];
+// CO column density
+extern const double COShieldingTableY[7];
+// CO shielding factor
+extern const double COShieldingTable[6][7];
+// Second derivative of CO shielding factor
+double COShieldingTableD2[6][7];
 {% endif %}
 
 {% if physics.n2shielding == "L13Table" %}
