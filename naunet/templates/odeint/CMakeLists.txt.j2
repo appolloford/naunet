@@ -39,6 +39,7 @@ set(NVIDIA_GPU_COUNT 0)
 set(MAKE_STATIC ON CACHE BOOL "")
 set(MAKE_SHARED ON CACHE BOOL "")
 set(MAKE_PYTHON OFF CACHE BOOL "")
+set(MAKE_TEST OFF CACHE BOOL "")
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 if(MAKE_PYTHON)
@@ -46,8 +47,9 @@ if(MAKE_PYTHON)
     find_package(PythonInterp REQUIRED)
 endif()
 
-enable_testing()
-
 add_subdirectory(src)
-add_subdirectory(test)
 
+if(MAKE_TEST)
+    enable_testing()
+    add_subdirectory(test)
+endif()
