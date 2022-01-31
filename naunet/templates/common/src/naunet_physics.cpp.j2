@@ -115,7 +115,7 @@ double GetH2shieldingInt(double coldens) {
 
     double shielding = -1.0;
 
-    /* {% if "Table" in physics.h2shielding -%} */
+    /* {% if "L96Table" in physics.h2shielding -%} */
     if (coldens >= H2ShieldingTableX[104]) {
         double x1 = H2ShieldingTableX[103];
         double x2 = H2ShieldingTableX[104];
@@ -201,7 +201,7 @@ double GetCOshieldingInt(double tgas, double h2col, double coldens) {
     // clang-format on
     double shielding = -1.0;
 
-    /* {% if "Table" in physics.coshielding -%} */
+    /* {% if "V09Table" in physics.coshielding -%} */
     double x1, x2, y1, y2, z1, z2;
     int i1, i2, j1, j2, k1, k2;
     for (int i = 0; i < 4; i++) {
@@ -283,10 +283,33 @@ double GetCOshieldingInt1(double h2col, double coldens) {
     double logh2 = std::min(std::max(log10(h2col), COShieldingTableX[0]), COShieldingTableX[5]);
     double logco = std::min(std::max(log10(coldens), COShieldingTableY[0]), COShieldingTableY[6]);
 
-    splin2(COShieldingTableX, COShieldingTableY, COShieldingTable, COShieldingTableD2, 
-           6, 7, logh2, logco, &shielding);
+    double *x1  = vector(1, 6);
+    double *x2  = vector(1, 7);
+    double **y  = matrix(1, 6, 1, 7);
+    double **y2 = matrix(1, 6, 1, 7);
+
+    for (int i=1; i<=6; i++) x1[i] = COShieldingTableX[i-1];
+    for (int i=1; i<=7; i++) x2[i] = COShieldingTableY[i-1];
+
+    for (int i=1; i<=6; i++) {
+        for (int j=1; j<=7; j++) {
+            y[i][j] = COShieldingTable[i-1][j-1];
+        }
+    }
+
+    splie2(x1, x2, y, 6, 7, y2);
+
+    splin2(x1, x2, y, y2, 6, 7, logh2, logco, &shielding);
+
+    // splin2(COShieldingTableX, COShieldingTableY, COShieldingTable, COShieldingTableD2, 
+    //        6, 7, logh2, logco, &shielding);
 
     shielding = pow(10.0, shielding);
+
+    free_vector(x1, 1, 6);
+    free_vector(x2, 1, 7);
+    free_matrix(y, 1, 6, 1, 7);
+    free_matrix(y2, 1, 6, 1, 7);
 
     /* {% endif -%} */
 
@@ -301,7 +324,7 @@ double GetN2shieldingInt(double tgas, double h2col, double coldens) {
 
     double shielding = -1.0;
 
-    /* {% if "Table" in physics.n2shielding -%} */
+    /* {% if "L13Table" in physics.n2shielding -%} */
     double x1, x2, y1, y2, z1, z2;
     int i1, i2, j1, j2, k1, k2;
     for (int i = 0; i < 4; i++) {
@@ -402,7 +425,7 @@ double xlamda(double wavelength) {
         return 5.76;
     }
 
-    else if (wavelength >= x[29]) {
+    else if (wavelength >= x[28]) {
         return 0.05 - 5.16e-11 * (wavelength-x[29]);
     }
 

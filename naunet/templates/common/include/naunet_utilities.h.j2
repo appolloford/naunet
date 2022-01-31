@@ -2,10 +2,14 @@
 #define __NAUNET_UTILITIES_H__
 
 // From Numerical Recipes in C, 2nd ed
-void spline(float x[], float y[], int n, float yp1, float ypn, float y2[]);
-void splint(float xa[], float ya[], float y2a[], int n, float x, float *y);
-void splie2(float x1a[], float x2a[], float **ya, int m, int n, float **y2a);
-void splin2(float x1a[], float x2a[], float **ya, float **y2a, int m, int n,
-        	float x1, float x2, float *y);
+double *vector(long nl, long nh);
+void free_vector(double *v, long nl, long nh);
+double **matrix(long nrl, long nrh, long ncl, long nch);
+void free_matrix(double **m, long nrl, long nrh, long ncl, long nch);
+void spline(double x[], double y[], int n, double yp1, double ypn, double y2[]);
+void splint(double xa[], double ya[], double y2a[], int n, double x, double *y);
+void splie2(double x1a[], double x2a[], double *ya[], int m, int n, double **y2a);
+void splin2(double x1a[], double x2a[], double *ya[], double *y2a[], int m, int n,
+        	double x1, double x2, double *y);
 
 #endif

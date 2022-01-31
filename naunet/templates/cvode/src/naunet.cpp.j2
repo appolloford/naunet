@@ -27,6 +27,7 @@
 /* {% endif %} */
 #include "naunet_ode.h"
 /* {% if "VB88Table" in physics.coshielding -%} */
+#include "naunet_constants.h"
 #include "naunet_utilities.h"
 /* {% endif -%} */
 
@@ -209,7 +210,30 @@ int Naunet::Init(int nsystem, double atol, double rtol, int mxsteps) {
     /* {% endif -%} */
 
     /* {% if "VB88Table" in physics.coshielding -%} */
-    splie2(COShieldingTableX, COShieldingTableY, COShieldingTable, 6, 7, COShieldingTableD2);
+
+    // TODO: The result is not saved
+    // double *x1  = vector(1, 6);
+    // double *x2  = vector(1, 7);
+    // double **y  = matrix(1, 6, 1, 7);
+    // double **y2 = matrix(1, 6, 1, 7);
+
+    // for (int i=1; i<=6; i++) x1[i] = COShieldingTableX[i-1];
+    // for (int i=1; i<=7; i++) x2[i] = COShieldingTableY[i-1];
+
+    // for (int i=1; i<=6; i++) {
+    //     for (int j=1; j<=7; j++) {
+    //         y[i][j] = COShieldingTable[i-1][j-1];
+    //     }
+    // }
+
+    // splie2(x1, x2, y, 6, 7, y2);
+
+    // free_vector(x1, 1, 6);
+    // free_vector(x2, 1, 7);
+    // free_matrix(y, 1, 6, 1, 7);
+    // free_matrix(y2, 1, 6, 1, 7);
+
+    // splie2(COShieldingTableX, COShieldingTableY, COShieldingTable, 6, 7, COShieldingTableD2);
 
     /* {% endif -%} */
 
