@@ -7,17 +7,22 @@ class RR07Dust(Dust):
 
     varis = {
         "Radius": "rG",
-        "GrainDensity": "gdens",
+        "GrainDensity": "gdens",  # grain density
         "SurfaceSites": "sites",
         "FreezeRatio": "fr",
+        "ThermDesorptionOption": "opt_thd",
+        "CRDesorptionOption": "opt_crd",
+        "H2DesorptionOption": "opt_h2d",
+        "UVDesorptionOption": "opt_uvd",
         "CRDesorptionEfficiency": "crdeseff",
         "H2DesorptionEfficiency": "h2deseff",
     }
     user_var = [
+        # "double mant = GetMantleDens(y) > 0.0 ? GetMantleDens(y) : 1e-40",
         "double mant = GetMantleDens(y)",
-        "double garea = (4*pi*rG*rG) * gdens",
-        "double unisites = sites * (4*pi*rG*rG)",
-        "double densites = sites * (4*pi*rG*rG) * gdens",
+        "double mantabund = mant / nH",
+        "double garea = (pi*rG*rG) * gdens",  # total grain cross-section
+        "double densites = 4.0 * garea * sites",
     ]
 
     def __init__(self, *args, **kwargs) -> None:
@@ -62,6 +67,7 @@ class RR07Dust(Dust):
                 raise ValueError("Symbol of dust temperature was not provided.")
             rate = " * ".join(
                 [
+                    f"opt_thd",
                     f"sqrt(2.0*{sites}*kerg*eb_{spec.alias}/(pi*pi*amu*{spec.massnumber}))",
                     f"2.0 * densites",
                     f"exp(-eb_{spec.alias}/{tdust})",
@@ -74,23 +80,34 @@ class RR07Dust(Dust):
                     "Symbol of cosmic ray ionization rate (in Draine unit) was not provided."
                 )
             rate = " * ".join(
-                [f"4.0 * pi * {crdeseff}", f"({zeta})", f"1.64e-4 * garea / mant"]
+                [
+                    f"opt_crd * 4.0 * pi * {crdeseff}",
+                    f"({zeta})",
+                    f"1.64e-4 * garea / mant",
+                ]
             )
 
         elif destype == "photon":
             if not uvphot:
                 raise ValueError("Symbol of UV field strength was not provided.")
 
-            rate = f"4.875e3 * garea * ({uvphot}) * {spec.photon_yield} / mant"
+            rate = " * ".join(
+                [
+                    f"opt_uvd * 4.875e3 * garea",
+                    f"({uvphot}) * {spec.photon_yield(default=0.1)} / mant",
+                ]
+            )
 
         elif destype == "h2":
             if not h2form:
                 raise ValueError("Symbol of H2 formation rate was not provided.")
 
-            rate = f"{h2deseff} * {h2form} / mant"
+            rate = f"opt_h2d * {h2deseff} * {h2form} * nH / mant"
 
         else:
             raise ValueError(f"Not support desorption type {destype}")
+
+        rate = f"mantabund > 1e-30 ? ({rate}) : 0.0"
 
         return rate
 

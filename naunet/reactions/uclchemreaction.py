@@ -1,5 +1,4 @@
 from enum import IntEnum
-from ..species import Species
 from ..dusts.dust import Dust
 from .reaction import Reaction, ReactionType as BasicType
 
@@ -47,7 +46,7 @@ class UCLCHEMReaction(Reaction):
     }
 
     consts = {
-        "zism": 1.36e-17,
+        "zism": 1.3e-17,
     }
 
     varis = {
@@ -94,7 +93,7 @@ class UCLCHEMReaction(Reaction):
         albedo = UCLCHEMReaction.varis.get("DustGrainAlbedo")
         uvcreff = UCLCHEMReaction.varis.get("UVCREFF")
 
-        zism = UCLCHEMReaction.consts.get("zism")
+        zeta = f"({zeta} / zism)"  # uclchem has cosmic-ray ionization rate in unit of 1.3e-17s-1
 
         re1 = self.reactants[0]
         # re2 = self.reactants[1] if len(self.reactants) > 1 else None
@@ -181,6 +180,9 @@ class UCLCHEMReaction(Reaction):
             self.gamma = float(c)
             self.temp_min = float(lt)
             self.temp_max = float(ut)
+            # UCLCHEM program does not check the temperature range, the next two lines are used for benchmark test
+            # self.temp_min = 10.0
+            # self.temp_max = 41000.0
 
             reactants = [r for r in rpspec[0:3] if r not in kwlist]
             products = [p for p in rpspec[3:7] if p not in kwlist]
