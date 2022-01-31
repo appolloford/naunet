@@ -460,12 +460,9 @@ class Species:
 
         return self._massnumber
 
-    @property
-    def photon_yield(self) -> float:
+    def photon_yield(self, default=1e-3) -> float:
         """
-        The photodesorption yield of the species (ice-phase only). Return default value
-        (1.0e-3) if no value is found. The default value can be changed in
-        naunet.chemistry.default_photon_yield
+        The photodesorption yield of the species (ice-phase only). Return default value if no value is found.
         """
         if self._photon_yield:
             return self._photon_yield
@@ -473,9 +470,7 @@ class Species:
         if not self.is_surface:
             logging.fatal(f"{self.name} is not ice species! No photodesorption yield")
 
-        self._photon_yield = chemistry.user_photon_yield.get(
-            self.name, chemistry.default_photon_yield
-        )
+        self._photon_yield = chemistry.user_photon_yield.get(self.name, default)
 
         return self._photon_yield
 

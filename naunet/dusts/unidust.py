@@ -80,7 +80,7 @@ class UniDust(Dust):
         elif destype == "photon":
             if not uvphot:
                 raise ValueError("Symbol of UV field strength (G0) was not provided.")
-            rate = f"({uvphot}) * {spec.photon_yield} * {nmono} * garea"
+            rate = f"({uvphot}) * {spec.photon_yield()} * {nmono} * garea"
         else:
             raise ValueError(f"Not support desorption type {destype}")
 

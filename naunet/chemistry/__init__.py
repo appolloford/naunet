@@ -209,8 +209,6 @@ rate12_binding_energy = {
 
 user_binding_energy = {}
 
-default_photon_yield = 1.0e-3
-
 user_photon_yield = {}
 
 
