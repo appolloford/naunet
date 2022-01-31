@@ -26,6 +26,11 @@ int EvalRates(double *k, double *y, NaunetData *u_data) {
     {% for v in variables.varis -%}
         double {{ v }} = u_data->{{ v }};
     {% endfor %}
+
+    {% for v in variables.user_var -%}
+        {{ v }};
+    {% endfor %}
+
     // clang-format on
 
     double Te      = Tgas * 8.617343e-5;            // Tgas in eV (eV)
@@ -148,7 +153,9 @@ void Fex::operator()(const vector_type &abund, vector_type &ydot, double t) {
 
     {% for v in variables.user_var -%}
         {{ v }};
-    {% endfor %}  // clang-format on
+    {% endfor %}  
+    
+    // clang-format on
 
     double k[NREACTIONS] = {0.0};
     EvalRates(k, y, u_data);
@@ -219,6 +226,8 @@ void Jac::operator()(const vector_type &abund, matrix_type &j, const double &t,
     double kc[NCOOLPROCS] = {0.0};
     EvalCoolingRates(kc, y, u_data);
 #endif
+
+    j = boost::numeric::ublas::zero_matrix<double>(NEQUATIONS, NEQUATIONS);
 
     // clang-format off
     {% for eq in ode.jac -%}

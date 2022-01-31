@@ -130,6 +130,8 @@ int Jac(realtype t, N_Vector u, N_Vector fu, SUNMatrix jmatrix, void *user_data,
     EvalCoolingRates(kc, y, u_data);
 #endif
 
+    SUNMatZero(jmatrix);
+
     // clang-format off
     {% for eq in ode.jac -%}
         {{ eq | stmwrap(80, 8) }}

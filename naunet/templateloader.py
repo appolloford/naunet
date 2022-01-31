@@ -348,10 +348,13 @@ class TemplateLoader:
             jac = [
                 f"IJth(jmatrix, {idx//n_eqns}, {idx%n_eqns}) = {j};"
                 for idx, j in enumerate(jacrhs)
+                if j != "0.0"
             ]
         elif self._solver == "odeint":
             jac = [
-                f"j({idx//n_eqns}, {idx%n_eqns}) = {j};" for idx, j in enumerate(jacrhs)
+                f"j({idx//n_eqns}, {idx%n_eqns}) = {j};"
+                for idx, j in enumerate(jacrhs)
+                if j != "0.0"
             ]
 
         jacpattern = [0 if j == "0.0" else 1 for j in jacrhs]
