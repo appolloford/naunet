@@ -47,6 +47,7 @@ class ExampleCommand(Command):
         primordial_path = os.path.join(example_path, "primordial")
         deuterium_path = os.path.join(example_path, "deuterium")
         ism_path = os.path.join(example_path, "ism")
+        cloud_path = os.path.join(example_path, "cloud")
 
         name = destination if destination else Path.cwd().name.lower()
 
@@ -63,6 +64,9 @@ class ExampleCommand(Command):
             "deuterium/sparse",
             "deuterium/cusparse",
             "deuterium/rosenbrock4",
+            "cloud/dense",
+            "cloud/sparse",
+            "cloud/rosenbrock4",
             "ism/dense",
             "ism/sparse",
             "ism/cusparse",
@@ -213,6 +217,42 @@ class ExampleCommand(Command):
                     f"--ode-modifier='double stick = stick1 + stick2'",
                     f"--ode-modifier='double hloss = stick * garea/4.0 * sqrt(8.0*kerg*Tgas/(pi*amu))'",
                     f"--ode-modifier='ydot[IDX_H2I] += 0.5*hloss*y[IDX_HI]; ydot[IDX_HI] -= hloss*y[IDX_HI]'",
+                    f"--solver={solver} --device={device} --method={method}",
+                    f"--render",
+                ]
+            )
+
+        elif "cloud" in case:
+
+            from naunet.examples.cloud import (
+                elements as cloud_elements,
+                pseudo_elements as cloud_pelements,
+                species as cloud_species,
+                binding_energy as cloud_be,
+            )
+
+            elements = cloud_elements
+            pseudo_elements = cloud_pelements
+            species = cloud_species
+            binding_energy = cloud_be
+            network_source = cloud_path
+            solver = "odeint" if "rosenbrock4" in case else "cvode"
+            device = "gpu" if "cusparse" in case else "cpu"
+            method = case.split("/")[-1]
+
+            option = " ".join(
+                [
+                    f"--name={name} --description=example",
+                    f"--elements={','.join(elements)}",
+                    f"--pseudo-elements={','.join(pseudo_elements)}",
+                    f"--species={','.join(species)}",
+                    f"--extra-species=''",
+                    f"--network=reactions.ucl --database=uclchem",
+                    f"--dust=RR07",
+                    f"--binding={','.join(f'{s}={sv}' for s, sv in binding_energy.items())}",
+                    f"--shielding='CO: VB88Table'",
+                    f"--ode-modifier='ydot[IDX_H2I] += H2formation*y[IDX_HI] - H2dissociation*y[IDX_H2I]/nH'",
+                    f"--ode-modifier='ydot[IDX_HI] += 2.0*(H2dissociation*y[IDX_H2I]/nH - H2formation*y[IDX_HI])'",
                     f"--solver={solver} --device={device} --method={method}",
                     f"--render",
                 ]
