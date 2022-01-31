@@ -81,4 +81,8 @@ const double {{ c }} = {{ cv }};
 {% include "data/N2shielding_11.2bH2_1e20nH.dat.j2" %}
 {% endif %}
 
+{% if physics.coshielding == "VB88Table" %}
+{% include "data/COshielding_VB88.dat.j2" %}
+{% endif %}
+
 {% endwith %}
