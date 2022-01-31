@@ -293,8 +293,15 @@ class Species:
 
         if not self._alias:
             basename = self.basename
-            for e in Species._periodic_table + Species._isotopes_table:
-                basename = basename.replace(e.Symbol.upper(), e.Symbol)
+            # TODO: The replacement does not guarantee the correctness
+            # e.g. CO could be replaced by Co if Co exists in the known element list
+            replacement = {
+                e.Symbol.upper(): e.Symbol
+                for e in Species._periodic_table + Species._isotopes_table
+                if e.Symbol.upper() in self._known_elements
+            }
+            for key, value in replacement.items():
+                basename = basename.replace(key, value)
             self._alias = "{}{}{}".format(
                 "G" if self.is_surface else "",
                 basename,
