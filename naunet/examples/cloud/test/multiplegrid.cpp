@@ -17,7 +17,7 @@ int main() {
     double omega    = 0.5;
     double G0       = 1.0;
     double rG       = 1e-5;
-    double gdens    = 2.4e-12;
+    double gdens    = 7.6394373e-13 * nH;
     double sites    = 1.5e15;
     double fr       = 1.0;
     double opt_thd  = 1.0;
