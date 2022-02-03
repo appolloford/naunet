@@ -7,7 +7,7 @@
 #define NAUNET_SPECIES 4
 // number of equations to be solved
 #define NAUNET_NSPECIES {{ nspec }}
-#define NAUNET_NEQNS {{ neqns }}
+#define NAUNET_NEQUATIONS {{ neqns }}
 
 {% for s in species -%}
 #define IDX_{{ s.alias }} {{ loop.index0 }}

@@ -62,8 +62,22 @@ def define_reaction(name: str):
         name (str): name of the class / source database of the reaction
     """
 
-    def insert_class(reactcls: object):
+    def insert_class(reactcls: Type[Reaction]):
         supported_reaction_class.update({name: reactcls})
+
+    return insert_class
+
+
+def define_dust(name: str):
+    """
+    Decorator for users to add customized dust model
+
+    Args:
+        name (str): name of the class / source database of the reaction
+    """
+
+    def insert_class(dustcls: Type[Dust]):
+        supported_dust_model.update({name: dustcls})
 
     return insert_class
 

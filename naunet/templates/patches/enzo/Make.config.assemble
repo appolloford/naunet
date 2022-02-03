@@ -67,9 +67,9 @@
     # error if CONFIG_INTEGERS is incorrect
 
     ifeq ($(ERROR_IDS),1)
-        .PHONY: error_ids
-        error_ids:
-        $(error Illegal value '$(CONFIG_PARTICLE_IDS)' for $$(CONFIG_PARTICLE_IDS))
+       .PHONY: error_ids
+       error_ids:
+	$(error Illegal value '$(CONFIG_PARTICLE_IDS)' for $$(CONFIG_PARTICLE_IDS))
     endif
 
 #-----------------------------------------------------------------------
@@ -95,9 +95,9 @@
     # error if CONFIG_INTEGERS is incorrect
 
     ifeq ($(ERROR_INTEGERS),1)
-        .PHONY: error_integers
-        error_integers:
-        $(error Illegal value '$(CONFIG_INTEGERS)' for $$(CONFIG_INTEGERS))
+       .PHONY: error_integers
+       error_integers:
+	$(error Illegal value '$(CONFIG_INTEGERS)' for $$(CONFIG_INTEGERS))
     endif
 
 #-----------------------------------------------------------------------
@@ -125,9 +125,9 @@
     # error if CONFIG_PRECISION is incorrect
 
     ifeq ($(ERROR_PRECISION),1)
-        .PHONY: error_precision
-        error_precision:
-        $(error Illegal value '$(CONFIG_PRECISION)' for $$(CONFIG_PRECISION))
+       .PHONY: error_precision
+       error_precision:
+	$(error Illegal value '$(CONFIG_PRECISION)' for $$(CONFIG_PRECISION))
     endif
 
 #-----------------------------------------------------------------------
@@ -163,9 +163,9 @@
     # error if CONFIG_PARTICLES is incorrect
 
     ifeq ($(ERROR_PARTICLES),1)
-        .PHONY: error_particles
-        error_particles:
-        $(error Illegal value '$(CONFIG_PARTICLES)' for $$(CONFIG_PARTICLES))
+       .PHONY: error_particles
+       error_particles:
+	$(error Illegal value '$(CONFIG_PARTICLES)' for $$(CONFIG_PARTICLES))
     endif
 
 #-----------------------------------------------------------------------
@@ -191,8 +191,8 @@
     # error if CONFIG_INITS is incorrect
 
     ifeq ($(ERROR_INITS),1)
-        .PHONY: error_inits
-        error_inits: ;  $(error Illegal value $(CONFIG_INITS) for $$(CONFIG_INITS))
+       .PHONY: error_inits
+       error_inits: ;  $(error Illegal value $(CONFIG_INITS) for $$(CONFIG_INITS))
     endif
 
 #-----------------------------------------------------------------------
@@ -218,9 +218,9 @@
     # error if CONFIG_IO is incorrect
 
     ifeq ($(ERROR_IO),1)
-        .PHONY: error_io
-        error_io:
-        $(error Illegal value '$(CONFIG_IO)' for $$(CONFIG_IO))
+       .PHONY: error_io
+       error_io:
+	$(error Illegal value '$(CONFIG_IO)' for $$(CONFIG_IO))
     endif
 
 #=======================================================================
@@ -259,17 +259,17 @@
     # error if CONFIG_USE_MPI is incorrect
 
     ifeq ($(ERROR_USE_MPI),1)
-        .PHONY: error_compilers
-        error_compilers:
-        $(error Illegal value '$(CONFIG_USE_MPI)' for $$(CONFIG_USE_MPI))
+       .PHONY: error_compilers
+       error_compilers:
+	$(error Illegal value '$(CONFIG_USE_MPI)' for $$(CONFIG_USE_MPI))
     endif
 
 #-----------------------------------------------------------------------
 # Determine CUDA compiler
 #-----------------------------------------------------------------------
-        
+	
     ASSEMBLE_CUDACOMPILER = $(MACH_CUDACOMPILER)
-    ASSEMBLE_CUDAFLAGS = $(MACH_OPT_CUDA)
+    ASSEMBLE_CUDAFLAGS = $(MACH_OPT_CUDA)	
 
 #-----------------------------------------------------------------------
 # DETERMINE TASKMAP SETTINGS
@@ -294,9 +294,9 @@
     # error if CONFIG_TASKMAP is incorrect
 
     ifeq ($(ERROR_TASKMAP),1)
-        .PHONY: error_taskmap
-        error_taskmap:
-        $(error Illegal value '$(CONFIG_TASKMAP)' for $$(CONFIG_TASKMAP))
+       .PHONY: error_taskmap
+       error_taskmap:
+	$(error Illegal value '$(CONFIG_TASKMAP)' for $$(CONFIG_TASKMAP))
     endif
 
 #-----------------------------------------------------------------------
@@ -324,9 +324,9 @@
     # error if CONFIG_PACKED_AMR is incorrect
 
     ifeq ($(ERROR_PACKED_AMR),1)
-        .PHONY: error_packed_amr
-        error_packed_amr:
-        $(error Illegal value '$(CONFIG_PACKED_AMR)' for $$(CONFIG_PACKED_AMR))
+       .PHONY: error_packed_amr
+       error_packed_amr:
+	$(error Illegal value '$(CONFIG_PACKED_AMR)' for $$(CONFIG_PACKED_AMR))
     endif
 
 #-----------------------------------------------------------------------
@@ -352,9 +352,9 @@
     # error if CONFIG_PACKED_MEM is incorrect
 
     ifeq ($(ERROR_PACKED_MEM),1)
-        .PHONY: error_packed_mem
-        error_packed_mem:
-        $(error Illegal value '$(CONFIG_PACKED_MEM)' for $$(CONFIG_PACKED_MEM))
+       .PHONY: error_packed_mem
+       error_packed_mem:
+	$(error Illegal value '$(CONFIG_PACKED_MEM)' for $$(CONFIG_PACKED_MEM))
     endif
 
 #-----------------------------------------------------------------------
@@ -370,22 +370,22 @@
         ASSEMBLE_LCAPERF_DEFINES = -DUSE_LCAPERF
         ASSEMBLE_LCAPERF_INCLUDES = $(MACH_INCLUDES_LCAPERF)
         ASSEMBLE_LCAPERF_LIBS     = $(MACH_LIBS_LCAPERF)
-        OBJS_LCAPERF_LIB = lcaperf.o
+	OBJS_LCAPERF_LIB = lcaperf.o
     endif
 
     # Settings to turn lcaperf OFF
 
     ifeq ($(CONFIG_LCAPERF),no)
         ERROR_LCAPERF = 0
-        OBJS_LCAPERF_LIB =
+	OBJS_LCAPERF_LIB =
     endif
 
     # error if CONFIG_LCAPERF is incorrect
 
     ifeq ($(ERROR_LCAPERF),1)
-        .PHONY: error_lcaperf
-        error_lcaperf:
-        $(error Illegal value '$(CONFIG_LCAPERF)' for $$(CONFIG_LCAPERF))
+       .PHONY: error_lcaperf
+       error_lcaperf:
+	$(error Illegal value '$(CONFIG_LCAPERF)' for $$(CONFIG_LCAPERF))
     endif
 
 #-----------------------------------------------------------------------
@@ -413,9 +413,9 @@
     # error if CONFIG_PYTHON is incorrect
 
     ifeq ($(ERROR_PYTHON),1)
-        .PHONY: error_PYTHON
-        error_PYTHON:
-        $(error Illegal value '$(CONFIG_PYTHON)' for $$(CONFIG_PYTHON))
+       .PHONY: error_PYTHON
+       error_PYTHON:
+	$(error Illegal value '$(CONFIG_PYTHON)' for $$(CONFIG_PYTHON))
     endif
 
 #-----------------------------------------------------------------------
@@ -446,9 +446,9 @@
     # error if CONFIG_NEW_PROBLEM_TYPES is incorrect
 
     ifeq ($(ERROR_NEW_PROBLEM_TYPES),1)
-        .PHONY: error_NEW_PROBLEM_TYPES
-        error_NEW_PROBLEM_TYPES:
-        $(error Illegal value '$(CONFIG_NEW_PROBLEM_TYPES)' for $$(CONFIG_NEW_PROBLEM_TYPES))
+       .PHONY: error_NEW_PROBLEM_TYPES
+       error_NEW_PROBLEM_TYPES:
+	$(error Illegal value '$(CONFIG_NEW_PROBLEM_TYPES)' for $$(CONFIG_NEW_PROBLEM_TYPES))
     endif
 
 #-----------------------------------------------------------------------
@@ -475,9 +475,9 @@
     # error if CONFIG_PAPI is incorrect
 
     ifeq ($(ERROR_PAPI),1)
-        .PHONY: error_papi
-        error_papi:
-        $(error Illegal value '$(CONFIG_PAPI)' for $$(CONFIG_PAPI))
+       .PHONY: error_papi
+       error_papi:
+	$(error Illegal value '$(CONFIG_PAPI)' for $$(CONFIG_PAPI))
     endif
 
 #-----------------------------------------------------------------------
@@ -503,9 +503,9 @@
     # error if CONFIG_OOC_BOUNDARY is incorrect
 
     ifeq ($(ERROR_OOC_BOUNDARY),1)
-        .PHONY: error_ooc_boundary
-        error_ooc_boundary:
-        $(error Illegal value '$(CONFIG_OOC_BOUNDARY)' for $$(CONFIG_OOC_BOUNDARY))
+       .PHONY: error_ooc_boundary
+       error_ooc_boundary:
+	$(error Illegal value '$(CONFIG_OOC_BOUNDARY)' for $$(CONFIG_OOC_BOUNDARY))
     endif
     
 #-----------------------------------------------------------------------
@@ -531,9 +531,9 @@
     # error if CONFIG_ACCELERATION_BOUNDARY is incorrect
 
     ifeq ($(ERROR_ACCELERATION_BOUNDARY),1)
-        .PHONY: error_sab
-        error_sab:
-        $(error Illegal value '$(CONFIG_ACCELERATION_BOUNDARY)' for $$(CONFIG_ACCELERATION_BOUNDARY))
+       .PHONY: error_sab
+       error_sab:
+	$(error Illegal value '$(CONFIG_ACCELERATION_BOUNDARY)' for $$(CONFIG_ACCELERATION_BOUNDARY))
     endif
 
 
@@ -563,7 +563,7 @@
         ERROR_OPT = 0
         ASSEMBLE_OPT_FLAGS = $(MACH_OPT_DEBUG)
         ASSEMBLE_CUDAFLAGS = $(MACH_OPT_CUDADEBUG)
-        ASSEMBLE_CUDADEBUG_DEFINES = -DECUDADEBUG
+	ASSEMBLE_CUDADEBUG_DEFINES = -DECUDADEBUG
     endif
 
     # Settings for high conservative optimization
@@ -583,9 +583,9 @@
     # error if CONFIG_OPT is incorrect
 
     ifeq ($(ERROR_OPT),1)
-        .PHONY: error_opt
-        error_opt:
-        $(error Illegal value '$(CONFIG_OPT)' for $$(CONFIG_OPT))
+       .PHONY: error_opt
+       error_opt:
+	$(error Illegal value '$(CONFIG_OPT)' for $$(CONFIG_OPT))
     endif
 
 #-----------------------------------------------------------------------
@@ -611,9 +611,9 @@
     # error if CONFIG_TESTING is incorrect
 
     ifeq ($(ERROR_TESTING),1)
-        .PHONY: error_testing
-        error_testing:
-        $(error Illegal value '$(CONFIG_TESTING)' for $$(CONFIG_TESTING))
+       .PHONY: error_testing
+       error_testing:
+	$(error Illegal value '$(CONFIG_TESTING)' for $$(CONFIG_TESTING))
     endif
 
 #-----------------------------------------------------------------------
@@ -627,7 +627,7 @@
     ifeq ($(CONFIG_PHOTON),yes)
         ERROR_PHOTON = 0
         ASSEMBLE_PHOTON_DEFINES = -DTRANSFER
-        OBJS_PHOTON_LIB = $(POBJS_CONFIG_LIB)
+	OBJS_PHOTON_LIB = $(POBJS_CONFIG_LIB)
     endif
 
     # Settings to turn radiative transfer OFF
@@ -635,15 +635,15 @@
     ifeq ($(CONFIG_PHOTON),no)
         ERROR_PHOTON = 0
         ASSEMBLE_PHOTON_DEFINES =
-        OBJS_PHOTON_LIB = 
+	OBJS_PHOTON_LIB = 
     endif
 
     # error if CONFIG_PHOTON is incorrect
 
     ifeq ($(ERROR_PHOTON),1)
-        .PHONY: error_transfer
-        error_transfer:
-        $(error Illegal value '$(CONFIG_PHOTON)' for $$(CONFIG_PHOTON))
+       .PHONY: error_transfer
+       error_transfer:
+	$(error Illegal value '$(CONFIG_PHOTON)' for $$(CONFIG_PHOTON))
     endif
 
 #-----------------------------------------------------------------------
@@ -669,9 +669,9 @@
     # error if CONFIG_EMISSIVITY is incorrect
 
     ifeq ($(ERROR_EMISSIVITY),1)
-        .PHONY: error_emissivity
-        error_emissivity:
-        $(error Illegal value '$(CONFIG_EMISSIVITY)' for $$(CONFIG_EMISSIVITY))
+       .PHONY: error_emissivity
+       error_emissivity:
+	$(error Illegal value '$(CONFIG_EMISSIVITY)' for $$(CONFIG_EMISSIVITY))
     endif
 
 #-----------------------------------------------------------------------
@@ -697,9 +697,9 @@
     # error if CONFIG_NEW_GRID_IO is incorrect
 
     ifeq ($(ERROR_NEW_GRID_IO),1)
-        .PHONY: error_NEW_GRID_IO
-        error_NEW_GRID_IO:
-        $(error Illegal value '$(CONFIG_NEW_GRID_IO)' for $$(CONFIG_NEW_GRID_IO))
+       .PHONY: error_NEW_GRID_IO
+       error_NEW_GRID_IO:
+	$(error Illegal value '$(CONFIG_NEW_GRID_IO)' for $$(CONFIG_NEW_GRID_IO))
     endif
 
 #-----------------------------------------------------------------------
@@ -729,9 +729,9 @@
     # error if CONFIG_HYPRE is incorrect
 
     ifeq ($(ERROR_HYPRE),1)
-        .PHONY: error_hypre
-        error_hypre:
-        $(error Illegal value '$(CONFIG_HYPRE)' for $$(CONFIG_HYPRE))
+       .PHONY: error_hypre
+       error_hypre:
+	$(error Illegal value '$(CONFIG_HYPRE)' for $$(CONFIG_HYPRE))
     endif
 
 
@@ -758,9 +758,9 @@
     # error if CONFIG_FAST_SIBis incorrect
 
     ifeq ($(ERROR_FAST_SIB),1)
-        .PHONY: error_fast_sib
-        error_fast_sib:
-        $(error Illegal value '$(CONFIG_FAST_SIB)' for $$(CONFIG_FAST_SIB))
+       .PHONY: error_fast_sib
+       error_fast_sib:
+	$(error Illegal value '$(CONFIG_FAST_SIB)' for $$(CONFIG_FAST_SIB))
     endif
 
 
@@ -787,9 +787,9 @@
     # error if CONFIG_BITWISE_IDENTICALITYis incorrect
 
     ifeq ($(ERROR_BITWISE_IDENTICALITY),1)
-        .PHONY: error_BITWISE_IDENTICALITY
-        error_BITWISE_IDENTICALITY:
-        $(error Illegal value '$(CONFIG_BITWISE_IDENTICALITY)' for $$(CONFIG_BITWISE_IDENTICALITY))
+       .PHONY: error_BITWISE_IDENTICALITY
+       error_BITWISE_IDENTICALITY:
+	$(error Illegal value '$(CONFIG_BITWISE_IDENTICALITY)' for $$(CONFIG_BITWISE_IDENTICALITY))
     endif
 
 
@@ -805,10 +805,10 @@
 
     ifeq ($(CONFIG_ECUDA),yes)
         ERROR_ECUDA = 0
-        ASSEMBLE_ECUDA_DEFINES = -DECUDA
-        ASSEMBLE_CUDA_LIBS = $(MACH_LIBS_CUDA)
-        ASSEMBLE_CUDA_INCLUDES = $(MACH_LIBS_INCLUDES)
-        OBJS_ECUDA_LIB = $(OBJS_ECUDA_ALL)
+	    ASSEMBLE_ECUDA_DEFINES = -DECUDA
+	    ASSEMBLE_CUDA_LIBS = $(MACH_LIBS_CUDA)
+	    ASSEMBLE_CUDA_INCLUDES = $(MACH_LIBS_INCLUDES)
+	    OBJS_ECUDA_LIB = $(OBJS_ECUDA_ALL)
     endif
 
     # Settings to tell the make system not to compile CUDA routines
@@ -816,15 +816,15 @@
     ifeq ($(CONFIG_ECUDA),no)
         ERROR_ECUDA = 0
         ASSEMBLE_ECUDA_DEFINES = 
-        OBJS_ECUDA_LIB = 
+	OBJS_ECUDA_LIB = 
     endif
 
     # error if 
 
     ifeq ($(ERROR_ECUDA),1)
-        .PHONY: error_ecuda
-        error_ecuda:
-        $(error Illegal value '$(CONFIG_ECUDA)' for $$(CONFIG_ECUDA))
+       .PHONY: error_ecuda
+       error_ecuda:
+	$(error Illegal value '$(CONFIG_ECUDA)' for $$(CONFIG_ECUDA))
     endif
 
 
@@ -852,9 +852,9 @@
     # error if CONFIG_USE_HDF4 is incorrect
 
     ifeq ($(ERROR_USE_HDF4),1)
-        .PHONY: error_compilers
-        error_compilers:
-        $(error Illegal value '$(CONFIG_USE_HDF4)' for $$(CONFIG_USE_HDF4))
+       .PHONY: error_compilers
+       error_compilers:
+	$(error Illegal value '$(CONFIG_USE_HDF4)' for $$(CONFIG_USE_HDF4))
     endif
 
 #-----------------------------------------------------------------------
@@ -880,9 +880,9 @@
     # error if CONFIG_GRAVITY_4S is incorrect
 
     ifeq ($(ERROR_GRAVITY_4S),1)
-        .PHONY: error_compilers
-        error_compilers:
-        $(error Illegal value '$(CONFIG_GRAVITY_4S)' for $$(CONFIG_GRAVITY_4S))
+       .PHONY: error_compilers
+       error_compilers:
+	$(error Illegal value '$(CONFIG_GRAVITY_4S)' for $$(CONFIG_GRAVITY_4S))
     endif
 
 #-----------------------------------------------------------------------
@@ -908,9 +908,9 @@
     # error if CONFIG_ENZO_PERFORMANCE is incorrect
 
     ifeq ($(ERROR_ENZO_PERFORMANCE),1)
-        .PHONY: error_compilers
-        error_compilers:
-        $(error Illegal value '$(CONFIG_ENZO_PERFORMANCE)' for $$(CONFIG_ENZO_PERFORMANCE))
+       .PHONY: error_compilers
+       error_compilers:
+	$(error Illegal value '$(CONFIG_ENZO_PERFORMANCE)' for $$(CONFIG_ENZO_PERFORMANCE))
     endif
 
 
@@ -939,9 +939,9 @@
     # error if CONFIG_GRACKLE is incorrect
 
     ifeq ($(ERROR_GRACKLE),1)
-        .PHONY: error_compilers
-        error_compilers:
-        $(error Illegal value '$(CONFIG_GRACKLE)' for $$(CONFIG_GRACKLE))
+       .PHONY: error_compilers
+       error_compilers:
+	$(error Illegal value '$(CONFIG_GRACKLE)' for $$(CONFIG_GRACKLE))
     endif
 
 #-----------------------------------------------------------------------
@@ -1001,9 +1001,40 @@
     # error if CONFIG_LOG2ALLOCis incorrect
 
     ifeq ($(ERROR_LOG2ALLOC),1)
-        .PHONY: error_log2alloc
-        error_log2alloc:
-        $(error Illegal value '$(CONFIG_LOG2ALLOC)' for $$(CONFIG_LOG2ALLOC))
+       .PHONY: error_log2alloc
+       error_log2alloc:
+	$(error Illegal value '$(CONFIG_LOG2ALLOC)' for $$(CONFIG_LOG2ALLOC))
+    endif
+
+
+#-----------------------------------------------------------------------
+# DETERMINE UUID SETTINGS
+#-----------------------------------------------------------------------
+
+    ERROR_UUID = 1
+
+    # Settings to turn on uuid functionality
+
+    ifeq ($(CONFIG_UUID),yes)
+        ERROR_UUID = 0
+        ASSEMBLE_UUID_DEFINES = -DUSE_UUID
+        OBJS_UUID = $(POBJS_UUID)
+    endif
+
+    # Settings to turn off uuid functionality
+
+    ifeq ($(CONFIG_UUID),no)
+        ERROR_UUID = 0
+        ASSEMBLE_UUID_DEFINES =
+        OBJS_UUID =
+    endif
+
+    # error if CONFIG_UUID is incorrect
+
+    ifeq ($(ERROR_UUID),1)
+       .PHONY: error_uuid
+       error_uuid:
+	$(error Illegal value '$(CONFIG_UUID)' for $$(CONFIG_UUID))
     endif
 
 #-----------------------------------------------------------------------
@@ -1066,7 +1097,7 @@
               $(ASSEMBLE_PARAMETER_DEFINES) \
               $(ASSEMBLE_INITS_DEFINES) \
               $(ASSEMBLE_INTEGER_DEFINES) \
-              $(ASSEMBLE_IDS_DEFINES) \
+	      $(ASSEMBLE_IDS_DEFINES) \
               $(ASSEMBLE_IO_DEFINES) \
               $(ASSEMBLE_LCAPERF_DEFINES) \
               $(ASSEMBLE_PYTHON_DEFINES) \
@@ -1094,11 +1125,12 @@
               $(ASSEMBLE_GRACKLE_DEFINES) \
               $(ASSEMBLE_NAUNET_DEFINES) \
               $(ASSEMBLE_LOG2ALLOC_DEFINES) \
+              $(ASSEMBLE_UUID_DEFINES) \
               $(ASSEMBLE_ACCELERATION_BOUNDARY_DEFINES)
 
 
     INCLUDES = $(MACH_INCLUDES) \
-               $(ASSEMBLE_MPI_INCLUDES) \
+    	       $(ASSEMBLE_MPI_INCLUDES) \
                $(ASSEMBLE_HYPRE_INCLUDES) \
                $(ASSEMBLE_LCAPERF_INCLUDES) \
                $(ASSEMBLE_PYTHON_INCLUDES) \
@@ -1112,12 +1144,13 @@
                $(MAKEFILE_INCLUDES)   -I.
 
     OBJS_LIB = $(OBJS_CONFIG_LIB) \
-               $(OBJS_PHOTON_LIB) \
-               $(OBJS_LCAPERF_LIB) \
-               $(OBJS_HYDRO_RK) \
-               $(OBJS_ECUDA_LIB) \
+    	       $(OBJS_PHOTON_LIB) \
+    	       $(OBJS_LCAPERF_LIB) \
                $(OBJS_MY_PROBLEM) \
-               $(OBJS_PYTHON) 
+	       $(OBJS_HYDRO_RK) \
+	       $(OBJS_ECUDA_LIB) \
+	       $(OBJS_PYTHON) \
+               $(OBJS_UUID)
 
     LIBS = $(MACH_LIBS) \
            $(ASSEMBLE_MPI_LIBS) \

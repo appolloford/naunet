@@ -61,6 +61,37 @@ class EnzoPatch:
         "O2",
     ]
 
+    enzo_defined_alias = [
+        "Electron",
+        "HI",
+        "HII",
+        "HeI",
+        "HeII",
+        "HeIII",
+        "HM",
+        "H2I",
+        "H2II",
+        "DI",
+        "DII",
+        "HDI",
+        "CI",
+        "CII",
+        "OI",
+        "OII",
+        "SiI",
+        "SiII",
+        "SiIII",
+        "CHI",
+        "CH2I",
+        "CH3II",
+        "C2I",
+        "COI",
+        "HCOII",
+        "OHI",
+        "H2OI",
+        "O2I",
+    ]
+
     # repeated define e- and E- to exclude electron
     grackle_species_name = [
         "e-",
@@ -76,6 +107,21 @@ class EnzoPatch:
         "D",
         "D+",
         "HD",
+    ]
+
+    grackle_defined_alias = [
+        "De",
+        "HI",
+        "HII",
+        "HeI",
+        "HeII",
+        "HeIII",
+        "HM",
+        "H2I",
+        "H2II",
+        "DI",
+        "DII",
+        "HDI",
     ]
 
     def __init__(
@@ -142,9 +188,20 @@ class EnzoPatch:
 
         nspec = len(self.netinfo.species)
         has_thermal = True if self.netinfo.heating or self.netinfo.cooling else False
-        neqns = nspec + 1
+        neqns = nspec + has_thermal
 
-        result = template.render(nspec=nspec, neqns=neqns, species=self.netinfo.species)
+        repeatspec = [
+            s
+            for s in self.netinfo.species
+            if s.alias in self.grackle_defined_alias or s.iselectron
+        ]
+        print([s.name for s in repeatspec])
+        nspec_in_enzo = nspec + len(self.grackle_defined_alias) - len(repeatspec)
+        nspec_in_enzo -= 1  # don't count electron, enzo treat it specially
+
+        result = template.render(
+            nspec=nspec_in_enzo, neqns=neqns, species=self.netinfo.species
+        )
         with open(os.path.join(prefix, "naunet_enzo.h"), "w") as out:
             out.write(result)
 
@@ -152,8 +209,7 @@ class EnzoPatch:
         template = self._env.get_template("Grid.h.j2")
 
         specnum = [
-            "DeNum" if s.name in ["e-", "E-"] else f"{s.alias}Num"
-            for s in self.netinfo.species
+            "DeNum" if s.iselectron else f"{s.alias}Num" for s in self.netinfo.species
         ]
         arguments = ", ".join(f"int &{n}" for n in specnum)
 
@@ -166,11 +222,10 @@ class EnzoPatch:
         template = self._env.get_template("Grid_IdentifyNaunetSpeciesFields.C.j2")
 
         specnum = [
-            "DeNum" if s.name in ["e-", "E-"] else f"{s.alias}Num"
-            for s in self.netinfo.species
+            "DeNum" if s.iselectron else f"{s.alias}Num" for s in self.netinfo.species
         ]
         typedefidx = [
-            "ElectronDensity" if s.name in ["e-", "E-"] else f"{s.alias}Density"
+            "ElectronDensity" if s.iselectron else f"{s.alias}Density"
             for s in self.netinfo.species
         ]
         arguments = ", ".join(f"int &{n}" for n in specnum)
@@ -196,7 +251,11 @@ class EnzoPatch:
 
     def _render_rkptr(self, prefix: str = "./"):
 
-        addspec = [s for s in self.netinfo.species if s not in self.grackle_species]
+        addspec = [
+            s
+            for s in self.netinfo.species
+            if s.alias not in self.grackle_defined_alias and not s.iselectron
+        ]
         addspecnum = [f"{s.alias}Num" for s in addspec]
 
         declare = ", ".join(addspecnum)
@@ -204,8 +263,7 @@ class EnzoPatch:
         oldprim = [f"Prim[nfield++] = OldBaryonField[{n}]" for n in addspecnum]
 
         specnum = [
-            "DeNum" if s.name in ["e-", "E-"] else f"{s.alias}Num"
-            for s in self.netinfo.species
+            "DeNum" if s.iselectron else f"{s.alias}Num" for s in self.netinfo.species
         ]
         identify = ", ".join(specnum)
 
@@ -227,7 +285,11 @@ class EnzoPatch:
 
     def _render_test(self, prefix: str = "./"):
 
-        addspec = [s for s in self.netinfo.species if s not in self.grackle_species]
+        addspec = [
+            s
+            for s in self.netinfo.species
+            if s.alias not in self.grackle_defined_alias and not s.iselectron
+        ]
         addspecnum = [f"{s.alias}Num" for s in addspec]
 
         addname = [f"{f'{s.alias}Name':<20}   = \"{s.alias}_Density\"" for s in addspec]
@@ -273,7 +335,11 @@ class EnzoPatch:
         template = self._env.get_template("typedefs.h.j2")
 
         start = self.startidx
-        addspec = [s for s in self.netinfo.species if s not in self.defined_species]
+        addspec = [
+            s
+            for s in self.netinfo.species
+            if s.alias not in self.enzo_defined_alias and not s.iselectron
+        ]
         idxdefine = [f"{s.alias}Density = {si+start}," for si, s in enumerate(addspec)]
         idxdefine.append(f"FieldUndefined = {start+len(addspec)};")
 
@@ -285,8 +351,7 @@ class EnzoPatch:
         template = self._env.get_template("Grid_NaunetWrapper.C.j2")
 
         specnum = [
-            "DeNum" if s.name in ["e-", "E-"] else f"{s.alias}Num"
-            for s in self.netinfo.species
+            "DeNum" if s.iselectron else f"{s.alias}Num" for s in self.netinfo.species
         ]
         declare = ", ".join(specnum)
         initial = " = ".join([*specnum, "0"])
