@@ -168,7 +168,7 @@ double GetH2shieldingFGK(double coldens) {
         double r  = radiativewidth / (1.7724539*dopplerwidth);
         double t  = 3.02 * pow(1000.0*r, -0.064);
         double u  = pow(taud*r, 0.5) / t;
-        double sr = pow((u*u + 0.78539816), -0.5) * r / t;
+        sr = pow((u*u + 0.78539816), -0.5) * r / t;
     }
 
     // Calculate doppler contribution of self shielding function sj

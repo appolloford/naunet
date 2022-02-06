@@ -22,6 +22,7 @@ class RR07Dust(Dust):
         "double mant = GetMantleDens(y)",
         "double mantabund = mant / nH",
         "double garea = (pi*rG*rG) * gdens",  # total grain cross-section
+        "double garea_per_H = garea / nH",
         "double densites = 4.0 * garea * sites",
     ]
 
@@ -102,7 +103,7 @@ class RR07Dust(Dust):
             if not h2form:
                 raise ValueError("Symbol of H2 formation rate was not provided.")
 
-            rate = f"opt_h2d * {h2deseff} * {h2form} * nH / mant"
+            rate = f"opt_h2d * {h2deseff} * {h2form} / mant"
 
         else:
             raise ValueError(f"Not support desorption type {destype}")

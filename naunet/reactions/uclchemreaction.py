@@ -141,7 +141,7 @@ class UCLCHEMReaction(Reaction):
         elif rtype == self.ReactionType.UCLCHEM_HD:
             # Epsilon is efficieny of this process, number of molecules removed per event
             # h2form is formation rate of h2, dependent on hydrogen abundance.
-            h2formrate = f"1.0e-17 * sqrt({Tgas}) * y[IDX_HI]"
+            h2formrate = f"1.0e-17 * sqrt({Tgas}) * y[IDX_HI] * nH"
             rate = dust.rate_desorption(re1, a, b, c, h2form=h2formrate, destype="h2")
 
         else:

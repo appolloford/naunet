@@ -251,8 +251,8 @@ class ExampleCommand(Command):
                     f"--dust=RR07",
                     f"--binding={','.join(f'{s}={sv}' for s, sv in binding_energy.items())}",
                     f"--shielding='CO: VB88Table'",
-                    f"--ode-modifier='ydot[IDX_H2I] += H2formation*y[IDX_HI] - H2dissociation*y[IDX_H2I]/nH'",
-                    f"--ode-modifier='ydot[IDX_HI] += 2.0*(H2dissociation*y[IDX_H2I]/nH - H2formation*y[IDX_HI])'",
+                    f"--ode-modifier='ydot[IDX_H2I] += H2formation*y[IDX_HI]*nH - H2dissociation*y[IDX_H2I]'",
+                    f"--ode-modifier='ydot[IDX_HI] += 2.0*(H2dissociation*y[IDX_H2I] - H2formation*y[IDX_HI]*nH)'",
                     f"--solver={solver} --device={device} --method={method}",
                     f"--render",
                 ]
