@@ -210,13 +210,13 @@ int grid::NaunetWrapper()
     data.nH = BaryonField[iden][i] / (Mu * mh);
 
     {% for ab in abund -%}
-      {{ ab }} * NumberDensityUnits;
+      {{ ab }};
     {% endfor -%}
 
     naunet.Solve(y, dt_chem * TimeUnits, &data);
 
     {% for iab in invabund -%}
-      {{ iab }} / NumberDensityUnits;
+      {{ iab }};
     {% endfor -%}
   }
   

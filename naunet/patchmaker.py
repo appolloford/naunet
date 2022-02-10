@@ -175,6 +175,7 @@ class EnzoPatch:
             "InitializeNew.C",
             "ReadParameterFile.C",
             "WriteParameterFile.C",
+            "SetDefaultGlobalValues.C",
             "Grid_MultiSpeciesHandler.C",
             "hydro_rk/Grid_UpdatePrim.C",
             "hydro_rk/Grid_UpdateMHDPrim.C",
@@ -182,6 +183,43 @@ class EnzoPatch:
             srcfile = os.path.join(static_patch_path, src)
             dstfile = os.path.join(prefix, src)
             shutil.copyfile(srcfile, dstfile)
+
+    def _render_derived_field(self, prefix: str = "./") -> None:
+        """
+        Generate the derived fields of number density of species for yt. Saved
+        in name of "derived_fields_of_network.py"
+
+        Args:
+            prefix (str, optional): Path to save output file. Defaults to "./".
+
+        """
+
+        derived_species_field = []
+
+        for s in self.netinfo.species:
+            alias = "Electron" if s.iselectron else s.alias
+            derived_species_field.append(
+                "\n".join(
+                    [
+                        f"@derived_field(name='{alias}_ndensity', sampling_type='cell')",
+                        f"def {alias}_ndensity(field, data):",
+                        f"    if 'enzo' not in data.ds.dataset_type:",
+                        f"        return",
+                        f"    if data.ds.parameters['MultiSpecies'] < 4:",
+                        f"        return",
+                        f"    dunit = data.ds.mass_unit/data.ds.length_unit**3",
+                        f"    num_unit = dunit / mh_cgs / {1.0 if s.iselectron else s.massnumber}",
+                        f"    arr = (num_unit*data['{alias}_Density']).to_ndarray()",
+                        f"    return arr",
+                    ]
+                )
+            )
+
+        with open(os.path.join(prefix, "derived_fields_of_network.py"), "w") as outf:
+            outf.write("import yt\n")
+            outf.write("from yt import derived_field\n\n")
+            outf.write("mh_cgs = float(yt.units.mh_cgs)\n\n")
+            outf.write("\n\n".join(derived_species_field))
 
     def _render_enzoheader(self, prefix: str = "./"):
         template = self._env.get_template("naunet_enzo.h.j2")
@@ -347,7 +385,52 @@ class EnzoPatch:
         with open(os.path.join(prefix, "typedefs.h"), "w") as out:
             out.write(result)
 
+    def _render_updateelectron(self, prefix: str = "./") -> None:
+        """
+        Render the Grid_UpdateElectronDensity.C file for Enzo
+
+        Args:
+            prefix (str, optional): Path to save output file. Defaults to "./".
+        """
+
+        template = self._env.get_template("hydro_rk/Grid_UpdateElectronDensity.C.j2")
+
+        addspec = [
+            s
+            for s in self.netinfo.species
+            if s.alias not in self.grackle_defined_alias and not s.iselectron
+        ]
+        addspecnum = [f"{s.alias}Num" for s in addspec]
+
+        declare = ", ".join(addspecnum)
+
+        specnum = [
+            "DeNum" if s.iselectron else f"{s.alias}Num" for s in self.netinfo.species
+        ]
+        identify = ", ".join(specnum)
+
+        ionchargesum = " + ".join(
+            f"{s.charge:.1f} * BaryonField[{n}][i] / {s.massnumber}"
+            for s, n in zip(addspec, addspecnum)
+            if s.charge > 0
+        )
+
+        result = template.render(
+            declare=declare, identify=identify, ionchargesum=ionchargesum
+        )
+
+        with open(
+            os.path.join(prefix, "hydro_rk/Grid_UpdateElectronDensity.C"), "w"
+        ) as out:
+            out.write(result)
+
     def _render_wrapper(self, prefix: str = "./"):
+        """
+        Render Grid_NaunetWrapper.C for Enzo
+
+        Args:
+            prefix (str, optional): Path to save output file. Defaults to "./".
+        """
         template = self._env.get_template("Grid_NaunetWrapper.C.j2")
 
         specnum = [
@@ -356,34 +439,29 @@ class EnzoPatch:
         declare = ", ".join(specnum)
         initial = " = ".join([*specnum, "0"])
 
-        if self.device == "cpu":
-            # In Enzo, electron has the same mass number as hydrogen
-            abund = [
-                f"y[IDX_{s.alias}] =  BaryonField[{n}][i] / 1.0"
-                if s.name in ["e-", "E-"]
-                else f"y[IDX_{s.alias}] =  BaryonField[{n}][i] / {s.massnumber}"
-                for s, n in zip(self.netinfo.species, specnum)
-            ]
-            invabund = [
-                f"BaryonField[{n}][i] = y[IDX_{s.alias}] * 1.0"
-                if s.name in ["e-", "E-"]
-                else f"BaryonField[{n}][i] = y[IDX_{s.alias}] * {s.massnumber}"
-                for s, n in zip(self.netinfo.species, specnum)
-            ]
+        abund = []
+        invabund = []
 
-        else:
-            abund = [
-                f"y[sidx + IDX_{s.alias}] =  BaryonField[{n}][i] / 1.0"
-                if s.name in ["e-", "E-"]
-                else f"y[sidx + IDX_{s.alias}] =  BaryonField[{n}][i] / {s.massnumber}"
-                for s, n in zip(self.netinfo.species, specnum)
-            ]
-            invabund = [
-                f"BaryonField[{n}][i] = y[sidx + IDX_{s.alias}] * 1.0"
-                if s.name in ["e-", "E-"]
-                else f"BaryonField[{n}][i] = y[sidx + IDX_{s.alias}] * {s.massnumber}"
-                for s, n in zip(self.netinfo.species, specnum)
-            ]
+        for s, n in zip(self.netinfo.species, specnum):
+
+            # In Enzo, electron has the same mass number as hydrogen
+            massnum = 1.0 if s.iselectron else s.massnumber
+
+            if self.device == "cpu":
+                abund.append(
+                    f"y[IDX_{s.alias}] = max(BaryonField[{n}][i] * NumberDensityUnits / {massnum}, 1e-40)"
+                )
+                invabund.append(
+                    f"BaryonField[{n}][i] = max(y[IDX_{s.alias}] * {massnum} / NumberDensityUnits, 1e-40)"
+                )
+
+            elif self.device == "gpu":
+                abund.append(
+                    f"y[sidx + IDX_{s.alias}] = max(BaryonField[{n}][i] * NumberDensityUnits / {massnum}, 1e-40)"
+                )
+                invabund.append(
+                    f"BaryonField[{n}][i] = max(y[sidx + IDX_{s.alias}] * {massnum} / NumberDensityUnits, 1e-40)"
+                )
 
         result = template.render(
             device=self.device,
@@ -403,6 +481,8 @@ class EnzoPatch:
         self._render_grid(prefix)
         self._render_identify(prefix)
         self._render_rkptr(prefix)
+        self._render_updateelectron(prefix)
         self._render_test(prefix)
         self._render_typedef(prefix)
         self._render_wrapper(prefix)
+        self._render_derived_field(prefix)
