@@ -1,12 +1,19 @@
 set(
     OBJTARGETS
         naunet_constants
-        naunet_utilities
         naunet_physics
         naunet_rates
         naunet_fex
         naunet_jac
 )
+
+# Functions from Numerical Recipes, not suppport GPU yet.
+if(NOT "CUDA" IN_LIST languages)
+    list(
+        APPEND OBJTARGETS
+            naunet_utilities
+    )
+endif()
 
 {% if info.device == "gpu" -%}
 foreach(name ${OBJTARGETS})
