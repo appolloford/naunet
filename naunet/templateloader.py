@@ -76,6 +76,7 @@ class TemplateLoader:
         """
 
         mantles: str
+        Hnuclei: str
         mu: str
         gamma: str
         h2shielding: str = None
@@ -159,6 +160,13 @@ class TemplateLoader:
         mantles = " + ".join(f"y[IDX_{g.alias}]" for g in species if g.is_surface)
         mantles = mantles if mantles else "0.0"
 
+        Hnuclei = " + ".join(
+            f"{s.element_count.get('H'):3.1e}*y[IDX_{s.alias}]"
+            for s in species
+            if "H" in s.element_count.keys()
+        )
+        Hnuclei = Hnuclei if Hnuclei else "0.0"
+
         # TODO: exclude electron, grain?
         density = " + ".join(f"y[IDX_{s.alias}]*{s.massnumber}" for s in species)
         npartile = " + ".join(f"y[IDX_{s.alias}]" for s in species)
@@ -169,6 +177,9 @@ class TemplateLoader:
 
         self._physics = self.PhysicsContent(
             mantles,
+            mantle_idxlen,
+            mantle_idxstr,
+            Hnuclei,
             mu,
             gamma,
             h2shielding=netinfo.shielding.get("H2", ""),

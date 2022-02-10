@@ -13,6 +13,11 @@ double GetMantleDens(double *y) {
 }
 
 {% if info.device == "gpu" -%} __device__ __host__ {% endif -%}
+double GetHNuclei(double *y) {
+    return {{ physics.Hnuclei | stmwrap(80, 8) }};
+}
+
+{% if info.device == "gpu" -%} __device__ __host__ {% endif -%}
 double GetMu(double *y) {
     return {{ physics.mu | stmwrap(80, 8) }};
 }
