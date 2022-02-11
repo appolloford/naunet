@@ -177,8 +177,6 @@ class TemplateLoader:
 
         self._physics = self.PhysicsContent(
             mantles,
-            mantle_idxlen,
-            mantle_idxstr,
             Hnuclei,
             mu,
             gamma,

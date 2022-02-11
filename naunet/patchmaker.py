@@ -449,7 +449,7 @@ class EnzoPatch:
 
             if self.device == "cpu":
                 abund.append(
-                    f"y[IDX_{s.alias}] = max(BaryonField[{n}][i] * NumberDensityUnits / {massnum}, 1e-40)"
+                    f"y[IDX_{s.alias}] = max(BaryonField[{n}][i], 1e-40) * NumberDensityUnits / {massnum}"
                 )
                 invabund.append(
                     f"BaryonField[{n}][i] = max(y[IDX_{s.alias}] * {massnum} / NumberDensityUnits, 1e-40)"
@@ -457,7 +457,7 @@ class EnzoPatch:
 
             elif self.device == "gpu":
                 abund.append(
-                    f"y[sidx + IDX_{s.alias}] = max(BaryonField[{n}][i] * NumberDensityUnits / {massnum}, 1e-40)"
+                    f"y[sidx + IDX_{s.alias}] = max(BaryonField[{n}][i], 1e-40) * NumberDensityUnits / {massnum}"
                 )
                 invabund.append(
                     f"BaryonField[{n}][i] = max(y[sidx + IDX_{s.alias}] * {massnum} / NumberDensityUnits, 1e-40)"
