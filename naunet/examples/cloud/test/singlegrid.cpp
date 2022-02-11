@@ -23,6 +23,9 @@ int main() {
     double opt_crd  = 1.0;
     double opt_uvd  = 1.0;
     double opt_h2d  = 1.0;
+    double eb_crd   = 1.21e3;
+    double eb_h2d   = 1.21e3;
+    double eb_uvd   = 1.00e4;
     double crdeseff = 1.0e5;
     double h2deseff = 1.0e-2;
     double uvcreff  = 1.0e-3;
@@ -42,6 +45,9 @@ int main() {
     data.opt_crd  = opt_crd;
     data.opt_uvd  = opt_uvd;
     data.opt_h2d  = opt_h2d;
+    data.eb_crd   = eb_crd;
+    data.eb_h2d   = eb_h2d;
+    data.eb_uvd   = eb_uvd;
     data.crdeseff = crdeseff;
     data.h2deseff = h2deseff;
     data.uvcreff  = uvcreff;

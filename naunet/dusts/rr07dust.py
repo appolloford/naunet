@@ -14,6 +14,9 @@ class RR07Dust(Dust):
         "CRDesorptionOption": "opt_crd",
         "H2DesorptionOption": "opt_h2d",
         "UVDesorptionOption": "opt_uvd",
+        "H2MaxDesorptionEnergy": "eb_h2d",
+        "CRMaxDesorptionEnergy": "eb_crd",
+        "UVMaxDesorptionEnergy": "eb_uvd",
         "CRDesorptionEfficiency": "crdeseff",
         "H2DesorptionEfficiency": "h2deseff",
     }
@@ -88,6 +91,8 @@ class RR07Dust(Dust):
                 ]
             )
 
+            rate = f"eb_crd >= {spec.binding_energy} ? ({rate}) : 0.0"
+
         elif destype == "photon":
             if not uvphot:
                 raise ValueError("Symbol of UV field strength was not provided.")
@@ -99,11 +104,15 @@ class RR07Dust(Dust):
                 ]
             )
 
+            rate = f"eb_uvd >= {spec.binding_energy} ? ({rate}) : 0.0"
+
         elif destype == "h2":
             if not h2form:
                 raise ValueError("Symbol of H2 formation rate was not provided.")
 
             rate = f"opt_h2d * {h2deseff} * {h2form} / mant"
+
+            rate = f"eb_h2d >= {spec.binding_energy} ? ({rate}) : 0.0"
 
         else:
             raise ValueError(f"Not support desorption type {destype}")
