@@ -36,16 +36,22 @@ int GetUnits(float *DensityUnits, float *LengthUnits,
              float *VelocityUnits, FLOAT Time);
 int FindField(int field, int farray[], int numfields);
 
-#ifdef USE_NAUNET
-
 int grid::NaunetWrapper()
 {
+
+#ifdef USE_NAUNET
 
   if (use_naunet == FALSE)
     return SUCCESS;
 
   if (ProcessorNumber != MyProcessorNumber)
     return SUCCESS;
+
+  if (MultiSpecies != NAUNET_SPECIES) {
+    printf("NaunetWrapper Warning: MultiSpecies = %d isn't valid for naunet. \
+            Skip solving chemistry.\n", MultiSpecies);
+    return SUCCESS;
+  }
 
   LCAPERF_START("grid_NaunetWrapper");
 
@@ -289,9 +295,8 @@ int grid::NaunetWrapper()
   delete [] g_grid_start;
   delete [] g_grid_end;
 
-  LCAPERF_STOP("grid_GrackleWrapper");
+  LCAPERF_STOP("grid_NaunetWrapper");
+#endif
 
   return SUCCESS;
 }
-
-#endif
