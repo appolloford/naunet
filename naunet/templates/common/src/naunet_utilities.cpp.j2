@@ -5,6 +5,8 @@
 #define NR_END 1
 #define FREE_ARG char*
 
+namespace naunet_util {
+
 void nrerror(char error_text[])
 /* Numerical Recipes standard error handler */
 {
@@ -142,3 +144,5 @@ void splin2(double x1a[], double x2a[], double *ya[], double *y2a[], int m, int 
     free_vector(yytmp,1,m);
     free_vector(ytmp,1,m);
 }
+
+} // namespace naunet_util

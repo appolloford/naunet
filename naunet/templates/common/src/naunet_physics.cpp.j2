@@ -288,10 +288,10 @@ double GetCOshieldingInt1(double h2col, double coldens) {
     double logh2 = std::min(std::max(log10(h2col), COShieldingTableX[0]), COShieldingTableX[5]);
     double logco = std::min(std::max(log10(coldens), COShieldingTableY[0]), COShieldingTableY[6]);
 
-    double *x1  = vector(1, 6);
-    double *x2  = vector(1, 7);
-    double **y  = matrix(1, 6, 1, 7);
-    double **y2 = matrix(1, 6, 1, 7);
+    double *x1  = naunet_util::vector(1, 6);
+    double *x2  = naunet_util::vector(1, 7);
+    double **y  = naunet_util::matrix(1, 6, 1, 7);
+    double **y2 = naunet_util::matrix(1, 6, 1, 7);
 
     for (int i=1; i<=6; i++) x1[i] = COShieldingTableX[i-1];
     for (int i=1; i<=7; i++) x2[i] = COShieldingTableY[i-1];
@@ -302,19 +302,19 @@ double GetCOshieldingInt1(double h2col, double coldens) {
         }
     }
 
-    splie2(x1, x2, y, 6, 7, y2);
+    naunet_util::splie2(x1, x2, y, 6, 7, y2);
 
-    splin2(x1, x2, y, y2, 6, 7, logh2, logco, &shielding);
+    naunet_util::splin2(x1, x2, y, y2, 6, 7, logh2, logco, &shielding);
 
     // splin2(COShieldingTableX, COShieldingTableY, COShieldingTable, COShieldingTableD2, 
     //        6, 7, logh2, logco, &shielding);
 
     shielding = pow(10.0, shielding);
 
-    free_vector(x1, 1, 6);
-    free_vector(x2, 1, 7);
-    free_matrix(y, 1, 6, 1, 7);
-    free_matrix(y2, 1, 6, 1, 7);
+    naunet_util::free_vector(x1, 1, 6);
+    naunet_util::free_vector(x2, 1, 7);
+    naunet_util::free_matrix(y, 1, 6, 1, 7);
+    naunet_util::free_matrix(y2, 1, 6, 1, 7);
 
     /* {% endif -%} */
 
