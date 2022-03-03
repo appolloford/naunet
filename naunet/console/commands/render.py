@@ -122,9 +122,9 @@ class RenderCommand(Command):
             heating=heating,
             cooling=cooling,
             shielding=shielding,
-            ratemodifier=rate_modifier,
+            # ratemodifier=rate_modifier,
+            # odemodifier=ode_modifier,
         )
-        net.ode_modifier = ode_modifier
 
         # Don't change the include/src/test when rendering patches
         if patch:
@@ -133,7 +133,13 @@ class RenderCommand(Command):
             return
 
         net.check_duplicate_reaction()
-        tl = net.templateloader(solver=solver, method=method, device=device)
+        tl = net.templateloader(
+            solver=solver,
+            method=method,
+            device=device,
+            ratemodifier=rate_modifier,
+            odemodifier=ode_modifier,
+        )
         tl.render_constants(prefix=source_prefix, headerprefix=header_prefix)
         tl.render_macros(prefix=header_prefix)
         tl.render_naunet(prefix=source_prefix, headerprefix=header_prefix)

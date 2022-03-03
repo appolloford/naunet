@@ -3,9 +3,13 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Type
 from tqdm import tqdm
 from jinja2 import Environment, PackageLoader
 
+from .species import Species
+from .reactions.reaction import Reaction
+from .dusts.dust import Dust
 from .utilities import _stmwrap
 
 # class RelativeEnvironment(Environment):
@@ -14,6 +18,19 @@ from .utilities import _stmwrap
 #     def join_path(self, template, parent):
 #         return os.path.join(parent, template)
 #         # return os.path.join(os.path.dirname(parent), template)
+
+# define in this file to avoid circular import
+@dataclass
+class NetworkInfo:
+    n_spec: int
+    n_react: int
+    species: list[Species]
+    reactions: list[Reaction]
+    databases: list[Type[Reaction]]
+    heating: list[str] = None
+    cooling: list[str] = None
+    dust: Dust = None
+    shielding: dict = None
 
 
 class TemplateLoader:
@@ -97,7 +114,15 @@ class TemplateLoader:
         tvaris: list[str]  # variables required by thermal process
         header: str = None
 
-    def __init__(self, netinfo: object, solver: str, method: str, device: str) -> None:
+    def __init__(
+        self,
+        netinfo: NetworkInfo,
+        solver: str,
+        method: str,
+        device: str,
+        ratemodifier: dict[int, str] = None,
+        odemodifier: list[str] = None,
+    ) -> None:
 
         loader = PackageLoader("naunet")
         # self._env = RelativeEnvironment(loader=loader)
@@ -107,6 +132,9 @@ class TemplateLoader:
         self._solver = solver
         self._env.trim_blocks = True
         self._env.rstrip_blocks = True
+
+        self._ode_modifier = odemodifier.copy() if odemodifier else []
+        self._rate_modifier = ratemodifier.copy() if ratemodifier else {}
 
         self._info = None
         self._macros = None
@@ -125,12 +153,12 @@ class TemplateLoader:
         heating = netinfo.heating
         cooling = netinfo.cooling
         dust = netinfo.dust
-        odemodifier = netinfo.odemodifier
+        odemodifier = self._ode_modifier
 
         ratemodifier = [
             f"k[{idx}] = {value}"
             for idx, reac in enumerate(reactions)
-            for key, value in netinfo.ratemodifier.items()
+            for key, value in self._rate_modifier.items()
             if key == reac.idxfromfile
         ]
 

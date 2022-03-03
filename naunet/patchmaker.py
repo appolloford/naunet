@@ -4,13 +4,14 @@ from pathlib import Path
 from jinja2 import Environment, PackageLoader
 
 from .species import Species
+from .templateloader import NetworkInfo
 from .utilities import _stmwrap
 
 
 class PatchMaker:
     def __init__(
         self,
-        netinfo: object,
+        netinfo: NetworkInfo,
         couple: str,
         device: str,
         *args,

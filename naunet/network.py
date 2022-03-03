@@ -1,10 +1,9 @@
 from __future__ import annotations
 import logging
-from dataclasses import dataclass
 from typing import Type
 from tqdm import tqdm
 from .patchmaker import PatchMaker
-from .templateloader import TemplateLoader
+from .templateloader import NetworkInfo, TemplateLoader
 from .species import Species
 from .reactions.reaction import Reaction
 from .reactions.kidareaction import KIDAReaction
@@ -83,20 +82,6 @@ def define_dust(name: str):
 
 
 class Network:
-    @dataclass
-    class Info:
-        n_spec: int
-        n_react: int
-        species: list[Species]
-        reactions: list[Reaction]
-        databases: list[Type[Reaction]]
-        heating: list[str] = None
-        cooling: list[str] = None
-        dust: Dust = None
-        shielding: dict = None
-        odemodifier: list[str] = None
-        ratemodifier: list[str] = None
-
     def __init__(
         self,
         filelist: str | list[str] = None,
@@ -107,15 +92,14 @@ class Network:
         cooling: list[str] = None,
         shielding: dict[str, str] = None,
         dusttype: str[str] = None,
-        ratemodifier: dict[int, str] = None,
     ) -> None:
 
         self.database_list = set()
         self.reaction_list = []
         self.reactants_in_network = set()
         self.products_in_network = set()
-        self.ode_modifier = []
-        self._rate_modifier = ratemodifier.copy() if ratemodifier else {}
+        # self._ode_modifier = odemodifier.copy() if odemodifier else []
+        # self._rate_modifier = ratemodifier.copy() if ratemodifier else {}
         self._skipped_reactions = []
         self._info = None
         self._patchmaker = None
@@ -371,7 +355,7 @@ class Network:
         cooling = [self.allowed_cooling.get(c) for c in self._cooling_names]
 
         databaselist = [supported_reaction_class.get(db) for db in self.database_list]
-        self._info = self.Info(
+        self._info = NetworkInfo(
             len(speclist),
             len(self.reaction_list),
             speclist,
@@ -381,8 +365,8 @@ class Network:
             cooling=cooling,
             dust=self.dust,
             shielding=self._shielding,
-            odemodifier=self.ode_modifier,
-            ratemodifier=self._rate_modifier,
+            # odemodifier=self._ode_modifier,
+            # ratemodifier=self._rate_modifier,
         )
 
         logger.info(
@@ -415,12 +399,21 @@ class Network:
     def ratemodifier(self, ratemodifier: dict[int, str]) -> None:
         self._rate_modifier = ratemodifier.copy()
 
-    def templateloader(self, solver: str, method: str, device: str):
+    def templateloader(
+        self,
+        solver: str,
+        method: str,
+        device: str,
+        ratemodifier: dict[int, str] = None,
+        odemodifier: list[str] = None,
+    ) -> TemplateLoader:
 
         if self._info and self._templateloader:
             return self._templateloader
 
-        self._templateloader = TemplateLoader(self.info, solver, method, device)
+        self._templateloader = TemplateLoader(
+            self.info, solver, method, device, ratemodifier, odemodifier
+        )
         return self._templateloader
 
     def to_code(
@@ -428,8 +421,10 @@ class Network:
         solver: str = "cvode",
         method: str = "dense",
         device: str = "cpu",
+        ratemodifier: dict[int, str] = None,
+        odemodifier: list[str] = None,
         prefix: str = "./",
     ):
 
-        tl = self.templateloader(solver, method, device)
+        tl = self.templateloader(solver, method, device, ratemodifier, odemodifier)
         tl.render(prefix=prefix, save=True)
