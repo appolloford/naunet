@@ -1,3 +1,4 @@
+from __future__ import annotations
 import logging
 import re
 import csv
@@ -27,10 +28,13 @@ class Species:
 
     Attributes:
         default_elements (list): The default element names used to parse
-        species names.
+            species names.
         default_pseudoelement (list): The default pseudo-element names
-        used to parse species names.
+            used to parse species names.
         surface_symbol (str): The symbol used to define surface species.
+            name (str): Name of the species
+        element_count (dict[str, int]): The count of each element in the
+            known species list.
 
     """
 
@@ -81,7 +85,13 @@ class Species:
     _periodic_table = []
     _isotopes_table = []
 
-    def __init__(self, name):
+    def __init__(self, name: str) -> None:
+        """
+        Initializes Species with species name
+
+        Args:
+            name (str): name of the species
+        """
         self.name = name
         self.element_count = dict()
         self._alias = None
@@ -467,9 +477,17 @@ class Species:
 
         return self._massnumber
 
-    def photon_yield(self, default=1e-3) -> float:
+    def photon_yield(self, default: float = 1e-3) -> float:
         """
-        The photodesorption yield of the species (ice-phase only). Return default value if no value is found.
+        The photodesorption yield of the species (only for ice-phase species).
+        Return default value if no value is found.
+
+        Args:
+            default (float, optional): default value of photodesorption yield.
+                Defaults to 1e-3.
+
+        Returns:
+            float: photodesorption yield
         """
         if self._photon_yield:
             return self._photon_yield
@@ -578,21 +596,29 @@ class Species:
         cls._check_elements()
 
 
-def top_abundant_species(species_list, abundances, element=None, rank=-1):
+def top_abundant_species(
+    species_list: list[Species],
+    abundances: list[float],
+    element: str = None,
+    rank: int = -1,
+) -> tuple[Species, float]:
     """
-    The function returns a tuple list sorted by the abundances of element.
+    Find the most abundant species, if element is provides, find the main
+    reservoirs of the elements.
 
     Args:
-        species_list (list): list of `Molecule()` objects.
-        abundances (list): The abundances of the species in the species_list.
-        element (string, optional): The target element. The order is sorted by the abundances weighted by the number of element in the species. Defaults to None.
-        rank (int, optional): Return the species in the top number. Defaults to -1 (all sorted species).
+        species_list (list[Species]): list of species, must have the same
+            order as abundances
+        abundances (list[float]): list of the abundances of species
+        element (str, optional): name of target element. Defaults to None.
+        rank (int, optional): the top n species to be shown. Defaults to -1
+            returns whole list.
 
     Raises:
-        RuntimeError: The element could doesn't exist in the species_list and return an empty list.
+        RuntimeError: The element doesn't exist in any species.
 
     Returns:
-        list: Tuple of `(Molecule, float)`.
+        tuple[Species, float]: the most abundant species and their abundances
     """
     sorted_abund = None
     if element == None:

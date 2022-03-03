@@ -5,6 +5,7 @@ theme:
 
 plugins:
   - search
+  - autorefs
   - mkdocstrings
 
 nav:
