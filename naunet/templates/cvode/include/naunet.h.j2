@@ -23,9 +23,9 @@ class Naunet {
    public:
     Naunet();
     ~Naunet();
-    int Init(int nsystem = MAX_NSYSTEMS, double atol = 1e-20, double rtol = 1e-5, int mxsteps=500);
-    int DebugInfo();
     int Finalize();
+    int PrintDebugInfo();
+    int Init(int nsystem = MAX_NSYSTEMS, double atol = 1e-20, double rtol = 1e-5, int mxsteps=500);
     /* {% if info.method == "cusparse" -%} */
     int Reset(int nsystem = MAX_NSYSTEMS, double atol = 1e-20, double rtol = 1e-5, int mxsteps=500);
     /* {% endif -%} */
@@ -40,6 +40,7 @@ class Naunet {
     int mxsteps_;
     realtype atol_;
     realtype rtol_;
+    FILE *errfp_;
 
     /* {% if info.method == "cusparse" -%} */
 
@@ -68,6 +69,11 @@ class Naunet {
     SUNLinearSolver cv_ls_;
 
     /* {% endif %} */
+
+    int GetCVStates(void *cv_mem, 
+                    long int &nst, long int &nfe, long int &nsetups, long int &nje, 
+                    long int &netf, long int &nge, long int &nni, long int &ncfn);
+    static int CheckFlag(void *flagvalue, const char *funcname, int opt, FILE *errf);
 };
 
 #ifdef PYMODULE

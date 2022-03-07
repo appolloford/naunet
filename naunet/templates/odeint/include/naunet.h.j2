@@ -15,9 +15,9 @@ class Naunet {
    public:
     Naunet();
     ~Naunet();
-    int Init(int nsystem = MAX_NSYSTEMS, double atol = 1e-20, double rtol = 1e-5, int mxsteps = 500);
-    int DebugInfo();
     int Finalize();
+    int Init(int nsystem = MAX_NSYSTEMS, double atol = 1e-20, double rtol = 1e-5, int mxsteps = 500);
+    int PrintDebugInfo();
     int Solve(double *abund, double dt, NaunetData *data);
 #ifdef PYMODULE
     py::array_t<double> PyWrapSolve(py::array_t<double> arr, double dt,

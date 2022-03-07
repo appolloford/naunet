@@ -58,7 +58,7 @@ int Naunet::Init(int nsystem, double atol, double rtol, int mxsteps) {
     return NAUNET_SUCCESS;
 };
 
-int Naunet::DebugInfo() {
+int Naunet::PrintDebugInfo() {
 
     printf("\nFinal Statistics:\n");
     printf("nst = %-6ld\n", step_);
@@ -69,6 +69,9 @@ int Naunet::DebugInfo() {
 int Naunet::Finalize() { return NAUNET_SUCCESS; }
 
 int Naunet::Solve(double *abund, double dt, NaunetData *data) {
+
+    int flag = NAUNET_SUCCESS;
+
     vector_type y(NEQUATIONS);
     for (int i = 0; i < NEQUATIONS; i++) {
         y[i] = abund[i];
@@ -94,13 +97,15 @@ int Naunet::Solve(double *abund, double dt, NaunetData *data) {
             std::make_pair(Fex(data), Jac(data)), y, 0.0, dt, dt, observer);
     } catch(const std::runtime_error& e) {
         printf("%s\n", e.what());
+
+        flag = NAUNET_FAIL;
     }
 
     for (int i = 0; i < NEQUATIONS; i++) {
         abund[i] = y[i];
     }
 
-    return NAUNET_SUCCESS;
+    return flag;
 };
 
 #ifdef PYMODULE
