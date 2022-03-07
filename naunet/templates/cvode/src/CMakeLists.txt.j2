@@ -7,6 +7,13 @@ set(
         naunet_jac
 )
 
+# check enabled languages
+get_property(
+    languages
+        GLOBAL
+            PROPERTY ENABLED_LANGUAGES
+)
+
 # Functions from Numerical Recipes, not suppport GPU yet.
 if(NOT "CUDA" IN_LIST languages)
     list(
@@ -29,10 +36,11 @@ foreach(name ${OBJTARGETS})
     )
     target_include_directories(
         ${name}
-            PRIVATE
-                ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}
             PUBLIC
                 ${CMAKE_SOURCE_DIR}/include
+                {% if info.device == "gpu" -%}
+                ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}
+                {%- endif %}
     )
     target_link_libraries(
         ${name}
@@ -77,8 +85,6 @@ if(MAKE_SHARED)
     )
     target_include_directories(
         naunet_shared
-            PRIVATE
-                ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}
             PUBLIC
                 ${CMAKE_SOURCE_DIR}/include
     )
@@ -120,8 +126,6 @@ if(MAKE_STATIC)
     )
     target_include_directories(
         naunet_static
-            PRIVATE
-                ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}
             PUBLIC
                 ${CMAKE_SOURCE_DIR}/include
     )
@@ -182,11 +186,6 @@ if(MAKE_PYTHON)
         ${PYMODNAME}
             PUBLIC
                 ${CMAKE_SOURCE_DIR}/include
-            {% if info.device == "gpu" -%}
-            PRIVATE
-                ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}
-            {%- endif %}
-
     )
 
     target_link_libraries(

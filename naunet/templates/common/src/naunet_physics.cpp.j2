@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <math.h>
 #include <algorithm>
 
@@ -145,6 +146,11 @@ double GetH2shieldingInt(double coldens) {
             return shielding;
         }
     }
+
+    /* {% else -%} */
+
+    printf("WARNING!! Not Implemented! Return H2 shielding = -1.\n");
+
     /* {% endif -%} */
 
     return shielding;
@@ -275,11 +281,16 @@ double GetCOshieldingInt(double tgas, double h2col, double coldens) {
         (f1 * (1 - my) + f2 * my) * (1 - mz) + (f3 * (1 - my) + f4 * my) * mz;
     shielding = pow(10.0, shielding);
 
+    /* {% else -%} */
+
+    printf("WARNING!! Not Implemented! Return CO shielding = -1.\n");
+
     /* {% endif -%} */
 
     return shielding;
 }
 
+{% if info.device == "gpu" -%} __device__ {% endif -%}
 double GetCOshieldingInt1(double h2col, double coldens) {
     // clang-format on
     double shielding = -1.0;
@@ -287,6 +298,12 @@ double GetCOshieldingInt1(double h2col, double coldens) {
     /* {% if "VB88Table" in physics.coshielding -%} */
     double logh2 = std::min(std::max(log10(h2col), COShieldingTableX[0]), COShieldingTableX[5]);
     double logco = std::min(std::max(log10(coldens), COShieldingTableY[0]), COShieldingTableY[6]);
+
+    /* {% if info.device == "gpu" -%} */
+
+    printf("WARNING!! Not Implemented! Return CO shielding = -1.\n");
+
+    /* {% else -%} */
 
     double *x1  = naunet_util::vector(1, 6);
     double *x2  = naunet_util::vector(1, 7);
@@ -306,15 +323,18 @@ double GetCOshieldingInt1(double h2col, double coldens) {
 
     naunet_util::splin2(x1, x2, y, y2, 6, 7, logh2, logco, &shielding);
 
-    // splin2(COShieldingTableX, COShieldingTableY, COShieldingTable, COShieldingTableD2, 
-    //        6, 7, logh2, logco, &shielding);
-
     shielding = pow(10.0, shielding);
 
     naunet_util::free_vector(x1, 1, 6);
     naunet_util::free_vector(x2, 1, 7);
     naunet_util::free_matrix(y, 1, 6, 1, 7);
     naunet_util::free_matrix(y2, 1, 6, 1, 7);
+
+    /* {% endif -%} */
+
+    /* {% else -%} */
+
+    printf("WARNING!! Not Implemented! Return CO shielding = -1.\n");
 
     /* {% endif -%} */
 
@@ -398,6 +418,10 @@ double GetN2shieldingInt(double tgas, double h2col, double coldens) {
         (f1 * (1 - my) + f2 * my) * (1 - mz) + (f3 * (1 - my) + f4 * my) * mz;
     shielding = pow(10.0, shielding);
 
+    /* {% else -%} */
+
+    printf("WARNING!! Not Implemented! Return N2 shielding = -1.\n");
+
     /* {% endif -%} */
 
     return shielding;
@@ -407,6 +431,7 @@ double GetN2shieldingInt(double tgas, double h2col, double coldens) {
 // tau(lambda) is the opt. depth for dust extinction at
 // wavelength x (cf. b.d.savage and j.s.mathis, annual
 // review of astronomy and astrophysics vol.17(1979),p.84)
+{% if info.device == "gpu" -%} __device__ {% endif -%}
 double xlamda(double wavelength) {
     double x[29] = {
         910.0, 950.0, 1000.0, 1050.0, 1110.0,
@@ -431,7 +456,7 @@ double xlamda(double wavelength) {
     }
 
     else if (wavelength >= x[28]) {
-        return 0.05 - 5.16e-11 * (wavelength-x[29]);
+        return 0.05 - 5.16e-11 * (wavelength-x[28]);
     }
 
     for (int i=0; i<28; i++) {
@@ -440,11 +465,14 @@ double xlamda(double wavelength) {
         }
     }
 
+    return 0.0;
+
 }
 
 // Calculate the influence of dust extinction (g=0.8, omega=0.3) 
 // Ref: Wagenblast & Hartquist, mnras237, 1019 (1989)
-// Originally implemented in UCLCHEM
+// Adapted from UCLCHEM
+{% if info.device == "gpu" -%} __device__ {% endif -%}
 double GetGrainScattering(double av, double wavelength) {
 
     double c[6] = {1.0e0, 2.006e0, -1.438e0, 7.364e-1, -5.076e-1, -5.920e-2};
@@ -476,6 +504,8 @@ double GetGrainScattering(double av, double wavelength) {
 
 // Calculate lambda bar (in a) according to equ. 4 of van dishoeck
 // and black, apj 334, p771 (1988)
+// Adapted from UCLCHEM
+{% if info.device == "gpu" -%} __device__ {% endif -%}
 double GetCharactWavelength(double h2col, double cocol) {
     double logco = log10(abs(cocol)+1.0);
     double logh2 = log10(abs(h2col)+1.0);
@@ -488,6 +518,12 @@ double GetCharactWavelength(double h2col, double cocol) {
     // to the total rate of each depth. lbar cannot be larger than
     // the wavelength of band 33 (1076.1a) and not be smaller than
     // the wavelength of band 1 (913.6a).
-    return std::min(1076.0, std::max(913.0, lbar));
+
+    /* {% if info.device == "gpu" -%} */ 
+    lbar = min(1076.0, max(913.0, lbar));
+    /* {% else -%} */
+    lbar = std::min(1076.0, std::max(913.0, lbar));
+    /* {% endif -%} */
+    return lbar;
 
 }

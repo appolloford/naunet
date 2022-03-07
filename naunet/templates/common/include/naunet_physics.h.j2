@@ -15,8 +15,12 @@ __device__ double GetCOshielding(double tgas, double h2col, double coldens,
 __device__ double GetN2shielding(double tgas, double h2col, double coldens,
                                  int method);
 __device__ double GetH2shieldingInt(double coldens);
+__device__ double GetH2shieldingFGK(double coldens);
 __device__ double GetCOshieldingInt(double tgas, double h2col, double coldens);
+__device__ double GetCOshieldingInt1(double h2col, double coldens);
 __device__ double GetN2shieldingInt(double tgas, double h2col, double coldens);
+__device__ double GetGrainScattering(double av, double wavelength);
+__device__ double GetCharactWavelength(double h2col, double cocol);
 /* {% else %} */
 double GetMantleDens(double *y);
 double GetHNuclei(double *y);
@@ -33,8 +37,8 @@ double GetH2shieldingFGK(double coldens);
 double GetCOshieldingInt(double tgas, double h2col, double coldens);
 double GetCOshieldingInt1(double h2col, double coldens);
 double GetN2shieldingInt(double tgas, double h2col, double coldens);
-double GetCharactWavelength(double h2col, double cocol);
 double GetGrainScattering(double av, double wavelength);
+double GetCharactWavelength(double h2col, double cocol);
 /* {% endif %} */
 
 #endif

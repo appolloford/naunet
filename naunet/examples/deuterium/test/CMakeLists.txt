@@ -44,14 +44,6 @@ foreach(name ${TESTTARGETS})
                 OUTPUT_NAME ${targetname}.x
     )
 
-    if("CUDA" IN_LIST languages)
-        target_include_directories(
-            ${targetname}
-                PRIVATE 
-                    ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}
-        )
-    endif()
-
     # for odeint test
     if(USE_BOOST)
         target_include_directories(
