@@ -1,6 +1,6 @@
 for idx in 0 1 4 5 8 9 12 13
 do
-  cd $HOME/naunet_example0
+  cd $HOME/naunet_example$idx
   if [[ "$OSTYPE" == "linux-gnu"* ]]; then
     cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release \
           -DSUNDIALS_DIR=/usr/local/sundials/lib/cmake/sundials \
@@ -16,7 +16,7 @@ done
 
 for idx in 2 6 10
 do
-  cd $HOME/naunet_example2
+  cd $HOME/naunet_example$idx
   if [[ "$OSTYPE" == "linux-gnu"* ]]; then
     cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release \
           -DSUNDIALS_DIR=/usr/local/sundials/lib/cmake/sundials \
@@ -32,7 +32,7 @@ done
 
 for idx in 3 7 11 14
 do
-  cd $HOME/naunet_example3
+  cd $HOME/naunet_example$idx
   if [[ "$OSTYPE" == "linux-gnu"* ]]; then
     cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release \
           -DBOOST_ROOT=/usr/local \
