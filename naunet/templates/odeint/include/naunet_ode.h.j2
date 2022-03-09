@@ -36,6 +36,8 @@ class Fex {
 
    public:
     Fex(NaunetData *data);
+    Fex(const Fex& rhs);
+    Fex& operator=(const Fex& rhs);
     ~Fex();
 
     void operator()(const vector_type &abund, vector_type &ydot, double t);
@@ -47,6 +49,8 @@ class Jac {
 
    public:
     Jac(NaunetData *data);
+    Jac(const Jac& rhs);
+    Jac& operator=(const Jac& rhs);
     ~Jac();
 
     void operator()(const vector_type &abund, matrix_type &j, const double &t,
