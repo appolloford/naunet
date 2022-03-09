@@ -24,11 +24,9 @@ class Naunet {
     Naunet();
     ~Naunet();
     int Finalize();
-    int PrintDebugInfo();
     int Init(int nsystem = MAX_NSYSTEMS, double atol = 1e-20, double rtol = 1e-5, int mxsteps=500);
-    /* {% if info.method == "cusparse" -%} */
+    int PrintDebugInfo();
     int Reset(int nsystem = MAX_NSYSTEMS, double atol = 1e-20, double rtol = 1e-5, int mxsteps=500);
-    /* {% endif -%} */
     int Solve(realtype *ab, realtype dt, NaunetData *data);
 #ifdef PYMODULE
     py::array_t<realtype> PyWrapSolve(py::array_t<realtype> arr, realtype dt,

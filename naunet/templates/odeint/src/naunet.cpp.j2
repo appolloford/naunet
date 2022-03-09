@@ -16,6 +16,11 @@ Naunet::Naunet(){};
 
 Naunet::~Naunet(){};
 
+int Naunet::Finalize() {
+    fclose(errfp_);
+    return NAUNET_SUCCESS; 
+};
+
 int Naunet::Init(int nsystem, double atol, double rtol, int mxsteps) {
     if (nsystem != 1) {
         printf("This solver doesn't support nsystem > 1!");
@@ -26,6 +31,7 @@ int Naunet::Init(int nsystem, double atol, double rtol, int mxsteps) {
     mxsteps_  = mxsteps;
     atol_     = atol;
     rtol_     = rtol;
+    errfp_    = fopen("naunet_error_record.txt", "a");
 
     /* {% if "VB88Table" in physics.coshielding -%} */
 
@@ -66,7 +72,19 @@ int Naunet::PrintDebugInfo() {
     return NAUNET_SUCCESS;
 };
 
-int Naunet::Finalize() { return NAUNET_SUCCESS; }
+int Naunet::Reset(int nsystem, double atol, double rtol, int mxsteps) {
+    if (nsystem != 1) {
+        printf("This solver doesn't support nsystem > 1!");
+        return NAUNET_FAIL;
+    }
+
+    n_system_ = nsystem;
+    mxsteps_  = mxsteps;
+    atol_     = atol;
+    rtol_     = rtol;
+
+    return NAUNET_SUCCESS;
+};
 
 int Naunet::Solve(double *abund, double dt, NaunetData *data) {
 
@@ -96,7 +114,7 @@ int Naunet::Solve(double *abund, double dt, NaunetData *data) {
             make_controlled<rosenbrock4<double>>(atol_, rtol_),
             std::make_pair(Fex(data), Jac(data)), y, 0.0, dt, dt, observer);
     } catch(const std::runtime_error& e) {
-        printf("%s\n", e.what());
+        fprintf(errfp_, "%s\n", e.what());
 
         flag = NAUNET_FAIL;
     }

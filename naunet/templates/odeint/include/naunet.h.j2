@@ -1,6 +1,7 @@
 #ifndef __NAUNET_H__
 #define __NAUNET_H__
 
+#include <stdio.h>
 #include "naunet_data.h"
 #include "naunet_macros.h"
 
@@ -18,6 +19,7 @@ class Naunet {
     int Finalize();
     int Init(int nsystem = MAX_NSYSTEMS, double atol = 1e-20, double rtol = 1e-5, int mxsteps = 500);
     int PrintDebugInfo();
+    int Reset(int nsystem = MAX_NSYSTEMS, double atol = 1e-20, double rtol = 1e-5, int mxsteps = 500);
     int Solve(double *abund, double dt, NaunetData *data);
 #ifdef PYMODULE
     py::array_t<double> PyWrapSolve(py::array_t<double> arr, double dt,
@@ -30,6 +32,8 @@ class Naunet {
     int step_;
     double atol_;
     double rtol_;
+    FILE *errfp_;
+
 };
 
 #ifdef PYMODULE

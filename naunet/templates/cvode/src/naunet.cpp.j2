@@ -103,6 +103,8 @@ int Naunet::Finalize() {
 
     /* {% endif %} */
 
+    fclose(errfp_);
+
     return NAUNET_SUCCESS;
 };
 
@@ -417,19 +419,113 @@ int Naunet::PrintDebugInfo() {
 };
 
 
-/* {% if info.method == "cusparse" %} */
 // To reset the size of cusparse solver
 int Naunet::Reset(int nsystem, double atol, double rtol, int mxsteps) {
-
-    // if (nsystem < NSTREAMS ||  nsystem % NSTREAMS != 0) {
-    //     printf("Invalid size of system!");
-    //     return NAUNET_FAIL;
-    // }
 
     n_system_ = nsystem;
     mxsteps_  = mxsteps;
     atol_     = atol;
     rtol_     = rtol;
+
+    /* {% if info.method == "dense" -%} */
+    if (nsystem != 1) {
+        printf("This solver doesn't support nsystem > 1!");
+        return NAUNET_FAIL;
+    }
+
+    N_VFreeEmpty(cv_y_);
+    CVodeFree(&cv_mem_);
+    SUNMatDestroy(cv_a_);
+    SUNLinSolFree(cv_ls_);
+
+    cv_y_  = N_VNew_Serial((sunindextype)NEQUATIONS);
+    cv_a_  = SUNDenseMatrix(NEQUATIONS, NEQUATIONS);
+    cv_ls_ = SUNLinSol_Dense(cv_y_, cv_a_);
+
+    cv_mem_ = CVodeCreate(CV_BDF);
+
+    int flag;
+
+    flag = CVodeSetErrFile(cv_mem_, errfp_);
+    if (CheckFlag(&flag, "CVodeSetErrFile", 1, errfp_) == NAUNET_FAIL) {
+        return NAUNET_FAIL;
+    }
+
+    flag = CVodeSetMaxNumSteps(cv_mem_, mxsteps_);
+    if (CheckFlag(&flag, "CVodeSetMaxNumSteps", 1, errfp_) == NAUNET_FAIL) {
+        return NAUNET_FAIL;
+    }
+
+    flag = CVodeInit(cv_mem_, Fex, 0.0, cv_y_);
+    if (CheckFlag(&flag, "CVodeInit", 1, errfp_) == NAUNET_FAIL) {
+        return NAUNET_FAIL;
+    }
+
+    flag = CVodeSStolerances(cv_mem_, rtol_, atol_);
+    if (CheckFlag(&flag, "CVodeSStolerances", 1, errfp_) == NAUNET_FAIL) {
+        return NAUNET_FAIL;
+    }
+
+    flag = CVodeSetLinearSolver(cv_mem_, cv_ls_, cv_a_);
+    if (CheckFlag(&flag, "CVodeSetLinearSolver", 1, errfp_) == NAUNET_FAIL) {
+        return NAUNET_FAIL;
+    }
+
+    flag = CVodeSetJacFn(cv_mem_, Jac);
+    if (CheckFlag(&flag, "CVodeSetJacFn", 1, errfp_) == NAUNET_FAIL) {
+        return NAUNET_FAIL;
+    }
+
+    /* {% elif info.method == "sparse" -%} */
+    if (nsystem != 1) {
+        printf("This solver doesn't support nsystem > 1!");
+        return NAUNET_FAIL;
+    }
+
+    N_VFreeEmpty(cv_y_);
+    CVodeFree(&cv_mem_);
+    SUNMatDestroy(cv_a_);
+    SUNLinSolFree(cv_ls_);
+
+    cv_y_  = N_VNew_Serial((sunindextype)NEQUATIONS);
+    cv_a_  = SUNSparseMatrix(NEQUATIONS, NEQUATIONS, NNZ, CSR_MAT);
+    cv_ls_ = SUNLinSol_KLU(cv_y_, cv_a_);
+
+    cv_mem_ = CVodeCreate(CV_BDF);
+
+    int flag;
+
+    flag = CVodeInit(cv_mem_, Fex, 0.0, cv_y_);
+    if (CheckFlag(&flag, "CVodeInit", 1, errfp_) == NAUNET_FAIL) {
+        return NAUNET_FAIL;
+    }
+
+    flag = CVodeSetMaxNumSteps(cv_mem_, mxsteps_);
+    if (CheckFlag(&flag, "CVodeSetMaxNumSteps", 1, errfp_) == NAUNET_FAIL) {
+        return NAUNET_FAIL;
+    }
+
+    flag = CVodeSStolerances(cv_mem_, rtol_, atol_);
+    if (CheckFlag(&flag, "CVodeSStolerances", 1, errfp_) == NAUNET_FAIL) {
+        return NAUNET_FAIL;
+    }
+
+    flag = CVodeSetLinearSolver(cv_mem_, cv_ls_, cv_a_);
+    if (CheckFlag(&flag, "CVodeSetLinearSolver", 1, errfp_) == NAUNET_FAIL) {
+        return NAUNET_FAIL;
+    }
+
+    flag = CVodeSetJacFn(cv_mem_, Jac);
+    if (CheckFlag(&flag, "CVodeSetJacFn", 1, errfp_) == NAUNET_FAIL) {
+        return NAUNET_FAIL;
+    }
+
+    /* {% elif info.method == "cusparse" %} */
+
+    // if (nsystem < NSTREAMS ||  nsystem % NSTREAMS != 0) {
+    //     printf("Invalid size of system!");
+    //     return NAUNET_FAIL;
+    // }
 
     n_stream_in_use_ = nsystem / NSTREAMS >= 32 ? NSTREAMS : 1;
     int n_system_per_stream = nsystem / n_stream_in_use_;
@@ -445,9 +541,9 @@ int Naunet::Reset(int nsystem, double atol, double rtol, int mxsteps) {
 
     for (int i = 0; i < n_stream_in_use_; i++) {
         N_VDestroy(cv_y_[i]);
+        CVodeFree(&cv_mem_[i]);
         SUNMatDestroy(cv_a_[i]);
         SUNLinSolFree(cv_ls_[i]);
-        CVodeFree(&cv_mem_[i]);
 
         delete stream_exec_policy_[i];
         delete reduce_exec_policy_[i];
@@ -501,9 +597,10 @@ int Naunet::Reset(int nsystem, double atol, double rtol, int mxsteps) {
         // cv_y_ = N_VNewEmpty_Cuda();
     }
 
+    /* {% endif %} */
+
     return NAUNET_SUCCESS;
 };
-/* {% endif %} */
 
 int Naunet::Solve(realtype *ab, realtype dt, NaunetData *data) {
 
