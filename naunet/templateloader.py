@@ -580,6 +580,7 @@ class TemplateLoader:
             info=self._info,
             header=headername,
             physics=self._physics,
+            variables=self._variables,
         )
 
     def render_ode(

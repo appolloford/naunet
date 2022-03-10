@@ -161,6 +161,119 @@ int Naunet::GetCVStates(void *cv_mem,
 
 };
 
+int Naunet::HandleError(int cvflag, realtype *ab, realtype dt, realtype t0) {
+
+    if (cvflag >= 0) {
+        return NAUNET_SUCCESS;
+    }
+
+    /* {% if info.method == "dense" or info.method == "sparse" -%} */
+
+    for (int level=1; level<6; level++) {
+
+        int nsubsteps = 1;
+
+        if (cvflag == -1 || cvflag == -4) {
+            // if error handling has been tried once, continue with the current time and state
+            if (level > 1) {
+                for (int i=0; i<NEQUATIONS; i++) {
+                    ab_tmp_[i] = ab[i];
+                }
+                dt -= t0;
+            }
+            nsubsteps = level * 10;
+            // cvflag = CVodeSetMaxNumSteps(cv_mem_, (level+1) * mxsteps_);
+            // if (CheckFlag(&cvflag, "CVodeSetMaxNumSteps", 1, errfp_) == NAUNET_FAIL) {
+            //     return NAUNET_FAIL;
+            // }
+        }
+        else if (cvflag == -2) {
+            cvflag = CVodeSStolerances(cv_mem_, rtol_, pow(10.0, level) * atol_);
+            if (CheckFlag(&cvflag, "CVodeSStolerances", 1, errfp_) == NAUNET_FAIL) {
+                return NAUNET_FAIL;
+            }
+        }
+        else if (cvflag == -3) {
+            // continue with the current time and state
+            for (int i=0; i<NEQUATIONS; i++) {
+                ab_tmp_[i] = ab[i];
+            }
+            dt -= t0;
+        }
+        // else if (cvflag == -4) {
+        //     // if error handling has been tried once, continue with the current time and state
+        //     if (level > 1) {
+        //         for (int i=0; i<NEQUATIONS; i++) {
+        //             ab_tmp[i] = ab[i];
+        //         }
+        //         dt -= t0;
+        //     }
+        //     // in case h = hmin, use smaller timesteps
+        //     nsubsteps = level * 10;
+        // }
+        else if (cvflag == -6) {
+            // The state may have something wrong
+            // Reset to the initial state and try finer steps
+            for (int i=0; i<NEQUATIONS; i++) {
+                ab_tmp_[i] = ab_init_[i];
+            }
+            nsubsteps = level * 10;
+        }
+        else if (cvflag < 0) {
+            fprintf(errfp_, "The error cannot be recovered by Naunet! Exit from Naunet!\n");
+            fprintf(errfp_, "Flag = %d, level = %d\n", cvflag, level);
+            break;
+        }
+
+        // Reset initial conditions
+        t0 = 0.0;
+        for (int i=0; i<NEQUATIONS; i++) {
+            ab[i] = ab_tmp_[i];
+        }
+
+        // Reinitialize
+        cvflag = CVodeReInit(cv_mem_, t0, cv_y_);
+        if (CheckFlag(&cvflag, "CVodeReInit", 1, errfp_) == NAUNET_FAIL) {
+            return NAUNET_FAIL;
+        }
+
+        for (int step = 0; step < nsubsteps; step ++) {
+            realtype tout = pow(10.0, log10(dt) * (realtype)(step+1) / (realtype)nsubsteps);
+            // printf("tout: %13.7e, step: %d, level: %d\n", tout, step, level);
+            // realtype tcur = 0.0;
+            // cvflag = CVodeGetCurrentTime(cv_mem_, &tcur);
+            cvflag = CVode(cv_mem_, tout, cv_y_, &t0, CV_NORMAL);
+            if (cvflag < 0) {
+                fprintf(errfp_, "CVode failed in Naunet! Flag = %d in the %dth substep of %dth level! \n", cvflag, step, level);
+                if (level < 5) {
+                    fprintf(errfp_, "Tyring to fix the error in the next level\n");
+                }
+                // fprintf(errfp_, "Failed to fix the error! cvflag = %d in the %dth substep! \n", cvflag, i);
+                break;
+            }
+        }
+
+        // if CVode succeeded, leave the loop
+        if (cvflag >= 0) {
+            if (level > 0) {
+                fprintf(errfp_, "The error was successfully fixed in %dth level\n", level);
+            }
+            // break;
+            return NAUNET_SUCCESS;
+        }
+
+    }
+
+    /* {% elif info.method == "cusparse" -%} */
+
+    // TODO: No error handling for cusparse solver yet
+
+    /* {% endif -%} */
+
+    return NAUNET_FAIL;
+
+}
+
 
 int Naunet::Init(int nsystem, double atol, double rtol, int mxsteps) {
     n_system_ = nsystem;
@@ -437,10 +550,15 @@ int Naunet::Reset(int nsystem, double atol, double rtol, int mxsteps) {
 
 int Naunet::Solve(realtype *ab, realtype dt, NaunetData *data) {
 
-    int flag;
+    int cvflag;
     realtype t0 = 0.0;
 
     /* {% if info.method == "dense" or info.method == "sparse" -%} */
+
+    for (int i=0; i<NEQUATIONS; i++) {
+        ab_init_[i] = ab[i];
+        ab_tmp_[i] = ab[i];
+    }
 
     // realtype *ydata = N_VGetArrayPointer(cv_y_);
     // for (int i=0; i<NEQUATIONS; i++)
@@ -451,46 +569,68 @@ int Naunet::Solve(realtype *ab, realtype dt, NaunetData *data) {
 
     cv_mem_ = CVodeCreate(CV_BDF);
 
-    flag = CVodeSetErrFile(cv_mem_, errfp_);
-    if (CheckFlag(&flag, "CVodeSetErrFile", 1, errfp_) == NAUNET_FAIL) {
+    cvflag = CVodeSetErrFile(cv_mem_, errfp_);
+    if (CheckFlag(&cvflag, "CVodeSetErrFile", 1, errfp_) == NAUNET_FAIL) {
         return NAUNET_FAIL;
     }
 
-    flag = CVodeSetMaxNumSteps(cv_mem_, mxsteps_);
-    if (CheckFlag(&flag, "CVodeSetMaxNumSteps", 1, errfp_) == NAUNET_FAIL) {
+    cvflag = CVodeSetMaxNumSteps(cv_mem_, mxsteps_);
+    if (CheckFlag(&cvflag, "CVodeSetMaxNumSteps", 1, errfp_) == NAUNET_FAIL) {
         return NAUNET_FAIL;
     }
 
-    flag = CVodeInit(cv_mem_, Fex, t0, cv_y_);
-    if (CheckFlag(&flag, "CVodeInit", 1, errfp_) == NAUNET_FAIL) {
+    cvflag = CVodeInit(cv_mem_, Fex, t0, cv_y_);
+    if (CheckFlag(&cvflag, "CVodeInit", 1, errfp_) == NAUNET_FAIL) {
         return NAUNET_FAIL;
     }
 
-    flag = CVodeSStolerances(cv_mem_, rtol_, atol_);
-    if (CheckFlag(&flag, "CVodeSStolerances", 1, errfp_) == NAUNET_FAIL) {
+    cvflag = CVodeSStolerances(cv_mem_, rtol_, atol_);
+    if (CheckFlag(&cvflag, "CVodeSStolerances", 1, errfp_) == NAUNET_FAIL) {
         return NAUNET_FAIL;
     }
 
-    flag = CVodeSetLinearSolver(cv_mem_, cv_ls_, cv_a_);
-    if (CheckFlag(&flag, "CVodeSetLinearSolver", 1, errfp_) == NAUNET_FAIL) {
+    cvflag = CVodeSetLinearSolver(cv_mem_, cv_ls_, cv_a_);
+    if (CheckFlag(&cvflag, "CVodeSetLinearSolver", 1, errfp_) == NAUNET_FAIL) {
         return NAUNET_FAIL;
     }
 
-    flag = CVodeSetJacFn(cv_mem_, Jac);
-    if (CheckFlag(&flag, "CVodeSetJacFn", 1, errfp_) == NAUNET_FAIL) {
+    cvflag = CVodeSetJacFn(cv_mem_, Jac);
+    if (CheckFlag(&cvflag, "CVodeSetJacFn", 1, errfp_) == NAUNET_FAIL) {
         return NAUNET_FAIL;
     }
 
-    flag = CVodeSetUserData(cv_mem_, data);
-    if (CheckFlag(&flag, "CVodeSetUserData", 1, errfp_) == NAUNET_FAIL) {
+    cvflag = CVodeSetUserData(cv_mem_, data);
+    if (CheckFlag(&cvflag, "CVodeSetUserData", 1, errfp_) == NAUNET_FAIL) {
         return NAUNET_FAIL;
     }
 
-    flag = CVode(cv_mem_, dt, cv_y_, &t0, CV_NORMAL);
+    cvflag = CVode(cv_mem_, dt, cv_y_, &t0, CV_NORMAL);
 
     // ab   = N_VGetArrayPointer(cv_y_);
 
+    int flag = HandleError(cvflag, ab, dt, t0);
+
+    if (flag == NAUNET_FAIL) {
+        fprintf(errfp_, "Some unrecoverable error occurred. cvFlag = %d\n", cvflag);
+        fprintf(errfp_, "Initial condition: \n");
+
+        {% for v in variables.varis -%}
+        fprintf(errfp_, "data.{{ v }} = %13.7e\n", data->{{ v }});
+        {% endfor %}
+
+        {% for v in variables.tvaris -%}
+        fprintf(errfp_, "data.{{ v }} = %13.7e\n", data->{{ v }});
+        {% endfor %}
+
+        for (int i=0; i<NEQUATIONS; i++) {
+            fprintf(errfp_, "y[%d] = %13.7e\n", i, ab_init_[i]);
+        }
+
+    }
+
     CVodeFree(&cv_mem_);
+
+    return flag;
 
     /* {% elif info.method == "cusparse" -%} */
 
