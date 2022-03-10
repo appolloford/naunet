@@ -11,11 +11,18 @@
 
 {% for s in species -%}
 #define IDX_{{ s.alias }} {{ loop.index0 }}
-{% endfor -%}
+{% endfor %}
 
 
 {% for s in species -%}
 #define A_{{ s.alias }} {{ s.massnumber }}
-{% endfor -%}
+{% endfor %}
+
+
+const float A_Table[{{ neqns }}] = {
+    {% for s in species -%}
+    A_{{ s.alias }}{{ ",\n    " if not loop.last else "\n" }}
+    {%- endfor -%}
+};
 
 #endif
