@@ -167,7 +167,12 @@ int Naunet::HandleError(int cvflag, realtype *ab, realtype dt, realtype t0) {
         return NAUNET_SUCCESS;
     }
 
+    fprintf(errfp_, "CVode failed in Naunet! Flag = %d\n", cvflag);
+    fprintf(errfp_, "Calling HandleError to fix the problem\n");
+
     /* {% if info.method == "dense" or info.method == "sparse" -%} */
+
+    dt_init = dt;
 
     for (int level=1; level<6; level++) {
 
@@ -181,6 +186,7 @@ int Naunet::HandleError(int cvflag, realtype *ab, realtype dt, realtype t0) {
                 }
                 dt -= t0;
             }
+            // t0 = 0.0;
             nsubsteps = level * 10;
             // cvflag = CVodeSetMaxNumSteps(cv_mem_, (level+1) * mxsteps_);
             // if (CheckFlag(&cvflag, "CVodeSetMaxNumSteps", 1, errfp_) == NAUNET_FAIL) {
@@ -199,6 +205,7 @@ int Naunet::HandleError(int cvflag, realtype *ab, realtype dt, realtype t0) {
                 ab_tmp_[i] = ab[i];
             }
             dt -= t0;
+            // t0 = 0.0;
         }
         // else if (cvflag == -4) {
         //     // if error handling has been tried once, continue with the current time and state
@@ -217,12 +224,14 @@ int Naunet::HandleError(int cvflag, realtype *ab, realtype dt, realtype t0) {
             for (int i=0; i<NEQUATIONS; i++) {
                 ab_tmp_[i] = ab_init_[i];
             }
+            dt = dt_init;
+            // t0 = 0.0;
             nsubsteps = level * 10;
         }
         else if (cvflag < 0) {
             fprintf(errfp_, "The error cannot be recovered by Naunet! Exit from Naunet!\n");
-            fprintf(errfp_, "Flag = %d, level = %d\n", cvflag, level);
-            break;
+            fprintf(errfp_, "cvFlag = %d, level = %d\n", cvflag, level);
+            return NAUNET_FAIL;
         }
 
         // Reset initial conditions
@@ -615,15 +624,26 @@ int Naunet::Solve(realtype *ab, realtype dt, NaunetData *data) {
         fprintf(errfp_, "Initial condition: \n");
 
         {% for v in variables.varis -%}
-        fprintf(errfp_, "data.{{ v }} = %13.7e\n", data->{{ v }});
+        fprintf(errfp_, "    data.{{ v }} = %13.7e;\n", data->{{ v }});
         {% endfor %}
 
         {% for v in variables.tvaris -%}
-        fprintf(errfp_, "data.{{ v }} = %13.7e\n", data->{{ v }});
+        fprintf(errfp_, "    data.{{ v }} = %13.7e;\n", data->{{ v }});
         {% endfor %}
 
+        fprintf(errfp_, "\n");
+
+        realtype spy = 365.0 * 86400.0;
+
+        fprintf(errfp_, "    dtyr = %13.7e;\n", dt / spy);
+        fprintf(errfp_, "\n");
+
         for (int i=0; i<NEQUATIONS; i++) {
-            fprintf(errfp_, "y[%d] = %13.7e\n", i, ab_init_[i]);
+            fprintf(errfp_, "    y[%d] = %13.7e;\n", i, ab_init_[i]);
+        }
+
+        for (int i=0; i<NEQUATIONS; i++) {
+            fprintf(errfp_, "    y_final[%d] = %13.7e;\n", i, ab\[i]);
         }
 
     }
