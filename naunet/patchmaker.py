@@ -234,7 +234,6 @@ class EnzoPatch:
             for s in self.netinfo.species
             if s.alias in self.grackle_defined_alias or s.iselectron
         ]
-        print([s.name for s in repeatspec])
         nspec_in_enzo = nspec + len(self.grackle_defined_alias) - len(repeatspec)
         nspec_in_enzo -= 1  # don't count electron, enzo treat it specially
 

@@ -149,14 +149,17 @@ int grid::NaunetWrapper()
       igrid = (k * GridDimension[1] + j) * GridDimension[0] + GridStartIndex[0];
       for (i = GridStartIndex[0]; i <= GridEndIndex[0]; i++, igrid++) {
 
-        data.nH = BaryonField[iden][i] / (1.4 * mh);
+        data.nH = BaryonField[iden][i] * DensityUnits / (1.4 * mh);
         data.Tgas = temperature[igrid];
 
         {% for ab in abund -%}
           {{ ab }};
         {% endfor %}
 
-        naunet.Solve(y, dt_chem * TimeUnits, &data);
+        if (naunet.Solve(y, dt_chem * TimeUnits, &data) == NAUNET_FAIL) {    
+          naunet.Finalize();
+          ENZO_FAIL("Naunet failed in NaunetWrapper.C!");
+        }
 
         {% for iab in invabund -%}
           {{ iab }};
@@ -174,20 +177,25 @@ int grid::NaunetWrapper()
   int slicesize = (GridEndIndex[1] - GridStartIndex[1]) * (GridEndIndex[0] - GridStartIndex[0]);
   naunet.Reset(slicesize);
 
+  NaunetData *data = new NaunetDate[slicesize];
+
   for (k = GridStartIndex[2]; k <= GridEndIndex[2]; k++) {
     sidx = 0;
     for (j = GridStartIndex[1]; j <= GridEndIndex[1]; j++) {
       igrid = (k * GridDimension[1] + j) * GridDimension[0] + GridStartIndex[0];
       for (i = GridStartIndex[0]; i <= GridEndIndex[0]; i++, igrid++, sidx++) {
 
-        data.nH = BaryonField[iden][igrid] / (1.4 * mh);
-        data.Tgas = temperature[igrid];
+        data[sidx].nH = BaryonField[iden][igrid] * DensityUnits / (1.4 * mh);
+        data[sidx].Tgas = temperature[igrid];
 
         {% for ab in abund -%}
           {{ ab }};
         {% endfor %}
 
-        naunet.Solve(y, dt_chem * TimeUnits, &data);
+        if (naunet.Solve(y, dt_chem * TimeUnits, data) == NAUNET_FAIL) {    
+          naunet.Finalize();
+          ENZO_FAIL("Naunet failed in NaunetWrapper.C!");
+        }
 
         {% for iab in invabund -%}
           {{ iab }};
@@ -239,7 +247,6 @@ int grid::NaunetWrapper()
 
   delete [] temperature;
 
-  delete [] TotalMetals;
   delete [] g_grid_dimension;
   delete [] g_grid_start;
   delete [] g_grid_end;
