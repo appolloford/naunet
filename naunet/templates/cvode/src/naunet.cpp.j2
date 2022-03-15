@@ -172,7 +172,7 @@ int Naunet::HandleError(int cvflag, realtype *ab, realtype dt, realtype t0) {
 
     /* {% if info.method == "dense" or info.method == "sparse" -%} */
 
-    dt_init = dt;
+    realtype dt_init = dt;
 
     for (int level=1; level<6; level++) {
 
@@ -643,7 +643,7 @@ int Naunet::Solve(realtype *ab, realtype dt, NaunetData *data) {
         }
 
         for (int i=0; i<NEQUATIONS; i++) {
-            fprintf(errfp_, "    y_final[%d] = %13.7e;\n", i, ab\[i]);
+            fprintf(errfp_, "    y_final[%d] = %13.7e;\n", i, ab[i]);
         }
 
     }
