@@ -687,42 +687,42 @@ int Naunet::Solve(realtype *ab, realtype dt, NaunetData *data) {
 
         cv_mem_[i] = CVodeCreate(CV_BDF);
 
-        flag = CVodeSetErrFile(cv_mem_[i], errfp_);
-        if (CheckFlag(&flag, "CVodeSetErrFile", 1, errfp_) == NAUNET_FAIL) {
+        cvflag = CVodeSetErrFile(cv_mem_[i], errfp_);
+        if (CheckFlag(&cvflag, "CVodeSetErrFile", 1, errfp_) == NAUNET_FAIL) {
             return NAUNET_FAIL;
         }
 
-        flag = CVodeSetMaxNumSteps(cv_mem_[i], mxsteps_);
-        if (CheckFlag(&flag, "CVodeSetMaxNumSteps", 1, errfp_) == NAUNET_FAIL) {
+        cvflag = CVodeSetMaxNumSteps(cv_mem_[i], mxsteps_);
+        if (CheckFlag(&cvflag, "CVodeSetMaxNumSteps", 1, errfp_) == NAUNET_FAIL) {
             return NAUNET_FAIL;
         }
 
-        flag = CVodeInit(cv_mem_[i], Fex, t0, cv_y_[i]);
-        if (CheckFlag(&flag, "CVodeInit", 1, errfp_) == NAUNET_FAIL) {
+        cvflag = CVodeInit(cv_mem_[i], Fex, t0, cv_y_[i]);
+        if (CheckFlag(&cvflag, "CVodeInit", 1, errfp_) == NAUNET_FAIL) {
             return NAUNET_FAIL;
         }
 
-        flag = CVodeSStolerances(cv_mem_[i], rtol_, atol_);
-        if (CheckFlag(&flag, "CVodeSStolerances", 1, errfp_) == NAUNET_FAIL) {
+        cvflag = CVodeSStolerances(cv_mem_[i], rtol_, atol_);
+        if (CheckFlag(&cvflag, "CVodeSStolerances", 1, errfp_) == NAUNET_FAIL) {
             return NAUNET_FAIL;
         }
 
-        flag = CVodeSetLinearSolver(cv_mem_[i], cv_ls_[i], cv_a_[i]);
-        if (CheckFlag(&flag, "CVodeSetLinearSolver", 1, errfp_) == NAUNET_FAIL) {
+        cvflag = CVodeSetLinearSolver(cv_mem_[i], cv_ls_[i], cv_a_[i]);
+        if (CheckFlag(&cvflag, "CVodeSetLinearSolver", 1, errfp_) == NAUNET_FAIL) {
             return NAUNET_FAIL;
         }
 
-        flag = CVodeSetJacFn(cv_mem_[i], Jac);
-        if (CheckFlag(&flag, "CVodeSetJacFn", 1, errfp_) == NAUNET_FAIL) {
+        cvflag = CVodeSetJacFn(cv_mem_[i], Jac);
+        if (CheckFlag(&cvflag, "CVodeSetJacFn", 1, errfp_) == NAUNET_FAIL) {
             return NAUNET_FAIL;
         }
 
-        flag = CVodeSetUserData(cv_mem_[i], h_data + i * n_system_ / n_stream_in_use_);
-        if (CheckFlag(&flag, "CVodeSetUserData", 1, errfp_) == NAUNET_FAIL) {
+        cvflag = CVodeSetUserData(cv_mem_[i], h_data + i * n_system_ / n_stream_in_use_);
+        if (CheckFlag(&cvflag, "CVodeSetUserData", 1, errfp_) == NAUNET_FAIL) {
             return NAUNET_FAIL;
         }
 
-        flag = CVode(cv_mem_[i], dt, cv_y_[i], &t0, CV_NORMAL);
+        cvflag = CVode(cv_mem_[i], dt, cv_y_[i], &t0, CV_NORMAL);
 
         N_VCopyFromDevice_Cuda(cv_y_[i]);
         realtype *local_ab = N_VGetHostArrayPointer_Cuda(cv_y_[i]);
@@ -735,13 +735,14 @@ int Naunet::Solve(realtype *ab, realtype dt, NaunetData *data) {
 
     }
 
-    // TODO: return cvode flag
+    // TODO: error handling
 
-    cudaDeviceSynchronize();
+    // cudaDeviceSynchronize();
+
+    return NAUNET_SUCCESS;
 
     /* {% endif -%} */
 
-    return NAUNET_SUCCESS;
 };
 
 #ifdef PYMODULE
