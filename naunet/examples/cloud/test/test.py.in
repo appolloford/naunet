@@ -68,15 +68,14 @@ y = np.ones(len(species)) * 1e-40
 # Otherwise check the macros in naunet_macros.h
 y[species.index("H2")] = 0.5 * nH
 y[species.index("H")] = 5.0e-5 * nH
-y[species.index("He")] = 9.75e-2 * nH
+y[species.index("HE")] = 9.75e-2 * nH
 y[species.index("N")] = 7.5e-5 * nH
 y[species.index("O")] = 1.8e-4 * nH
 y[species.index("CO")] = 1.4e-4 * nH
 y[species.index("S")] = 8.0e-8 * nH
-y[species.index("Si")] = 8.0e-9 * nH
-y[species.index("Na")] = 2.0e-9 * nH
-y[species.index("Mg")] = 7.0e-9 * nH
-y[species.index("Cl")] = 4.0e-9 * nH
+y[species.index("SI")] = 8.0e-9 * nH
+y[species.index("MG")] = 7.0e-9 * nH
+y[species.index("CL")] = 4.0e-9 * nH
 
 times = np.logspace(3, 7, 51)
 timesteps = times[0]
@@ -84,12 +83,15 @@ timesteps = np.append(timesteps, times[1:] - times[:-1])
 
 with open("evolution_pymodule.dat", "w") as evoldat:
 
+    curtime = 0.0
+
     for ti, dtyr in enumerate(timesteps):
+        curtime += dtyr
         dt = dtyr * spy
         y = naunet_solver.Solve(y, dt, naunet_data)
 
         fmty = [f"{yi:13.7e}" for yi in y]
-        evoldat.write(" ".join([f"{times[ti+1]:13.7e}", *fmty]))
+        evoldat.write(" ".join([f"{curtime:13.7e}", *fmty]))
         evoldat.write("\n")
 
 naunet_solver.Finalize();
