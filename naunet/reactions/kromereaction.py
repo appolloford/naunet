@@ -77,14 +77,6 @@ class FtoCCoverter:
 
 
 class KROMEReaction(Reaction):
-
-    reacformat = "idx,r,r,r,p,p,p,p,tmin,tmax,rate"
-    varis = {
-        "Hnuclei": "nH",
-        "Temperature": "Tgas",
-    }
-    user_var = []
-
     def __init__(self, react_string, *args, **kwargs) -> None:
         super().__init__(react_string)
 
@@ -97,10 +89,9 @@ class KROMEReaction(Reaction):
 
         self._parse_string(react_string)
 
+    # TODO: multiple files?
     @classmethod
-    def finalize(cls) -> None:
-        # restore the default settings after completing a file
-        print("krome finalize is called")
+    def initialize(cls) -> None:
         cls.reacformat = "idx,r,r,r,p,p,p,p,tmin,tmax,rate"
         cls.varis = {
             "Hnuclei": "nH",
