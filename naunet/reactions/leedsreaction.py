@@ -87,15 +87,10 @@ class LEEDSReaction(Reaction):
         "double n2col = 1e-5 * h2col",
     ]
 
-    def __init__(self, react_string, *args, dust: Dust = None, **kwargs) -> None:
-        super().__init__(react_string)
+    def __init__(self, react_string, dust: Dust = None) -> None:
+        super().__init__(dust=dust, database="LEEDS")
 
-        self.database = "LEEDS"
-        self.alpha = 0.0
-        self.beta = 0.0
-        self.gamma = 0.0
         self.rtype = None
-        self.dust = dust
 
         self._parse_string(react_string)
 

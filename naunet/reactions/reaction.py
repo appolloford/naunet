@@ -1,6 +1,8 @@
+from __future__ import annotations
 from abc import ABC, abstractmethod
 from collections import Counter
 from enum import IntEnum
+from ..dusts.dust import Dust
 from ..species import Species
 
 # If the reaction types have the same formalism, they share the same value in the enum class
@@ -51,25 +53,42 @@ class ReactionType(IntEnum):
     UNKNOWN = 999
 
 
-class Reaction(ABC):
-    """
-    Abstract interface of reaction. Inherit this class to customize a new
-    reaction definition.
-    """
+class Reaction:
+    """Class of chemical reactions"""
 
     consts = {}
     globs = {}
-    varis = {}
+    varis = {
+        "Temperature": "Tgas",
+    }
     user_var = []
 
-    def __init__(self, react_string, *args, **kwargs) -> None:
-        self.reactants = []
-        self.products = []
-        self.temp_min = 1.0
-        self.temp_max = -1.0
-        self.reaction_type = ReactionType.UNKNOWN
-        self.database = None
-        self.idxfromfile = -1
+    def __init__(
+        self,
+        reactants: list[Species] = None,
+        products: list[Species] = None,
+        temp_min: float = 1.0,
+        temp_max: float = -1.0,
+        alpha: float = 0.0,
+        beta: float = 0.0,
+        gamma: float = 0.0,
+        dust: Dust = None,
+        reaction_type: ReactionType = ReactionType.UNKNOWN,
+        database: str = None,
+        idxfromfile: int = -1,
+    ) -> None:
+
+        self.reactants = reactants.copy() if reactants else []
+        self.products = products.copy() if products else []
+        self.temp_min = temp_min
+        self.temp_max = temp_max
+        self.alpha = alpha
+        self.beta = beta
+        self.gamma = gamma
+        self.dust = dust
+        self.reaction_type = reaction_type
+        self.database = database
+        self.idxfromfile = idxfromfile
 
     def __str__(self) -> str:
         verbose = "{} -> {}".format(
@@ -135,16 +154,6 @@ class Reaction(ABC):
         )
         return rate
 
-    @abstractmethod
-    def _parse_string(self, react_string) -> None:
-        """
-        Abstract method. It should be implemented by child class.
-        Called in __init__. Parsing the input string to set the
-        reactants, product, reaction rate function, etc.
-        """
-
-        raise NotImplementedError
-
     def create_species(self, species_name: str) -> Species:
         """
         Create a Species instance if the name is not a pseudo element
@@ -207,14 +216,25 @@ class Reaction(ABC):
             self.products
         ) == Counter(o.products)
 
-    @abstractmethod
-    def rate_func(self):
+    def rate_func(self) -> str:
         """
-        Abstract method should be implemented by child class. Return the
-        reaction rate expression.
+        Returns the reaction rate expression in C language
 
         Raises:
-            NotImplementedError
-        """
+            RuntimeError: if the reaction type is unknown
 
-        raise NotImplementedError
+        Returns:
+            str: the reaction rate expression in C language
+        """
+        a = self.alpha
+        b = self.beta
+        c = self.gamma
+
+        # two-body gas-phase reaction
+        if self.reaction_type == ReactionType.GAS_TWOBODY:
+            rate = f"{a} * pow(Tgas/300.0, {b}) * exp(-{c}/Tgas)"
+
+        else:
+            raise RuntimeError(f"Unknown reaction type {self.reaction_type}")
+
+        return rate

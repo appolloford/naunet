@@ -68,14 +68,8 @@ class UCLCHEMReaction(Reaction):
         "double H2dissociation = 5.1e-11 * G0 * GetGrainScattering(Av, 1000.0) * H2shielding",
     ]
 
-    def __init__(self, react_string, *args, dust: Dust = None, **kwargs) -> None:
-        super().__init__(react_string)
-
-        self.database = "UCLCHEM"
-        self.alpha = 0.0
-        self.beta = 0.0
-        self.gamma = 0.0
-        self.dust = dust
+    def __init__(self, react_string, dust: Dust = None) -> None:
+        super().__init__(dust=dust, database="UCLCHEM")
 
         self._parse_string(react_string)
 

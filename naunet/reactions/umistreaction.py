@@ -1,4 +1,5 @@
 from enum import IntEnum
+from ..dusts.dust import Dust
 from .reaction import Reaction, ReactionType as BasicType
 
 
@@ -46,13 +47,9 @@ class UMISTReaction(Reaction):
     }
     user_var = []
 
-    def __init__(self, react_string, *args, **kwargs) -> None:
-        super().__init__(react_string)
+    def __init__(self, react_string, dust: Dust = None) -> None:
+        super().__init__(dust=dust, database="UMIST")
 
-        self.database = "UMIST"
-        self.alpha = 0.0
-        self.beta = 0.0
-        self.gamma = 0.0
         self.code = None
 
         self._parse_string(react_string)

@@ -8,5 +8,6 @@
         "CMakeLists.txt.j2": "cmake",
         "Make.*": "makefile",
     },
-    "editor.formatOnSave": true
+    "editor.formatOnSave": true,
+    "python.formatting.provider": "black"
 }

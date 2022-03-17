@@ -1,6 +1,7 @@
 import logging
 import re
 from lark import Lark, Transformer
+from ..dusts.dust import Dust
 from ..species import Species
 from .reaction import Reaction, ReactionType
 
@@ -77,13 +78,9 @@ class FtoCCoverter:
 
 
 class KROMEReaction(Reaction):
-    def __init__(self, react_string, *args, **kwargs) -> None:
-        super().__init__(react_string)
+    def __init__(self, react_string, dust: Dust = None) -> None:
+        super().__init__(dust=dust, database="KROME")
 
-        self.database = "KROME"
-        self.alpha = 0.0
-        self.beta = 0.0
-        self.gamma = 0.0
         self.kromeformat = self.reacformat.lower().strip()
         self.rate_string = None
 
@@ -117,7 +114,7 @@ class KROMEReaction(Reaction):
         else:
             return line.strip()
 
-    def rate_func(self):
+    def rate_func(self) -> str:
 
         rate = re.sub(r"(\d\.?)d(\-?\d)", r"\1e\2", self.rate_string)
         rate = re.sub(r"(idx_.?)p", r"\1II", rate)

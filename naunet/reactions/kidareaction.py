@@ -1,5 +1,6 @@
 import logging
 from enum import IntEnum
+from ..dusts.dust import Dust
 from .reaction import Reaction, ReactionType as BasicType
 
 
@@ -31,19 +32,15 @@ class KIDAReaction(Reaction):
     }
     user_var = []
 
-    def __init__(self, react_string, *args, **kwargs) -> None:
-        super().__init__(react_string)
+    def __init__(self, react_string, dust: Dust = None) -> None:
+        super().__init__(dust=dust, database="KIDA")
 
-        self.database = "KIDA"
-        self.alpha = 0.0
-        self.beta = 0.0
-        self.gamma = 0.0
         self.formula = -1
         self.itype = -1
 
         self._parse_string(react_string)
 
-    def rate_func(self):
+    def rate_func(self) -> str:
         a = self.alpha
         b = self.beta
         c = self.gamma
