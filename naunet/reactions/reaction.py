@@ -1,5 +1,4 @@
 from __future__ import annotations
-from abc import ABC, abstractmethod
 from collections import Counter
 from enum import IntEnum
 from ..dusts.dust import Dust
@@ -65,8 +64,8 @@ class Reaction:
 
     def __init__(
         self,
-        reactants: list[Species] = None,
-        products: list[Species] = None,
+        reactants: list[Species] | list[str] = None,
+        products: list[Species] | list[str] = None,
         temp_min: float = 1.0,
         temp_max: float = -1.0,
         alpha: float = 0.0,
@@ -78,8 +77,16 @@ class Reaction:
         idxfromfile: int = -1,
     ) -> None:
 
-        self.reactants = reactants.copy() if reactants else []
-        self.products = products.copy() if products else []
+        self.reactants = (
+            [self.create_species(r) for r in reactants if self.create_species(r)]
+            if reactants
+            else []
+        )
+        self.products = (
+            [self.create_species(p) for p in products if self.create_species(p)]
+            if products
+            else []
+        )
         self.temp_min = temp_min
         self.temp_max = temp_max
         self.alpha = alpha
@@ -154,17 +161,20 @@ class Reaction:
         )
         return rate
 
-    def create_species(self, species_name: str) -> Species:
+    def create_species(self, species_name: Species | str) -> Species:
         """
         Create a Species instance if the name is not a pseudo element
         (e.g. CR, CRPHOT), else return None
 
         Args:
-            species_name (str): name of species
+            species_name (Species | str): name of species
 
         Returns:
             Species: Species instance of the input name
         """
+
+        if isinstance(species_name, Species):
+            return species_name
 
         if species_name and species_name not in Species.known_pseudoelements():
             return Species(species_name)

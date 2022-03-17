@@ -92,6 +92,10 @@ class Species:
         Args:
             name (str): name of the species
         """
+
+        if not isinstance(name, str):
+            raise TypeError("Species need a name string to instantiate")
+
         self.name = name
         self.element_count = dict()
         self._alias = None
