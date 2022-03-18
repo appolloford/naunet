@@ -109,9 +109,9 @@ class TemplateLoader:
 
         consts: dict[str, str]
         globs: list[str]
-        varis: list[str]
+        varis: dict[str, float]
         user_var: list[str]
-        tvaris: list[str]  # variables required by thermal process
+        tvaris: list[str, float]  # variables required by thermal process
         header: str = None
 
     def __init__(
@@ -244,16 +244,24 @@ class TemplateLoader:
         )
         globs = [*reactglobs, *dustglobs, *heatglobs, *coolglobs]
 
-        reactvars = [f"{v}" for db in databases for v in db.varis.values()]
-        dustvars = [f"{v}" for v in dust.varis.values() if dust] if dust else []
+        reactvars = {f"{var}": val for db in databases for var, val in db.varis.items()}
+        dustvars = (
+            {f"{var}": val for var, val in dust.varis.items() if dust} if dust else {}
+        )
         heatvars = (
-            [f"{v}" for p in heating for v in p.varis.values()] if heating else []
+            {f"{var}": val for p in heating for var, val in p.varis.items()}
+            if heating
+            else {}
         )
         coolvars = (
-            [f"{v}" for p in cooling for v in p.varis.values()] if cooling else []
+            {f"{var}": val for p in cooling for var, val in p.varis.items()}
+            if cooling
+            else {}
         )
-        varis = [*dustvars, *reactvars]
-        tvaris = ["mu", "gamma", *heatvars, *coolvars] if has_thermal else []
+        varis = {**dustvars, **reactvars}
+        tvaris = {**heatvars, **coolvars} if has_thermal else {}
+
+        print(varis)
 
         react_uservar = [v for db in databases for v in db.user_var]
         dust_uservar = dust.user_var if dust else []

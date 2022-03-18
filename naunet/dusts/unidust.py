@@ -5,14 +5,14 @@ from ..species import Species
 class UniDust(Dust):
 
     varis = {
-        "Radius": "rG",
-        "Barrier": "barr",
-        "SurfaceSites": "sites",
-        "HOPRatio": "hop",
-        "MonoLayers": "nMono",
-        "DutyCycle": "duty",
-        "CRDesorptionTemperature": "Tcr",
-        "BranchRatio": "branch",
+        "rG": 1.0e-5,  # grain radius
+        "barr": 1.5e-8,  # barrier
+        "sites": 1e15,  # surface sites
+        "hop": 0.3,  # hop ration
+        "nMono": 2.0,  # number of monolayers
+        "duty": 3.16e-19,  # duty cycle
+        "Tcr": 70.0,  # cosmic ray induced desorption temperature
+        "branch": 1e-2,  # branch ration
     }
     user_var = [
         "double mant = GetMantleDens(y)",
@@ -30,8 +30,7 @@ class UniDust(Dust):
         super().__init__(*args, **kwargs)
 
     def rate_depletion(self, a: float, b: float, c: float, tgas: str) -> str:
-        rg = self.varis.get("Radius")
-        rate = f"{a} * pi * pow({rg}, 2.0) * gdens * sqrt(8.0 * kerg * {tgas}/ (pi*amu*{c}))"
+        rate = f"{a} * pi * rG * rG * gdens * sqrt(8.0 * kerg * {tgas}/ (pi*amu*{c}))"
         return rate
 
     def rate_desorption(
@@ -46,18 +45,13 @@ class UniDust(Dust):
         destype: str = "",
     ) -> str:
 
-        sites = self.varis.get("SurfaceSites")
-        nmono = self.varis.get("MonoLayers")
-        duty = self.varis.get("DutyCycle")
-        Tcr = self.varis.get("CRDesorptionTemperature")
-
         if destype == "thermal":
             if not tdust:
                 raise ValueError("Symbol of dust temperature was not provided.")
             rate = " * ".join(
                 [
-                    f"sqrt(2.0*{sites}*kerg*eb_{spec.alias}/(pi*pi*amu*{c}))",
-                    f"{nmono}",
+                    f"sqrt(2.0*sites*kerg*eb_{spec.alias}/(pi*pi*amu*{c}))",
+                    f"nMono",
                     "densites",
                     f"exp(-eb_{spec.alias}/{tdust})",
                 ],
@@ -70,17 +64,17 @@ class UniDust(Dust):
             rate = " * ".join(
                 [
                     f"({zeta})",
-                    f"{duty}",
-                    f"sqrt(2.0*{sites}*kerg*eb_{spec.alias}/(pi*pi*amu*{c}))",
-                    f"{nmono}",
+                    f"duty",
+                    f"sqrt(2.0*sites*kerg*eb_{spec.alias}/(pi*pi*amu*{c}))",
+                    f"nMono",
                     "densites",
-                    f"exp(-eb_{spec.alias}/{Tcr})",
+                    f"exp(-eb_{spec.alias}/Tcr)",
                 ]
             )
         elif destype == "photon":
             if not uvphot:
                 raise ValueError("Symbol of UV field strength (G0) was not provided.")
-            rate = f"({uvphot}) * {spec.photon_yield()} * {nmono} * garea"
+            rate = f"({uvphot}) * {spec.photon_yield()} * nMono * garea"
         else:
             raise ValueError(f"Not support desorption type {destype}")
 
@@ -89,17 +83,15 @@ class UniDust(Dust):
         return rate
 
     def rate_electroncapture(self, tgas) -> str:
-        rg = self.varis.get("Radius")
-        return f"pi * {rg} * {rg} * sqrt(8.0*kerg*{tgas}/pi/amu/meu)"
+        return f"pi * rG * rG * sqrt(8.0*kerg*{tgas}/pi/amu/meu)"
 
     def rate_recombination(self, a: float, b: float, c: float, tgas: str) -> str:
-        rg = self.varis.get("Radius")
         rate = " * ".join(
             [
-                f"{a} * pi * pow({rg}, 2.0) * gdens",
+                f"{a} * pi * rG * rG * gdens",
                 f"sqrt(8.0*kerg*{tgas}/(pi*amu*{c}))",
-                f"(1.0 + pow(echarge, 2.0)/{rg}/kerg/{tgas})",
-                f"(1.0 + sqrt(2.0*pow(echarge, 2.0)/({rg}*kerg*{tgas}+2.0*pow(echarge, 2.0))))",
+                f"(1.0 + pow(echarge, 2.0)/rG/kerg/{tgas})",
+                f"(1.0 + sqrt(2.0*pow(echarge, 2.0)/(rG*kerg*{tgas}+2.0*pow(echarge, 2.0))))",
             ]
         )
         return rate
@@ -117,20 +109,19 @@ class UniDust(Dust):
         tdust: str = "",
         reacdes: bool = False,
     ) -> str:
-        hop = self.varis.get("HOPRatio")
-        nmono = self.varis.get("MonoLayers")
+
         eb1 = re1.binding_energy
         eb2 = re2.binding_energy
         nmass1 = re1.massnumber
         nmass2 = re2.massnumber
 
         afreq = f"freq * sqrt({eb1}/{nmass1})"
-        adiff = f"{afreq} * exp(-{eb1}*{hop}/{tdust})/unisites"
-        aquan = f"{afreq} * exp(quan * sqrt({hop}*{nmass1}*{eb1})) / unisites"
+        adiff = f"{afreq} * exp(-{eb1}*hop/{tdust})/unisites"
+        aquan = f"{afreq} * exp(quan * sqrt(hop*{nmass1}*{eb1})) / unisites"
 
         bfreq = f"freq * sqrt({eb2}/{nmass2})"
-        bdiff = f"{bfreq} * exp(-{eb2}*{hop}/{tdust})/unisites"
-        bquan = f"{bfreq} * exp(quan * sqrt({hop}*{nmass2}*{eb2})) / unisites"
+        bdiff = f"{bfreq} * exp(-{eb2}*hop/{tdust})/unisites"
+        bquan = f"{bfreq} * exp(quan * sqrt(hop*{nmass2}*{eb2})) / unisites"
 
         kappa = f"exp(-{a}/{tdust})"
         kquan = f"exp(quan * sqrt((({nmass1}*{nmass2})/({nmass1}+{nmass2}))*{a}))"
@@ -140,7 +131,7 @@ class UniDust(Dust):
                 [
                     f"fmax({kappa}, {kquan})",
                     f"(fmax({adiff}, {aquan})+fmax({bdiff}, {bquan}))",
-                    f"pow(({nmono}*densites), 2.0) / gdens",
+                    f"pow((nMono*densites), 2.0) / gdens",
                 ]
             )
         elif re1.name in ["GH", "GH2"]:
@@ -148,7 +139,7 @@ class UniDust(Dust):
                 [
                     f"fmax({kappa}, {kquan})",
                     f"(fmax({adiff}, {aquan})+{bdiff})",
-                    f"pow(({nmono}*densites), 2.0) / gdens",
+                    f"pow((nMono*densites), 2.0) / gdens",
                 ]
             )
         elif re2.name in ["GH", "GH2"]:
@@ -156,21 +147,21 @@ class UniDust(Dust):
                 [
                     f"fmax({kappa}, {kquan})",
                     f"({adiff}+fmax({bdiff}, {bquan}))",
-                    f"pow(({nmono}*densites), 2.0) / gdens",
+                    f"pow((nMono*densites), 2.0) / gdens",
                 ]
             )
         else:
             rate = " * ".join(
                 [
                     f"{kappa} * ({adiff}+{bdiff})",
-                    f"pow(({nmono}*densites), 2.0) / gdens",
+                    f"pow((nMono*densites), 2.0) / gdens",
                 ]
             )
 
         rate = " * ".join([rate, "cov", "cov"])
 
         if reacdes:
-            branch = self.varis.get("BranchRatio")
-            rate = f"{branch} * {rate}"
+
+            rate = f"branch * {rate}"
 
         return rate

@@ -22,6 +22,8 @@ class ThermalProcess:
         self.varis = varis.copy() if varis else {}
         self.user_var = user_var.copy() if user_var else []
 
+        self.varis.update({"mu": -1.0, "gamma": -1.0})
+
     @property
     def reactant_names(self):
         return self._reactants

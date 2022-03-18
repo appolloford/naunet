@@ -91,8 +91,8 @@ class KROMEReaction(Reaction):
     def initialize(cls) -> None:
         cls.reacformat = "idx,r,r,r,p,p,p,p,tmin,tmax,rate"
         cls.varis = {
-            "Hnuclei": "nH",
-            "Temperature": "Tgas",
+            "nH": None,
+            "Tgas": None,
         }
         cls.user_var = []
 
@@ -109,7 +109,7 @@ class KROMEReaction(Reaction):
             return ""
         elif line.startswith("@common:"):
             commonlist = line.replace("@common:", "").strip().split(",")
-            cls.varis.update(zip(commonlist, commonlist))
+            cls.varis.update(zip(commonlist, [None] * len(commonlist)))
             return ""
         else:
             return line.strip()

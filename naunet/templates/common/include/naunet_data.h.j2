@@ -4,12 +4,12 @@
 // Struct for holding the nessesary additional variables for the problem.
 struct NaunetData {
     // clang-format off
-    {% for v in variables.varis -%}
-        double {{ v }};
+    {% for var, val in variables.varis.items() -%}
+        double {{ var }}{{ " = %5.3e" | format(val) if val else "" }};
     {% endfor %}
 
-    {% for v in variables.tvaris -%}
-        double {{ v }} = -1;
+    {% for var, val in variables.tvaris.items() -%}
+        double {{ var }}{{ " = %5.3e" | format(val) if val else "" }};
     {% endfor -%}
 
     // clang-format on

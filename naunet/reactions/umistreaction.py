@@ -39,11 +39,10 @@ class UMISTReaction(Reaction):
     }
 
     varis = {
-        "Hnuclei": "nH",
-        "Temperature": "Tgas",
-        "VisualExtinction": "Av",
-        "UVPHOT": "uv",
-        "DustGrainAlbedo": "omega",
+        "nH": None,
+        "Tgas": None,
+        "Av": 1.0,
+        "omega": 0.5,
     }
     user_var = []
 
@@ -59,17 +58,15 @@ class UMISTReaction(Reaction):
         b = self.beta
         c = self.gamma
         rtype = self.reaction_type
-        Tgas = UMISTReaction.varis.get("Temperature")
-        Av = UMISTReaction.varis.get("VisualExtinction")
-        omega = UMISTReaction.varis.get("DustGrainAlbedo")
+
         if rtype == self.ReactionType.UMIST_TWOBODY:
-            rate = f"{a} * pow({Tgas}/300.0, {b}) * exp(-{c}/{Tgas})"
+            rate = f"{a} * pow(Tgas/300.0, {b}) * exp(-{c}/Tgas)"
         elif rtype == self.ReactionType.UMIST_PH:
-            rate = f"{a} * exp(-{c}*{Av})"
+            rate = f"{a} * exp(-{c}*Av)"
         elif rtype == self.ReactionType.UMIST_CP:
             rate = f"{a}"
         elif rtype == self.ReactionType.UMIST_CR:
-            rate = f"{a} * pow({Tgas}/300.0, {b}) * {c} / (1-{omega})"
+            rate = f"{a} * pow(Tgas/300.0, {b}) * {c} / (1-omega)"
         else:
             raise RuntimeError(
                 f"Code {self.code} has not been defined! Please extend the definition"

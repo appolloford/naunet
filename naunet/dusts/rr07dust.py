@@ -6,19 +6,19 @@ from ..species import Species
 class RR07Dust(Dust):
 
     varis = {
-        "Radius": "rG",
-        "GrainDensity": "gdens",  # grain density
-        "SurfaceSites": "sites",
-        "FreezeRatio": "fr",
-        "ThermDesorptionOption": "opt_thd",
-        "CRDesorptionOption": "opt_crd",
-        "H2DesorptionOption": "opt_h2d",
-        "UVDesorptionOption": "opt_uvd",
-        "H2MaxDesorptionEnergy": "eb_h2d",
-        "CRMaxDesorptionEnergy": "eb_crd",
-        "UVMaxDesorptionEnergy": "eb_uvd",
-        "CRDesorptionEfficiency": "crdeseff",
-        "H2DesorptionEfficiency": "h2deseff",
+        "rG": 1e-5,  # grain radius
+        "gdens": 7.6394373e-13,  # grain density
+        "sites": 1e15,  # surface sites
+        "fr": 1.0,  # freeze ratio
+        "opt_thd": 1.0,  # thermal desorption option
+        "opt_crd": 1.0,  # cosmic ray induced desorption option
+        "opt_h2d": 1.0,  # H2 formation induced desorption option
+        "opt_uvd": 1.0,  # UV desorption option
+        "eb_h2d": 1.21e3,  # maxmium binding energy which H2 desorption can desorb
+        "eb_crd": 1.21e3,  # maxmium binding energy which CR desorption can desorb
+        "eb_uvd": 1.0e4,  # maxmium binding energy which UV desorption can desorb
+        "crdeseff": 1e5,  # cosmic ray desorption efficiency
+        "h2deseff": 1.0e-2,  # H2 desorption efficiency
     }
     user_var = [
         # "double mant = GetMantleDens(y) > 0.0 ? GetMantleDens(y) : 1e-40",
@@ -35,15 +35,13 @@ class RR07Dust(Dust):
     def rate_depletion(
         self, spec: Species, a: float, b: float, c: float, tgas: str
     ) -> str:
-        rg = self.varis.get("Radius")
-        fr = self.varis.get("FreezeRatio")
 
         if spec.iselectron:
-            rate = f"4.57e4 * {a} * garea * {fr} * ( 1.0 + 16.71e-4/({rg} * {tgas}) )"
+            rate = f"4.57e4 * {a} * garea * fr * ( 1.0 + 16.71e-4/(rG * {tgas}) )"
         elif spec.charge == 0:
-            rate = f"4.57e4 * {a} * sqrt({tgas} / {spec.massnumber}) * garea * {fr}"
+            rate = f"4.57e4 * {a} * sqrt({tgas} / {spec.massnumber}) * garea * fr"
         else:
-            rate = f"4.57e4 * {a} * sqrt({tgas} / {spec.massnumber}) * garea * {fr} * ( 1.0 + 16.71e-4/({rg} * {tgas}) )"
+            rate = f"4.57e4 * {a} * sqrt({tgas} / {spec.massnumber}) * garea * fr * ( 1.0 + 16.71e-4/(rG * {tgas}) )"
 
         return rate
 
@@ -60,19 +58,14 @@ class RR07Dust(Dust):
         destype: str = "",
     ) -> str:
 
-        crdeseff = self.varis.get("CRDesorptionEfficiency")
-        h2deseff = self.varis.get("H2DesorptionEfficiency")
-
         if destype == "thermal":
-
-            sites = self.varis.get("SurfaceSites")
 
             if not tdust:
                 raise ValueError("Symbol of dust temperature was not provided.")
             rate = " * ".join(
                 [
                     f"opt_thd",
-                    f"sqrt(2.0*{sites}*kerg*eb_{spec.alias}/(pi*pi*amu*{spec.massnumber}))",
+                    f"sqrt(2.0*sites*kerg*eb_{spec.alias}/(pi*pi*amu*{spec.massnumber}))",
                     f"2.0 * densites",
                     f"exp(-eb_{spec.alias}/{tdust})",
                 ],
@@ -85,7 +78,7 @@ class RR07Dust(Dust):
                 )
             rate = " * ".join(
                 [
-                    f"opt_crd * 4.0 * pi * {crdeseff}",
+                    f"opt_crd * 4.0 * pi * crdeseff",
                     f"({zeta})",
                     f"1.64e-4 * garea / mant",
                 ]
@@ -110,7 +103,7 @@ class RR07Dust(Dust):
             if not h2form:
                 raise ValueError("Symbol of H2 formation rate was not provided.")
 
-            rate = f"opt_h2d * {h2deseff} * {h2form} / mant"
+            rate = f"opt_h2d * h2deseff * {h2form} / mant"
 
             rate = f"eb_h2d >= {spec.binding_energy} ? ({rate}) : 0.0"
 

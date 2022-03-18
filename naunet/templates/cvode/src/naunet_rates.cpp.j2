@@ -26,7 +26,7 @@
 {% if info.device == "gpu" -%} __device__ {% endif -%}
 int EvalRates(realtype *k, realtype *y, NaunetData *u_data) {
 
-    {% for v in variables.varis -%}
+    {% for v in variables.varis.keys() -%}
         realtype {{ v }} = u_data->{{ v }};
     {% endfor %}
 
@@ -63,7 +63,7 @@ int EvalRates(realtype *k, realtype *y, NaunetData *u_data) {
 {% if info.device == "gpu" -%} __device__ {% endif -%}
 int EvalHeatingRates(realtype *kh, realtype *y, NaunetData *u_data) {
 
-    {% for v in variables.varis -%}
+    {% for v in variables.varis.keys() -%}
         realtype {{ v }} = u_data->{{ v }};
     {% endfor %}
 
@@ -97,7 +97,7 @@ int EvalHeatingRates(realtype *kh, realtype *y, NaunetData *u_data) {
 {% if info.device == "gpu" -%} __device__ {% endif -%}
 int EvalCoolingRates(realtype *kc, realtype *y, NaunetData *u_data) {
 
-    {% for v in variables.varis -%}
+    {% for v in variables.varis.keys() -%}
         realtype {{ v }} = u_data->{{ v }};
     {% endfor %}
 

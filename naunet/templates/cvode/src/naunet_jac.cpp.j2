@@ -64,7 +64,7 @@ __global__ void JacKernel(realtype *y, realtype *data, NaunetData *d_udata,
         NaunetData *udata      = &d_udata[cur];
 
         // clang-format off
-        {% for v in variables.tvaris -%}
+        {% for v in variables.tvaris.keys() -%}
             realtype {{ v }} = udata->{{ v }};
         {% endfor %}
         
@@ -102,11 +102,11 @@ int Jac(realtype t, N_Vector u, N_Vector fu, SUNMatrix jmatrix, void *user_data,
     realtype *y            = N_VGetArrayPointer(u);
     NaunetData *u_data     = (NaunetData *)user_data;
     // clang-format off
-    {% for v in variables.varis -%}
+    {% for v in variables.varis.keys() -%}
         realtype {{ v }} = u_data->{{ v }};
     {% endfor %}
 
-    {% for v in variables.tvaris -%}
+    {% for v in variables.tvaris.keys() -%}
         realtype {{ v }} = u_data->{{ v }};
     {% endfor %}
     
@@ -145,7 +145,7 @@ int Jac(realtype t, N_Vector u, N_Vector fu, SUNMatrix jmatrix, void *user_data,
     NaunetData *u_data     = (NaunetData *)user_data;
 
     // clang-format off
-    {% for v in variables.tvaris -%}
+    {% for v in variables.tvaris.keys() -%}
         realtype {{ v }} = u_data->{{ v }};
     {% endfor %}
     

@@ -623,11 +623,11 @@ int Naunet::Solve(realtype *ab, realtype dt, NaunetData *data) {
         fprintf(errfp_, "Some unrecoverable error occurred. cvFlag = %d\n", cvflag);
         fprintf(errfp_, "Initial condition: \n");
 
-        {% for v in variables.varis -%}
+        {% for v in variables.varis.keys() -%}
         fprintf(errfp_, "    data.{{ v }} = %13.7e;\n", data->{{ v }});
         {% endfor %}
 
-        {% for v in variables.tvaris -%}
+        {% for v in variables.tvaris.keys() -%}
         fprintf(errfp_, "    data.{{ v }} = %13.7e;\n", data->{{ v }});
         {% endfor %}
 

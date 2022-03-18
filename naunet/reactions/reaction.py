@@ -58,7 +58,7 @@ class Reaction:
     consts = {}
     globs = {}
     varis = {
-        "Temperature": "Tgas",
+        "Tgas": None,
     }
     user_var = []
 

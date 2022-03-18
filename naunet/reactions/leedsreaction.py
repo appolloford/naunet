@@ -72,14 +72,14 @@ class LEEDSReaction(Reaction):
         "hbar": 1.054571726e-27,
     }
     varis = {
-        "Hnuclei": "nH",
-        "CRIR": "zeta_cr",
-        "XRAY": "zeta_xr",
-        "Temperature": "Tgas",
-        "DustTemperature": "Tdust",
-        "VisualExtinction": "Av",
-        "G0": "G0",
-        "DustGrainAlbedo": "omega",
+        "nH": None,  # hydorgen nuclei number densuty
+        "Tgas": None,  # gas temperature
+        "zeta_cr": 1.3e-17,  # cosmic ray ionization rate
+        "zeta_xr": 0.0,  # xray rate
+        "Tdust": 15.0,  # dust temperature
+        "Av": 1.0,  # visual extinction
+        "G0": 1.0,  # UV field in Habing
+        "omega": 0.5,  # dust grain albedo
     }
     user_var = [
         "double h2col = 0.5*1.59e21*Av",
@@ -109,37 +109,26 @@ class LEEDSReaction(Reaction):
         rtype = self.rtype
         dust = self.dust if self.dust else None
 
-        cr = LEEDSReaction.varis.get("CRIR")
-        xr = LEEDSReaction.varis.get("XRAY")
-        Tgas = LEEDSReaction.varis.get("Temperature")
-        Tdust = LEEDSReaction.varis.get("DustTemperature")
-        Av = LEEDSReaction.varis.get("VisualExtinction")
-        G0 = LEEDSReaction.varis.get("G0")
-        albedo = LEEDSReaction.varis.get("DustGrainAlbedo")
-        zism = LEEDSReaction.consts.get("zism")
-        habing = LEEDSReaction.consts.get("habing")
-        crphot = LEEDSReaction.consts.get("crphot")
-
         re1 = self.reactants[0]
         re2 = self.reactants[1] if len(self.reactants) > 1 else None
 
         # two-body gas-phase reaction
         if rtype == 1:
-            rate = f"{a} * pow({Tgas}/300.0, {b}) * exp(-{c}/{Tgas})"
+            rate = f"{a} * pow(Tgas/300.0, {b}) * exp(-{c}/Tgas)"
 
         # direct cosmic-ray ionisation
         elif rtype == 2:
-            rate = f"{a} * ({cr} + {xr}) / {zism}"
+            rate = f"{a} * (zeta_cr + zeta_xr) / zism"
 
         # cosmic-ray-induced photoreaction
         elif rtype == 3:
-            rate = f"{a} * (({cr} + {xr}) / {zism}) * pow({Tgas}/300.0, {b}) * {c} / (1.0 - {albedo})"
+            rate = f"{a} * ((zeta_cr + zeta_xr) / zism) * pow(Tgas/300.0, {b}) * {c} / (1.0 - omega)"
 
         # photoreaction
         elif rtype == 4:
-            rate = f"{G0} * {a} * exp(-{c}*{Av})"
+            rate = f"G0 * {a} * exp(-{c}*Av)"
             if re1.name in ["H2", "CO", "N2"]:
-                shield = f"GetShieldingFactor(IDX_{re1.alias}, h2col, {re1.name.lower()}col, {Tgas}, 0)"
+                shield = f"GetShieldingFactor(IDX_{re1.alias}, h2col, {re1.name.lower()}col, Tgas, 0)"
                 rate = f"{rate} * {shield}"
 
         # TODO:
@@ -149,49 +138,49 @@ class LEEDSReaction(Reaction):
 
         # cation-grain recombination
         elif rtype == 6:
-            rate = dust.rate_recombination(a, b, c, Tgas)
+            rate = dust.rate_recombination(a, b, c, "Tgas")
 
         # accretion
         elif rtype == 7:
-            rate = dust.rate_depletion(a, b, c, Tgas)
+            rate = dust.rate_depletion(a, b, c, "Tgas")
 
         # thermal desorption
         elif rtype == 8:
-            rate = dust.rate_desorption(re1, a, b, c, tdust=Tdust, destype="thermal")
+            rate = dust.rate_desorption(re1, a, b, c, tdust="Tdust", destype="thermal")
 
         # cosmic-ray-induced thermal desorption
         elif rtype == 9:
             rate = dust.rate_desorption(
-                re1, a, b, c, zeta=f"{cr}/{zism}", destype="cosmicray"
+                re1, a, b, c, zeta=f"zeta_cr/zism", destype="cosmicray"
             )
             rate = "0.0"
 
         # photodesorption
         elif rtype == 10:
-            uvphot = f"{G0}*{habing}*exp(-{Av}*3.02) + {crphot} * {cr}/{zism}"
+            uvphot = f"G0*habing*exp(-Av*3.02) + crphot * zeta_cr/zism"
             rate = dust.rate_desorption(re1, a, b, c, uvphot=uvphot, destype="photon")
 
         # grain-surface cosmic-ray-induced photoreaction
         elif rtype == 11:
-            zeta = f"({xr}+{cr})/{zism}"
-            rate = f"{a} * ({zeta}) * pow({Tgas}/300.0, {b}) * {c} / (1.0 - {albedo})"
+            zeta = f"(zeta_xr+zeta_cr)/zism"
+            rate = f"{a} * ({zeta}) * pow(Tgas/300.0, {b}) * {c} / (1.0 - omega)"
 
         # grain-surface photoreaction
         elif rtype == 12:
-            rate = f"{G0} * {a} * exp(-{c}*{Av})"
+            rate = f"G0 * {a} * exp(-{c}*Av)"
             if re1.name in ["GH2", "GCO", "GN2"]:
                 spidx = f"IDX_{re1.alias[1:]}"
                 coldens = f"{re1.name[1:].lower()}col"
-                shield = f"GetShieldingFactor({spidx}, h2col, {coldens}, {Tgas}, 0)"
+                shield = f"GetShieldingFactor({spidx}, h2col, {coldens}, Tgas, 0)"
                 rate = f"{rate} * {shield}"
 
         # two-body grain-surface reaction
         elif rtype == 13:
-            rate = dust.rate_surface2(re1, re2, a, b, c, Tdust)
+            rate = dust.rate_surface2(re1, re2, a, b, c, "Tdust")
 
         # reactive desorption
         elif rtype == 14:
-            rate = dust.rate_surface2(re1, re2, a, b, c, Tdust, reacdes=True)
+            rate = dust.rate_surface2(re1, re2, a, b, c, "Tdust", reacdes=True)
 
         # three-body association *
         # collisional dissociation *
@@ -203,7 +192,7 @@ class LEEDSReaction(Reaction):
 
         # grain electron capture rate
         elif rtype == 20:
-            rate = dust.rate_electroncapture(Tgas)
+            rate = dust.rate_electroncapture("Tgas")
         else:
             raise RuntimeError(
                 f"Type {rtype} has not been defined! Please extend the definition"

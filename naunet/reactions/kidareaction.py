@@ -24,11 +24,10 @@ class KIDAReaction(Reaction):
     }
 
     varis = {
-        "Hnuclei": "nH",
-        "CRIR": "zeta",
-        "Temperature": "Tgas",
-        "VisualExtinction": "Av",
-        "UVPHOT": "uv",
+        "nH": None,  # hydrogen nuclei number density
+        "Tgas": None,  # gas temperature
+        "zeta": 1.3e-17,  # cosmic rai ionization rate
+        "Av": 1.0,  # visual extinction
     }
     user_var = []
 
@@ -45,19 +44,17 @@ class KIDAReaction(Reaction):
         b = self.beta
         c = self.gamma
         formula = self.formula
-        zeta = KIDAReaction.varis["CRIR"]
-        Tgas = KIDAReaction.varis["Temperature"]
-        Av = KIDAReaction.varis["VisualExtinction"]
+
         if formula == 1:
-            rate = f"{a} * {zeta}"
+            rate = f"{a} * zeta"
         elif formula == 2:
-            rate = f"{a} * exp(-{c}*{Av})"
+            rate = f"{a} * exp(-{c}*Av)"
         elif formula == 3:
-            rate = f"{a} * pow({Tgas}/300.0, {b}) * exp(-{c}/{Tgas})"
+            rate = f"{a} * pow(Tgas/300.0, {b}) * exp(-{c}/Tgas)"
         elif formula == 4:
-            rate = f"{a} * {b} * (0.62 + 0.4767*{c}*sqrt(300.0/{Tgas}))"
+            rate = f"{a} * {b} * (0.62 + 0.4767*{c}*sqrt(300.0/Tgas))"
         elif formula == 5:
-            rate = f"{a} * {b} * (1 + 0.0967*{c}*sqrt(300.0/{Tgas}) + c*c*(300.0/{Tgas})/10.526)"
+            rate = f"{a} * {b} * (1 + 0.0967*{c}*sqrt(300.0/Tgas) + c*c*(300.0/Tgas)/10.526)"
         elif formula == 6:
             raise NotImplementedError("Three-body reactions formula is not implemented")
         else:

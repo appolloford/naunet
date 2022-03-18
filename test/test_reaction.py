@@ -107,6 +107,7 @@ def test_eq_reaction():
         reaction_type=ReactionType.GAS_COSMICRAY,
     )
     assert reac1 != reac2
+    assert len(set([reac1, reac2])) == 2
 
     # difference reaction type
     reac2 = Reaction(

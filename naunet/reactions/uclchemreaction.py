@@ -50,13 +50,13 @@ class UCLCHEMReaction(Reaction):
     }
 
     varis = {
-        "Hnuclei": "nH",
-        "CRIR": "zeta",
-        "Temperature": "Tgas",
-        "VisualExtinction": "Av",
-        "DustGrainAlbedo": "omega",
-        "G0": "G0",
-        "UVCREFF": "uvcreff",  # UVCREFF is ratio of CR induced UV to ISRF UV
+        "nH": None,  # hydrogen nuclei number density
+        "Tgas": None,  # gas temperature
+        "zeta": 1.3e-17,  # cosmic ray ionization rate
+        "Av": 1.0,  # visual extinction
+        "omega": 0.5,  # dust grain albedo
+        "G0": 1.0,  # UV field in Habing
+        "uvcreff": 1.0e-3,  # UVCREFF is ratio of CR induced UV to ISRF UV
     }
 
     user_var = [
@@ -80,13 +80,6 @@ class UCLCHEMReaction(Reaction):
         rtype = self.reaction_type
         dust = self.dust if self.dust else None
 
-        Tgas = UCLCHEMReaction.varis.get("Temperature")
-        zeta = UCLCHEMReaction.varis.get("CRIR")
-        Av = UCLCHEMReaction.varis.get("VisualExtinction")
-        G0 = UCLCHEMReaction.varis.get("G0")
-        albedo = UCLCHEMReaction.varis.get("DustGrainAlbedo")
-        uvcreff = UCLCHEMReaction.varis.get("UVCREFF")
-
         zeta = f"({zeta} / zism)"  # uclchem has cosmic-ray ionization rate in unit of 1.3e-17s-1
 
         re1 = self.reactants[0]
@@ -94,7 +87,7 @@ class UCLCHEMReaction(Reaction):
 
         # two-body gas-phase reaction
         if rtype == self.ReactionType.UCLCHEM_MA:
-            rate = f"{a} * pow({Tgas}/300.0, {b}) * exp(-{c}/{Tgas})"
+            rate = f"{a} * pow(Tgas/300.0, {b}) * exp(-{c}/Tgas)"
 
         # direct cosmic-ray ionisation
         elif rtype == self.ReactionType.UCLCHEM_CR:
@@ -102,25 +95,25 @@ class UCLCHEMReaction(Reaction):
 
         # cosmic-ray-induced photoreaction
         elif rtype == self.ReactionType.UCLCHEM_CP:
-            rate = f"{a} * {zeta} * pow({Tgas}/300.0, {b}) * {c} / (1.0 - {albedo})"
+            rate = f"{a} * {zeta} * pow(Tgas/300.0, {b}) * {c} / (1.0 - omega)"
 
         # photoreaction
         elif rtype == self.ReactionType.UCLCHEM_PH:
-            rate = f"{G0} * {a} * exp(-{c}*{Av}) / 1.7"  # convert habing to Draine
+            rate = f"G0 * {a} * exp(-{c}*Av) / 1.7"  # convert habing to Draine
             if re1.name in ["CO"]:
-                shield = f"GetShieldingFactor(IDX_{re1.alias}, h2col, {re1.name.lower()}col, {Tgas}, 1)"
-                rate = f"(2.0e-10) * {G0} * {shield} * GetGrainScattering(Av, lamdabar) / 1.7"
+                shield = f"GetShieldingFactor(IDX_{re1.alias}, h2col, {re1.name.lower()}col, Tgas, 1)"
+                rate = f"(2.0e-10) * G0 * {shield} * GetGrainScattering(Av, lamdabar) / 1.7"
 
         # accretion
         elif rtype == self.ReactionType.UCLCHEM_FR:
             if len(self.reactants) > 1:
                 raise RuntimeError("Too many reactants in an accretion reaction!")
 
-            rate = dust.rate_depletion(re1, a, b, c, Tgas)
+            rate = dust.rate_depletion(re1, a, b, c, "Tgas")
 
         # thermal desorption
         elif rtype == self.ReactionType.UCLCHEM_TH:
-            rate = dust.rate_desorption(re1, a, b, c, tdust=Tgas, destype="thermal")
+            rate = dust.rate_desorption(re1, a, b, c, tdust="Tgas", destype="thermal")
 
         # cosmic-ray-induced thermal desorption
         elif rtype == self.ReactionType.UCLCHEM_CD:
@@ -128,14 +121,14 @@ class UCLCHEMReaction(Reaction):
 
         # photodesorption
         elif rtype == self.ReactionType.UCLCHEM_PD:
-            uvphot = f"({zeta} + ({G0}/{uvcreff}) * exp(-1.8*{Av}) )"
+            uvphot = f"({zeta} + (G0/uvcreff) * exp(-1.8*Av) )"
             rate = dust.rate_desorption(re1, a, b, c, uvphot=uvphot, destype="photon")
 
         # H2 formation induced desorption
         elif rtype == self.ReactionType.UCLCHEM_HD:
             # Epsilon is efficieny of this process, number of molecules removed per event
             # h2form is formation rate of h2, dependent on hydrogen abundance.
-            h2formrate = f"1.0e-17 * sqrt({Tgas}) * y[IDX_HI] * nH"
+            h2formrate = f"1.0e-17 * sqrt(Tgas) * y[IDX_HI] * nH"
             rate = dust.rate_desorption(re1, a, b, c, h2form=h2formrate, destype="h2")
 
         else:
