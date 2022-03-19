@@ -64,14 +64,14 @@ __global__ void JacKernel(realtype *y, realtype *data, NaunetData *d_udata,
         NaunetData *udata      = &d_udata[cur];
 
         // clang-format off
-        {% for v in variables.tvaris.keys() -%}
+        {% for v in variables.varis.keys() -%}
             realtype {{ v }} = udata->{{ v }};
         {% endfor %}
         
-        {% if variables.tvaris -%}
+#if (NHEATPROCS || NCOOLPROCS)
         if (mu < 0) mu = GetMu(y_cur);
         if (gamma < 0) gamma = GetGamma(y_cur);
-        {% endif -%}
+#endif
 
         // clang-format on
 
@@ -105,15 +105,11 @@ int Jac(realtype t, N_Vector u, N_Vector fu, SUNMatrix jmatrix, void *user_data,
     {% for v in variables.varis.keys() -%}
         realtype {{ v }} = u_data->{{ v }};
     {% endfor %}
-
-    {% for v in variables.tvaris.keys() -%}
-        realtype {{ v }} = u_data->{{ v }};
-    {% endfor %}
     
-    {% if variables.tvaris -%}
+#if (NHEATPROCS || NCOOLPROCS)
     if (mu < 0) mu = GetMu(y);
     if (gamma < 0) gamma = GetGamma(y);
-    {% endif -%}
+#endif
 
     // clang-format on
 
@@ -145,14 +141,14 @@ int Jac(realtype t, N_Vector u, N_Vector fu, SUNMatrix jmatrix, void *user_data,
     NaunetData *u_data     = (NaunetData *)user_data;
 
     // clang-format off
-    {% for v in variables.tvaris.keys() -%}
+    {% for v in variables.varis.keys() -%}
         realtype {{ v }} = u_data->{{ v }};
     {% endfor %}
     
-    {% if variables.tvaris -%}
+#if (NHEATPROCS || NCOOLPROCS)
     if (mu < 0) mu = GetMu(y);
     if (gamma < 0) gamma = GetGamma(y);
-    {% endif -%}
+#endif
 
     // clang-format on
 

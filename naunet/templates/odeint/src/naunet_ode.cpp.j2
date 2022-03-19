@@ -153,14 +153,10 @@ void Fex::operator()(const vector_type &abund, vector_type &ydot, double t) {
         double {{ v }} = u_data->{{ v }};
     {% endfor %}
 
-    {% for v in variables.tvaris.keys() -%}
-        double {{ v }} = u_data->{{ v }};
-    {% endfor %}
-
-    {% if variables.tvaris -%}
+#if (NHEATPROCS || NCOOLPROCS)
     if (mu < 0) mu = GetMu(y);
     if (gamma < 0) gamma = GetGamma(y);
-    {% endif -%}
+#endif
 
     {% for v in variables.user_var -%}
         {{ v }};
@@ -225,14 +221,10 @@ void Jac::operator()(const vector_type &abund, matrix_type &j, const double &t,
         double {{ v }} = u_data->{{ v }};
     {% endfor %}
 
-    {% for v in variables.tvaris.keys() -%}
-        double {{ v }} = u_data->{{ v }};
-    {% endfor %}
-
-    {% if variables.tvaris -%}
+#if (NHEATPROCS || NCOOLPROCS)
     if (mu < 0) mu = GetMu(y);
     if (gamma < 0) gamma = GetGamma(y);
-    {% endif -%}
+#endif
 
     // clang-format on
 

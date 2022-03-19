@@ -627,10 +627,6 @@ int Naunet::Solve(realtype *ab, realtype dt, NaunetData *data) {
         fprintf(errfp_, "    data.{{ v }} = %13.7e;\n", data->{{ v }});
         {% endfor %}
 
-        {% for v in variables.tvaris.keys() -%}
-        fprintf(errfp_, "    data.{{ v }} = %13.7e;\n", data->{{ v }});
-        {% endfor %}
-
         fprintf(errfp_, "\n");
 
         realtype spy = 365.0 * 86400.0;

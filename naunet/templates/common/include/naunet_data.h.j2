@@ -8,10 +8,6 @@ struct NaunetData {
         double {{ var }}{{ " = %5.3e" | format(val) if val else "" }};
     {% endfor %}
 
-    {% for var, val in variables.tvaris.items() -%}
-        double {{ var }}{{ " = %5.3e" | format(val) if val else "" }};
-    {% endfor -%}
-
     // clang-format on
 };
 

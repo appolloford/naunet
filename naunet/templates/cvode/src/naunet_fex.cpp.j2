@@ -45,15 +45,11 @@ __global__ void FexKernel(realtype *y, realtype *ydot, NaunetData *d_udata,
         {% for v in variables.user_var -%}
             {{ v }};
         {% endfor %}
-
-        {% for v in variables.tvaris.keys() -%}
-            realtype {{ v }} = udata->{{ v }};
-        {% endfor %}
         
-        {% if variables.tvaris -%}
+#if (NHEATPROCS || NCOOLPROCS)
         if (mu < 0) mu = GetMu(y_cur);
         if (gamma < 0) gamma = GetGamma(y_cur);
-        {% endif -%}
+#endif
 
         // clang-format on
 
@@ -98,14 +94,10 @@ int Fex(realtype t, N_Vector u, N_Vector udot, void *user_data) {
         {{ v }};
     {% endfor %}
 
-    {% for v in variables.tvaris.keys() -%}
-        realtype {{ v }} = u_data->{{ v }};
-    {% endfor %}
-
-    {% if variables.tvaris -%}
+#if (NHEATPROCS || NCOOLPROCS)
     if (mu < 0) mu = GetMu(y);
     if (gamma < 0) gamma = GetGamma(y);
-    {% endif -%}
+#endif
 
     // clang-format on
 
@@ -131,11 +123,9 @@ int Fex(realtype t, N_Vector u, N_Vector udot, void *user_data) {
         {{ m }};
     {% endfor %}
 
-{% if variables.tvaris -%}
-#if NAUNET_DEBUG
+#if ((NHEATPROCS || NCOOLPROCS) && NAUNET_DEBUG)
     printf("Total heating/cooling rate: %13.7e\n", ydot[IDX_TGAS]);
 #endif
-{% endif -%}
 
     // clang-format on
 

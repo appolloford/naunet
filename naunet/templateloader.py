@@ -111,7 +111,6 @@ class TemplateLoader:
         globs: list[str]
         varis: dict[str, float]
         user_var: list[str]
-        tvaris: list[str, float]  # variables required by thermal process
         header: str = None
 
     def __init__(
@@ -259,9 +258,8 @@ class TemplateLoader:
             else {}
         )
         varis = {**dustvars, **reactvars}
-        tvaris = {**heatvars, **coolvars} if has_thermal else {}
-
-        print(varis)
+        if has_thermal:
+            varis.update({**heatvars, **coolvars})
 
         react_uservar = [v for db in databases for v in db.user_var]
         dust_uservar = dust.user_var if dust else []
@@ -269,7 +267,7 @@ class TemplateLoader:
         cool_uservar = [v for p in cooling for v in p.user_var]
         user_var = [*dust_uservar, *react_uservar, *heat_uservar, *cool_uservar]
 
-        self._variables = self.VariablesContent(consts, globs, varis, user_var, tvaris)
+        self._variables = self.VariablesContent(consts, globs, varis, user_var)
 
         # prepare reaction rate expressions
         rates = [f"k[{r}]" for r in range(n_react)]
