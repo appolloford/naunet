@@ -80,7 +80,7 @@ class UCLCHEMReaction(Reaction):
         rtype = self.reaction_type
         dust = self.dust if self.dust else None
 
-        zeta = f"({zeta} / zism)"  # uclchem has cosmic-ray ionization rate in unit of 1.3e-17s-1
+        zeta = f"(zeta / zism)"  # uclchem has cosmic-ray ionization rate in unit of 1.3e-17s-1
 
         re1 = self.reactants[0]
         # re2 = self.reactants[1] if len(self.reactants) > 1 else None

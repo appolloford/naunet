@@ -98,8 +98,6 @@ class Network:
         self.reaction_list = []
         self.reactants_in_network = set()
         self.products_in_network = set()
-        # self._ode_modifier = odemodifier.copy() if odemodifier else []
-        # self._rate_modifier = ratemodifier.copy() if ratemodifier else {}
         self._skipped_reactions = []
         self._info = None
         self._patchmaker = None
@@ -390,14 +388,6 @@ class Network:
 
         self._patchmaker = PatchMaker(self.info, target, device, *args, **kwargs)
         return self._patchmaker
-
-    @property
-    def ratemodifier(self) -> dict[int, str]:
-        return self._rate_modifier
-
-    @ratemodifier.setter
-    def ratemodifier(self, ratemodifier: dict[int, str]) -> None:
-        self._rate_modifier = ratemodifier.copy()
 
     def templateloader(
         self,
