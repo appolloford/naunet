@@ -16,7 +16,6 @@ def test_init_reaction():
     assert reac.alpha == 0.0
     assert reac.beta == 0.0
     assert reac.gamma == 0.0
-    assert reac.dust == None
     assert reac.reaction_type == ReactionType.UNKNOWN
     assert reac.database == None
     assert reac.idxfromfile == -1
@@ -30,7 +29,6 @@ def test_init_reaction():
         0.5,
         0.0,
         0.0,
-        dust=None,
         reaction_type=ReactionType.GAS_COSMICRAY,
         database="KIDA",
         idxfromfile=3,
@@ -42,7 +40,6 @@ def test_init_reaction():
     assert reac.alpha == 0.5
     assert reac.beta == 0.0
     assert reac.gamma == 0.0
-    assert reac.dust == None
     assert reac.reaction_type == ReactionType.GAS_COSMICRAY
     assert reac.database == "KIDA"
     assert reac.idxfromfile == 3
@@ -56,7 +53,6 @@ def test_init_reaction():
         0.5,
         0.0,
         0.0,
-        dust=None,
         reaction_type=ReactionType.GAS_COSMICRAY,
         database="KIDA",
         idxfromfile=3,
@@ -68,7 +64,6 @@ def test_init_reaction():
     assert reac.alpha == 0.5
     assert reac.beta == 0.0
     assert reac.gamma == 0.0
-    assert reac.dust == None
     assert reac.reaction_type == ReactionType.GAS_COSMICRAY
     assert reac.database == "KIDA"
     assert reac.idxfromfile == 3
@@ -150,7 +145,6 @@ def test_init_kidareaction():
     assert kidareac.alpha == 0.5
     assert kidareac.beta == 0.0
     assert kidareac.gamma == 0.0
-    assert kidareac.dust == None
     assert kidareac.reaction_type == ReactionType.GAS_COSMICRAY
     assert kidareac.database == "KIDA"
     assert kidareac.idxfromfile == 3

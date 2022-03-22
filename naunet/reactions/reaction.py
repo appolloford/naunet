@@ -71,7 +71,6 @@ class Reaction:
         alpha: float = 0.0,
         beta: float = 0.0,
         gamma: float = 0.0,
-        dust: Dust = None,
         reaction_type: ReactionType = ReactionType.UNKNOWN,
         database: str = None,
         idxfromfile: int = -1,
@@ -92,7 +91,6 @@ class Reaction:
         self.alpha = alpha
         self.beta = beta
         self.gamma = gamma
-        self.dust = dust
         self.reaction_type = reaction_type
         self.database = database
         self.idxfromfile = idxfromfile
@@ -226,9 +224,11 @@ class Reaction:
             self.products
         ) == Counter(o.products)
 
-    def rate_func(self) -> str:
-        """
-        Returns the reaction rate expression in C language
+    def rate_func(self, dust: Dust = None) -> str:
+        """Returns the reaction rate expression in C language
+
+        Args:
+            dust (Dust, optional): Dust model to be used. Defaults to None.
 
         Raises:
             RuntimeError: if the reaction type is unknown

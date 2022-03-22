@@ -46,14 +46,14 @@ class UMISTReaction(Reaction):
     }
     user_var = []
 
-    def __init__(self, react_string, dust: Dust = None) -> None:
-        super().__init__(dust=dust, database="UMIST")
+    def __init__(self, react_string) -> None:
+        super().__init__(database="UMIST")
 
         self.code = None
 
         self._parse_string(react_string)
 
-    def rate_func(self):
+    def rate_func(self, dust: Dust = None) -> str:
         a = self.alpha
         b = self.beta
         c = self.gamma

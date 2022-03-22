@@ -31,15 +31,15 @@ class KIDAReaction(Reaction):
     }
     user_var = []
 
-    def __init__(self, react_string, dust: Dust = None) -> None:
-        super().__init__(dust=dust, database="KIDA")
+    def __init__(self, react_string) -> None:
+        super().__init__(database="KIDA")
 
         self.formula = -1
         self.itype = -1
 
         self._parse_string(react_string)
 
-    def rate_func(self) -> str:
+    def rate_func(self, dust: Dust = None) -> str:
         a = self.alpha
         b = self.beta
         c = self.gamma

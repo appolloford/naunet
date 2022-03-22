@@ -78,8 +78,8 @@ class FtoCCoverter:
 
 
 class KROMEReaction(Reaction):
-    def __init__(self, react_string, dust: Dust = None) -> None:
-        super().__init__(dust=dust, database="KROME")
+    def __init__(self, react_string) -> None:
+        super().__init__(database="KROME")
 
         self.kromeformat = self.reacformat.lower().strip()
         self.rate_string = None
@@ -114,7 +114,7 @@ class KROMEReaction(Reaction):
         else:
             return line.strip()
 
-    def rate_func(self) -> str:
+    def rate_func(self, dust: Dust = None) -> str:
 
         rate = re.sub(r"(\d\.?)d(\-?\d)", r"\1e\2", self.rate_string)
         rate = re.sub(r"(idx_.?)p", r"\1II", rate)

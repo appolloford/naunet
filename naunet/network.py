@@ -33,14 +33,13 @@ supported_reaction_class = {
 }
 
 
-def _reaction_factory(react_string: str, database: str, dust: Dust = None) -> Reaction:
+def _reaction_factory(react_string: str, database: str) -> Reaction:
     """
     Factory of reactions
 
     Args:
         react_string (str): the reactions read from file
         database (str): the source of the reaction, use to interpret string format
-        dust (Dust, optional): the associated dust model, if any. Defaults to None.
 
     Returns:
         Reaction: a reaction object
@@ -49,7 +48,7 @@ def _reaction_factory(react_string: str, database: str, dust: Dust = None) -> Re
     initializer = supported_reaction_class.get(database)
     react_string = initializer.preprocessing(react_string)
     if react_string:
-        return initializer(react_string, dust=dust)
+        return initializer(react_string)
     return None
 
 
@@ -165,7 +164,7 @@ class Network:
 
     def _add_reaction(self, react_string: str, database: str) -> list:
 
-        reaction = _reaction_factory(react_string, database, self._dust)
+        reaction = _reaction_factory(react_string, database)
 
         # return empty set for updating if it is a fake react_string
         if not reaction:
@@ -363,8 +362,6 @@ class Network:
             cooling=cooling,
             dust=self.dust,
             shielding=self._shielding,
-            # odemodifier=self._ode_modifier,
-            # ratemodifier=self._rate_modifier,
         )
 
         logger.info(

@@ -87,8 +87,8 @@ class LEEDSReaction(Reaction):
         "double n2col = 1e-5 * h2col",
     ]
 
-    def __init__(self, react_string, dust: Dust = None) -> None:
-        super().__init__(dust=dust, database="LEEDS")
+    def __init__(self, react_string) -> None:
+        super().__init__(database="LEEDS")
 
         self.rtype = None
 
@@ -102,12 +102,11 @@ class LEEDSReaction(Reaction):
     def finalize(cls) -> None:
         Species.surface_prefix = "#"
 
-    def rate_func(self):
+    def rate_func(self, dust: Dust = None) -> str:
         a = self.alpha
         b = self.beta
         c = self.gamma
         rtype = self.rtype
-        dust = self.dust if self.dust else None
 
         re1 = self.reactants[0]
         re2 = self.reactants[1] if len(self.reactants) > 1 else None

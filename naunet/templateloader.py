@@ -27,10 +27,10 @@ class NetworkInfo:
     species: list[Species]
     reactions: list[Reaction]
     databases: list[Type[Reaction]]
-    heating: list[str] = None
-    cooling: list[str] = None
-    dust: Dust = None
-    shielding: dict = None
+    heating: list[str]
+    cooling: list[str]
+    dust: Dust
+    shielding: dict
 
 
 class TemplateLoader:
@@ -272,9 +272,9 @@ class TemplateLoader:
         # prepare reaction rate expressions
         rates = [f"k[{r}]" for r in range(n_react)]
         rateeqns = [
-            f"if (Tgas>{reac.temp_min} && Tgas<{reac.temp_max}) {{\n{' = '.join([rate, reac.rate_func()])}; \n}}"
+            f"if (Tgas>{reac.temp_min} && Tgas<{reac.temp_max}) {{\n{' = '.join([rate, reac.rate_func(dust)])}; \n}}"
             if reac.temp_min < reac.temp_max
-            else f"{' = '.join([rate, reac.rate_func()])};"
+            else f"{' = '.join([rate, reac.rate_func(dust)])};"
             for rate, reac in zip(rates, reactions)
         ]
 

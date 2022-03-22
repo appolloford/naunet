@@ -68,17 +68,16 @@ class UCLCHEMReaction(Reaction):
         "double H2dissociation = 5.1e-11 * G0 * GetGrainScattering(Av, 1000.0) * H2shielding",
     ]
 
-    def __init__(self, react_string, dust: Dust = None) -> None:
-        super().__init__(dust=dust, database="UCLCHEM")
+    def __init__(self, react_string) -> None:
+        super().__init__(database="UCLCHEM")
 
         self._parse_string(react_string)
 
-    def rate_func(self):
+    def rate_func(self, dust: Dust = None) -> str:
         a = self.alpha
         b = self.beta
         c = self.gamma
         rtype = self.reaction_type
-        dust = self.dust if self.dust else None
 
         zeta = f"(zeta / zism)"  # uclchem has cosmic-ray ionization rate in unit of 1.3e-17s-1
 
