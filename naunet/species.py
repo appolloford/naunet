@@ -151,8 +151,8 @@ class Species:
             return self.name < o.name
         return NotImplemented
 
-    def __str__(self) -> str:
-        return "Species({})".format(self.name)
+    def __repr__(self) -> str:
+        return f"Species('{self.name}')"
 
     def _add_element_count(self, element: str, count: int):
         """

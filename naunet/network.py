@@ -328,7 +328,7 @@ class Network:
         check_list = (
             self.reaction_list
             if full_check
-            else [str(react) for react in self.reaction_list]
+            else [f"{react:short}" for react in self.reaction_list]
         )
 
         for x in check_list:
@@ -341,7 +341,7 @@ class Network:
 
         logger.info(
             "The following reactions are duplicate:\n{}".format(
-                "\n".join([repr(x) for x in dupes])
+                "\n".join([str(x) for x in dupes])
             )
         )
         return dupes
@@ -388,7 +388,7 @@ class Network:
 
         logger.info(
             "Skipped reactions: {}".format(
-                "\n".join([repr(x) for x in self._skipped_reactions])
+                "\n".join([str(x) for x in self._skipped_reactions])
             )
         )
 

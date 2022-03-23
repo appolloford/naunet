@@ -96,9 +96,20 @@ class Reaction:
         self.idxfromfile = idxfromfile
 
     def __str__(self) -> str:
-        verbose = "{} -> {}".format(
-            " + ".join(x.name for x in sorted(self.reactants)),
-            " + ".join(x.name for x in sorted(self.products)),
+        verbose = (
+            (
+                "{:16} -> {:32}, {:7.1f} < T < {:7.1f}, Type: {:25}, Database: {}, Index: {}".format(
+                    " + ".join(x.name for x in self.reactants),
+                    " + ".join(x.name for x in self.products),
+                    self.temp_min,
+                    self.temp_max,
+                    self.reaction_type.name,
+                    self.database,
+                    self.idxfromfile,
+                )
+            )
+            if len(self.reactants + self.products) > 0
+            else " -> "
         )
         return verbose
 
@@ -118,26 +129,43 @@ class Reaction:
             )
         )
 
+    def __format__(self, format: str) -> str:
+
+        verbose = None
+
+        if not format:
+            verbose = str(self)
+
+        elif format == "short":
+            verbose = "{} -> {}".format(
+                " + ".join(x.name for x in sorted(self.reactants)),
+                " + ".join(x.name for x in sorted(self.products)),
+            )
+
+        return verbose
+
     def __hash__(self) -> int:
         return hash(
             "_".join(str(x) for x in sorted(self.reactants) + sorted(self.products))
         )
 
     def __repr__(self) -> str:
-        verbose = (
-            (
-                "{:16} -> {:32}, {:7.1f} < T < {:7.1f}, Type: {:25}, Database: {}".format(
-                    " + ".join(x.name for x in self.reactants),
-                    " + ".join(x.name for x in self.products),
-                    self.temp_min,
-                    self.temp_max,
-                    self.reaction_type.name,
-                    self.database,
-                )
-            )
-            if len(self.reactants + self.products) > 0
-            else " -> "
+        params = ", ".join(
+            [
+                f"{self.reactants}",
+                f"{self.products}",
+                f"{self.temp_min}",
+                f"{self.temp_max}",
+                f"{self.alpha}",
+                f"{self.beta}",
+                f"{self.gamma}",
+                f"ReactionType.{self.reaction_type.name}",
+                f"'{self.database}'",
+                f"{self.idxfromfile}",
+            ]
         )
+
+        verbose = f"Reaction({params})"
         return verbose
 
     def _beautify(self, rate_string: str) -> str:
