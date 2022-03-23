@@ -1,15 +1,58 @@
 import pytest
 from pathlib import Path
+from naunet.species import Species
+from naunet.reactions.reaction import Reaction
+from naunet.reactions.kidareaction import KIDAReaction
 from naunet.network import Network
 
 inpath = Path("test/test_input")
 
 
-@pytest.mark.slow
 def test_init_network():
     network = Network()
-    network.add_reaction_from_file(inpath / "deuspin.kida.uva.2017.in", "kida")
-    network.check_duplicate_reaction()
+
+    assert network.database_list == set()
+    assert network.reaction_list == []
+    assert network.reactants_in_network == set()
+    assert network.products_in_network == set()
+
+
+def test_add_reaction():
+    reac = Reaction(
+        ["He", "CR"],
+        ["He+", "e-"],
+        -9999.0,
+        9999.0,
+        0.5,
+        0.0,
+        0.0,
+    )
+    network = Network()
+
+    network.add_reaction(reac)
+
+    assert network.database_list == set()
+    assert network.reaction_list == [reac]
+    assert network.reactants_in_network == {Species("He")}
+    assert network.products_in_network == {Species("He+"), Species("e-")}
+
+    react_string = "".join(
+        [
+            "He         CR                     ",
+            "He+        e-                                            ",
+            "5.000e-01  0.000e+00  0.000e+00 ",
+            "2.00e+00 0.00e+00 ",
+            "logn  1  -9999   9999  1     3 1  1 ",
+        ]
+    )
+
+    network = Network()
+    network.add_reaction((react_string, "kida"))
+
+    assert network.database_list == set(["kida"])
+    assert network.reaction_list == [KIDAReaction(react_string)]
+    assert network.reactants_in_network == {Species("He")}
+    assert network.products_in_network == {Species("He+"), Species("e-")}
 
 
 def test_init_network_with_file():
@@ -24,6 +67,13 @@ def test_init_network_with_file():
         [inpath / "duplicate_test.dat", inpath / "react_primordial.krome"],
         ["kida", "krome"],
     )
+
+
+@pytest.mark.slow
+def test_init_network_from_kida():
+    network = Network()
+    network.add_reaction_from_file(inpath / "deuspin.kida.uva.2017.in", "kida")
+    network.check_duplicate_reaction()
 
 
 def test_check_duplicate():

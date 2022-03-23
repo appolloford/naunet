@@ -162,9 +162,10 @@ class Network:
             else:
                 raise RuntimeError(f"Unknown format: {filesources}")
 
-    def _add_reaction(self, react_string: str, database: str) -> list:
+    def _add_reaction(self, reaction: Reaction | tuple[str, str]) -> list:
 
-        reaction = _reaction_factory(react_string, database)
+        if not isinstance(reaction, Reaction):
+            reaction = _reaction_factory(*reaction)
 
         # return empty set for updating if it is a fake react_string
         if not reaction:
@@ -189,20 +190,35 @@ class Network:
         #     print("Processing: {} reactions...".format(len(self.reaction_list)))
         return new_reactants | new_products
 
-    def add_reaction(self, react_string: str, database: str) -> None:
+    def add_reaction(self, reaction: Reaction | tuple[str, str]) -> None:
+        """Add a reaction into the network
 
-        self.database_list.update({database})
+        Args:
+            reaction (Reaction | tuple[str, str]): the reaction to be added, either an
+                instance of Reaction or a tuple of (reaction_string, database)
 
-        # change some global settings or class attibutes if needed
+        Raises:
+            RuntimeError: if the database is unknown when trying to create reaction
+                instance from reaction string.
+        """
+
+        database = reaction.database if isinstance(reaction, Reaction) else reaction[1]
+
+        self.database_list.update({database} if database else {})
         rclass = supported_reaction_class.get(database)
+
+        if not isinstance(reaction, Reaction):
+            # create reaction instance from string
+        # change some global settings or class attibutes if needed
         if rclass:
             rclass.initialize()
         else:
             raise RuntimeError(f"Unknown format: {database}")
 
-        new_species = self._add_reaction(react_string, database)
+        new_species = self._add_reaction(reaction)
         logger.info("New species are added: {}".format(new_species))
 
+        if not isinstance(reaction, Reaction):
         rclass.finalize()
 
         # reset network information if content is changed
@@ -235,7 +251,7 @@ class Network:
             for _, line in enumerate(
                 tqdm(networkfile.readlines(), desc="Reading File...")
             ):
-                new_species.update(self._add_reaction(line, database))
+                new_species.update(self._add_reaction((line, database)))
 
             # print("New species: \n{}".format("\n".join(str(x) for x in new_species)))
 
