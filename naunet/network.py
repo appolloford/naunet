@@ -209,17 +209,17 @@ class Network:
 
         if not isinstance(reaction, Reaction):
             # create reaction instance from string
-        # change some global settings or class attibutes if needed
-        if rclass:
-            rclass.initialize()
-        else:
-            raise RuntimeError(f"Unknown format: {database}")
+            # change some global settings or class attibutes if needed
+            if rclass:
+                rclass.initialize()
+            else:
+                raise RuntimeError(f"Unknown format: {database}")
 
         new_species = self._add_reaction(reaction)
         logger.info("New species are added: {}".format(new_species))
 
         if not isinstance(reaction, Reaction):
-        rclass.finalize()
+            rclass.finalize()
 
         # reset network information if content is changed
         self._info = None
