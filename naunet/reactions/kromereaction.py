@@ -79,7 +79,7 @@ class FtoCCoverter:
 
 class KROMEReaction(Reaction):
     def __init__(self, react_string) -> None:
-        super().__init__(database="KROME")
+        super().__init__(format="KROME")
 
         self.kromeformat = self.reacformat.lower().strip()
         self.rate_string = None

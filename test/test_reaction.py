@@ -17,7 +17,7 @@ def test_init_reaction():
     assert reac.beta == 0.0
     assert reac.gamma == 0.0
     assert reac.reaction_type == ReactionType.UNKNOWN
-    assert reac.database == None
+    assert reac.format == None
     assert reac.idxfromfile == -1
 
     # initialize by species name
@@ -30,7 +30,7 @@ def test_init_reaction():
         0.0,
         0.0,
         reaction_type=ReactionType.GAS_COSMICRAY,
-        database="KIDA",
+        format="KIDA",
         idxfromfile=3,
     )
     assert reac.reactants == [Species("He")]
@@ -41,7 +41,7 @@ def test_init_reaction():
     assert reac.beta == 0.0
     assert reac.gamma == 0.0
     assert reac.reaction_type == ReactionType.GAS_COSMICRAY
-    assert reac.database == "KIDA"
+    assert reac.format == "KIDA"
     assert reac.idxfromfile == 3
 
     # initialize by species instance
@@ -54,7 +54,7 @@ def test_init_reaction():
         0.0,
         0.0,
         reaction_type=ReactionType.GAS_COSMICRAY,
-        database="KIDA",
+        format="KIDA",
         idxfromfile=3,
     )
     assert reac.reactants == [Species("He")]
@@ -66,7 +66,7 @@ def test_init_reaction():
     assert reac.gamma == 0.0
     assert reac.reaction_type == ReactionType.GAS_COSMICRAY
     assert reac.reaction_type == 101  # compare with int should also work
-    assert reac.database == "KIDA"
+    assert reac.format == "KIDA"
     assert reac.idxfromfile == 3
 
 
@@ -81,14 +81,14 @@ def test_eq_reaction():
         reaction_type=ReactionType.GAS_COSMICRAY,
     )
 
-    # different database source, index
+    # different format, index
     reac2 = Reaction(
         ["He", "CR"],
         ["He+", "e-"],
         -9999.0,
         9999.0,
         reaction_type=ReactionType.GAS_COSMICRAY,
-        database="DUMMY",
+        format="DUMMY",
         idxfromfile=999,
     )
     assert reac1 == reac2
@@ -147,7 +147,7 @@ def test_init_kidareaction():
     assert kidareac.beta == 0.0
     assert kidareac.gamma == 0.0
     assert kidareac.reaction_type == ReactionType.GAS_COSMICRAY
-    assert kidareac.database == "KIDA"
+    assert kidareac.format == "KIDA"
     assert kidareac.idxfromfile == 3
 
 
@@ -179,7 +179,7 @@ def test_eq_reaction_kidareaction():
         -9999.0,
         9999.0,
         reaction_type=ReactionType.GAS_COSMICRAY,
-        database="DUMMY",
+        format="DUMMY",
         idxfromfile=999,
     )
     assert reac == kidareac
@@ -209,7 +209,7 @@ def test_reaction_str():
             "He               -> He+ + e-                        ",
             ",     0.0 < T <  9999.0",
             ", Type: GAS_COSMICRAY            ",
-            ", Database: None",
+            ", Format: None",
             ", Index: -1",
         ]
     )

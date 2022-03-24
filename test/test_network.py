@@ -11,7 +11,7 @@ inpath = Path("test/test_input")
 def test_init_network():
     network = Network()
 
-    assert network.database_list == set()
+    assert network.format_list == set()
     assert network.reaction_list == []
     assert network.reactants_in_network == set()
     assert network.products_in_network == set()
@@ -31,7 +31,7 @@ def test_add_reaction():
 
     network.add_reaction(reac)
 
-    assert network.database_list == set()
+    assert network.format_list == set()
     assert network.reaction_list == [reac]
     assert network.reactants_in_network == {Species("He")}
     assert network.products_in_network == {Species("He+"), Species("e-")}
@@ -49,7 +49,7 @@ def test_add_reaction():
     network = Network()
     network.add_reaction((react_string, "kida"))
 
-    assert network.database_list == set(["kida"])
+    assert network.format_list == set(["kida"])
     assert network.reaction_list == [KIDAReaction(react_string)]
     assert network.reactants_in_network == {Species("He")}
     assert network.products_in_network == {Species("He+"), Species("e-")}

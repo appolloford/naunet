@@ -40,7 +40,7 @@ class RenderCommand(Command):
 
         chemistry = content["chemistry"]
         network = chemistry["network"]
-        database = chemistry["database"]
+        format = chemistry["format"]
         element = chemistry["elements"]
         pseudo_element = chemistry["pseudo_elements"]
         species = chemistry["species"]
@@ -74,11 +74,11 @@ class RenderCommand(Command):
         update_binding_energy(binding)
         update_photon_yield(yields)
 
-        for db in database:
-            if not supported_reaction_class.get(db):
+        for fmt in format:
+            if not supported_reaction_class.get(fmt):
                 from importlib import util
 
-                spec = util.spec_from_file_location(db, f"{db}.py")
+                spec = util.spec_from_file_location(fmt, f"{fmt}.py")
                 module = util.module_from_spec(spec)
                 spec.loader.exec_module(module)
 
@@ -115,15 +115,13 @@ class RenderCommand(Command):
 
         net = Network(
             filelist=network,
-            filesources=database,
+            filesources=format,
             allowed_species=species + extra_species,
             required_species=extra_species,
             dusttype=dust["type"],
             heating=heating,
             cooling=cooling,
             shielding=shielding,
-            # ratemodifier=rate_modifier,
-            # odemodifier=ode_modifier,
         )
 
         # Don't change the include/src/test when rendering patches

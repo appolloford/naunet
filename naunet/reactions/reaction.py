@@ -72,7 +72,7 @@ class Reaction:
         beta: float = 0.0,
         gamma: float = 0.0,
         reaction_type: ReactionType = ReactionType.UNKNOWN,
-        database: str = None,
+        format: str = None,
         idxfromfile: int = -1,
     ) -> None:
 
@@ -92,19 +92,19 @@ class Reaction:
         self.beta = beta
         self.gamma = gamma
         self.reaction_type = reaction_type
-        self.database = database
+        self.format = format
         self.idxfromfile = idxfromfile
 
     def __str__(self) -> str:
         verbose = (
             (
-                "{:16} -> {:32}, {:7.1f} < T < {:7.1f}, Type: {:25}, Database: {}, Index: {}".format(
+                "{:16} -> {:32}, {:7.1f} < T < {:7.1f}, Type: {:25}, Format: {}, Index: {}".format(
                     " + ".join(x.name for x in self.reactants),
                     " + ".join(x.name for x in self.products),
                     self.temp_min,
                     self.temp_max,
                     self.reaction_type.name,
-                    self.database,
+                    self.format,
                     self.idxfromfile,
                 )
             )
@@ -160,7 +160,7 @@ class Reaction:
                 f"{self.beta}",
                 f"{self.gamma}",
                 f"ReactionType.{self.reaction_type.name}",
-                f"'{self.database}'",
+                f"'{self.format}'",
                 f"{self.idxfromfile}",
             ]
         )

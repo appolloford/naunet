@@ -26,7 +26,7 @@ class NetworkInfo:
     n_react: int
     species: list[Species]
     reactions: list[Reaction]
-    databases: list[Type[Reaction]]
+    rclasses: list[Type[Reaction]]
     heating: list[str]
     cooling: list[str]
     dust: Dust
@@ -148,7 +148,7 @@ class TemplateLoader:
         n_react = netinfo.n_react
         species = netinfo.species
         reactions = netinfo.reactions
-        databases = netinfo.databases
+        rclasses = netinfo.rclasses
         heating = netinfo.heating
         cooling = netinfo.cooling
         dust = netinfo.dust
@@ -213,7 +213,7 @@ class TemplateLoader:
         )
 
         reactconsts = {
-            f"{c:<15}": f"{cv}" for db in databases for c, cv in db.consts.items()
+            f"{c:<15}": f"{cv}" for rcls in rclasses for c, cv in rcls.consts.items()
         }
         dustconsts = (
             {f"{c:<15}": f"{cv}" for c, cv in dust.consts.items()} if dust else {}
@@ -233,7 +233,7 @@ class TemplateLoader:
         }
         consts = {**reactconsts, **dustconsts, **heatconsts, **coolconsts, **ebs}
 
-        reactglobs = [f"{v}" for db in databases for v in db.globs.values()]
+        reactglobs = [f"{v}" for rcls in rclasses for v in rcls.globs.values()]
         dustglobs = [f"{v}" for v in dust.globs.values()] if dust else []
         heatglobs = (
             [f"{v}" for p in heating for v in p.globs.values()] if heating else []
@@ -243,7 +243,9 @@ class TemplateLoader:
         )
         globs = [*reactglobs, *dustglobs, *heatglobs, *coolglobs]
 
-        reactvars = {f"{var}": val for db in databases for var, val in db.varis.items()}
+        reactvars = {
+            f"{var}": val for rcls in rclasses for var, val in rcls.varis.items()
+        }
         dustvars = (
             {f"{var}": val for var, val in dust.varis.items() if dust} if dust else {}
         )
@@ -261,7 +263,7 @@ class TemplateLoader:
         if has_thermal:
             varis.update({**heatvars, **coolvars})
 
-        react_uservar = [v for db in databases for v in db.user_var]
+        react_uservar = [v for rcls in rclasses for v in rcls.user_var]
         dust_uservar = dust.user_var if dust else []
         heat_uservar = [v for p in heating for v in p.user_var]
         cool_uservar = [v for p in cooling for v in p.user_var]

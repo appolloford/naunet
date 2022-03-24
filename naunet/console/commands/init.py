@@ -29,7 +29,7 @@ class InitCommand(Command):
         {--species= : List of species}
         {--extra-species=? : List of extra required species}
         {--network= : Source of chemical network file}
-        {--database= : The database/format of the chemical network}
+        {--format= : The format of the chemical network}
         {--dust= : Type of dust model}
         {--heating= : List of heating processes}
         {--cooling= : List of cooling processes}
@@ -173,24 +173,24 @@ class InitCommand(Command):
 
         chemistry.add("network", network)
 
-        database = self.option("database")
+        format = self.option("format")
 
-        if database:
-            database = database.split(",")
+        if format:
+            format = format.split(",")
 
         else:
 
-            database = ""
+            format = ""
 
             question = self.create_question(
-                "Source database/format of the chemical network [<comment>{}</comment>]:".format(
-                    database
+                "Format of the chemical network [<comment>{}</comment>]:".format(
+                    format
                 ),
-                default=database,
+                default=format,
             )
-            database = self.ask(question)
+            format = self.ask(question)
 
-        chemistry.add("database", database)
+        chemistry.add("format", format)
 
         dust = table()
 

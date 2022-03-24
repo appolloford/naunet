@@ -33,19 +33,19 @@ supported_reaction_class = {
 }
 
 
-def _reaction_factory(react_string: str, database: str) -> Reaction:
+def _reaction_factory(react_string: str, format: str) -> Reaction:
     """
     Factory of reactions
 
     Args:
         react_string (str): the reactions read from file
-        database (str): the source of the reaction, use to interpret string format
+        format (str): the source of the reaction, use to interpret string format
 
     Returns:
         Reaction: a reaction object
     """
 
-    initializer = supported_reaction_class.get(database)
+    initializer = supported_reaction_class.get(format)
     react_string = initializer.preprocessing(react_string)
     if react_string:
         return initializer(react_string)
@@ -57,7 +57,7 @@ def define_reaction(name: str):
     Decorator for users to add customized reaction class
 
     Args:
-        name (str): name of the class / source database of the reaction
+        name (str): name of the class / format of the reaction
     """
 
     def insert_class(reactcls: Type[Reaction]):
@@ -71,7 +71,7 @@ def define_dust(name: str):
     Decorator for users to add customized dust model
 
     Args:
-        name (str): name of the class / source database of the reaction
+        name (str): name of the class / model of the dust
     """
 
     def insert_class(dustcls: Type[Dust]):
@@ -93,7 +93,7 @@ class Network:
         dusttype: str[str] = None,
     ) -> None:
 
-        self.database_list = set()
+        self.format_list = set()
         self.reaction_list = []
         self.reactants_in_network = set()
         self.products_in_network = set()
@@ -124,7 +124,7 @@ class Network:
                     Otherwise leave one of them to be "None"."""
                 )
 
-        # check the lists of files and databases are matching
+        # check the lists of files and formats are matching
         # and add them into the network if possible
         if isinstance(filelist, list):
 
@@ -195,17 +195,17 @@ class Network:
 
         Args:
             reaction (Reaction | tuple[str, str]): the reaction to be added, either an
-                instance of Reaction or a tuple of (reaction_string, database)
+                instance of Reaction or a tuple of (reaction_string, format)
 
         Raises:
-            RuntimeError: if the database is unknown when trying to create reaction
+            RuntimeError: if the format is unknown when trying to create reaction
                 instance from reaction string.
         """
 
-        database = reaction.database if isinstance(reaction, Reaction) else reaction[1]
+        format = reaction.format if isinstance(reaction, Reaction) else reaction[1]
 
-        self.database_list.update({database} if database else {})
-        rclass = supported_reaction_class.get(database)
+        self.format_list.update({format} if format else {})
+        rclass = supported_reaction_class.get(format)
 
         if not isinstance(reaction, Reaction):
             # create reaction instance from string
@@ -213,7 +213,7 @@ class Network:
             if rclass:
                 rclass.initialize()
             else:
-                raise RuntimeError(f"Unknown format: {database}")
+                raise RuntimeError(f"Unknown format: {format}")
 
         new_species = self._add_reaction(reaction)
         logger.info("New species are added: {}".format(new_species))
@@ -224,34 +224,32 @@ class Network:
         # reset network information if content is changed
         self._info = None
 
-    def add_reaction_from_file(self, filename: str, database: str) -> None:
+    def add_reaction_from_file(self, filename: str, format: str) -> None:
+        """Add reactions into network from file
 
-        if not filename:
-            logger.critical("No file assigned!")
+        Args:
+            filename (str): the file to be read
+            format (str): the format will be used to parse the file
 
-        if not database:
-            logger.critical(
-                """
-                Try to read in file but database is not assigned. 
-                Try again by "add_reaction_from_file"
-                """
-            )
+        Raises:
+            RuntimeError: if the format is unknown
+        """
 
-        self.database_list.update({database})
+        self.format_list.update({format})
         new_species = set()
 
         # change some global settings or class attibutes if needed
-        rclass = supported_reaction_class.get(database)
+        rclass = supported_reaction_class.get(format)
         if rclass:
             rclass.initialize()
         else:
-            raise RuntimeError(f"Unknown format: {database}")
+            raise RuntimeError(f"Unknown format: {format}")
 
         with open(filename, "r") as networkfile:
             for _, line in enumerate(
                 tqdm(networkfile.readlines(), desc="Reading File...")
             ):
-                new_species.update(self._add_reaction((line, database)))
+                new_species.update(self._add_reaction((line, format)))
 
             # print("New species: \n{}".format("\n".join(str(x) for x in new_species)))
 
@@ -367,13 +365,13 @@ class Network:
         heating = [self.allowed_heating.get(h) for h in self._heating_names]
         cooling = [self.allowed_cooling.get(c) for c in self._cooling_names]
 
-        databaselist = [supported_reaction_class.get(db) for db in self.database_list]
+        rclasses = [supported_reaction_class.get(fmt) for fmt in self.format_list]
         self._info = NetworkInfo(
             len(speclist),
             len(self.reaction_list),
             speclist,
             self.reaction_list,
-            databaselist,
+            rclasses,
             heating=heating,
             cooling=cooling,
             dust=self.dust,
