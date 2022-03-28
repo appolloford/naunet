@@ -69,7 +69,7 @@ class UCLCHEMReaction(Reaction):
     ]
 
     def __init__(self, react_string) -> None:
-        super().__init__(format="UCLCHEM")
+        super().__init__(format="uclchem")
 
         self._parse_string(react_string)
 

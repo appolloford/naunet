@@ -47,7 +47,7 @@ class UMISTReaction(Reaction):
     user_var = []
 
     def __init__(self, react_string) -> None:
-        super().__init__(format="UMIST")
+        super().__init__(format="umist")
 
         self.code = None
 

@@ -30,7 +30,7 @@ def test_init_reaction():
         0.0,
         0.0,
         reaction_type=ReactionType.GAS_COSMICRAY,
-        format="KIDA",
+        format="kida",
         idxfromfile=3,
     )
     assert reac.reactants == [Species("He")]
@@ -41,7 +41,7 @@ def test_init_reaction():
     assert reac.beta == 0.0
     assert reac.gamma == 0.0
     assert reac.reaction_type == ReactionType.GAS_COSMICRAY
-    assert reac.format == "KIDA"
+    assert reac.format == "kida"
     assert reac.idxfromfile == 3
 
     # initialize by species instance
@@ -54,7 +54,7 @@ def test_init_reaction():
         0.0,
         0.0,
         reaction_type=ReactionType.GAS_COSMICRAY,
-        format="KIDA",
+        format="kida",
         idxfromfile=3,
     )
     assert reac.reactants == [Species("He")]
@@ -66,7 +66,7 @@ def test_init_reaction():
     assert reac.gamma == 0.0
     assert reac.reaction_type == ReactionType.GAS_COSMICRAY
     assert reac.reaction_type == 101  # compare with int should also work
-    assert reac.format == "KIDA"
+    assert reac.format == "kida"
     assert reac.idxfromfile == 3
 
 
@@ -147,7 +147,7 @@ def test_init_kidareaction():
     assert kidareac.beta == 0.0
     assert kidareac.gamma == 0.0
     assert kidareac.reaction_type == ReactionType.GAS_COSMICRAY
-    assert kidareac.format == "KIDA"
+    assert kidareac.format == "kida"
     assert kidareac.idxfromfile == 3
 
 

@@ -32,7 +32,7 @@ class KIDAReaction(Reaction):
     user_var = []
 
     def __init__(self, react_string) -> None:
-        super().__init__(format="KIDA")
+        super().__init__(format="kida")
 
         self.formula = -1
         self.itype = -1

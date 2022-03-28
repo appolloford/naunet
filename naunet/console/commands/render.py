@@ -115,7 +115,7 @@ class RenderCommand(Command):
 
         net = Network(
             filelist=network,
-            filesources=format,
+            fileformats=format,
             allowed_species=species + extra_species,
             required_species=extra_species,
             dusttype=dust["type"],

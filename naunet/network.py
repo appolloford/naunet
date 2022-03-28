@@ -1,5 +1,6 @@
 from __future__ import annotations
 import logging
+from pathlib import Path
 from typing import Type
 from tqdm import tqdm
 from .patchmaker import PatchMaker
@@ -7,9 +8,10 @@ from .templateloader import NetworkInfo, TemplateLoader
 from .species import Species
 from .reactions.reaction import Reaction
 from .reactions.kidareaction import KIDAReaction
-from .reactions.leedsreaction import LEEDSReaction
 from .reactions.kromereaction import KROMEReaction
+from .reactions.leedsreaction import LEEDSReaction
 from .reactions.uclchemreaction import UCLCHEMReaction
+from naunet.reactions.umistreaction import UMISTReaction
 from .dusts.dust import Dust
 from .dusts.unidust import UniDust
 from .dusts.rr07dust import RR07Dust
@@ -27,6 +29,7 @@ supported_dust_model = {
 
 supported_reaction_class = {
     "kida": KIDAReaction,
+    "umist": UMISTReaction,
     "leeds": LEEDSReaction,
     "krome": KROMEReaction,
     "uclchem": UCLCHEMReaction,
@@ -83,8 +86,9 @@ def define_dust(name: str):
 class Network:
     def __init__(
         self,
-        filelist: str | list[str] = None,
-        filesources: str | list[str] = None,
+        reactions: list[Reaction] = None,
+        filelist: str | list[str] | Path | list[Path] = None,
+        fileformats: str | list[str] = None,
         allowed_species: list[str] = None,
         required_species: list[str] = None,
         heating: list[str] = None,
@@ -124,43 +128,61 @@ class Network:
                     Otherwise leave one of them to be "None"."""
                 )
 
+        if reactions:
+
+            if filelist or fileformats:
+                logger.warning("Initialize from reactions. Files are skipped!")
+
+            for reac in reactions:
+                self.add_reaction(reac)
+
         # check the lists of files and formats are matching
         # and add them into the network if possible
-        if isinstance(filelist, list):
+        elif isinstance(filelist, list):
 
-            if isinstance(filesources, list):
+            filelist = [str(f) for f in filelist]
 
-                if len(filelist) != len(filesources):
+            if isinstance(fileformats, list):
+
+                if len(filelist) != len(fileformats):
                     raise RuntimeError(
                         "Sizes of input files and sources are mismatching."
                     )
                 else:
-                    for fname, db in zip(filelist, filesources):
+                    for fname, db in zip(filelist, fileformats):
                         self.add_reaction_from_file(fname, db)
 
-            elif isinstance(filesources, str):
+            elif isinstance(fileformats, str):
 
                 for fname in filelist:
-                    self.add_reaction_from_file(fname, filesources)
+                    self.add_reaction_from_file(fname, fileformats)
 
             else:
-                raise RuntimeError(f"Unknown format: {filesources}")
+                raise RuntimeError(f"Unknown format: {fileformats}")
 
-        elif isinstance(filelist, str):
+        elif isinstance(filelist, str) or isinstance(filelist, Path):
 
-            if isinstance(filesources, list):
-                if len(filesources) != 1:
+            filelist = str(filelist)
+
+            if isinstance(fileformats, list):
+                if len(fileformats) != 1:
                     raise RuntimeError(
                         "Sizes of input files and sources are mismatching."
                     )
                 else:
-                    self.add_reaction_from_file(filelist, filesources[0])
+                    self.add_reaction_from_file(filelist, fileformats[0])
 
-            elif isinstance(filesources, str):
-                self.add_reaction_from_file(filelist, filesources)
+            elif isinstance(fileformats, str):
+                self.add_reaction_from_file(filelist, fileformats)
 
             else:
-                raise RuntimeError(f"Unknown format: {filesources}")
+                raise RuntimeError(f"Unknown format: {fileformats}")
+
+        elif filelist is None:
+            pass
+
+        else:
+            raise TypeError(f"Unknown type of filelist {type(filelist)}")
 
     def _add_reaction(self, reaction: Reaction | tuple[str, str]) -> list:
 
@@ -354,6 +376,53 @@ class Network:
         elif len(sink) != 0:
             print("Found sinks: ", sink)
 
+    def find(self, reaction: Reaction, mode: str = "full") -> list[int]:
+
+        indices = []
+
+        if mode == "full":
+            indices = [
+                idx for idx, reac in enumerate(self.reaction_list) if reac == reaction
+            ]
+
+        else:
+            raise RuntimeError("Unknown mode: {mode}")
+
+        return indices
+
+    def find_product(self, product: Species | str) -> list[int]:
+
+        product = product if isinstance(product, Species) else Species(product)
+        indices = [
+            idx
+            for idx, reac in enumerate(self.reaction_list)
+            if product in reac.products
+        ]
+
+        return indices
+
+    def find_reactant(self, reactant: Species | str) -> list[int]:
+
+        reactant = reactant if isinstance(reactant, Species) else Species(reactant)
+        indices = [
+            idx
+            for idx, reac in enumerate(self.reaction_list)
+            if reactant in reac.reactants
+        ]
+
+        return indices
+
+    def find_species(self, species: Species | str) -> list[int]:
+
+        species = species if isinstance(species, Species) else Species(species)
+        indices = [
+            idx
+            for idx, reac in enumerate(self.reaction_list)
+            if species in reac.reactants + reac.products
+        ]
+
+        return indices
+
     @property
     def info(self):
         if self._info:
@@ -429,3 +498,8 @@ class Network:
 
         tl = self.templateloader(solver, method, device, ratemodifier, odemodifier)
         tl.render(prefix=prefix, save=True)
+
+    def write(self, filename: str, format: str = "") -> None:
+        with open(filename, "w") as outf:
+            for reac in self.reaction_list:
+                outf.write(f"{reac:{format}}\n")

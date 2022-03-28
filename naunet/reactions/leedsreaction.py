@@ -88,7 +88,7 @@ class LEEDSReaction(Reaction):
     ]
 
     def __init__(self, react_string) -> None:
-        super().__init__(format="LEEDS")
+        super().__init__(format="leeds")
 
         self.rtype = None
 
