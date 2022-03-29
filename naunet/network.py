@@ -99,8 +99,8 @@ class Network:
 
         self.format_list = set()
         self.reaction_list = []
-        self.reactants_in_network = set()
-        self.products_in_network = set()
+        self._reactants = set()
+        self._products = set()
         self._skipped_reactions = []
         self._info = None
         self._patchmaker = None
@@ -204,10 +204,10 @@ class Network:
                 return set()
 
         self.reaction_list.append(reaction)
-        new_reactants = set(reaction.reactants).difference(self.reactants_in_network)
-        new_products = set(reaction.products).difference(self.products_in_network)
-        self.reactants_in_network.update(new_reactants)
-        self.products_in_network.update(new_products)
+        new_reactants = set(reaction.reactants).difference(self._reactants)
+        new_products = set(reaction.products).difference(self._products)
+        self._reactants.update(new_reactants)
+        self._products.update(new_products)
         # if len(self.reaction_list) % 100 == 0:
         #     print("Processing: {} reactions...".format(len(self.reaction_list)))
         return new_reactants | new_products
@@ -293,7 +293,7 @@ class Network:
             return self._allowed_cooling
 
         rqdsp = set([Species(s) for s in self._required_species])
-        speclist = sorted(self.reactants_in_network | self.products_in_network | rqdsp)
+        speclist = sorted(self._reactants | self._products | rqdsp)
 
         self._allowed_cooling = get_allowed_cooling(speclist)
         return self._allowed_cooling
@@ -312,7 +312,7 @@ class Network:
             return self._allowed_heating
 
         rqdsp = set([Species(s) for s in self._required_species])
-        speclist = sorted(self.reactants_in_network | self.products_in_network | rqdsp)
+        speclist = sorted(self._reactants | self._products | rqdsp)
 
         self._allowed_heating = get_allowed_heating(speclist)
         return self._allowed_heating
@@ -367,8 +367,8 @@ class Network:
         return dupes
 
     def check_source_sink(self):
-        source = self.reactants_in_network.difference(self.products_in_network)
-        sink = self.products_in_network.difference(self.reactants_in_network)
+        source = self._reactants.difference(self._products)
+        sink = self._products.difference(self._reactants)
         if len(source) == 0 and len(sink) == 0:
             print("Found no source or sink")
         elif len(source) != 0:
@@ -376,50 +376,61 @@ class Network:
         elif len(sink) != 0:
             print("Found sinks: ", sink)
 
-    def find(self, reaction: Reaction, mode: str = "full") -> list[int]:
+    def where(
+        self,
+        reaction: Reaction = None,
+        species: Species | str = None,
+        mode: str = "all",
+    ) -> list[int]:
 
         indices = []
 
-        if mode == "full":
-            indices = [
-                idx for idx, reac in enumerate(self.reaction_list) if reac == reaction
-            ]
+        if reaction:
+            if mode == "all":
+                indices = [
+                    idx
+                    for idx, reac in enumerate(self.reaction_list)
+                    if reac == reaction
+                ]
 
-        else:
-            raise RuntimeError("Unknown mode: {mode}")
+            elif mode == "short":
+                indices = [
+                    idx
+                    for idx, reac in enumerate(self.reaction_list)
+                    if f"{reac:short}" == f"{reaction:short}"
+                ]
 
-        return indices
+            else:
+                raise RuntimeError("Unknown mode: {mode}")
 
-    def find_product(self, product: Species | str) -> list[int]:
+        elif species:
+            species = species if isinstance(species, Species) else Species(species)
 
-        product = product if isinstance(product, Species) else Species(product)
-        indices = [
-            idx
-            for idx, reac in enumerate(self.reaction_list)
-            if product in reac.products
-        ]
+            if mode == "reactant":
+                indices = [
+                    idx
+                    for idx, reac in enumerate(self.reaction_list)
+                    if species in reac.reactants
+                ]
 
-        return indices
+            elif mode == "product":
 
-    def find_reactant(self, reactant: Species | str) -> list[int]:
+                indices = [
+                    idx
+                    for idx, reac in enumerate(self.reaction_list)
+                    if species in reac.products
+                ]
 
-        reactant = reactant if isinstance(reactant, Species) else Species(reactant)
-        indices = [
-            idx
-            for idx, reac in enumerate(self.reaction_list)
-            if reactant in reac.reactants
-        ]
+            elif mode == "all":
 
-        return indices
+                indices = [
+                    idx
+                    for idx, reac in enumerate(self.reaction_list)
+                    if species in reac.reactants + reac.products
+                ]
 
-    def find_species(self, species: Species | str) -> list[int]:
-
-        species = species if isinstance(species, Species) else Species(species)
-        indices = [
-            idx
-            for idx, reac in enumerate(self.reaction_list)
-            if species in reac.reactants + reac.products
-        ]
+            else:
+                raise RuntimeError("Unknown mode: {mode}")
 
         return indices
 
@@ -429,7 +440,7 @@ class Network:
             return self._info
 
         rqdsp = set([Species(s) for s in self._required_species])
-        speclist = sorted(self.reactants_in_network | self.products_in_network | rqdsp)
+        speclist = sorted(self._reactants | self._products | rqdsp)
 
         heating = [self.allowed_heating.get(h) for h in self._heating_names]
         cooling = [self.allowed_cooling.get(c) for c in self._cooling_names]
@@ -468,6 +479,14 @@ class Network:
 
         self._patchmaker = PatchMaker(self.info, target, device, *args, **kwargs)
         return self._patchmaker
+
+    @property
+    def products(self):
+        return self._products
+
+    @property
+    def reactants(self):
+        return self._reactants
 
     def templateloader(
         self,

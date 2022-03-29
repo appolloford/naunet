@@ -13,8 +13,8 @@ def test_init_network():
 
     assert network.format_list == set()
     assert network.reaction_list == []
-    assert network.reactants_in_network == set()
-    assert network.products_in_network == set()
+    assert network._reactants == set()
+    assert network._products == set()
 
 
 def test_add_reaction():
@@ -33,8 +33,8 @@ def test_add_reaction():
 
     assert network.format_list == set()
     assert network.reaction_list == [reac]
-    assert network.reactants_in_network == {Species("He")}
-    assert network.products_in_network == {Species("He+"), Species("e-")}
+    assert network._reactants == {Species("He")}
+    assert network._products == {Species("He+"), Species("e-")}
 
     react_string = "".join(
         [
@@ -51,8 +51,8 @@ def test_add_reaction():
 
     assert network.format_list == set(["kida"])
     assert network.reaction_list == [KIDAReaction(react_string)]
-    assert network.reactants_in_network == {Species("He")}
-    assert network.products_in_network == {Species("He+"), Species("e-")}
+    assert network._reactants == {Species("He")}
+    assert network._products == {Species("He+"), Species("e-")}
 
 
 def test_init_network_from_reactions():
@@ -98,13 +98,13 @@ def test_init_network_from_reactions():
     network = Network(reactions)
     assert network.format_list == set(["kida", "umist"])
     assert network.reaction_list == reactions
-    assert network.reactants_in_network == {
+    assert network._reactants == {
         Species("H"),
         Species("H2"),
         Species("CH"),
         Species("e-"),
     }
-    assert network.products_in_network == {
+    assert network._products == {
         Species("H"),
         Species("H+"),
         Species("H2"),
@@ -180,10 +180,11 @@ def test_find_species():
     )
 
     network = Network(reactions)
-    assert network.find_reactant("H2") == [1, 2]
-    assert network.find_product("e-") == [0, 2]
-    assert network.find_species("C") == [1]
-    assert network.find_species("H") == [0, 1, 2]
+    assert network.where(reactions[0]) == [0]
+    assert network.where(species="H2", mode="reactant") == [1, 2]
+    assert network.where(species="e-", mode="product") == [0, 2]
+    assert network.where(species="C") == [1]
+    assert network.where(species="H") == [0, 1, 2]
 
 
 @pytest.mark.slow
