@@ -20,7 +20,7 @@ class RR07Dust(Dust):
         "crdeseff": 1e5,  # cosmic ray desorption efficiency
         "h2deseff": 1.0e-2,  # H2 desorption efficiency
     }
-    user_var = [
+    locvars = [
         # "double mant = GetMantleDens(y) > 0.0 ? GetMantleDens(y) : 1e-40",
         "double mant = GetMantleDens(y)",
         "double mantabund = mant / nH",

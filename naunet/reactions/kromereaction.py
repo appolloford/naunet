@@ -94,7 +94,7 @@ class KROMEReaction(Reaction):
             "nH": None,
             "Tgas": None,
         }
-        cls.user_var = []
+        cls.locvars = []
 
     @classmethod
     def preprocessing(cls, line: str) -> str:
@@ -105,7 +105,7 @@ class KROMEReaction(Reaction):
             return ""
         elif line.startswith("@var"):
             if "Hnuclei" not in line:
-                cls.user_var.append(line.replace("@var:", "").strip())
+                cls.locvars.append(line.replace("@var:", "").strip())
             return ""
         elif line.startswith("@common:"):
             commonlist = line.replace("@common:", "").strip().split(",")

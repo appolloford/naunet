@@ -14,7 +14,7 @@ class UniDust(Dust):
         "Tcr": 70.0,  # cosmic ray induced desorption temperature
         "branch": 1e-2,  # branch ration
     }
-    user_var = [
+    locvars = [
         "double mant = GetMantleDens(y)",
         "double gdens = (y[IDX_GRAIN0I]+y[IDX_GRAINM])",
         "double garea = (4*pi*rG*rG) * gdens",

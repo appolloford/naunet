@@ -56,11 +56,10 @@ class Reaction:
     """Class of chemical reactions"""
 
     consts = {}
-    globs = {}
     varis = {
         "Tgas": None,
     }
-    user_var = []
+    locvars = []
 
     def __init__(
         self,

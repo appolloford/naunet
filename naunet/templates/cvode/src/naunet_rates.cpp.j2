@@ -30,7 +30,7 @@ int EvalRates(realtype *k, realtype *y, NaunetData *u_data) {
         realtype {{ v }} = u_data->{{ v }};
     {% endfor %}
 
-    {% for v in variables.user_var -%}
+    {% for v in variables.locvars -%}
         {{ v }};
     {% endfor %}
 
@@ -67,7 +67,7 @@ int EvalHeatingRates(realtype *kh, realtype *y, NaunetData *u_data) {
         realtype {{ v }} = u_data->{{ v }};
     {% endfor %}
 
-    {% for v in variables.user_var -%}
+    {% for v in variables.locvars -%}
         {{ v }};
     {% endfor %}
 
@@ -101,7 +101,7 @@ int EvalCoolingRates(realtype *kc, realtype *y, NaunetData *u_data) {
         realtype {{ v }} = u_data->{{ v }};
     {% endfor %}
 
-    {% for v in variables.user_var -%}
+    {% for v in variables.locvars -%}
         {{ v }};
     {% endfor %}
 

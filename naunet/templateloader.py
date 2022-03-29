@@ -108,9 +108,8 @@ class TemplateLoader:
         """
 
         consts: dict[str, str]
-        globs: list[str]
         varis: dict[str, float]
-        user_var: list[str]
+        locvars: list[str]
         header: str = None
 
     def __init__(
@@ -233,16 +232,6 @@ class TemplateLoader:
         }
         consts = {**reactconsts, **dustconsts, **heatconsts, **coolconsts, **ebs}
 
-        reactglobs = [f"{v}" for rcls in rclasses for v in rcls.globs.values()]
-        dustglobs = [f"{v}" for v in dust.globs.values()] if dust else []
-        heatglobs = (
-            [f"{v}" for p in heating for v in p.globs.values()] if heating else []
-        )
-        coolglobs = (
-            [f"{v}" for p in cooling for v in p.globs.values()] if cooling else []
-        )
-        globs = [*reactglobs, *dustglobs, *heatglobs, *coolglobs]
-
         reactvars = {
             f"{var}": val for rcls in rclasses for var, val in rcls.varis.items()
         }
@@ -263,13 +252,13 @@ class TemplateLoader:
         if has_thermal:
             varis.update({**heatvars, **coolvars})
 
-        react_uservar = [v for rcls in rclasses for v in rcls.user_var]
-        dust_uservar = dust.user_var if dust else []
-        heat_uservar = [v for p in heating for v in p.user_var]
-        cool_uservar = [v for p in cooling for v in p.user_var]
-        user_var = [*dust_uservar, *react_uservar, *heat_uservar, *cool_uservar]
+        react_uservar = [v for rcls in rclasses for v in rcls.locvars]
+        dust_uservar = dust.locvars if dust else []
+        heat_uservar = [v for p in heating for v in p.locvars]
+        cool_uservar = [v for p in cooling for v in p.locvars]
+        locvars = [*dust_uservar, *react_uservar, *heat_uservar, *cool_uservar]
 
-        self._variables = self.VariablesContent(consts, globs, varis, user_var)
+        self._variables = self.VariablesContent(consts, varis, locvars)
 
         # prepare reaction rate expressions
         rates = [f"k[{r}]" for r in range(n_react)]

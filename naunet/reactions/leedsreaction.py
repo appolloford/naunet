@@ -62,8 +62,6 @@ class LEEDSReaction(Reaction):
         20: ReactionType.LEEDS_EC,
     }
 
-    # TODO: add reaction option into globs
-
     consts = {
         "gism": 1.6e-3,
         "habing": 1e8,
@@ -81,7 +79,7 @@ class LEEDSReaction(Reaction):
         "G0": 1.0,  # UV field in Habing
         "omega": 0.5,  # dust grain albedo
     }
-    user_var = [
+    locvars = [
         "double h2col = 0.5*1.59e21*Av",
         "double cocol = 1e-5 * h2col",
         "double n2col = 1e-5 * h2col",

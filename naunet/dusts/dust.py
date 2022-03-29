@@ -4,9 +4,8 @@ from abc import ABC, abstractmethod
 class Dust(ABC):
 
     consts = {}
-    globs = {}
     varis = {}
-    user_var = []
+    locvars = []
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__()

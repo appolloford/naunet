@@ -29,7 +29,6 @@ class KIDAReaction(Reaction):
         "zeta": 1.3e-17,  # cosmic rai ionization rate
         "Av": 1.0,  # visual extinction
     }
-    user_var = []
 
     def __init__(self, react_string) -> None:
         super().__init__(format="kida")

@@ -117,6 +117,11 @@ class Network:
         self._heating_names = heating.copy() if heating else []
         self._cooling_names = cooling.copy() if cooling else []
 
+        self._consts = {}
+        # Avoid using `vars`, the name conflict with inbuilt function
+        self._varis = {}
+        self._locvars = []
+
         if allowed_species and required_species:
 
             conflict = [sp for sp in required_species if sp not in allowed_species]

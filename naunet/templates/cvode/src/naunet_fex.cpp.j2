@@ -42,7 +42,7 @@ __global__ void FexKernel(realtype *y, realtype *ydot, NaunetData *d_udata,
             realtype {{ v }} = udata->{{ v }};
         {% endfor %}
 
-        {% for v in variables.user_var -%}
+        {% for v in variables.locvars -%}
             {{ v }};
         {% endfor %}
         
@@ -90,7 +90,7 @@ int Fex(realtype t, N_Vector u, N_Vector udot, void *user_data) {
         realtype {{ v }} = u_data->{{ v }};
     {% endfor %}
 
-    {% for v in variables.user_var -%}
+    {% for v in variables.locvars -%}
         {{ v }};
     {% endfor %}
 

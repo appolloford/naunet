@@ -44,7 +44,6 @@ class UMISTReaction(Reaction):
         "Av": 1.0,
         "omega": 0.5,
     }
-    user_var = []
 
     def __init__(self, react_string) -> None:
         super().__init__(format="umist")

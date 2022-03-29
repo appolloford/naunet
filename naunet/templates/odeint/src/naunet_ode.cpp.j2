@@ -27,7 +27,7 @@ int EvalRates(double *k, double *y, NaunetData *u_data) {
         double {{ v }} = u_data->{{ v }};
     {% endfor %}
 
-    {% for v in variables.user_var -%}
+    {% for v in variables.locvars -%}
         {{ v }};
     {% endfor %}
 
@@ -158,7 +158,7 @@ void Fex::operator()(const vector_type &abund, vector_type &ydot, double t) {
     if (gamma < 0) gamma = GetGamma(y);
 #endif
 
-    {% for v in variables.user_var -%}
+    {% for v in variables.locvars -%}
         {{ v }};
     {% endfor %}  
     

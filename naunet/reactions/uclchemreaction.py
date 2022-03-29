@@ -59,7 +59,7 @@ class UCLCHEMReaction(Reaction):
         "uvcreff": 1.0e-3,  # UVCREFF is ratio of CR induced UV to ISRF UV
     }
 
-    user_var = [
+    locvars = [
         "double h2col = 0.5*1.59e21*Av",
         "double cocol = 1e-5 * h2col",
         "double lamdabar = GetCharactWavelength(h2col, cocol)",
