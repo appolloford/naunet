@@ -22,15 +22,15 @@ from .utilities import _stmwrap
 # define in this file to avoid circular import
 @dataclass
 class NetworkInfo:
-    n_spec: int
-    n_react: int
     species: list[Species]
     reactions: list[Reaction]
-    rclasses: list[Type[Reaction]]
     heating: list[str]
     cooling: list[str]
     dust: Dust
     shielding: dict
+    consts: dict[str, str]
+    varis: dict[str, str]
+    locvars: list[str]
 
 
 class TemplateLoader:
@@ -142,17 +142,16 @@ class TemplateLoader:
 
         self._prepare_contents(netinfo, method, device)
 
-    def _prepare_contents(self, netinfo: object, method: str, device: str) -> None:
-        n_spec = netinfo.n_spec
-        n_react = netinfo.n_react
+    def _prepare_contents(self, netinfo: NetworkInfo, method: str, device: str) -> None:
+        n_spec = len(netinfo.species)
+        n_react = len(netinfo.reactions)
         species = netinfo.species
         reactions = netinfo.reactions
-        rclasses = netinfo.rclasses
         heating = netinfo.heating
         cooling = netinfo.cooling
         dust = netinfo.dust
-        odemodifier = self._ode_modifier
 
+        odemodifier = self._ode_modifier
         ratemodifier = [
             f"k[{idx}] = {value}"
             for idx, reac in enumerate(reactions)
@@ -173,6 +172,12 @@ class TemplateLoader:
         speclist = [f"#define IDX_{x.alias} {i}" for i, x in enumerate(species)]
         if has_thermal:
             speclist.append(f"#define IDX_TGAS {n_spec}")
+
+        consts = netinfo.consts
+        varis = netinfo.varis
+        locvars = netinfo.locvars
+
+        self._variables = self.VariablesContent(consts, varis, locvars)
 
         self._macros = self.MacrosContent(
             nspec,
@@ -210,55 +215,6 @@ class TemplateLoader:
             coshielding=netinfo.shielding.get("CO", ""),
             n2shielding=netinfo.shielding.get("N2", ""),
         )
-
-        reactconsts = {
-            f"{c:<15}": f"{cv}" for rcls in rclasses for c, cv in rcls.consts.items()
-        }
-        dustconsts = (
-            {f"{c:<15}": f"{cv}" for c, cv in dust.consts.items()} if dust else {}
-        )
-        heatconsts = (
-            {f"{c:<15}": f"{cv}" for p in heating for c, cv in p.consts.items()}
-            if heating
-            else {}
-        )
-        coolconsts = (
-            {f"{c:<15}": f"{cv}" for p in cooling for c, cv in p.consts.items()}
-            if cooling
-            else {}
-        )
-        ebs = {
-            f"eb_{s.alias:<12}": f"{s.binding_energy}" for s in species if s.is_surface
-        }
-        consts = {**reactconsts, **dustconsts, **heatconsts, **coolconsts, **ebs}
-
-        reactvars = {
-            f"{var}": val for rcls in rclasses for var, val in rcls.varis.items()
-        }
-        dustvars = (
-            {f"{var}": val for var, val in dust.varis.items() if dust} if dust else {}
-        )
-        heatvars = (
-            {f"{var}": val for p in heating for var, val in p.varis.items()}
-            if heating
-            else {}
-        )
-        coolvars = (
-            {f"{var}": val for p in cooling for var, val in p.varis.items()}
-            if cooling
-            else {}
-        )
-        varis = {**dustvars, **reactvars}
-        if has_thermal:
-            varis.update({**heatvars, **coolvars})
-
-        react_uservar = [v for rcls in rclasses for v in rcls.locvars]
-        dust_uservar = dust.locvars if dust else []
-        heat_uservar = [v for p in heating for v in p.locvars]
-        cool_uservar = [v for p in cooling for v in p.locvars]
-        locvars = [*dust_uservar, *react_uservar, *heat_uservar, *cool_uservar]
-
-        self._variables = self.VariablesContent(consts, varis, locvars)
 
         # prepare reaction rate expressions
         rates = [f"k[{r}]" for r in range(n_react)]

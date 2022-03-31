@@ -117,10 +117,9 @@ class Network:
         self._heating_names = heating.copy() if heating else []
         self._cooling_names = cooling.copy() if cooling else []
 
-        self._consts = {}
-        # Avoid using `vars`, the name conflict with inbuilt function
-        self._varis = {}
-        self._locvars = []
+        self._reactconsts = {}
+        self._reactvaris = {}
+        self._reactlocvars = []
 
         if allowed_species and required_species:
 
@@ -217,6 +216,55 @@ class Network:
         #     print("Processing: {} reactions...".format(len(self.reaction_list)))
         return new_reactants | new_products
 
+    def _consts(self) -> dict[str, str]:
+
+        # consts in dust
+        dust = self.dust
+        dconsts = {f"{c:<15}": f"{cv}" for c, cv in dust.consts.items()} if dust else {}
+
+        # consts in heating/cooling
+        thermproc = []
+        thermproc.extend([self.allowed_heating.get(h) for h in self._heating_names])
+        thermproc.extend([self.allowed_cooling.get(c) for c in self._cooling_names])
+        tconsts = {f"{c:<15}": f"{cv}" for p in thermproc for c, cv in p.consts.items()}
+
+        # create consts of binding energies
+        rqdsp = set([Species(s) for s in self._required_species])
+        speclist = sorted(self._reactants | self._products | rqdsp)
+        ebs = {f"eb_{s.alias:<12}": f"{s.eb}" for s in speclist if s.is_surface}
+
+        consts = {**self._reactconsts, **dconsts, **tconsts, **ebs}
+
+        return consts
+
+    def _locvars(self) -> dict[str, str]:
+
+        dust = self.dust
+        dlocvars = dust.locvars if dust else []
+
+        thermproc = []
+        thermproc.extend([self.allowed_heating.get(h) for h in self._heating_names])
+        thermproc.extend([self.allowed_cooling.get(c) for c in self._cooling_names])
+        tlocvars = [v for p in thermproc for v in p.locvars]
+
+        locvars = [*self._reactlocvars, *dlocvars, *tlocvars]
+        return locvars
+
+    def _varis(self) -> dict[str, str]:
+
+        # varis in dust
+        dust = self.dust
+        dvaris = {f"{var}": val for var, val in dust.varis.items()} if dust else {}
+
+        # varis in heating/cooling
+        thermproc = []
+        thermproc.extend([self.allowed_heating.get(h) for h in self._heating_names])
+        thermproc.extend([self.allowed_cooling.get(c) for c in self._cooling_names])
+        tvaris = {f"{var}": val for p in thermproc for var, val in p.varis.items()}
+
+        varis = {**self._reactvaris, **dvaris, **tvaris}
+        return varis
+
     def add_reaction(self, reaction: Reaction | tuple[str, str]) -> None:
         """Add a reaction into the network
 
@@ -244,6 +292,14 @@ class Network:
 
         new_species = self._add_reaction(reaction)
         logger.info("New species are added: {}".format(new_species))
+
+        self._reactconsts.update(
+            {f"{c:<15}": f"{cv}" for c, cv in rclass.consts.items()}
+        )
+        self._reactvaris.update({f"{var}": val for var, val in rclass.varis.items()})
+        self._reactlocvars.extend(
+            [v for v in rclass.locvars if v not in self._reactlocvars]
+        )
 
         if not isinstance(reaction, Reaction):
             rclass.finalize()
@@ -279,6 +335,14 @@ class Network:
                 new_species.update(self._add_reaction((line, format)))
 
             # print("New species: \n{}".format("\n".join(str(x) for x in new_species)))
+
+        self._reactconsts.update(
+            {f"{c:<15}": f"{cv}" for c, cv in rclass.consts.items()}
+        )
+        self._reactvaris.update({f"{var}": val for var, val in rclass.varis.items()})
+        self._reactlocvars.extend(
+            [v for v in rclass.locvars if v not in self._reactlocvars]
+        )
 
         rclass.finalize()
 
@@ -450,22 +514,23 @@ class Network:
         heating = [self.allowed_heating.get(h) for h in self._heating_names]
         cooling = [self.allowed_cooling.get(c) for c in self._cooling_names]
 
-        rclasses = [supported_reaction_class.get(fmt) for fmt in self.format_list]
+        # rclasses = [supported_reaction_class.get(fmt) for fmt in self.format_list]
         self._info = NetworkInfo(
-            len(speclist),
-            len(self.reaction_list),
             speclist,
             self.reaction_list,
-            rclasses,
             heating=heating,
             cooling=cooling,
             dust=self.dust,
             shielding=self._shielding,
+            consts=self._consts(),
+            varis=self._varis(),
+            locvars=self._locvars(),
         )
 
+        nspec = len(self._info.species)
         logger.info(
             "{} species in the network: {}".format(
-                self._info.n_spec, ", ".join([x.name for x in self._info.species])
+                nspec, ", ".join([x.name for x in self._info.species])
             )
         )
 

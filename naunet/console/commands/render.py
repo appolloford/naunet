@@ -186,10 +186,10 @@ class RenderCommand(Command):
         summary = table()
         gas_species = [s.name for s in net.info.species if not s.is_surface]
         ice_species = [g.name for g in net.info.species if g.is_surface]
-        summary["num_of_species"] = net.info.n_spec
+        summary["num_of_species"] = len(net.info.species)
         summary["num_of_gas_species"] = len(gas_species)
         summary["num_of_ice_species"] = len(ice_species)
-        summary["num_of_reactions"] = net.info.n_react
+        summary["num_of_reactions"] = len(net.info.reactions)
         summary["list_of_species"] = [x.name for x in net.info.species]
         summary["list_of_species_alias"] = [x.alias for x in net.info.species]
         summary["list_of_gas_species"] = gas_species

@@ -372,6 +372,9 @@ class Species:
 
         return self._binding_energy
 
+    # alias function
+    eb = binding_energy
+
     @property
     def charge(self) -> int:
         """

@@ -8,11 +8,11 @@ class UniDust(Dust):
         "rG": 1.0e-5,  # grain radius
         "barr": 1.5e-8,  # barrier
         "sites": 1e15,  # surface sites
-        "hop": 0.3,  # hop ration
+        "hop": 0.3,  # hop ratio
         "nMono": 2.0,  # number of monolayers
         "duty": 3.16e-19,  # duty cycle
         "Tcr": 70.0,  # cosmic ray induced desorption temperature
-        "branch": 1e-2,  # branch ration
+        "branch": 1e-2,  # branch ratio
     }
     locvars = [
         "double mant = GetMantleDens(y)",
