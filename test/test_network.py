@@ -1,3 +1,5 @@
+import os
+import subprocess
 import pytest
 from pathlib import Path
 from naunet.species import Species
@@ -233,3 +235,40 @@ def test_write_network():
         fileformats="kida",
     )
     network.write("test/test_output/writereaction.txt")
+
+
+def test_export_network():
+    network = Network(
+        filelist=inpath / "react_primordial.krome",
+        fileformats="krome",
+    )
+    network.export(prefix="test/test_output/network_export", overwrite=True)
+
+    os.chdir("test/test_output/network_export")
+    process = subprocess.Popen(
+        ["cmake", "-S", ".", "-B", "build"],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+    stdout, stderr = process.communicate()
+
+    assert "CMake Error" not in stderr.decode("utf-8")
+
+    # test the export code can be compiled
+    process = subprocess.Popen(
+        ["cmake", "--build", "build"],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+    stdout, stderr = process.communicate()
+
+    assert " failed" not in stdout.decode("utf-8")
+    assert " error:" not in stderr.decode("utf-8")
+
+    # os.chdir("build/")
+    # process = subprocess.Popen(
+    #     ["ctest"],
+    #     stdout=subprocess.PIPE,
+    #     stderr=subprocess.PIPE,
+    # )
+    # stdout, stderr = process.communicate()

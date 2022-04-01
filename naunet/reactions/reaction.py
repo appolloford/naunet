@@ -60,6 +60,8 @@ class Reaction:
         "nH": None,
         "Tgas": None,
         "zeta": 1.3e-17,
+        "Av": 1.0,
+        "omega": 0.5,
     }
     locvars = []
 

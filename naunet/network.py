@@ -1,8 +1,11 @@
 from __future__ import annotations
+import os
+import shutil
 import logging
 from pathlib import Path
 from typing import Type
 from tqdm import tqdm
+from importlib.metadata import version
 from .patchmaker import PatchMaker
 from .templateloader import NetworkInfo, TemplateLoader
 from .species import Species
@@ -502,6 +505,71 @@ class Network:
                 raise RuntimeError("Unknown mode: {mode}")
 
         return indices
+
+    def export(
+        self,
+        solver: str = "cvode",
+        method: str = "dense",
+        device: str = "cpu",
+        ratemodifier: dict[int, str] = None,
+        odemodifier: list[str] = None,
+        prefix: str | Path = "network_export",
+        overwrite: bool = False,
+    ) -> None:
+        tl = self.templateloader(solver, method, device, ratemodifier, odemodifier)
+
+        prefix = Path.cwd() / Path(prefix)
+        if not os.path.exists(prefix):
+            os.mkdir(prefix)
+
+        for subdir in ["include", "src"]:
+            subprefix = prefix / subdir
+
+            if os.path.exists(subprefix):
+
+                if not overwrite:
+                    logger.warning("Files exist in export directory! Stop exporting!")
+                    return
+
+            else:
+                os.mkdir(subprefix)
+
+        header_prefix = prefix / "include"
+        source_prefix = prefix / "src"
+
+        tl.render_constants(prefix=source_prefix, headerprefix=header_prefix)
+        tl.render_macros(prefix=header_prefix)
+        tl.render_naunet(prefix=source_prefix, headerprefix=header_prefix)
+        tl.render_ode(prefix=source_prefix, headerprefix=header_prefix)
+        tl.render_physics(prefix=source_prefix, headerprefix=header_prefix)
+        tl.render_utilities(prefix=source_prefix, headerprefix=header_prefix)
+        tl.render_data(prefix=header_prefix)
+        tl.render_cmake(prefix=prefix, version=version("naunet"))
+
+        src_parent_path = Path(__file__).parent
+        incfile = src_parent_path / "templates/common/include/naunet_timer.h"
+        dest = header_prefix / "naunet_timer.h"
+        shutil.copyfile(incfile, dest)
+
+        example_template_path = src_parent_path / "examples" / "template"
+
+        if os.path.exists(prefix / "test") and not overwrite:
+            logger.warning("Files exist in export test directory! Skip overwriting")
+            return
+
+        for file in os.listdir(example_template_path):
+
+            # skip __init__.py and __pycache__
+            if not file.startswith("__"):
+
+                src = os.path.join(example_template_path, file)
+                dest = os.path.join(prefix, file)
+
+                if os.path.isdir(src):
+                    shutil.copytree(src, dest, dirs_exist_ok=True)
+
+                elif os.path.isfile(src):
+                    shutil.copyfile(src, dest)
 
     @property
     def info(self):

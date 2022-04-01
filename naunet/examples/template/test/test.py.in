@@ -1,0 +1,57 @@
+import os
+import sys
+sys.path.append(os.getenv('CHEMISTRY_MODULE_PATH'))
+
+import numpy as np
+from tomlkit.toml_file import TOMLFile
+
+from @PYMODNAME@ import Naunet, NaunetData
+
+config_path = os.getenv('NAUNET_CONFIG_PATH')
+config = TOMLFile(os.path.join(config_path, "naunet_config.toml"))
+content = config.read()
+chemistry = content["chemistry"]
+species = chemistry["species"]
+
+naunet_solver = Naunet()
+naunet_data = NaunetData()
+
+spy = 86400.0 * 365.0
+nH = 2e4
+Tgas = 15.0
+
+naunet_data.nH = nH
+naunet_data.zeta = zeta
+naunet_data.Tgas = Tgas
+naunet_data.Av = Av
+naunet_data.omega = omega
+
+naunet_solver.Init()
+if @USE_CUDA@:
+    naunet_solver.Reset(1)
+
+y = np.ones(len(species)) * 1e-40
+# Set your initial abundance here
+# e.g. y[species.index("H2")] = 0.5 * nH
+# Only works if the species list in naunet_config.toml has been updated
+# Otherwise check the macros in naunet_macros.h
+raise RuntimeError("Abundance has not been assigned")
+
+times = np.logspace(3, 7, 51)
+timesteps = times[0]
+timesteps = np.append(timesteps, times[1:] - times[:-1])
+
+with open("evolution_pymodule.dat", "w") as evoldat:
+
+    curtime = 0.0
+
+    for ti, dtyr in enumerate(timesteps):
+        curtime += dtyr
+        dt = dtyr * spy
+        y = naunet_solver.Solve(y, dt, naunet_data)
+
+        fmty = [f"{yi:13.7e}" for yi in y]
+        evoldat.write(" ".join([f"{curtime:13.7e}", *fmty]))
+        evoldat.write("\n")
+
+naunet_solver.Finalize();
