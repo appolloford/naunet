@@ -280,7 +280,7 @@ class Network:
         format = reaction.format if isinstance(reaction, Reaction) else reaction[1]
 
         self.format_list.update({format} if format else {})
-        rclass = supported_reaction_class.get(format)
+        rclass = supported_reaction_class.get(format, Reaction)
 
         if not isinstance(reaction, Reaction):
             # create reaction instance from string
@@ -322,7 +322,7 @@ class Network:
         new_species = set()
 
         # change some global settings or class attibutes if needed
-        rclass = supported_reaction_class.get(format)
+        rclass = supported_reaction_class.get(format, Reaction)
         if rclass:
             rclass.initialize()
         else:

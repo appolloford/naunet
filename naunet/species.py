@@ -484,6 +484,9 @@ class Species:
 
         return self._massnumber
 
+    # alias function of mass number
+    A = massnumber
+
     def photon_yield(self, default: float = 1e-3) -> float:
         """
         The photodesorption yield of the species (only for ice-phase species).

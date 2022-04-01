@@ -219,9 +219,9 @@ class TemplateLoader:
         # prepare reaction rate expressions
         rates = [f"k[{r}]" for r in range(n_react)]
         rateeqns = [
-            f"if (Tgas>={reac.temp_min} && Tgas<{reac.temp_max}) {{\n{' = '.join([rate, reac.rate_func(dust)])}; \n}}"
+            f"if (Tgas>={reac.temp_min} && Tgas<{reac.temp_max}) {{\n{' = '.join([rate, reac.rateexpr(dust)])}; \n}}"
             if reac.temp_min < reac.temp_max
-            else f"{' = '.join([rate, reac.rate_func(dust)])};"
+            else f"{' = '.join([rate, reac.rateexpr(dust)])};"
             for rate, reac in zip(rates, reactions)
         ]
 
@@ -267,9 +267,9 @@ class TemplateLoader:
         # prepare heating rate expressions
         hrates = [f"kh[{hidx}]" for hidx, _ in enumerate(heating)]
         hrateeqns = [
-            f"if (Tgas>{h.temp_min} && Tgas<{h.temp_max}) {{\n{' = '.join([hrate, h.rate_func()])}; \n}}"
+            f"if (Tgas>={h.temp_min} && Tgas<{h.temp_max}) {{\n{' = '.join([hrate, h.rateexpr()])}; \n}}"
             if h.temp_min < h.temp_max
-            else f"{' = '.join([hrate, h.rate_func()])};"
+            else f"{' = '.join([hrate, h.rateexpr()])};"
             for hrate, h in zip(hrates, heating)
         ]
 
@@ -293,9 +293,9 @@ class TemplateLoader:
         # prepare cooling rate expressions
         crates = [f"kc[{cidx}]" for cidx, _ in enumerate(cooling)]
         crateeqns = [
-            f"if (Tgas>{c.temp_min} && Tgas<{c.temp_max}) {{\n{' = '.join([crate, c.rate_func()])}; \n}}"
+            f"if (Tgas>={c.temp_min} && Tgas<{c.temp_max}) {{\n{' = '.join([crate, c.rateexpr()])}; \n}}"
             if c.temp_min < c.temp_max
-            else f"{' = '.join([crate, c.rate_func()])};"
+            else f"{' = '.join([crate, c.rateexpr()])};"
             for crate, c in zip(crates, cooling)
         ]
 

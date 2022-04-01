@@ -65,6 +65,7 @@ def test_binding_energy():
     Species.reset()
     assert Species("#H").binding_energy == 600.0
     assert Species("#CH4").binding_energy == 1090.0
+    assert Species("#CH4").eb == 1090.0  # test alias
 
 
 def test_charge():
@@ -99,6 +100,7 @@ def test_mass():
 def test_massnumber():
     Species.reset()
     assert Species("D").massnumber == 2.0
+    assert Species("D").A == 2.0  # test alias
     assert Species("H2").massnumber == 2.0
     assert Species("He").massnumber == 4.0
     assert Species("CO").massnumber == 28.0

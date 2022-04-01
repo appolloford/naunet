@@ -52,7 +52,7 @@ class UMISTReaction(Reaction):
 
         self._parse_string(react_string)
 
-    def rate_func(self, dust: Dust = None) -> str:
+    def rateexpr(self, dust: Dust = None) -> str:
         a = self.alpha
         b = self.beta
         c = self.gamma

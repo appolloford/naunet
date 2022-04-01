@@ -100,7 +100,7 @@ class LEEDSReaction(Reaction):
     def finalize(cls) -> None:
         Species.surface_prefix = "#"
 
-    def rate_func(self, dust: Dust = None) -> str:
+    def rateexpr(self, dust: Dust = None) -> str:
         a = self.alpha
         b = self.beta
         c = self.gamma

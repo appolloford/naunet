@@ -57,7 +57,9 @@ class Reaction:
 
     consts = {}
     varis = {
+        "nH": None,
         "Tgas": None,
+        "zeta": 1.3e-17,
     }
     locvars = []
 
@@ -251,7 +253,7 @@ class Reaction:
             self.products
         ) == Counter(o.products)
 
-    def rate_func(self, dust: Dust = None) -> str:
+    def rateexpr(self, dust: Dust = None) -> str:
         """Returns the reaction rate expression in C language
 
         Args:
@@ -267,9 +269,26 @@ class Reaction:
         b = self.beta
         c = self.gamma
 
+        rtype = self.reaction_type
+
         # two-body gas-phase reaction
-        if self.reaction_type == ReactionType.GAS_TWOBODY:
+        if rtype == ReactionType.GAS_TWOBODY:
             rate = f"{a} * pow(Tgas/300.0, {b}) * exp(-{c}/Tgas)"
+
+        elif rtype == ReactionType.GAS_COSMICRAY:
+            rate = f"{a} * zeta"
+
+        elif rtype == ReactionType.GAS_PHOTON:
+            rate = f"{a} * exp(-{c}*Av)"
+
+        elif rtype == ReactionType.GAS_KIDA_IP1:
+            rate = f"{a} * {b} * (0.62 + 0.4767*{c}*sqrt(300.0/Tgas))"
+
+        elif rtype == ReactionType.GAS_KIDA_IP2:
+            rate = f"{a} * {b} * (1 + 0.0967*{c}*sqrt(300.0/Tgas) + {c}*{c}*(300.0/Tgas)/10.526)"
+
+        elif rtype == ReactionType.GAS_UMIST_CRPHOT:
+            rate = f"{a} * pow(Tgas/300.0, {b}) * {c} / (1-omega)"
 
         else:
             raise RuntimeError(f"Unknown reaction type {self.reaction_type}")

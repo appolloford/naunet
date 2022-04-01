@@ -30,7 +30,7 @@ class ThermalProcess:
     def reactants(self):
         return [Species(r) for r in self._reactants]
 
-    def rate_func(self):
+    def rateexpr(self):
         return self._rate
 
 

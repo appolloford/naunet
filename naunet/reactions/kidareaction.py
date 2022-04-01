@@ -38,7 +38,7 @@ class KIDAReaction(Reaction):
 
         self._parse_string(react_string)
 
-    def rate_func(self, dust: Dust = None) -> str:
+    def rateexpr(self, dust: Dust = None) -> str:
         a = self.alpha
         b = self.beta
         c = self.gamma
@@ -53,7 +53,7 @@ class KIDAReaction(Reaction):
         elif formula == 4:
             rate = f"{a} * {b} * (0.62 + 0.4767*{c}*sqrt(300.0/Tgas))"
         elif formula == 5:
-            rate = f"{a} * {b} * (1 + 0.0967*{c}*sqrt(300.0/Tgas) + c*c*(300.0/Tgas)/10.526)"
+            rate = f"{a} * {b} * (1 + 0.0967*{c}*sqrt(300.0/Tgas) + {c}*{c}*(300.0/Tgas)/10.526)"
         elif formula == 6:
             raise NotImplementedError("Three-body reactions formula is not implemented")
         else:

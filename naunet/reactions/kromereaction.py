@@ -114,7 +114,7 @@ class KROMEReaction(Reaction):
         else:
             return line.strip()
 
-    def rate_func(self, dust: Dust = None) -> str:
+    def rateexpr(self, dust: Dust = None) -> str:
 
         rate = re.sub(r"(\d\.?)d(\-?\d)", r"\1e\2", self.rate_string)
         rate = re.sub(r"(idx_.?)p", r"\1II", rate)
