@@ -7,7 +7,7 @@ from .converter import ExpressionConverter
 
 class KROMEReaction(Reaction):
 
-    converter = ExpressionConverter("Fortran")
+    _kromerateconverter = ExpressionConverter("Fortran")
 
     def __init__(self, react_string) -> None:
         super().__init__(format="krome")
@@ -51,8 +51,8 @@ class KROMEReaction(Reaction):
         rate = re.sub(r"(idx_.?)m", r"\1M", rate)
         rate = re.sub(r"(idx_.?)\)", r"\1I)", rate)
         rate = rate.replace("Hnuclei", "nH")
-        self.converter.read(rate)
-        rate = f"{self.converter:c}"
+        self._kromerateconverter.read(rate)
+        rate = f"{self._kromerateconverter:c}"
         return rate
 
     def _parse_string(self, react_string) -> None:

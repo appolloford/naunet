@@ -3,6 +3,7 @@ from collections import Counter
 from enum import IntEnum
 from ..dusts.dust import Dust
 from ..species import Species
+from .converter import ExpressionConverter
 
 # If the reaction types have the same formalism, they share the same value in the enum class
 class ReactionType(IntEnum):
@@ -77,6 +78,7 @@ class Reaction:
         reaction_type: ReactionType = ReactionType.UNKNOWN,
         format: str = None,
         idxfromfile: int = -1,
+        react_string: str = None,
     ) -> None:
 
         self.reactants = (
@@ -145,6 +147,41 @@ class Reaction:
                 " + ".join(x.name for x in sorted(self.products)),
             )
 
+        elif format == "naunet":
+            rnames = [f"{x.name:>12}" for x in sorted(self.reactants)]
+            rnames = [rnames[i] if i < len(rnames) else f"{'':>12}" for i in range(3)]
+            pnames = [f"{x.name:>12}" for x in sorted(self.products)]
+            pnames = [pnames[i] if i < len(pnames) else f"{'':>12}" for i in range(5)]
+            verbose = ",".join(
+                [
+                    f"{self.idxfromfile:<5}",
+                    f",".join(rnames),
+                    f",".join(pnames),
+                    f"{self.alpha:10.3e}",
+                    f"{self.beta:10.3e}",
+                    f"{self.gamma:10.3e}",
+                    f"{self.temp_min:9.2f}",
+                    f"{self.temp_max:9.2f}",
+                    f"{self.reaction_type:>4}",
+                    f"{self.format:>8}",
+                ]
+            )
+
+        elif format == "krome":
+            rnames = [f"{x.name}" for x in sorted(self.reactants)]
+            rnames = [rnames[i] if i < len(rnames) else "" for i in range(3)]
+            pnames = [f"{x.name}" for x in sorted(self.products)]
+            pnames = [pnames[i] if i < len(pnames) else "" for i in range(5)]
+            verbose = ",".join(
+                [
+                    f"{self.idxfromfile}",
+                    f",".join(rnames),
+                    f",".join(pnames),
+                    f"{self.temp_min:.2f}",
+                    f"{self.temp_max:.2f}",
+                ]
+            )
+
         return verbose
 
     def __hash__(self) -> int:
@@ -189,6 +226,28 @@ class Reaction:
             .replace("-+", "-")
         )
         return rate
+
+    def _parse_string(self, react_string: str) -> None:
+
+        if not react_string:
+            return
+
+        idx, *rps, a, b, c, lt, ut, rtype, format = react_string.split(",")
+        self.reactants = [
+            self.create_species(r) for r in rps[0:3] if self.create_species(r)
+        ]
+        self.products = [
+            self.create_species(p) for p in rps[3:8] if self.create_species(p)
+        ]
+
+        self.alpha = float(a)
+        self.beta = float(b)
+        self.gamma = float(c)
+        self.temp_min = float(lt)
+        self.temp_max = float(ut)
+        self.idxfromfile = int(idx)
+        self.reaction_type = ReactionType(rtype)
+        self.format = format
 
     def create_species(self, species_name: Species | str) -> Species:
         """

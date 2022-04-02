@@ -3,7 +3,7 @@ name: macos
 
 on:
   push:
-    branches: [ main, thermal ]
+    branches: [ main, apiupdate ]
     paths-ignore:
       - 'docs/**'
       - 'notebooks/**'

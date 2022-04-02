@@ -21,9 +21,9 @@ class ExpressionConverter:
     class FExpression(Expression):
         power = (
             lambda self, p: "".join(p)
-            .replace("pow(", "")
+            .replace("pow(", "(")
             .replace(")", "")
-            .replace(", ", "**")
+            .replace(", ", ")**")
         )
         listvar = (
             lambda self, l: "".join(l)
@@ -94,6 +94,7 @@ class ExpressionConverter:
             | listvar
             | func
             | LPAREN expression RPAREN
+            | expression
         PLUS: "+"
         MINUS: "-"
         TIMES: "*"

@@ -234,7 +234,9 @@ def test_write_network():
         filelist=inpath / "duplicate_test.dat",
         fileformats="kida",
     )
-    network.write("test/test_output/writereaction.txt")
+    network.write("test/test_output/reactions.txt")
+    network.write("test/test_output/reactions.naunet", format="naunet")
+    network.write("test/test_output/reactions.krome", format="krome")
 
 
 def test_export_network():

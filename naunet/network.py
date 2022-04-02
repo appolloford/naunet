@@ -14,7 +14,8 @@ from .reactions.kidareaction import KIDAReaction
 from .reactions.kromereaction import KROMEReaction
 from .reactions.leedsreaction import LEEDSReaction
 from .reactions.uclchemreaction import UCLCHEMReaction
-from naunet.reactions.umistreaction import UMISTReaction
+from .reactions.umistreaction import UMISTReaction
+from .reactions.converter import ExpressionConverter
 from .dusts.dust import Dust
 from .dusts.unidust import UniDust
 from .dusts.rr07dust import RR07Dust
@@ -87,6 +88,9 @@ def define_dust(name: str):
 
 
 class Network:
+
+    _rateconverter = ExpressionConverter("C")
+
     def __init__(
         self,
         reactions: list[Reaction] = None,
@@ -522,6 +526,12 @@ class Network:
         if not os.path.exists(prefix):
             os.mkdir(prefix)
 
+        elif not overwrite:
+            logger.warning("Export directory exists! Stop exporting!")
+            return
+
+        self.write(prefix / "reactions.naunet", "naunet")
+
         for subdir in ["include", "src"]:
             subprefix = prefix / subdir
 
@@ -626,6 +636,10 @@ class Network:
     def reactants(self):
         return self._reactants
 
+    def reindex(self) -> None:
+        for idx, reac in enumerate(self.reaction_list):
+            reac.idxfromfile = idx
+
     def templateloader(
         self,
         solver: str,
@@ -656,7 +670,19 @@ class Network:
         tl = self.templateloader(solver, method, device, ratemodifier, odemodifier)
         tl.render(prefix=prefix, save=True)
 
-    def write(self, filename: str, format: str = "") -> None:
+    def write(self, filename: str | Path, format: str = "") -> None:
+
         with open(filename, "w") as outf:
+
+            if format == "krome":
+                outf.write("@format:idx,r,r,r,p,p,p,p,p,tmin,tmax,rate\n")
+
             for reac in self.reaction_list:
-                outf.write(f"{reac:{format}}\n")
+                outf.write(f"{reac:{format}}")
+
+                if format == "krome":
+                    self._rateconverter.read(reac.rateexpr(self.dust))
+                    outf.write(f",{self._rateconverter:fortran}\n")
+
+                else:
+                    outf.write(f"\n")
