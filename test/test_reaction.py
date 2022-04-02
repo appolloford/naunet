@@ -235,7 +235,7 @@ def test_init_leedsreaction_from_file():
             leeds_reactions.append(LEEDSReaction(line))
 
 
-def test_init_uminstreaction_from_file():
+def test_init_umistreaction_from_file():
     umist_reaction = []
     with open("test/test_input/rate12.rates", "r") as react_file:
         for line in react_file.readlines():

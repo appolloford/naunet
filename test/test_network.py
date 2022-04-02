@@ -272,3 +272,5 @@ def test_export_network():
     #     stderr=subprocess.PIPE,
     # )
     # stdout, stderr = process.communicate()
+
+    os.chdir("../../../")

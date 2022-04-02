@@ -1,83 +1,14 @@
-import logging
 import re
-from lark import Lark, Transformer
 from ..dusts.dust import Dust
 from ..species import Species
-from .reaction import Reaction, ReactionType
-
-
-class FtoCCoverter:
-    class CExpression(Transformer):
-        expression = lambda self, e: " ".join(e)
-        multiply = lambda self, m: "".join(m)
-        power = lambda self, p: f"pow({''.join(p).replace('**', ', ')})"
-        func = lambda self, f: "".join(f)
-        variable = lambda self, v: "".join(v)
-        listvar = (
-            lambda self, l: "".join(l)
-            .replace("(", "[")
-            .replace(")", "]")
-            .replace("n", "y")
-        )
-        index = lambda self, i: "IDX" + "".join(i)
-        atom = lambda self, a: "".join(a)
-
-        def scientific(self, s):
-            (s,) = s
-            return s.value
-
-        # def index(self, i):
-        #     (i,) = i
-        #     return i.value
-
-    transformer = CExpression()
-
-    grammar = r"""
-        expression: multiply ((PLUS | MINUS) multiply)*
-        multiply: atom ((TIMES | DIV) atom)*
-        power: (atom POW atom)
-        func: variable LPAREN expression (COMMA expression)* RPAREN
-        variable: WORD (WORD | NUMBER | UNDER)*
-        listvar: variable LPAREN index RPAREN
-        index: "idx" UNDER WORD (WORD| NUMBER | UNDER)*
-        scientific: NUMBER ((E1 | E2) SIGN? NUMBER)?
-        atom: scientific
-            | power
-            | variable
-            | listvar
-            | func
-            | LPAREN expression RPAREN
-        PLUS: "+"
-        MINUS: "-"
-        TIMES: "*"
-        DIV: "/"
-        POW: "**"
-        LPAREN: "("
-        RPAREN: ")"
-        COMMA: ","
-        E1: "E"
-        E2: "e"
-        SIGN: "+" | "-"
-        UNDER: "_"
-        %import common.WORD             -> WORD
-        %import common.SIGNED_NUMBER    -> NUMBER
-        %import common.WS
-        %ignore WS
-    """
-
-    parser = Lark(grammar, start="expression")
-
-    def __init__(self) -> None:
-        pass
-
-    @classmethod
-    def convert(cls, expression: str) -> str:
-        cexpr = cls.parser.parse(expression)
-        cexpr = cls.transformer.transform(cexpr)
-        return cexpr
+from .reaction import Reaction
+from .converter import ExpressionConverter
 
 
 class KROMEReaction(Reaction):
+
+    converter = ExpressionConverter("Fortran")
+
     def __init__(self, react_string) -> None:
         super().__init__(format="krome")
 
@@ -86,7 +17,6 @@ class KROMEReaction(Reaction):
 
         self._parse_string(react_string)
 
-    # TODO: multiple files?
     @classmethod
     def initialize(cls) -> None:
         cls.reacformat = "idx,r,r,r,p,p,p,p,tmin,tmax,rate"
@@ -121,10 +51,11 @@ class KROMEReaction(Reaction):
         rate = re.sub(r"(idx_.?)m", r"\1M", rate)
         rate = re.sub(r"(idx_.?)\)", r"\1I)", rate)
         rate = rate.replace("Hnuclei", "nH")
-        rate = FtoCCoverter.convert(rate)
+        self.converter.read(rate)
+        rate = f"{self.converter:c}"
         return rate
 
-    def _parse_string(self, react_string, *argc, **kwargs) -> None:
+    def _parse_string(self, react_string) -> None:
 
         react_string = react_string.strip()
         if react_string != "" and react_string[0] != "#":
