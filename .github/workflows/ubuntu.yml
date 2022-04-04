@@ -26,7 +26,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Set up Pyhon
+      - name: Set up Python
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python }}
@@ -46,7 +46,6 @@ jobs:
       - name: Pytest
         run: poetry run pytest -rs -o log_cli=true -o log_cli_level=DEBUG --runslow test
 
-      # ? It seems poetry install doesn't install package to the system
       - name: Install package
         run: pip install .
 

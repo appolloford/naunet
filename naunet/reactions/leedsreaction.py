@@ -86,11 +86,7 @@ class LEEDSReaction(Reaction):
     ]
 
     def __init__(self, react_string) -> None:
-        super().__init__(format="leeds")
-
-        self.rtype = None
-
-        self._parse_string(react_string)
+        super().__init__(format="leeds", react_string=react_string)
 
     @classmethod
     def initialize(cls) -> None:
@@ -199,6 +195,10 @@ class LEEDSReaction(Reaction):
         return rate
 
     def _parse_string(self, react_string) -> None:
+
+        # Extra attributes in LEEDSReaction
+        self.rtype = None
+
         list_label = [
             "idx",
             "reac",

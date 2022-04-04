@@ -10,12 +10,7 @@ class KROMEReaction(Reaction):
     _kromerateconverter = ExpressionConverter("Fortran")
 
     def __init__(self, react_string) -> None:
-        super().__init__(format="krome")
-
-        self.kromeformat = self.reacformat.lower().strip()
-        self.rate_string = None
-
-        self._parse_string(react_string)
+        super().__init__(format="krome", react_string=react_string)
 
     @classmethod
     def initialize(cls) -> None:
@@ -56,6 +51,10 @@ class KROMEReaction(Reaction):
         return rate
 
     def _parse_string(self, react_string) -> None:
+
+        # Extra attributes in KROMEReaction
+        self.kromeformat = self.reacformat.lower().strip()
+        self.rate_string = None
 
         react_string = react_string.strip()
         if react_string != "" and react_string[0] != "#":

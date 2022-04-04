@@ -239,6 +239,8 @@ def test_write_network():
     network.write("test/test_output/reactions.krome", format="krome")
 
 
+# TODO: update the github workflow to have proper environment for the test
+@pytest.mark.skip
 def test_export_network():
     network = Network(
         filelist=inpath / "react_primordial.krome",

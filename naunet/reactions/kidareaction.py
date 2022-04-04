@@ -31,12 +31,7 @@ class KIDAReaction(Reaction):
     }
 
     def __init__(self, react_string) -> None:
-        super().__init__(format="kida")
-
-        self.formula = -1
-        self.itype = -1
-
-        self._parse_string(react_string)
+        super().__init__(format="kida", react_string=react_string)
 
     def rateexpr(self, dust: Dust = None) -> str:
         a = self.alpha
@@ -65,6 +60,11 @@ class KIDAReaction(Reaction):
         return rate
 
     def _parse_string(self, react_string) -> None:
+
+        # extra attributes in KIDAReaction
+        self.formula = -1
+        self.itype = -1
+
         react_string = react_string.strip()
         if react_string != "":
             rlen = 34  # length of the string containing reactants

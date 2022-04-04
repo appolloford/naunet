@@ -3,7 +3,6 @@ from collections import Counter
 from enum import IntEnum
 from ..dusts.dust import Dust
 from ..species import Species
-from .converter import ExpressionConverter
 
 # If the reaction types have the same formalism, they share the same value in the enum class
 class ReactionType(IntEnum):
@@ -99,6 +98,9 @@ class Reaction:
         self.reaction_type = reaction_type
         self.format = format
         self.idxfromfile = idxfromfile
+
+        # if react_string:
+        self._parse_string(react_string)
 
     def __str__(self) -> str:
         verbose = (

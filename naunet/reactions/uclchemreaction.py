@@ -69,9 +69,7 @@ class UCLCHEMReaction(Reaction):
     ]
 
     def __init__(self, react_string) -> None:
-        super().__init__(format="uclchem")
-
-        self._parse_string(react_string)
+        super().__init__(format="uclchem", react_string=react_string)
 
     def rateexpr(self, dust: Dust = None) -> str:
         a = self.alpha
