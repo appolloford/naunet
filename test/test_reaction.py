@@ -11,7 +11,7 @@ def test_init_reaction():
     reac = Reaction()
     assert reac.reactants == []
     assert reac.products == []
-    assert reac.temp_min == 1.0
+    assert reac.temp_min == -1.0
     assert reac.temp_max == -1.0
     assert reac.alpha == 0.0
     assert reac.beta == 0.0

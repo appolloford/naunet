@@ -218,17 +218,23 @@ class TemplateLoader:
 
         # prepare reaction rate expressions
         rates = [f"k[{r}]" for r in range(n_react)]
+        ltrange = [f"Tgas>={r.temp_min}" if r.temp_min > 0 else "" for r in reactions]
+        utrange = [f"Tgas<{r.temp_max}" if r.temp_max > 0 else "" for r in reactions]
+        crits = [
+            "".join([lt, " && " if lt and ut else "", ut])
+            for lt, ut in zip(ltrange, utrange)
+        ]
         rateeqns = [
             "\n".join(
                 [
-                    f"if (Tgas>={reac.temp_min} && Tgas<{reac.temp_max}) {{",
+                    f"if ({crit}) {{",
                     f"{rate} = {reac.rateexpr(dust)};",
-                    f" }}",
+                    f"}}",
                 ]
             )
-            if reac.temp_min < reac.temp_max
+            if crit
             else f"{rate} = {reac.rateexpr(dust)};"
-            for rate, reac in zip(rates, reactions)
+            for crit, rate, reac in zip(crits, rates, reactions)
         ]
 
         y = [f"y[IDX_{x.alias}]" for x in species]
@@ -272,17 +278,23 @@ class TemplateLoader:
 
         # prepare heating rate expressions
         hrates = [f"kh[{hidx}]" for hidx, _ in enumerate(heating)]
+        ltrange = [f"Tgas>={h.temp_min}" if h.temp_min > 0 else "" for h in heating]
+        utrange = [f"Tgas<{h.temp_max}" if h.temp_max > 0 else "" for h in heating]
+        crits = [
+            "".join([lt, " && " if lt and ut else "", ut])
+            for lt, ut in zip(ltrange, utrange)
+        ]
         hrateeqns = [
             "\n".join(
                 [
-                    f"if (Tgas>={h.temp_min} && Tgas<{h.temp_max}) {{",
+                    f"if ({crit}) {{",
                     f"{hrate} = {h.rateexpr()};",
-                    f" }}",
+                    f"}}",
                 ]
             )
-            if h.temp_min < h.temp_max
+            if crit
             else f"{hrate} = {h.rateexpr()};"
-            for hrate, h in zip(hrates, heating)
+            for crit, hrate, h in zip(crits, hrates, heating)
         ]
 
         # fex/jac of thermal process
@@ -304,17 +316,23 @@ class TemplateLoader:
 
         # prepare cooling rate expressions
         crates = [f"kc[{cidx}]" for cidx, _ in enumerate(cooling)]
+        ltrange = [f"Tgas>={c.temp_min}" if c.temp_min > 0 else "" for c in cooling]
+        utrange = [f"Tgas<{c.temp_max}" if c.temp_max > 0 else "" for c in cooling]
+        crits = [
+            "".join([lt, " && " if lt and ut else "", ut])
+            for lt, ut in zip(ltrange, utrange)
+        ]
         crateeqns = [
             "\n".join(
                 [
-                    f"if (Tgas>={c.temp_min} && Tgas<{c.temp_max}) {{",
+                    f"if ({crit}) {{",
                     f"{crate} = {c.rateexpr()};",
-                    f" }}",
+                    f"}}",
                 ]
             )
-            if c.temp_min < c.temp_max
+            if crit
             else f"{crate} = {c.rateexpr()};"
-            for crate, c in zip(crates, cooling)
+            for crit, crate, c in zip(crits, crates, cooling)
         ]
 
         for cidx, c in enumerate(cooling):

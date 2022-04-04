@@ -69,7 +69,7 @@ class Reaction:
         self,
         reactants: list[Species] | list[str] = None,
         products: list[Species] | list[str] = None,
-        temp_min: float = 1.0,
+        temp_min: float = -1.0,
         temp_max: float = -1.0,
         alpha: float = 0.0,
         beta: float = 0.0,
