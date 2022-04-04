@@ -236,10 +236,14 @@ class Reaction:
 
         idx, *rps, a, b, c, lt, ut, rtype, format = react_string.split(",")
         self.reactants = [
-            self.create_species(r) for r in rps[0:3] if self.create_species(r)
+            self.create_species(r.strip())
+            for r in rps[0:3]
+            if self.create_species(r.strip())
         ]
         self.products = [
-            self.create_species(p) for p in rps[3:8] if self.create_species(p)
+            self.create_species(p.strip())
+            for p in rps[3:8]
+            if self.create_species(p.strip())
         ]
 
         self.alpha = float(a)
@@ -248,7 +252,7 @@ class Reaction:
         self.temp_min = float(lt)
         self.temp_max = float(ut)
         self.idxfromfile = int(idx)
-        self.reaction_type = ReactionType(rtype)
+        self.reaction_type = ReactionType(int(rtype))
         self.format = format
 
     def create_species(self, species_name: Species | str) -> Species:
@@ -298,7 +302,7 @@ class Reaction:
             str: proceeded input string
         """
 
-        return line
+        return line.strip()
 
     def rpeq(self, o: object) -> bool:
         """

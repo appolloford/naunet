@@ -8,6 +8,7 @@ class Dust(ABC):
     locvars = []
 
     def __init__(self, *args, **kwargs) -> None:
+        self.model = "none"
         super().__init__()
 
     @abstractmethod

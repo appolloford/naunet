@@ -2,6 +2,8 @@ from __future__ import annotations
 import os
 import shutil
 import logging
+import tomlkit
+from datetime import datetime
 from pathlib import Path
 from typing import Type
 from tqdm import tqdm
@@ -52,10 +54,10 @@ def _reaction_factory(react_string: str, format: str) -> Reaction:
         Reaction: a reaction object
     """
 
-    initializer = supported_reaction_class.get(format)
+    initializer = supported_reaction_class.get(format, Reaction)
     react_string = initializer.preprocessing(react_string)
     if react_string:
-        return initializer(react_string)
+        return initializer(react_string=react_string)
     return None
 
 
@@ -530,7 +532,19 @@ class Network:
             logger.warning("Export directory exists! Stop exporting!")
             return
 
-        self.write(prefix / "reactions.naunet", "naunet")
+        reaction_file = prefix / "reactions.naunet"
+        if os.path.exists(reaction_file) and not overwrite:
+            logger.warning("Reaction file exists! Stop exporting!")
+            return
+
+        self.write(reaction_file, "naunet")
+
+        config_file = prefix / "naunet_config.toml"
+        if os.path.exists(config_file):
+            logger.warning("Config file exists! Stop exporting!")
+            return
+
+        self.export_config(solver, method, device, ratemodifier, odemodifier, prefix)
 
         for subdir in ["include", "src"]:
             subprefix = prefix / subdir
@@ -580,6 +594,65 @@ class Network:
 
                 elif os.path.isfile(src):
                     shutil.copyfile(src, dest)
+
+    def export_config(
+        self,
+        solver: str = "cvode",
+        method: str = "dense",
+        device: str = "cpu",
+        ratemodifier: dict[int, str] = None,
+        odemodifier: list[str] = None,
+        prefix: str | Path = "./",
+    ) -> None:
+        content = tomlkit.document()
+        content.add(tomlkit.comment("Naunet config document"))
+
+        general = tomlkit.table()
+        general.add("creation_time", datetime.now().strftime("%d/%m/%Y %H:%M:%S"))
+        general.add("name", "network_export")
+        general.add("description", "Exported network")
+
+        content.add("general", general)
+
+        chemistry = tomlkit.table()
+        chemistry.add("elements", Species.known_elements())
+        chemistry.add("pseudo_elements", Species.known_pseudoelements())
+        chemistry.add("species", self._allowed_species)
+        chemistry.add("extra_species", self._required_species)
+        chemistry.add("network", "reactions.naunet")
+        chemistry.add("format", "")
+
+        dust = tomlkit.table()
+        dtype = self.dust.model if dust else "none"
+        dust.add("type", dtype)
+        chemistry.add("dust", dust)
+
+        chemistry.add("heating", self._heating_names)
+        chemistry.add("cooling", self._cooling_names)
+
+        binding = {s.name: s.eb for s in self.info.species if s.is_surface}
+        chemistry.add("binding_energy", binding)
+
+        yields = {s.name: s.eb for s in self.info.species if s.is_surface}
+        chemistry.add("photon_yield", yields)
+
+        chemistry.add("shielding", self._shielding)
+        chemistry.add("rate_modifier", ratemodifier if ratemodifier else {})
+        chemistry.add("ode_modifier", odemodifier if odemodifier else [])
+
+        content.add("chemistry", chemistry)
+
+        odesolver = tomlkit.table()
+        odesolver.add("solver", solver)
+        odesolver.add("device", device)
+        odesolver.add("method", method)
+
+        content.add("ODEsolver", odesolver)
+
+        config_file = prefix / "naunet_config.toml"
+
+        with open(config_file, "w", encoding="utf-8") as outf:
+            outf.write(tomlkit.dumps(content))
 
     @property
     def info(self):

@@ -243,9 +243,13 @@ def test_write_network():
 @pytest.mark.skip
 def test_export_network():
     network = Network(
-        filelist=inpath / "react_primordial.krome",
-        fileformats="krome",
+        filelist=inpath / "fake.kida",
+        fileformats="kida",
     )
+    # network = Network(
+    #     filelist=inpath / "react_primordial.krome",
+    #     fileformats="krome",
+    # )
     network.export(prefix="test/test_output/network_export", overwrite=True)
 
     os.chdir("test/test_output/network_export")
@@ -259,6 +263,27 @@ def test_export_network():
     assert "CMake Error" not in stderr.decode("utf-8")
 
     # test the export code can be compiled
+    process = subprocess.Popen(
+        ["cmake", "--build", "build"],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+    stdout, stderr = process.communicate()
+
+    assert " failed" not in stdout.decode("utf-8")
+    assert " error:" not in stderr.decode("utf-8")
+
+    # check the config file is valid
+    process = subprocess.Popen(
+        ["naunet", "render", "-f"],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+    stdout, stderr = process.communicate()
+
+    assert "Error" not in stdout.decode("utf-8")
+
+    # check the re-renderred result still can be compiled
     process = subprocess.Popen(
         ["cmake", "--build", "build"],
         stdout=subprocess.PIPE,
