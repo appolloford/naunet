@@ -1,42 +1,42 @@
-from abc import ABC, abstractmethod
+from __future__ import annotations
+from ..species import Species
+from ..reactions.reactiontype import ReactionType
 
 
-class Dust(ABC):
+class Dust:
 
     consts = {}
     varis = {}
     locvars = []
 
-    def __init__(self, *args, **kwargs) -> None:
-        self.model = "none"
-        super().__init__()
+    def __init__(
+        self,
+        species: list[str] | list[Species] = None,
+        model: str = "",
+    ) -> None:
 
-    @abstractmethod
-    def rate_depletion(self, *args, **kwargs) -> str:
-        raise NotImplementedError
+        self.model = model
 
-    @abstractmethod
-    def rate_desorption(self, *args, **kwargs) -> str:
-        raise NotImplementedError
+        species = species if species else []
+        species = [s if isinstance(s, Species) else Species(s) for s in species]
+        gdens = " + ".join(f"y[IDX_{s.alias}]" for s in species)
+        if gdens:
+            self.locvars = [f"double gdens = {gdens}", *self.locvars]
+        else:
+            self.varis = {**self.varis, "gdens": None}
 
-    @abstractmethod
-    def rate_electroncapture(self, *args, **kwargs) -> str:
-        raise NotImplementedError
+    def rateexpr(
+        self,
+        rtype: ReactionType,
+        reactants: list[Species] = None,
+        alpha: float = 0.0,
+        beta: float = 0.0,
+        gamma: float = 0.0,
+        sym_tgas: str = "",
+        sym_tdust: str = "",
+        sym_phot: str = "",
+        sym_cr: str = "",
+        **kwargs,
+    ) -> str:
 
-    @abstractmethod
-    def rate_recombination(self, *args, **kwargs) -> str:
-        raise NotImplementedError
-
-    @abstractmethod
-    def rate_surface1(self, *args, **kwargs) -> str:
-        """
-        One-species surface reaction rate
-        """
-        raise NotImplementedError
-
-    @abstractmethod
-    def rate_surface2(self, *args, **kwargs) -> str:
-        """
-        Two-species surface reaction rate
-        """
-        raise NotImplementedError
+        return "0.0"

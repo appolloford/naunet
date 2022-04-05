@@ -2,7 +2,8 @@ import logging
 from enum import IntEnum
 from ..species import Species
 from ..dusts.dust import Dust
-from .reaction import Reaction, ReactionType as BasicType
+from .reaction import Reaction
+from .reactiontype import ReactionType as BasicType
 
 
 class LEEDSReaction(Reaction):
@@ -131,27 +132,34 @@ class LEEDSReaction(Reaction):
 
         # cation-grain recombination
         elif rtype == 6:
-            rate = dust.rate_recombination(a, b, c, "Tgas")
+            rate = dust.rateexpr(
+                self.reaction_type, self.reactants, a, b, c, sym_tgas="Tgas"
+            )
 
         # accretion
         elif rtype == 7:
-            rate = dust.rate_depletion(a, b, c, "Tgas")
+            rate = dust.rateexpr(
+                self.reaction_type, self.reactants, a, b, c, sym_tgas="Tgas"
+            )
 
         # thermal desorption
         elif rtype == 8:
-            rate = dust.rate_desorption(re1, a, b, c, tdust="Tdust", destype="thermal")
+            rate = dust.rateexpr(
+                self.reaction_type, self.reactants, a, b, c, sym_tdust="Tdust"
+            )
 
         # cosmic-ray-induced thermal desorption
         elif rtype == 9:
-            rate = dust.rate_desorption(
-                re1, a, b, c, zeta=f"zeta_cr/zism", destype="cosmicray"
+            rate = dust.rateexpr(
+                self.reaction_type, self.reactants, a, b, c, sym_cr="zeta_cr/zism"
             )
-            rate = "0.0"
 
         # photodesorption
         elif rtype == 10:
             uvphot = f"G0*habing*exp(-Av*3.02) + crphot * zeta_cr/zism"
-            rate = dust.rate_desorption(re1, a, b, c, uvphot=uvphot, destype="photon")
+            rate = dust.rateexpr(
+                self.reaction_type, self.reactants, a, b, c, sym_phot=uvphot
+            )
 
         # grain-surface cosmic-ray-induced photoreaction
         elif rtype == 11:
@@ -169,11 +177,15 @@ class LEEDSReaction(Reaction):
 
         # two-body grain-surface reaction
         elif rtype == 13:
-            rate = dust.rate_surface2(re1, re2, a, b, c, "Tdust")
+            rate = dust.rateexpr(
+                self.reaction_type, self.reactants, a, b, c, sym_tdust="Tdust"
+            )
 
         # reactive desorption
         elif rtype == 14:
-            rate = dust.rate_surface2(re1, re2, a, b, c, "Tdust", reacdes=True)
+            rate = dust.rateexpr(
+                self.reaction_type, self.reactants, a, b, c, sym_tdust="Tdust"
+            )
 
         # three-body association *
         # collisional dissociation *
@@ -185,7 +197,10 @@ class LEEDSReaction(Reaction):
 
         # grain electron capture rate
         elif rtype == 20:
-            rate = dust.rate_electroncapture("Tgas")
+            rate = dust.rateexpr(
+                self.reaction_type, self.reactants, a, b, c, sym_tgas="Tgas"
+            )
+
         else:
             raise RuntimeError(
                 f"Type {rtype} has not been defined! Please extend the definition"

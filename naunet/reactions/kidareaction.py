@@ -1,7 +1,8 @@
 import logging
 from enum import IntEnum
 from ..dusts.dust import Dust
-from .reaction import Reaction, ReactionType as BasicType
+from .reaction import Reaction
+from .reactiontype import ReactionType as BasicType
 
 
 class KIDAReaction(Reaction):

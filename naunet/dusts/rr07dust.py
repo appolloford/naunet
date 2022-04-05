@@ -1,6 +1,7 @@
 from __future__ import annotations
 from .dust import Dust
 from ..species import Species
+from ..reactions.reactiontype import ReactionType
 
 
 class RR07Dust(Dust):
@@ -29,108 +30,200 @@ class RR07Dust(Dust):
         "double densites = 4.0 * garea * sites",
     ]
 
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
+    def __init__(self, species: list[str] | list[Species] = None) -> None:
+        super().__init__(model="rr07", species=species)
 
-    def rate_depletion(
-        self, spec: Species, a: float, b: float, c: float, tgas: str
-    ) -> str:
-
-        if spec.iselectron:
-            rate = f"4.57e4 * {a} * garea * fr * ( 1.0 + 16.71e-4/(rG * {tgas}) )"
-        elif spec.charge == 0:
-            rate = f"4.57e4 * {a} * sqrt({tgas} / {spec.massnumber}) * garea * fr"
-        else:
-            rate = f"4.57e4 * {a} * sqrt({tgas} / {spec.massnumber}) * garea * fr * ( 1.0 + 16.71e-4/(rG * {tgas}) )"
-
-        return rate
-
-    def rate_desorption(
+    def _rate_depletion(
         self,
-        spec: Species,
+        spec: list[Species],
         a: float,
         b: float,
         c: float,
-        tdust: str = "",
-        zeta: str = "",
-        uvphot: str = "",
-        h2form: str = "",
-        destype: str = "",
+        sym_tgas: str,
     ) -> str:
 
-        if destype == "thermal":
+        if not isinstance(sym_tgas, str):
+            raise TypeError("sym_tgas should be a string")
 
-            if not tdust:
-                raise ValueError("Symbol of dust temperature was not provided.")
+        if not sym_tgas:
+            raise ValueError("Symbol of gas temperature does not exist")
+
+        if len(spec) != 1:
+            raise ValueError("Number of species in depletion should be 1.")
+
+        spec = spec[0]
+        if spec.iselectron:
             rate = " * ".join(
                 [
-                    f"opt_thd",
-                    f"sqrt(2.0*sites*kerg*eb_{spec.alias}/(pi*pi*amu*{spec.massnumber}))",
-                    f"2.0 * densites",
-                    f"exp(-eb_{spec.alias}/{tdust})",
-                ],
-            )
-
-        elif destype == "cosmicray":
-            if not zeta:
-                raise ValueError(
-                    "Symbol of cosmic ray ionization rate (in Draine unit) was not provided."
-                )
-            rate = " * ".join(
-                [
-                    f"opt_crd * 4.0 * pi * crdeseff",
-                    f"({zeta})",
-                    f"1.64e-4 * garea / mant",
+                    f"4.57e4 * {a} * garea * fr",
+                    f"( 1.0 + 16.71e-4/(rG * {sym_tgas}) )",
                 ]
             )
-
-            rate = f"eb_crd >= {spec.binding_energy} ? ({rate}) : 0.0"
-
-        elif destype == "photon":
-            if not uvphot:
-                raise ValueError("Symbol of UV field strength was not provided.")
-
+        elif spec.charge == 0:
             rate = " * ".join(
                 [
-                    f"opt_uvd * 4.875e3 * garea",
-                    f"({uvphot}) * {spec.photon_yield(default=0.1)} / mant",
+                    f"4.57e4 * {a} * garea * fr",
+                    f"sqrt({sym_tgas} / {spec.massnumber})",
                 ]
             )
-
-            rate = f"eb_uvd >= {spec.binding_energy} ? ({rate}) : 0.0"
-
-        elif destype == "h2":
-            if not h2form:
-                raise ValueError("Symbol of H2 formation rate was not provided.")
-
-            rate = f"opt_h2d * h2deseff * {h2form} / mant"
-
-            rate = f"eb_h2d >= {spec.binding_energy} ? ({rate}) : 0.0"
-
         else:
-            raise ValueError(f"Not support desorption type {destype}")
+            rate = " * ".join(
+                [
+                    f"4.57e4 * {a} * garea * fr",
+                    f"sqrt({sym_tgas} / {spec.massnumber})",
+                    f"( 1.0 + 16.71e-4/(rG * {sym_tgas}) )",
+                ]
+            )
 
+        return rate
+
+    def _rate_thermal_desorption(
+        self,
+        spec: list[Species],
+        a: float,
+        b: float,
+        c: float,
+        sym_tdust: str,
+    ) -> str:
+
+        if not isinstance(sym_tdust, str):
+            raise TypeError("sym_tdust should be a string")
+
+        if not sym_tdust:
+            raise ValueError("Symbol of dust temperature does not exist")
+
+        if len(spec) != 1:
+            raise ValueError("Number of species in thermal desoprtion should be 1.")
+
+        spec = spec[0]
+        rate = " * ".join(
+            [
+                f"opt_thd",
+                f"sqrt(2.0*sites*kerg*eb_{spec.alias}/(pi*pi*amu*{spec.massnumber}))",
+                f"2.0 * densites",
+                f"exp(-eb_{spec.alias}/{sym_tdust})",
+            ],
+        )
+        return rate
+
+    def _rate_photon_desorption(
+        self,
+        spec: list[Species],
+        a: float,
+        b: float,
+        c: float,
+        sym_phot: str,
+    ) -> str:
+
+        if not isinstance(sym_phot, str):
+            raise TypeError("sym_phot should be a string")
+
+        if not sym_phot:
+            raise ValueError("Symbol of photon intensity does not exist")
+
+        if len(spec) != 1:
+            raise ValueError("Number of species in photon desoprtion should be 1.")
+
+        spec = spec[0]
+        rate = " * ".join(
+            [
+                f"opt_uvd * 4.875e3 * garea",
+                f"({sym_phot}) * {spec.photon_yield(default=0.1)} / mant",
+            ]
+        )
+
+        rate = f"eb_uvd >= {spec.binding_energy} ? ({rate}) : 0.0"
+        rate = f"mantabund > 1e-30 ? ({rate}) : 0.0"
+        return rate
+
+    def _rate_cosmicray_desorption(
+        self,
+        spec: list[Species],
+        a: float,
+        b: float,
+        c: float,
+        sym_cr: str,
+    ) -> str:
+
+        if not isinstance(sym_cr, str):
+            raise TypeError("sym_cr should be a string")
+
+        if not sym_cr:
+            raise ValueError("Symbol of cosmic ray ionization rate does not exist")
+
+        if len(spec) != 1:
+            raise ValueError("Number of species in cosmic-ray desoprtion should be 1.")
+
+        spec = spec[0]
+        rate = " * ".join(
+            [
+                f"opt_crd * 4.0 * pi * crdeseff",
+                f"({sym_cr})",
+                f"1.64e-4 * garea / mant",
+            ]
+        )
+
+        rate = f"eb_crd >= {spec.binding_energy} ? ({rate}) : 0.0"
+        rate = f"mantabund > 1e-30 ? ({rate}) : 0.0"
+        return rate
+
+    def _rate_h2_desorption(
+        self,
+        spec: list[Species],
+        a: float,
+        b: float,
+        c: float,
+        sym_h2form: str,
+    ) -> str:
+
+        if not isinstance(sym_h2form, str):
+            raise TypeError("sym_h2form should be a string")
+
+        if not sym_h2form:
+            raise ValueError("Symbol of H2 formation rate does not exist")
+
+        if len(spec) != 1:
+            raise ValueError("Number of species in H2 desoprtion should be 1.")
+
+        spec = spec[0]
+        rate = f"opt_h2d * h2deseff * {sym_h2form} / mant"
+        rate = f"eb_h2d >= {spec.binding_energy} ? ({rate}) : 0.0"
         rate = f"mantabund > 1e-30 ? ({rate}) : 0.0"
 
         return rate
 
-    def rate_electroncapture(self, tgas) -> str:
-        return NotImplemented
-
-    def rate_recombination(self, a: float, b: float, c: float, tgas: str) -> str:
-        return NotImplemented
-
-    def rate_surface1(self, *args, **kwargs) -> str:
-        return NotImplemented
-
-    def rate_surface2(
+    def rateexpr(
         self,
-        re1: Species,
-        re2: Species,
-        a: float,
-        b: float,
-        c: float,
-        tdust: str = "",
-        reacdes: bool = False,
+        rtype: ReactionType,
+        reactants: list[Species],
+        alpha: float = 0.0,
+        beta: float = 0.0,
+        gamma: float = 0.0,
+        sym_tgas: str = "",
+        sym_tdust: str = "",
+        sym_phot: str = "",
+        sym_cr: str = "",
+        sym_h2form: str = "",
     ) -> str:
-        return NotImplemented
+
+        if rtype == ReactionType.GRAIN_FREEZE:
+            return self._rate_depletion(reactants, alpha, beta, gamma, sym_tgas)
+
+        elif rtype == ReactionType.GRAIN_DESORPT_THERMAL:
+            return self._rate_thermal_desorption(
+                reactants, alpha, beta, gamma, sym_tdust
+            )
+
+        elif rtype == ReactionType.GRAIN_DESORPT_PHOTON:
+            return self._rate_photon_desorption(reactants, alpha, beta, gamma, sym_phot)
+
+        elif rtype == ReactionType.GRAIN_DESORPT_COSMICRAY:
+            return self._rate_cosmicray_desorption(
+                reactants, alpha, beta, gamma, sym_cr
+            )
+
+        elif rtype == ReactionType.GRAIN_DESORPT_H2:
+            return self._rate_h2_desorption(reactants, alpha, beta, gamma, sym_h2form)
+
+        else:
+            raise ValueError(f"Unknown reaction type in RR07 dust model: {rtype}")

@@ -1,6 +1,7 @@
 from enum import IntEnum
 from ..dusts.dust import Dust
-from .reaction import Reaction, ReactionType as BasicType
+from .reaction import Reaction
+from .reactiontype import ReactionType as BasicType
 
 
 class UCLCHEMReaction(Reaction):
@@ -103,30 +104,37 @@ class UCLCHEMReaction(Reaction):
 
         # accretion
         elif rtype == self.ReactionType.UCLCHEM_FR:
-            if len(self.reactants) > 1:
-                raise RuntimeError("Too many reactants in an accretion reaction!")
-
-            rate = dust.rate_depletion(re1, a, b, c, "Tgas")
+            rate = dust.rateexpr(
+                self.reaction_type, self.reactants, a, b, c, sym_tgas="Tgas"
+            )
 
         # thermal desorption
         elif rtype == self.ReactionType.UCLCHEM_TH:
-            rate = dust.rate_desorption(re1, a, b, c, tdust="Tgas", destype="thermal")
+            rate = dust.rateexpr(
+                self.reaction_type, self.reactants, a, b, c, sym_tdust="Tgas"
+            )
 
         # cosmic-ray-induced thermal desorption
         elif rtype == self.ReactionType.UCLCHEM_CD:
-            rate = dust.rate_desorption(re1, a, b, c, zeta=zeta, destype="cosmicray")
+            rate = dust.rateexpr(
+                self.reaction_type, self.reactants, a, b, c, sym_cr="zeta"
+            )
 
         # photodesorption
         elif rtype == self.ReactionType.UCLCHEM_PD:
             uvphot = f"({zeta} + (G0/uvcreff) * exp(-1.8*Av) )"
-            rate = dust.rate_desorption(re1, a, b, c, uvphot=uvphot, destype="photon")
+            rate = dust.rateexpr(
+                self.reaction_type, self.reactants, a, b, c, sym_phot=uvphot
+            )
 
         # H2 formation induced desorption
         elif rtype == self.ReactionType.UCLCHEM_HD:
             # Epsilon is efficieny of this process, number of molecules removed per event
             # h2form is formation rate of h2, dependent on hydrogen abundance.
             h2formrate = f"1.0e-17 * sqrt(Tgas) * y[IDX_HI] * nH"
-            rate = dust.rate_desorption(re1, a, b, c, h2form=h2formrate, destype="h2")
+            rate = dust.rateexpr(
+                self.reaction_type, self.reactants, a, b, c, sym_h2form=h2formrate
+            )
 
         else:
             raise ValueError(f"Unsupported type: {rtype}")

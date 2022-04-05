@@ -19,7 +19,7 @@ from .reactions.uclchemreaction import UCLCHEMReaction
 from .reactions.umistreaction import UMISTReaction
 from .reactions.converter import ExpressionConverter
 from .dusts.dust import Dust
-from .dusts.unidust import UniDust
+from .dusts.hh93dust import HH93Dust
 from .dusts.rr07dust import RR07Dust
 from .thermalprocess import ThermalProcess, get_allowed_cooling, get_allowed_heating
 
@@ -29,8 +29,8 @@ logger = logging.getLogger()
 
 
 supported_dust_model = {
-    "uniform": UniDust,
-    "RR07": RR07Dust,
+    "hh93": HH93Dust,
+    "rr07": RR07Dust,
 }
 
 supported_reaction_class = {
@@ -103,7 +103,8 @@ class Network:
         heating: list[str] = None,
         cooling: list[str] = None,
         shielding: dict[str, str] = None,
-        dusttype: str[str] = None,
+        dusttype: str = "",
+        dustparams: dict = {},
     ) -> None:
 
         self.format_list = set()
@@ -115,9 +116,9 @@ class Network:
         self._patchmaker = None
         self._templateloader = None
 
-        dust_model = supported_dust_model.get(dusttype)  # dust model class
-        # Instantiate a dust model
-        self._dust = dust_model() if dust_model else None
+        # TODO: get dustparams from config file
+        dust_model = supported_dust_model.get(dusttype, Dust)  # dust model class
+        self._dust = dust_model(dustparams)  # Instantiate a dust model
         self._allowed_species = allowed_species.copy() if allowed_species else []
         self._required_species = required_species.copy() if required_species else []
         self._allowed_heating = None
@@ -438,8 +439,8 @@ class Network:
                 seen[x] += 1
 
         logger.info(
-            "The following reactions are duplicate:\n{}".format(
-                "\n".join([str(x) for x in dupes])
+            "The following {} reactions are duplicate:\n{}".format(
+                len(dupes), "\n".join([str(x) for x in dupes])
             )
         )
         return dupes

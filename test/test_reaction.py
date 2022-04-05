@@ -1,6 +1,7 @@
 import pytest
 from naunet.species import Species
-from naunet.reactions.reaction import Reaction, ReactionType
+from naunet.reactions.reaction import Reaction
+from naunet.reactions.reactiontype import ReactionType
 from naunet.reactions.kidareaction import KIDAReaction
 from naunet.reactions.leedsreaction import LEEDSReaction
 from naunet.reactions.umistreaction import UMISTReaction

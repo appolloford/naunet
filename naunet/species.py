@@ -103,6 +103,7 @@ class Species:
         self._photon_yield = None
         self._mass = 0.0
         self._massnumber = 0
+        self._surface_prefix = self.surface_prefix
 
         # Initialize known elements if not set when the fist species is instanciated
         if not Species._known_elements and not Species._known_pseudoelements:
@@ -334,7 +335,7 @@ class Species:
         basename = self.name
         # remove surface symbol
         if self.is_surface:
-            basename = basename.replace(Species.surface_prefix, "")
+            basename = basename.replace(self._surface_prefix, "")
 
         # remove charge symbols
         if self.charge != 0:
@@ -394,7 +395,7 @@ class Species:
         Else return the current name.
         """
         return (
-            self.name.replace(Species.surface_prefix, "")
+            self.name.replace(self._surface_prefix, "")
             if self.is_surface
             else self.name
         )
@@ -416,7 +417,7 @@ class Species:
         """
         if "GRAIN" in self.name.upper():
             return False
-        return self.name.startswith(Species.surface_prefix)
+        return self.name.startswith(self._surface_prefix)
 
     # TODO: python 3.9 support classmethod property
     @classmethod
