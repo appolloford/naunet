@@ -46,3 +46,4 @@ class ReactionType(IntEnum):
     SURFACE_DIFFUSION = 310
 
     UNKNOWN = 999
+    DUMMY = 1000

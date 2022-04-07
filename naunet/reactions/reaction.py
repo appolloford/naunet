@@ -28,7 +28,7 @@ class Reaction:
         beta: float = 0.0,
         gamma: float = 0.0,
         reaction_type: ReactionType = ReactionType.UNKNOWN,
-        format: str = None,
+        format: str = "",
         idxfromfile: int = -1,
         react_string: str = None,
     ) -> None:
@@ -309,6 +309,9 @@ class Reaction:
 
         elif rtype == ReactionType.GAS_UMIST_CRPHOT:
             rate = f"{a} * pow(Tgas/300.0, {b}) * {c} / (1-omega)"
+
+        elif rtype == ReactionType.DUMMY:
+            rate = "0.0"
 
         else:
             raise RuntimeError(f"Unknown reaction type {self.reaction_type}")

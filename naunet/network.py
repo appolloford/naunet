@@ -117,8 +117,10 @@ class Network:
         self._templateloader = None
 
         # TODO: get dustparams from config file
-        dust_model = supported_dust_model.get(dusttype, Dust)  # dust model class
-        self._dust = dust_model(dustparams)  # Instantiate a dust model
+        dust_model = supported_dust_model.get(dusttype)  # dust model class
+        self._dust = (
+            dust_model(**dustparams) if dust_model else None
+        )  # Instantiate a dust model
         self._allowed_species = allowed_species.copy() if allowed_species else []
         self._required_species = required_species.copy() if required_species else []
         self._allowed_heating = None
@@ -541,7 +543,7 @@ class Network:
         self.write(reaction_file, "naunet")
 
         config_file = prefix / "naunet_config.toml"
-        if os.path.exists(config_file):
+        if os.path.exists(config_file) and not overwrite:
             logger.warning("Config file exists! Stop exporting!")
             return
 

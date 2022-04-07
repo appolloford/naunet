@@ -18,7 +18,7 @@ def test_init_reaction():
     assert reac.beta == 0.0
     assert reac.gamma == 0.0
     assert reac.reaction_type == ReactionType.UNKNOWN
-    assert reac.format == None
+    assert reac.format == ""
     assert reac.idxfromfile == -1
 
     # initialize by species name
@@ -210,7 +210,7 @@ def test_reaction_str():
             "He               -> He+ + e-                        ",
             ",     0.0 < T <  9999.0",
             ", Type: GAS_COSMICRAY            ",
-            ", Format: None",
+            ", Format: ",
             ", Index: -1",
         ]
     )

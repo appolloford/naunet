@@ -239,6 +239,34 @@ def test_write_network():
     network.write("test/test_output/reactions.krome", format="krome")
 
 
+def test_export_empty_network():
+    network = Network()
+    network.export(prefix="test/test_output/empty_network", overwrite=True)
+
+    os.chdir("test/test_output/empty_network")
+    process = subprocess.Popen(
+        ["cmake", "-S", ".", "-B", "build"],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+    stdout, stderr = process.communicate()
+
+    assert "CMake Error" not in stderr.decode("utf-8")
+
+    # test the export code can be compiled
+    process = subprocess.Popen(
+        ["cmake", "--build", "build"],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+    stdout, stderr = process.communicate()
+
+    assert " failed" not in stdout.decode("utf-8")
+    assert " error:" not in stderr.decode("utf-8")
+
+    os.chdir("../../../")
+
+
 # TODO: update the github workflow to have proper environment for the test
 @pytest.mark.skip
 def test_export_network():

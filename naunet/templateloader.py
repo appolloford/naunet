@@ -9,6 +9,7 @@ from jinja2 import Environment, PackageLoader
 
 from .species import Species
 from .reactions.reaction import Reaction
+from .reactions.reactiontype import ReactionType
 from .dusts.dust import Dust
 from .utilities import _stmwrap
 
@@ -143,10 +144,13 @@ class TemplateLoader:
         self._prepare_contents(netinfo, method, device)
 
     def _prepare_contents(self, netinfo: NetworkInfo, method: str, device: str) -> None:
-        n_spec = len(netinfo.species)
-        n_react = len(netinfo.reactions)
+
         species = netinfo.species
         reactions = netinfo.reactions
+        if not reactions:
+            reactions.append(Reaction(reaction_type=ReactionType.DUMMY))
+            netinfo.varis.update({**Reaction.varis})
+
         heating = netinfo.heating
         cooling = netinfo.cooling
         dust = netinfo.dust
@@ -160,7 +164,10 @@ class TemplateLoader:
         ]
 
         has_thermal = True if heating or cooling else False
+        n_spec = len(species)
+        n_react = len(reactions)
         n_eqns = n_spec + has_thermal
+        n_eqns = max(n_eqns, 1)
 
         self._info = self.InfoContent(method, device)
 
@@ -201,7 +208,7 @@ class TemplateLoader:
         # TODO: exclude electron, grain?
         density = " + ".join(f"y[IDX_{s.alias}]*{s.massnumber}" for s in species)
         npartile = " + ".join(f"y[IDX_{s.alias}]" for s in species)
-        mu = "".join(["(", density, ") / (", npartile, ")"])
+        mu = f"({density}) / ({npartile})" if density else "0.0"
 
         # TODO: different ways to get adiabatic index
         gamma = "5.0 / 3.0"
