@@ -8,12 +8,6 @@ import sys
 import urllib.parse
 import shutil
 
-from cleo import argument, option
-from tomlkit import dumps
-from tomlkit.toml_file import TOMLFile
-
-from naunet.examples import primordial
-
 from .command import Command
 
 
@@ -22,9 +16,9 @@ class ExampleCommand(Command):
     Render source codes according to the project setting
 
     example
-        {--show : show the full command only}
+        {--dry : show the full command only, not create example}
+        {--path=. : The path to create the project at, create locally if not assigned}
         {--select= : select the example}
-        {--dest= : the destination directory, created if not existed}
     """
 
     def __init__(self):
@@ -35,21 +29,16 @@ class ExampleCommand(Command):
         from pathlib import Path
         import naunet
 
-        destination_path = Path.cwd()
-        destination = self.option("dest")
-        if destination:
-            Path(destination).mkdir(parents=True)
-            destination_path = destination
+        path = Path(self.option("path"))
+        if not path.is_absolute():
+            # we do not use resolve here due to compatibility issues
+            # for path.resolve(strict=False)
+            path = Path.cwd().joinpath(path)
 
-        src_parent_path = Path(naunet.__file__).parent
-        example_path = os.path.join(src_parent_path, "examples")
-        fake_path = os.path.join(example_path, "fake")
-        primordial_path = os.path.join(example_path, "primordial")
-        deuterium_path = os.path.join(example_path, "deuterium")
-        ism_path = os.path.join(example_path, "ism")
-        cloud_path = os.path.join(example_path, "cloud")
+        if not path.exists():
+            path.mkdir(parents=True)
 
-        name = destination if destination else Path.cwd().name.lower()
+        name = path.name
 
         networklist = [
             "fake/dense",
@@ -78,12 +67,8 @@ class ExampleCommand(Command):
         else:
             case = self.choice("Choose an example network", networklist, 0)
 
-        element = []
-        pseudo_element = []
-        species = []
-        binding_energy = {}
-        photon_yield = {}
-        network_source = None
+        naunet_path = Path(naunet.__file__).parent
+        network_source = naunet_path / "examples" / case.split("/")[0]
 
         # Copy the network and the test folder
         if "fake" in case:
@@ -95,7 +80,6 @@ class ExampleCommand(Command):
 
             element = fake_element
             species = fake_species
-            network_source = fake_path
             solver = "odeint" if "rosenbrock4" in case else "cvode"
             device = "gpu" if "cusparse" in case else "cpu"
             method = case.split("/")[-1]
@@ -134,7 +118,6 @@ class ExampleCommand(Command):
                 "CEC_HeI",
                 "CEC_HeII",
             ]
-            network_source = primordial_path
             solver = "odeint" if "rosenbrock4" in case else "cvode"
             device = "gpu" if "cusparse" in case else "cpu"
             method = case.split("/")[-1]
@@ -161,7 +144,6 @@ class ExampleCommand(Command):
 
             element = deuterium_element
             species = deuterium_species
-            network_source = deuterium_path
             solver = "odeint" if "rosenbrock4" in case else "cvode"
             device = "gpu" if "cusparse" in case else "cpu"
             method = case.split("/")[-1]
@@ -193,7 +175,6 @@ class ExampleCommand(Command):
             species = ism_species
             binding_energy = ism_be
             photon_yield = ism_yield
-            network_source = ism_path
             solver = "odeint" if "rosenbrock4" in case else "cvode"
             device = "gpu" if "cusparse" in case else "cpu"
             method = case.split("/")[-1]
@@ -235,7 +216,6 @@ class ExampleCommand(Command):
             pseudo_elements = cloud_pelements
             species = cloud_species
             binding_energy = cloud_be
-            network_source = cloud_path
             solver = "odeint" if "rosenbrock4" in case else "cvode"
             device = "gpu" if "cusparse" in case else "cpu"
             method = case.split("/")[-1]
@@ -258,13 +238,13 @@ class ExampleCommand(Command):
                 ]
             )
 
-        if self.option("show"):
-            print("naunet init ", option)
+        if self.option("dry"):
+            print(f"naunet init {option}")
 
         else:
 
             # Check whether the test folder exists
-            prefix = os.path.join(destination_path, "test")
+            prefix = path / "test"
 
             if os.path.exists(prefix):
                 if not os.path.isdir(prefix):
@@ -287,7 +267,7 @@ class ExampleCommand(Command):
                 if not file.startswith("__"):
 
                     src = os.path.join(network_source, file)
-                    dest = os.path.join(destination_path, file)
+                    dest = os.path.join(path, file)
 
                     if os.path.isdir(src):
                         shutil.copytree(src, dest, dirs_exist_ok=True)
@@ -296,6 +276,6 @@ class ExampleCommand(Command):
                         shutil.copyfile(src, dest)
 
             # TODO: improve the way to create project in a new directory
-            os.chdir(destination_path)
+            os.chdir(path)
 
             self.call("init", option)

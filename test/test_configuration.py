@@ -1,3 +1,4 @@
+import tomlkit
 from naunet.configuration import Configuration
 
 
@@ -6,5 +7,12 @@ def test_init_configuration():
 
 
 def test_content():
-    config = Configuration("newporject")
+    config = Configuration("newproject")
     content = config.content
+
+    loaded = tomlkit.loads(content)
+    general = loaded["general"]
+    chemistry = loaded["chemistry"]
+    assert general["name"] == "newproject"
+    assert chemistry["elements"] == []
+    assert chemistry["species"] == []

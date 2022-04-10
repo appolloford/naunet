@@ -1,4 +1,5 @@
 import shutil
+import tomlkit
 from pathlib import Path
 from cleo import Application
 from cleo import CommandTester
@@ -17,5 +18,14 @@ def test_command_new():
 
     assert "new_project" in (command_tester.io.fetch_output())
     assert "new_project" not in command_tester.io.fetch_error()
+
+    with open(path / "naunet_config.toml") as inpf:
+        config = tomlkit.loads(inpf.read())
+
+        general = config["general"]
+        chemistry = config["chemistry"]
+        assert general["name"] == "new_project"
+        assert chemistry["elements"] == []
+        assert chemistry["species"] == []
 
     shutil.rmtree(path)

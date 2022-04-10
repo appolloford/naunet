@@ -6,15 +6,9 @@ import re
 import sys
 import urllib.parse
 
-import tomlkit
-
-from cleo import option
-from datetime import datetime
-from tomlkit import nl, comment, table, dumps
-from tomlkit.toml_file import TOMLFile
-
 from .command import Command
 from ...species import Species
+from ...configuration import Configuration
 
 
 class InitCommand(Command):
@@ -51,25 +45,13 @@ class InitCommand(Command):
 
         from pathlib import Path
 
-        config_file = os.path.join(Path.cwd(), "naunet_config.toml")
+        config_file = Path.cwd() / "naunet_config.toml"
 
-        if os.path.exists(config_file):
+        if config_file.exists():
             overwrite = self.confirm("Project configure file exists. Overwrite?", False)
 
             if not overwrite:
                 sys.exit()
-
-        # current date and time
-        now = datetime.now()
-
-        date_string = now.strftime("%d/%m/%Y %H:%M:%S")
-
-        content = tomlkit.document()
-        content.add(comment("Naunet config document"))
-        # content.add(nl())
-
-        general = table()
-        general.add("creation_time", date_string)
 
         name = self.option("name")
         if not name:
@@ -80,19 +62,11 @@ class InitCommand(Command):
             )
             name = self.ask(question)
 
-        general.add("name", name)
-
         description = self.option("description")
         if not description:
 
             question = self.create_question("Project description :", default="")
             description = self.ask(question)
-
-        general.add("description", description)
-
-        content.add("general", general)
-
-        chemistry = table()
 
         element = self.option("elements")
         if element:
@@ -107,8 +81,6 @@ class InitCommand(Command):
                 default=element,
             )
             element = self.ask(question)
-
-        chemistry.add("elements", element)
 
         pseudo_element = self.option("pseudo-elements")
         if pseudo_element:
@@ -126,8 +98,6 @@ class InitCommand(Command):
             )
             pseudo_element = self.ask(question)
 
-        chemistry.add("pseudo_elements", pseudo_element)
-
         species = self.option("species")
         if species:
             species = species.split(",")
@@ -138,8 +108,6 @@ class InitCommand(Command):
                 default=[],
             )
             species = self.ask(question)
-
-        chemistry.add("species", species)
 
         extra_species = self.option("extra-species")
         if extra_species:
@@ -153,8 +121,6 @@ class InitCommand(Command):
                 default=[],
             )
             extra_species = self.ask(question)
-
-        chemistry.add("extra_species", extra_species)
 
         network = self.option("network")
 
@@ -170,8 +136,6 @@ class InitCommand(Command):
                 default=network,
             )
             network = self.ask(question)
-
-        chemistry.add("network", network)
 
         format = self.option("format")
 
@@ -190,86 +154,43 @@ class InitCommand(Command):
             )
             format = self.ask(question)
 
-        chemistry.add("format", format)
-
-        dust = table()
-
         dustype = self.option("dust")
         if not dustype:
             dustype = "none"
-        dust.add("type", dustype)
-
-        chemistry.add("dust", dust)
-
-        heating = table()
 
         heating = self.option("heating")
         heating = heating.split(",") if heating else []
 
-        chemistry.add("heating", heating)
-
-        cooling = table()
-
         cooling = self.option("cooling")
         cooling = cooling.split(",") if cooling else []
 
-        chemistry.add("cooling", cooling)
+        binding = self.option("binding")
+        if binding:
+            binding = binding.split(",")
+            binding = {b.split("=")[0]: b.split("=")[1] for b in binding}
+            binding = {s: float(sv) for s, sv in binding.items()}
 
-        binding = table()
+        yields = self.option("yield")
+        if yields:
+            yields = yields.split(",")
+            yields = {y.split("=")[0]: y.split("=")[1] for y in yields}
+            yields = {s: float(sv) for s, sv in yields.items()}
 
-        binding_list = self.option("binding")
-        if binding_list:
-            binding_list = binding_list.split(",")
-            binding_list = {b.split("=")[0]: b.split("=")[1] for b in binding_list}
-            binding_list = {s: float(sv) for s, sv in binding_list.items()}
-            binding.update(binding_list)
+        shielding = self.option("shielding")
+        if shielding:
+            shielding = shielding.split(",")
+            shielding = [it.split(":") for it in shielding]
+            shielding = {it[0].strip(): it[1].strip() for it in shielding}
 
-        chemistry.add("binding_energy", binding)
-
-        yields = table()
-
-        yield_list = self.option("yield")
-        if yield_list:
-            yield_list = yield_list.split(",")
-            yield_list = {y.split("=")[0]: y.split("=")[1] for y in yield_list}
-            yield_list = {s: float(sv) for s, sv in yield_list.items()}
-            yields.update(yield_list)
-
-        chemistry.add("photon_yield", yields)
-
-        shielding = table()
-
-        shielding_list = self.option("shielding")
-        if shielding_list:
-            shielding_list = shielding_list.split(",")
-            shielding_list = [it.split(":") for it in shielding_list]
-            shielding.update({it[0].strip(): it[1].strip() for it in shielding_list})
-
-        chemistry.add("shielding", shielding)
-
-        rate_modifier = table()
-
-        rate_modifier_list = self.option("rate-modifier")
-        if rate_modifier_list:
-            rate_modifier_list = [
-                rm.strip() for l in rate_modifier_list for rm in l.split(",")
-            ]
-            rate_modifier_list = [it.split(":") for it in rate_modifier_list]
-            rate_modifier.update(
-                {it[0].strip(): it[1].strip() for it in rate_modifier_list}
-            )
-
-        chemistry.add("rate_modifier", rate_modifier)
+        rate_modifier = self.option("rate-modifier")
+        if rate_modifier:
+            rate_modifier = [rm.strip() for l in rate_modifier for rm in l.split(",")]
+            rate_modifier = [it.split(":") for it in rate_modifier]
+            rate_modifier = {it[0].strip(): it[1].strip() for it in rate_modifier}
 
         ode_modifier = self.option("ode-modifier")
         if ode_modifier:
             ode_modifier = [om.strip() for l in ode_modifier for om in l.split(";")]
-
-        chemistry.add("ode_modifier", ode_modifier)
-
-        content.add("chemistry", chemistry)
-
-        odesolver = table()
 
         solver = self.option("solver")
         if not solver:
@@ -279,8 +200,6 @@ class InitCommand(Command):
             )
             solver = self.ask(question)
 
-        odesolver.add("solver", solver)
-
         device = self.option("device")
         if not device:
             question = self.create_question(
@@ -288,8 +207,6 @@ class InitCommand(Command):
                 default=device,
             )
             device = self.ask(question)
-
-        odesolver.add("device", device)
 
         method = self.option("method")
         if not method:
@@ -309,27 +226,36 @@ class InitCommand(Command):
                 method = self.ask(question)
 
         if solver == "cvode" and method == "cusparse":
-            odesolver["device"] = "gpu"
+            device = "gpu"
 
-        odesolver.add("method", method)
-
-        # required = self.option("required")
-        # if not required:
-        #     required = self.choice(
-        #         "List of required functions.", ["fex", "jac", "jtv"], "0", multiple=True
-        #     )
-
-        # odesolver.add("required", required)
-
-        content.add("ODEsolver", odesolver)
+        config = Configuration(
+            name,
+            description=description,
+            element=element,
+            pseudo_element=pseudo_element,
+            allowed_species=species,
+            required_species=extra_species,
+            binding_energy=binding,
+            photon_yield=yields,
+            network=network,
+            format=format,
+            heating=heating,
+            cooling=cooling,
+            shielding=shielding,
+            dusttype=dustype,
+            rate_modifier=rate_modifier,
+            ode_modifier=ode_modifier,
+            solver=solver,
+            device=device,
+            method=method,
+        )
 
         with open(config_file, "w", encoding="utf-8") as f:
-            f.write(dumps(content))
+            f.write(config.content)
 
         render = self.option("render")
         if not render:
             render = self.confirm("Render the source codes now?", False)
 
         if render:
-
             self.call("render", "--update-species=false")
