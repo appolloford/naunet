@@ -2,6 +2,7 @@ import sys
 from cleo import Application as BaseApplication
 from importlib.metadata import version
 
+from .commands.new import NewCommand
 from .commands.init import InitCommand
 from .commands.render import RenderCommand
 from .commands.example import ExampleCommand
@@ -16,6 +17,7 @@ class Application(BaseApplication):
 
     def get_default_commands(self):  # type: () -> list
         commands = [
+            NewCommand(),
             InitCommand(),
             RenderCommand(),
             ExampleCommand(),

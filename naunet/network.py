@@ -2,8 +2,6 @@ from __future__ import annotations
 import os
 import shutil
 import logging
-import tomlkit
-from datetime import datetime
 from pathlib import Path
 from typing import Type
 from tqdm import tqdm
@@ -22,6 +20,7 @@ from .dusts.dust import Dust
 from .dusts.hh93dust import HH93Dust
 from .dusts.rr07dust import RR07Dust
 from .thermalprocess import ThermalProcess, get_allowed_cooling, get_allowed_heating
+from .configuration import Configuration
 
 
 logging.basicConfig(level=logging.DEBUG)
@@ -547,7 +546,36 @@ class Network:
             logger.warning("Config file exists! Stop exporting!")
             return
 
-        self.export_config(solver, method, device, ratemodifier, odemodifier, prefix)
+        binding = {s.name: s.eb for s in self.info.species if s.is_surface}
+        yields = {s.name: s.photon_yield() for s in self.info.species if s.is_surface}
+
+        config = Configuration(
+            "network_export",
+            description="Exported_network",
+            element=Species.known_elements(),
+            pseudo_element=Species.known_pseudoelements(),
+            allowed_species=self._allowed_species,
+            required_species=self._required_species,
+            binding_energy=binding,
+            photon_yield=yields,
+            network=["reactions.naunet"],
+            format=[""],
+            heating=self._heating_names,
+            cooling=self._cooling_names,
+            shielding=self._shielding,
+            dusttype=self.dust.model if self.dust else "none",
+            rate_modifier=ratemodifier,
+            ode_modifier=odemodifier,
+            solver=solver,
+            device=device,
+            method=method,
+            networkinfo=self.info,
+        )
+
+        content = config.content
+
+        with open(config_file, "w", encoding="utf-8") as outf:
+            outf.write(content)
 
         for subdir in ["include", "src"]:
             subprefix = prefix / subdir
@@ -597,65 +625,6 @@ class Network:
 
                 elif os.path.isfile(src):
                     shutil.copyfile(src, dest)
-
-    def export_config(
-        self,
-        solver: str = "cvode",
-        method: str = "dense",
-        device: str = "cpu",
-        ratemodifier: dict[int, str] = None,
-        odemodifier: list[str] = None,
-        prefix: str | Path = "./",
-    ) -> None:
-        content = tomlkit.document()
-        content.add(tomlkit.comment("Naunet config document"))
-
-        general = tomlkit.table()
-        general.add("creation_time", datetime.now().strftime("%d/%m/%Y %H:%M:%S"))
-        general.add("name", "network_export")
-        general.add("description", "Exported network")
-
-        content.add("general", general)
-
-        chemistry = tomlkit.table()
-        chemistry.add("elements", Species.known_elements())
-        chemistry.add("pseudo_elements", Species.known_pseudoelements())
-        chemistry.add("species", self._allowed_species)
-        chemistry.add("extra_species", self._required_species)
-        chemistry.add("network", "reactions.naunet")
-        chemistry.add("format", "")
-
-        dust = tomlkit.table()
-        dtype = self.dust.model if dust else "none"
-        dust.add("type", dtype)
-        chemistry.add("dust", dust)
-
-        chemistry.add("heating", self._heating_names)
-        chemistry.add("cooling", self._cooling_names)
-
-        binding = {s.name: s.eb for s in self.info.species if s.is_surface}
-        chemistry.add("binding_energy", binding)
-
-        yields = {s.name: s.eb for s in self.info.species if s.is_surface}
-        chemistry.add("photon_yield", yields)
-
-        chemistry.add("shielding", self._shielding)
-        chemistry.add("rate_modifier", ratemodifier if ratemodifier else {})
-        chemistry.add("ode_modifier", odemodifier if odemodifier else [])
-
-        content.add("chemistry", chemistry)
-
-        odesolver = tomlkit.table()
-        odesolver.add("solver", solver)
-        odesolver.add("device", device)
-        odesolver.add("method", method)
-
-        content.add("ODEsolver", odesolver)
-
-        config_file = prefix / "naunet_config.toml"
-
-        with open(config_file, "w", encoding="utf-8") as outf:
-            outf.write(tomlkit.dumps(content))
 
     @property
     def info(self):
