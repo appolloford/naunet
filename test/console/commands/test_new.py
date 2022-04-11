@@ -3,6 +3,7 @@ import tomlkit
 from pathlib import Path
 from cleo import Application
 from cleo import CommandTester
+from naunet.species import Species
 from naunet.console.commands.new import NewCommand
 
 
@@ -25,7 +26,8 @@ def test_command_new():
         general = config["general"]
         chemistry = config["chemistry"]
         assert general["name"] == "new_project"
-        assert chemistry["elements"] == []
+        assert chemistry["elements"] == Species.default_elements
+        assert chemistry["pseudo_elements"] == Species.default_pseudoelements
         assert chemistry["species"] == []
 
     shutil.rmtree(path)
