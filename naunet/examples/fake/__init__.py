@@ -1,2 +1,15 @@
-element = ["H", "D"]
+description = "Example: a fake chemical network"
+network = "fake.krome"
+format = "krome"
+dust = "none"
+elements = ["H", "D"]
+pseudo_elements = []
 species = ["H", "D", "H2", "HD"]
+extra_species = []
+heating = []
+cooling = []
+shielding = {}
+binding_energy = {}
+photon_yield = {}
+rate_modifier = {}
+ode_modifier = []

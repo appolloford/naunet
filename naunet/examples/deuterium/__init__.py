@@ -1,4 +1,12 @@
-element = ["e", "H", "D", "He", "C", "N", "O", "GRAIN"]
+description = "Example: deuterium network used in Hsu et al. 2021"
+network = "deuterium.krome"
+format = "krome"
+dust = "none"
+
+elements = ["e", "H", "D", "He", "C", "N", "O", "GRAIN"]
+
+pseudo_elements = ["o", "p", "m"]
+
 species = [
     "C",
     "C+",
@@ -132,3 +140,19 @@ species = [
     "pH2D+",
     "pH3+",
 ]
+
+extra_species = []
+
+heating = []
+
+cooling = []
+
+shielding = {}
+
+binding_energy = {}
+
+photon_yield = {}
+
+rate_modifier = {}
+
+ode_modifier = []

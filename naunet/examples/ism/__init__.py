@@ -1,4 +1,9 @@
-element = [
+description = "Example: chemical network used in Walsh et al. 2015"
+network = "rate12_complex.rates"
+format = "leeds"
+dust = "hh93"
+
+elements = [
     "e",
     "H",
     "He",
@@ -693,6 +698,14 @@ species = [
     "e-",
 ]
 
+extra_species = []
+
+heating = []
+
+cooling = []
+
+shielding = {"H2": "L96Table", "CO": "V09Table", "N2": "L13Table"}
+
 binding_energy = {
     "GCH": 873.0,
     "GCH2": 945.0,
@@ -751,3 +764,13 @@ photon_yield = {
     "GCH3OH": 2.100e-03,
     "GCO2": 2.300e-03,
 }
+
+rate_modifier = {8274: 0.0}
+
+ode_modifier = [
+    "double stick1 = (1.0 / (1.0 + 4.2e-2*sqrt(Tgas+Tdust) + 2.3e-3*Tgas - 1.3e-7*Tgas*Tgas))",
+    "double stick2 = exp(-1741.0/Tgas) / (1.0 + 5e-2*sqrt(Tgas+Tdust) + 1e-14*pow(Tgas, 4.0))",
+    "double stick = stick1 + stick2",
+    "double hloss = stick * garea/4.0 * sqrt(8.0*kerg*Tgas/(pi*amu))",
+    "ydot[IDX_H2I] += 0.5*hloss*y[IDX_HI]; ydot[IDX_HI] -= hloss*y[IDX_HI]",
+]

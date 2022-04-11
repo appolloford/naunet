@@ -1,3 +1,8 @@
+description = "Example: chemical network from uclchem v1.3"
+network = "reactions.ucl"
+format = "uclchem"
+dust = "rr07"
+
 elements = [
     "E",
     "H",
@@ -232,6 +237,14 @@ species = [
     "SO2+",
 ]
 
+extra_species = []
+
+heating = []
+
+cooling = []
+
+shielding = {"CO": "VB88Table"}
+
 binding_energy = {
     "#CH4": 960.0,
     "#NH3": 5500.0,
@@ -285,3 +298,12 @@ binding_energy = {
     "#SO2": 3400.0,
     "#H2S2": 3100.0,
 }
+
+photon_yield = {}
+
+rate_modifier = {}
+
+ode_modifier = [
+    "ydot[IDX_H2I] += H2formation*y[IDX_HI]*nH - H2dissociation*y[IDX_H2I]",
+    "ydot[IDX_HI] += 2.0*(H2dissociation*y[IDX_H2I] - H2formation*y[IDX_HI]*nH)",
+]

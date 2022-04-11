@@ -129,7 +129,7 @@ class InitCommand(Command):
 
         else:
 
-            network = ""
+            network = [""]
 
             question = self.create_question(
                 "Chemical network file [<comment>{}</comment>]:".format(network),
@@ -144,7 +144,7 @@ class InitCommand(Command):
 
         else:
 
-            format = ""
+            format = [""]
 
             question = self.create_question(
                 "Format of the chemical network [<comment>{}</comment>]:".format(
@@ -154,9 +154,9 @@ class InitCommand(Command):
             )
             format = self.ask(question)
 
-        dustype = self.option("dust")
-        if not dustype:
-            dustype = "none"
+        dusttype = self.option("dust")
+        if not dusttype:
+            dusttype = "none"
 
         heating = self.option("heating")
         heating = heating.split(",") if heating else []
@@ -242,7 +242,7 @@ class InitCommand(Command):
             heating=heating,
             cooling=cooling,
             shielding=shielding,
-            dusttype=dustype,
+            dusttype=dusttype,
             rate_modifier=rate_modifier,
             ode_modifier=ode_modifier,
             solver=solver,
