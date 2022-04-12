@@ -18,23 +18,23 @@ class InitCommand(Command):
     init
         {--name= : Name of the project}
         {--description= : Description of the project}
-        {--elements= : List of elements}
+        {--elements=? : List of elements}
         {--pseudo-elements=? : List of pseudo elements}
-        {--species= : List of species}
+        {--species=? : List of species}
         {--extra-species=? : List of extra required species}
         {--network= : Source of chemical network file}
         {--format= : The format of the chemical network}
         {--dust= : Type of dust model}
-        {--heating= : List of heating processes}
-        {--cooling= : List of cooling processes}
-        {--binding= : List of binding energy of ice species}
-        {--yield= : List of photodesorption yields of ice species}
-        {--shielding= : List of shielding functions}
+        {--heating=? : List of heating processes}
+        {--cooling=? : List of cooling processes}
+        {--binding=? : List of binding energy of ice species}
+        {--yield=? : List of photodesorption yields of ice species}
+        {--shielding=? : List of shielding functions}
         {--rate-modifier=* : List of reaction rates to be changed}
         {--ode-modifier=* : List of ODEs to be changed}
-        {--solver=cvode : ODE solver}
-        {--device=cpu : Device}
-        {--method=dense : Linear solver used in CVode or algorithm in ODEInt}
+        {--solver= : ODE solver}
+        {--device= : Device}
+        {--method= : Linear solver used in CVode or algorithm in ODEInt}
         {--render : render template immediately}
     """
 
@@ -54,179 +54,102 @@ class InitCommand(Command):
                 sys.exit()
 
         name = self.option("name")
-        if not name:
-            name = Path.cwd().name.lower()
-
-            question = self.create_question(
-                "Project name [<comment>{}</comment>]: ".format(name), default=name
-            )
-            name = self.ask(question)
+        name = self.validate(name, "Project name", Path.cwd().name.lower())
 
         description = self.option("description")
-        if not description:
-
-            question = self.create_question("Project description :", default="")
-            description = self.ask(question)
+        description = self.validate(description, "Project description", "")
 
         element = self.option("elements")
-        if element:
-            element = element.split(",")
-
-        else:
-            element = Species.default_elements
-            question = self.create_question(
-                "Elements incuded in the network [<comment>{}</comment>]:".format(
-                    element
-                ),
-                default=element,
-            )
-            element = self.ask(question)
+        element = self.validate(
+            element,
+            "Elements incuded in the network",
+            ", ".join(Species.default_elements),
+        )
+        element = [e.strip() for e in element.split(",") if e]
 
         pseudo_element = self.option("pseudo-elements")
-        if pseudo_element:
-            pseudo_element = (
-                [] if pseudo_element == "null" else pseudo_element.split(",")
-            )
-
-        else:
-            pseudo_element = Species.default_pseudoelements
-            question = self.create_question(
-                "Pseudo_elements incuded in the network [<comment>{}</comment>]:".format(
-                    pseudo_element
-                ),
-                default=pseudo_element,
-            )
-            pseudo_element = self.ask(question)
+        pseudo_element = self.validate(
+            pseudo_element,
+            "Pseudo_elements incuded in the network",
+            ", ".join(Species.default_pseudoelements),
+        )
+        pseudo_element = [p.strip() for p in pseudo_element.split(",") if p]
 
         species = self.option("species")
-        if species:
-            species = species.split(",")
-
-        else:
-            question = self.create_question(
-                "Species incuded in the network [<comment>{}</comment>]:".format([]),
-                default=[],
-            )
-            species = self.ask(question)
+        species = self.validate(species, "Species incuded in the network", "")
+        species = [s.strip() for s in species.split(",") if s]
 
         extra_species = self.option("extra-species")
-        if extra_species:
-            extra_species = [] if extra_species == "null" else extra_species.split(",")
-
-        else:
-            question = self.create_question(
-                "Extra required species (not in the network) [<comment>{}</comment>]:".format(
-                    []
-                ),
-                default=[],
-            )
-            extra_species = self.ask(question)
+        extra_species = self.validate(
+            extra_species,
+            "Extra required species (not exist in the network)",
+            "",
+        )
+        extra_species = [e.strip() for e in extra_species.split(",") if e]
 
         network = self.option("network")
-
-        if network:
-            network = network.split(",")
-
-        else:
-
-            network = [""]
-
-            question = self.create_question(
-                "Chemical network file [<comment>{}</comment>]:".format(network),
-                default=network,
-            )
-            network = self.ask(question)
+        network = self.validate(network, "Chemical network files", "")
+        network = [n.strip() for n in network.split(",") if n]
 
         format = self.option("format")
-
-        if format:
-            format = format.split(",")
-
-        else:
-
-            format = [""]
-
-            question = self.create_question(
-                "Format of the chemical network [<comment>{}</comment>]:".format(
-                    format
-                ),
-                default=format,
-            )
-            format = self.ask(question)
+        format = self.validate(format, "Format of the chemical networks", "")
+        format = [f.strip() for f in format.split(",") if f]
 
         dusttype = self.option("dust")
-        if not dusttype:
-            dusttype = "none"
+        dusttype = self.validate(dusttype, "Dust model", "none")
 
         heating = self.option("heating")
-        heating = heating.split(",") if heating else []
+        heating = self.validate(heating, "Heating models", "")
+        heating = [h.strip() for h in heating.split(",") if h]
 
         cooling = self.option("cooling")
-        cooling = cooling.split(",") if cooling else []
+        cooling = self.validate(cooling, "Cooling models", "")
+        cooling = [c.strip() for c in cooling.split(",") if c]
 
         binding = self.option("binding")
-        if binding:
-            binding = binding.split(",")
-            binding = {b.split("=")[0]: b.split("=")[1] for b in binding}
-            binding = {s: float(sv) for s, sv in binding.items()}
+        binding = self.validate(binding, "Binding energies", "")
+        binding = binding.split(",")
+        binding = {b.split("=")[0]: float(b.split("=")[1]) for b in binding if b}
 
         yields = self.option("yield")
-        if yields:
-            yields = yields.split(",")
-            yields = {y.split("=")[0]: y.split("=")[1] for y in yields}
-            yields = {s: float(sv) for s, sv in yields.items()}
+        yields = self.validate(yields, "Photon desorption yields", "")
+        yields = yields.split(",")
+        yields = {y.split("=")[0]: float(y.split("=")[1]) for y in yields if y}
 
         shielding = self.option("shielding")
-        if shielding:
-            shielding = shielding.split(",")
-            shielding = [it.split(":") for it in shielding]
-            shielding = {it[0].strip(): it[1].strip() for it in shielding}
+        shielding = self.validate(shielding, "Self shielding models", "")
+        shielding = shielding.split(",")
+        shielding = {s.split(":")[0]: s.split(":")[1] for s in shielding if s}
+        shielding = {s.strip(): sv.strip() for s, sv in shielding.items()}
 
+        # To receive multiple values, rate modifier and ode modifier will not ask
+        # question even if the value is not provided
         rate_modifier = self.option("rate-modifier")
-        if rate_modifier:
-            rate_modifier = [rm.strip() for l in rate_modifier for rm in l.split(",")]
-            rate_modifier = [it.split(":") for it in rate_modifier]
-            rate_modifier = {it[0].strip(): it[1].strip() for it in rate_modifier}
+        rate_modifier = [rm.strip() for l in rate_modifier for rm in l.split(",")]
+        rate_modifier = [rm.split(":") for rm in rate_modifier]
+        rate_modifier = {rm[0].strip(): rm[1].strip() for rm in rate_modifier}
 
         ode_modifier = self.option("ode-modifier")
-        if ode_modifier:
-            ode_modifier = [om.strip() for l in ode_modifier for om in l.split(";")]
+        ode_modifier = [om.strip() for l in ode_modifier for om in l.split(";")]
 
         solver = self.option("solver")
-        if not solver:
-            question = self.create_question(
-                "Chemical solver [<comment>{}</comment>]:".format(solver),
-                default=solver,
-            )
-            solver = self.ask(question)
+        solver = self.validate(solver, "Differential equation solver", "cvode")
 
         device = self.option("device")
-        if not device:
-            question = self.create_question(
-                "Computational device [<comment>{}</comment>]:".format(device),
-                default=device,
-            )
-            device = self.ask(question)
+        device = self.validate(device, "Computational device", "cpu")
 
+        allowed_method = {
+            "cvode": {"cpu": ["dense", "sparse"], "gpu": ["cusparse"]},
+            "odeint": {"cpu": ["rosenbrock4"], "gpu": [""]},
+        }
+
+        choices = allowed_method.get(solver).get(device)
         method = self.option("method")
-        if not method:
-            if solver == "cvode":
-                question = self.create_question(
-                    "Linear solver used in CVode [<comment>{}</comment>]:".format(
-                        method
-                    ),
-                    default=method,
-                )
-                method = self.ask(question)
-            elif solver == "odeint":
-                question = self.create_question(
-                    "Algorithm used in ODEInt [<comment>{}</comment>]:".format(method),
-                    default=method,
-                )
-                method = self.ask(question)
+        if method is None and choices:
+            method = self.choice(f"Method in {solver}", choices, 0)
 
-        if solver == "cvode" and method == "cusparse":
-            device = "gpu"
+        elif method not in choices:
+            raise ValueError(f"Not support {method} in {solver} on {device}")
 
         config = Configuration(
             name,
@@ -259,3 +182,24 @@ class InitCommand(Command):
 
         if render:
             self.call("render", "--update-species=false")
+
+    def option(self, key=None):
+
+        value = super().option(key)
+        if isinstance(value, str):
+            value = value.replace("null", "")
+
+        return value
+
+    def validate(self, value, question, default):
+
+        if value is None:
+
+            value = default
+            question = self.create_question(
+                f"{question} [<comment>{default}</comment>]:",
+                default=default,
+            )
+            value = self.ask(question)
+
+        return value
