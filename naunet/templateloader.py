@@ -3,9 +3,8 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Type
 from tqdm import tqdm
-from jinja2 import Environment, PackageLoader
+from jinja2 import Template, Environment, PackageLoader
 
 from .species import Species
 from .reactions.reaction import Reaction
@@ -441,7 +440,7 @@ class TemplateLoader:
         )
 
     def _render(
-        self, template: object, prefix: str, name: str, save: bool, *args, **kwargs
+        self, template: Template, prefix: str, name: str, save: bool, *args, **kwargs
     ) -> None:
 
         # template = self.env.get_template(os.path.join(template_prefix, template_file))

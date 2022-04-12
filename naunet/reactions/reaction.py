@@ -28,7 +28,7 @@ class Reaction:
         beta: float = 0.0,
         gamma: float = 0.0,
         reaction_type: ReactionType = ReactionType.UNKNOWN,
-        format: str = "",
+        format: str = "naunet",
         idxfromfile: int = -1,
         react_string: str = None,
     ) -> None:

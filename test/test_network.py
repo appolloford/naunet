@@ -8,6 +8,7 @@ from naunet.reactions.kidareaction import KIDAReaction
 from naunet.network import Network
 
 inpath = Path("test/test_input")
+GITHUB_ACTIONS = os.getenv("GITHUB_ACTIONS")
 
 
 def test_init_network():
@@ -33,7 +34,7 @@ def test_add_reaction():
 
     network.add_reaction(reac)
 
-    assert network.format_list == set()
+    assert network.format_list == {"naunet"}
     assert network.reaction_list == [reac]
     assert network._reactants == {Species("He")}
     assert network._products == {Species("He+"), Species("e-")}
@@ -98,7 +99,7 @@ def test_init_network_from_reactions():
     )
 
     network = Network(reactions)
-    assert network.format_list == set(["kida", "umist"])
+    assert network.format_list == set(["kida", "umist", "naunet"])
     assert network.reaction_list == reactions
     assert network._reactants == {
         Species("H"),
@@ -240,6 +241,8 @@ def test_write_network():
 
 
 def test_export_empty_network():
+    if GITHUB_ACTIONS:
+        return
     network = Network()
     network.export(prefix="test/test_output/empty_network", overwrite=True)
 
@@ -268,8 +271,9 @@ def test_export_empty_network():
 
 
 # TODO: update the github workflow to have proper environment for the test
-@pytest.mark.skip
 def test_export_network():
+    if GITHUB_ACTIONS:
+        return
     network = Network(
         filelist=inpath / "fake.kida",
         fileformats="kida",

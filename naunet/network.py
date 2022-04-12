@@ -33,6 +33,7 @@ supported_dust_model = {
 }
 
 supported_reaction_class = {
+    "naunet": Reaction,
     "kida": KIDAReaction,
     "umist": UMISTReaction,
     "leeds": LEEDSReaction,
@@ -291,7 +292,7 @@ class Network:
         format = reaction.format if isinstance(reaction, Reaction) else reaction[1]
 
         self.format_list.update({format} if format else {})
-        rclass = supported_reaction_class.get(format, Reaction)
+        rclass = supported_reaction_class.get(format)
 
         if not isinstance(reaction, Reaction):
             # create reaction instance from string
@@ -333,7 +334,7 @@ class Network:
         new_species = set()
 
         # change some global settings or class attibutes if needed
-        rclass = supported_reaction_class.get(format, Reaction)
+        rclass = supported_reaction_class.get(format)
         if rclass:
             rclass.initialize()
         else:
@@ -559,7 +560,7 @@ class Network:
             binding_energy=binding,
             photon_yield=yields,
             network=["reactions.naunet"],
-            format=[""],
+            format=["naunet"],
             heating=self._heating_names,
             cooling=self._cooling_names,
             shielding=self._shielding,
