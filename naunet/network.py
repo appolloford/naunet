@@ -125,6 +125,7 @@ class Network:
         self._patchmaker = None
         self._templateloader = None
 
+        dustparams = dustparams if dustparams else {}
         dustparams = {**dustparams, "model": dustmodel}
         self._dust = None if dustmodel == "none" else _dust_factory(**dustparams)
         self._allowed_species = allowed_species.copy() if allowed_species else []

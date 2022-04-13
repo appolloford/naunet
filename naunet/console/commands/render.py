@@ -155,9 +155,10 @@ class RenderCommand(Command):
             tl.render_sparsity(prefix=Path.cwd())
 
         summary = tomlkit.table()
+        dust = net.info.dust
         gas_species = [s.name for s in net.info.species if not s.is_surface]
         ice_species = [g.name for g in net.info.species if g.is_surface]
-        dust_species = [d.name for d in net.info.dust.species]
+        dust_species = [d.name for d in dust.species] if dust else []
         summary["num_of_species"] = len(net.info.species)
         summary["num_of_gas_species"] = len(gas_species)
         summary["num_of_ice_species"] = len(ice_species)
