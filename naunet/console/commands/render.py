@@ -8,9 +8,9 @@ import sys
 import urllib.parse
 import shutil
 
-from cleo import argument, option
+import tomlkit
+
 from importlib.metadata import version
-from tomlkit import table, dumps
 from tomlkit.toml_file import TOMLFile
 
 from .command import Command
@@ -22,7 +22,6 @@ class RenderCommand(Command):
 
     render
         {--f|force : forced to override the existing files}
-        {--update-species=? : allow to update the species list in toml configure file}
         {--patch= : create patch for target code}
         {--with-pattern : render the jacobian pattern}
     """
@@ -82,37 +81,6 @@ class RenderCommand(Command):
                 module = util.module_from_spec(spec)
                 spec.loader.exec_module(module)
 
-        # patches are rendered independently
-        patch = self.option("patch")
-
-        # The include/src/test will not be changed if rendering patches
-        if not patch:
-            # Check whether include and src folders exist, test folder is checked in example.py
-            for subdir in ["include", "src"]:
-                prefix = os.path.join(Path.cwd(), subdir)
-
-                if os.path.exists(prefix):
-                    if not os.path.isdir(prefix):
-                        raise FileNotFoundError(
-                            errno.ENOENT, os.strerror(errno.ENOENT), prefix
-                        )
-
-                    elif os.listdir(prefix):
-                        overwrite = self.option("force") or self.confirm(
-                            f"Non-empty {subdir} directory. Overwrite?", False
-                        )
-
-                        if not overwrite:
-                            sys.exit()
-
-                else:
-                    os.mkdir(prefix)
-
-        header_prefix = os.path.join(Path.cwd(), "include")
-        source_prefix = os.path.join(Path.cwd(), "src")
-
-        rate_modifier = {int(key): value for key, value in rate_modifier.items()}
-
         net = Network(
             filelist=network,
             fileformats=format,
@@ -124,13 +92,38 @@ class RenderCommand(Command):
             shielding=shielding,
         )
 
+        net.check_duplicate_reaction()
+
         # Don't change the include/src/test when rendering patches
+        patch = self.option("patch")
         if patch:
             pm = net.patchmaker(patch, device)
-            pm.render(os.path.join(Path.cwd(), patch))
+            pm.render(Path.cwd() / patch)
             return
 
-        net.check_duplicate_reaction()
+        # If not creating patch, check whether include and src folders exist
+        header_prefix = Path.cwd() / "include"
+        source_prefix = Path.cwd() / "src"
+        for prefix in [header_prefix, source_prefix]:
+
+            if prefix.exists():
+                if not os.path.isdir(prefix):
+                    raise FileNotFoundError(
+                        errno.ENOENT, os.strerror(errno.ENOENT), prefix
+                    )
+
+                elif os.listdir(prefix):
+                    overwrite = self.option("force") or self.confirm(
+                        f"Non-empty {prefix.name} directory. Overwrite?", False
+                    )
+
+                    if not overwrite:
+                        sys.exit()
+
+            else:
+                os.mkdir(prefix)
+
+        rate_modifier = {int(key): value for key, value in rate_modifier.items()}
         tl = net.templateloader(
             solver=solver,
             method=method,
@@ -138,6 +131,7 @@ class RenderCommand(Command):
             ratemodifier=rate_modifier,
             odemodifier=ode_modifier,
         )
+
         tl.render_constants(prefix=source_prefix, headerprefix=header_prefix)
         tl.render_macros(prefix=header_prefix)
         tl.render_naunet(prefix=source_prefix, headerprefix=header_prefix)
@@ -147,43 +141,15 @@ class RenderCommand(Command):
         tl.render_data(prefix=header_prefix)
         tl.render_cmake(prefix=Path.cwd(), version=ver)
 
+        pkgpath = Path(naunet.__file__).parent
+        timerfile = pkgpath / "templates/common/include/naunet_timer.h"
+        shutil.copyfile(timerfile, header_prefix / "naunet_timer.h")
+
         pattern = self.option("with-pattern")
         if pattern:
             tl.render_sparsity(prefix=Path.cwd())
 
-        src_parent_path = Path(naunet.__file__).parent
-        template_path = os.path.join(src_parent_path, "templates", solver)
-        csrc_path = os.path.join(template_path, "src")
-
-        # for src in ["naunet.cpp"]:
-        #     srcfile = os.path.join(csrc_path, src)
-        #     dest = os.path.join(Path.cwd(), "src", src)
-        #     shutil.copyfile(srcfile, dest)
-
-        # inc_path = os.path.join(template_path, "include")
-        # for inc in ["naunet_timer.h"]:
-        #     incfile = os.path.join(inc_path, inc)
-        #     dest = os.path.join(Path.cwd(), "include", inc)
-        #     shutil.copyfile(incfile, dest)
-
-        incfile = src_parent_path / "templates/common/include/naunet_timer.h"
-        dest = os.path.join(Path.cwd(), "include/naunet_timer.h")
-        shutil.copyfile(incfile, dest)
-
-        # testfile = os.path.join(template_path, "test", "main.cpp")
-        # dest = os.path.join(Path.cwd(), "test", "main.cpp")
-        # shutil.copyfile(testfile, dest)
-
-        # parfile = os.path.join(template_path, "test", "timeres.dat")
-        # dest = os.path.join(Path.cwd(), "test", "timeres.dat")
-        # shutil.copyfile(parfile, dest)
-
-        # for cmakesrc in ["CMakeLists.txt", "src/CMakeLists.txt", "test/CMakeLists.txt"]:
-        #     cmakefile = os.path.join(template_path, cmakesrc)
-        #     dest = os.path.join(Path.cwd(), cmakesrc)
-        #     shutil.copyfile(cmakefile, dest)
-
-        summary = table()
+        summary = tomlkit.table()
         gas_species = [s.name for s in net.info.species if not s.is_surface]
         ice_species = [g.name for g in net.info.species if g.is_surface]
         summary["num_of_species"] = len(net.info.species)
@@ -196,35 +162,10 @@ class RenderCommand(Command):
         summary["list_of_ice_species"] = ice_species
 
         content["summary"] = summary
-        config_file = os.path.join(Path.cwd(), "naunet_config.toml")
+
+        config_file = Path.cwd() / "naunet_config.toml"
         with open(config_file, "w", encoding="utf-8") as f:
-            f.write(dumps(content))
-
-        # update = self.option("update-species")
-        # if not update:
-        #     update = self.confirm("Update species in configure file?", False)
-
-        # if update and not (type(update) is str and update.lower() in ["false", "no"]):
-
-        #     chemistry["species"] = [x.name for x in net.info.species]
-
-        #     content["chemistry"] = chemistry
-
-        #     config_file = os.path.join(Path.cwd(), "naunet_config.toml")
-        #     with open(config_file, "w", encoding="utf-8") as f:
-        #         f.write(dumps(content))
-
-        # csrc_path = str(src_parent_path) + "/cxx_src"
-        # dest_path = str(Path.cwd())
-        # for file in os.listdir(csrc_path):
-        #     src = "/".join([csrc_path, file])
-        #     dest = "/".join([dest_path, file])
-        #     if os.path.isdir(src):
-        #         shutil.copytree(src, dest)
-        #     elif os.path.isfile(src):
-        #         shutil.copyfile(src, dest)
-        #     # else:
-        #     #     raise TypeError
+            f.write(tomlkit.dumps(content))
 
         # progress = self.progress_bar()
         # progress.finish()

@@ -129,10 +129,19 @@ class ExampleCommand(Command):
             print(f"naunet init {options}")
             return
 
+        # copy network file
+        src = examplesrc / network
+        dest = path / network
+        shutil.copyfile(src, dest)
+
+        # TODO: improve the way to create project in a new directory
+        os.chdir(path)
+        self.call("init", options)
+
         # Check whether the test folder exists
         prefix = path / "test"
 
-        if os.path.exists(prefix):
+        if prefix.exists():
             if not os.path.isdir(prefix):
                 raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), prefix)
 
@@ -142,22 +151,7 @@ class ExampleCommand(Command):
                 if not overwrite:
                     sys.exit()
 
-        # copy network file and test
-        for file in os.listdir(examplesrc):
-
-            # skip __init__.py and __pycache__
-            if not file.startswith("__"):
-
-                src = os.path.join(examplesrc, file)
-                dest = os.path.join(path, file)
-
-                if os.path.isdir(src):
-                    shutil.copytree(src, dest, dirs_exist_ok=True)
-
-                elif os.path.isfile(src):
-                    shutil.copyfile(src, dest)
-
-        # TODO: improve the way to create project in a new directory
-        os.chdir(path)
-
-        self.call("init", options)
+        # Copy test folder and other
+        src = examplesrc / "test"
+        dest = path / "test"
+        shutil.copytree(src, dest, dirs_exist_ok=True)

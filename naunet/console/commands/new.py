@@ -87,7 +87,7 @@ class NewCommand(Command):
         format = format.split(",") if format else []
 
         dusttype = self.option("dust")
-        dusttype = dusttype if dusttype else ""
+        dusttype = dusttype if dusttype else "none"
 
         heating = self.option("heating")
         heating = heating.split(",") if heating else []

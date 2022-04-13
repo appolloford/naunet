@@ -27,7 +27,7 @@ cooling = []
 ode_modifier = []
 
 [chemistry.dust]
-type = ""
+type = "none"
 
 [chemistry.binding_energy]
 
@@ -70,7 +70,7 @@ class Configuration:
         heating: list[str] = None,
         cooling: list[str] = None,
         shielding: dict[str, str] = None,
-        dusttype: str = "",
+        dusttype: str = "none",
         rate_modifier: dict[int, str] = None,
         ode_modifier: list[str] = None,
         solver: str = "cvode",

@@ -42,6 +42,15 @@ supported_reaction_class = {
 }
 
 
+def _dust_factory(model: str, **kwargs) -> Dust:
+
+    dustmodel = supported_dust_model.get(model)
+    if not dustmodel:
+        raise ValueError(f"Unknown dust model: {model}")
+
+    return dustmodel(**kwargs)
+
+
 def _reaction_factory(react_string: str, format: str) -> Reaction:
     """
     Factory of reactions
@@ -103,7 +112,7 @@ class Network:
         heating: list[str] = None,
         cooling: list[str] = None,
         shielding: dict[str, str] = None,
-        dusttype: str = "",
+        dusttype: str = "none",
         dustparams: dict = {},
     ) -> None:
 
@@ -117,10 +126,9 @@ class Network:
         self._templateloader = None
 
         # TODO: get dustparams from config file
-        dust_model = supported_dust_model.get(dusttype)  # dust model class
         self._dust = (
-            dust_model(**dustparams) if dust_model else None
-        )  # Instantiate a dust model
+            None if dusttype == "none" else _dust_factory(dusttype, **dustparams)
+        )
         self._allowed_species = allowed_species.copy() if allowed_species else []
         self._required_species = required_species.copy() if required_species else []
         self._allowed_heating = None

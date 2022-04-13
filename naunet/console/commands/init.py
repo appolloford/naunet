@@ -176,12 +176,12 @@ class InitCommand(Command):
         with open(config_file, "w", encoding="utf-8") as f:
             f.write(config.content)
 
-        render = self.option("render")
-        if not render:
-            render = self.confirm("Render the source codes now?", False)
+        render = self.option("render") or self.confirm(
+            "Render the source codes now?", False
+        )
 
         if render:
-            self.call("render", "--update-species=false")
+            self.call("render")
 
     def option(self, key=None):
 
