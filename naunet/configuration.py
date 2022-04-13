@@ -27,7 +27,8 @@ cooling = []
 ode_modifier = []
 
 [chemistry.dust]
-type = "none"
+model = "none"
+species = []
 
 [chemistry.binding_energy]
 
@@ -46,11 +47,13 @@ method = ""
 num_of_species = -1
 num_of_gas_species = -1
 num_of_ice_species = -1
+num_of_dust_species = -1
 num_of_reactions = -1
 list_of_species = []
 list_of_species_alias = []
 list_of_gas_species = []
 list_of_ice_species = []
+list_of_dust_species = []
 """
 
 
@@ -70,7 +73,8 @@ class Configuration:
         heating: list[str] = None,
         cooling: list[str] = None,
         shielding: dict[str, str] = None,
-        dusttype: str = "none",
+        dustmodel: str = "none",
+        dustspecies: list[str] = None,
         rate_modifier: dict[int, str] = None,
         ode_modifier: list[str] = None,
         solver: str = "cvode",
@@ -94,7 +98,8 @@ class Configuration:
         self._heating = heating if heating else []
         self._cooling = cooling if cooling else []
         self._shielding = shielding if shielding else {}
-        self._dusttype = dusttype
+        self._dustmodel = dustmodel
+        self._dustspecies = dustspecies if dustspecies else []
         self._ratemodifier = rate_modifier if rate_modifier else {}
         self._odemodifier = ode_modifier if ode_modifier else []
         self._solver = solver
@@ -124,7 +129,8 @@ class Configuration:
         chemistry["heating"] = self._heating
         chemistry["cooling"] = self._cooling
         chemistry["shielding"] = self._shielding
-        chemistry["dust"]["type"] = self._dusttype
+        chemistry["dust"]["model"] = self._dustmodel
+        chemistry["dust"]["species"] = self._dustspecies
         chemistry["rate_modifier"] = self._ratemodifier
         chemistry["ode_modifier"] = self._odemodifier
 
@@ -138,13 +144,16 @@ class Configuration:
         if info:
             gas_species = [s.name for s in info.species if not s.is_surface]
             ice_species = [g.name for g in info.species if g.is_surface]
+            dust_species = [d.name for d in info.dust.species]
             summary["num_of_species"] = len(info.species)
             summary["num_of_gas_species"] = len(gas_species)
             summary["num_of_ice_species"] = len(ice_species)
+            summary["num_of_dust_species"] = len(dust_species)
             summary["num_of_reactions"] = len(info.reactions)
             summary["list_of_species"] = [x.name for x in info.species]
             summary["list_of_species_alias"] = [x.alias for x in info.species]
             summary["list_of_gas_species"] = gas_species
             summary["list_of_ice_species"] = ice_species
+            summary["list_of_dust_species"] = dust_species
 
         return tomlkit.dumps(content)

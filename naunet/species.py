@@ -84,6 +84,7 @@ class Species:
     _known_pseudoelements = []
     _periodic_table = []
     _isotopes_table = []
+    _dust_species = []
 
     def __init__(self, name: str) -> None:
         """
@@ -231,6 +232,20 @@ class Species:
                     )
 
     @classmethod
+    def add_dust_species(cls, dustspecies: list[str]) -> list[str]:
+        if not isinstance(dustspecies, list):
+            raise TypeError(f"{dustspecies} is not a list")
+
+        for dspec in dustspecies:
+            if dspec in cls._dust_species:
+                logging.warning(f"{dspec} exists in the list of dust species, skip!")
+
+            else:
+                cls._dust_species.append(dspec)
+
+        return cls._dust_species
+
+    @classmethod
     def add_known_elements(cls, elements: list) -> list:
         """
         Add names of elements to the list of known elements
@@ -249,12 +264,10 @@ class Species:
 
         for ele in elements:
             if ele in cls._known_elements:
-                logging.warning("{} exists in element list, skip!".format(ele))
+                logging.warning(f"{ele} exists in element list, skip!")
             elif ele in cls._known_pseudoelements:
                 logging.warning(
-                    "{} exists in pseudo element list, move to element list!".format(
-                        ele
-                    )
+                    f"{ele} exists in pseudo element list, move to element list!"
                 )
                 cls._known_pseudoelements.remove(ele)
                 cls._known_elements.append(ele)
@@ -388,6 +401,10 @@ class Species:
         ncharge = "".join(re.findall(r"-*$", self.name)).count("-")
         return pcharge - ncharge
 
+    @classmethod
+    def dust_species(cls) -> list[str]:
+        return cls._dust_species
+
     @property
     def gasname(self) -> str:
         """
@@ -411,10 +428,17 @@ class Species:
         return self.name.upper() in ["E", "E-"]
 
     @property
+    def is_dust(self) -> bool:
+        return self.name in self._dust_species
+
+    @property
     def is_surface(self) -> bool:
         """
         Check whether the species is sticking on surface (a surface species)
         """
+        # TODO: replace by checking dust species
+        # if self.is_dust:
+        #     return False
         if "GRAIN" in self.name.upper():
             return False
         return self.name.startswith(self._surface_prefix)
@@ -511,6 +535,17 @@ class Species:
         return self._photon_yield
 
     @classmethod
+    def remove_dust_species(cls, dustspecies: list[str]) -> list[str]:
+
+        if not isinstance(dustspecies, list):
+            raise TypeError(f"{dustspecies} is not a list")
+
+        for dspec in dustspecies:
+            cls._dust_species.remove(dspec)
+
+        return cls._dust_species
+
+    @classmethod
     def remove_known_elements(cls, elements: list) -> list:
         """
         Remove names of elements to the list of known elements
@@ -562,7 +597,13 @@ class Species:
         """
         cls._known_elements = []
         cls._known_pseudoelements = []
+        cls._dust_species = []
         cls.surface_prefix = "#"
+
+    # TODO: remove, add
+    @classmethod
+    def set_dust_species(cls, dspecies: list[str]) -> None:
+        cls._dust_species = dspecies.copy()
 
     @classmethod
     def set_known_elements(cls, elements: list) -> None:

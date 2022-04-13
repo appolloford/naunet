@@ -1,7 +1,8 @@
 description = "Example: deuterium network used in Hsu et al. 2021"
 network = "deuterium.krome"
 format = "krome"
-dust = "none"
+dustmodel = "none"
+dustspecies = ["GRAIN0", "GRAIN-"]
 
 elements = ["e", "H", "D", "He", "C", "N", "O", "GRAIN"]
 

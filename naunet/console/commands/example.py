@@ -85,7 +85,8 @@ class ExampleCommand(Command):
         heating = examplemod.heating
         cooling = examplemod.cooling
         shielding = examplemod.shielding
-        dust = examplemod.dust
+        dustmodel = examplemod.dustmodel
+        dustspecies = examplemod.dustspecies
         binding = examplemod.binding_energy
         photon_yield = examplemod.photon_yield
         rate_modifier = examplemod.rate_modifier
@@ -113,7 +114,8 @@ class ExampleCommand(Command):
                 f"--heating='{','.join(heating)}'",
                 f"--cooling='{','.join(cooling)}'",
                 f"--shielding='{shieldingstr}'",
-                f"--dust={dust}",
+                f"--dust-model={dustmodel}",
+                f"--dust-species='{','.join(dustspecies)}'",
                 f"--binding='{bindingstr}'",
                 f"--yield='{yieldstr}'",
                 f"--rate-modifier='{ratemodifierstr}'" if ratemodifierstr else "",
@@ -132,7 +134,8 @@ class ExampleCommand(Command):
         # copy network file
         src = examplesrc / network
         dest = path / network
-        shutil.copyfile(src, dest)
+        if example != "ism":
+            shutil.copyfile(src, dest)
 
         # TODO: improve the way to create project in a new directory
         os.chdir(path)

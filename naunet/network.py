@@ -42,7 +42,7 @@ supported_reaction_class = {
 }
 
 
-def _dust_factory(model: str, **kwargs) -> Dust:
+def _dust_factory(model: str = "none", **kwargs) -> Dust:
 
     dustmodel = supported_dust_model.get(model)
     if not dustmodel:
@@ -112,8 +112,8 @@ class Network:
         heating: list[str] = None,
         cooling: list[str] = None,
         shielding: dict[str, str] = None,
-        dusttype: str = "none",
-        dustparams: dict = {},
+        dustmodel: str = "none",
+        dustparams: dict = None,
     ) -> None:
 
         self.format_list = set()
@@ -125,10 +125,8 @@ class Network:
         self._patchmaker = None
         self._templateloader = None
 
-        # TODO: get dustparams from config file
-        self._dust = (
-            None if dusttype == "none" else _dust_factory(dusttype, **dustparams)
-        )
+        dustparams = {**dustparams, "model": dustmodel}
+        self._dust = None if dustmodel == "none" else _dust_factory(**dustparams)
         self._allowed_species = allowed_species.copy() if allowed_species else []
         self._required_species = required_species.copy() if required_species else []
         self._allowed_heating = None
@@ -572,7 +570,8 @@ class Network:
             heating=self._heating_names,
             cooling=self._cooling_names,
             shielding=self._shielding,
-            dusttype=self.dust.model if self.dust else "none",
+            dustmodel=self.dust.model if self.dust else "none",
+            dustspecies=Species.dust_species(),
             rate_modifier=ratemodifier,
             ode_modifier=odemodifier,
             solver=solver,

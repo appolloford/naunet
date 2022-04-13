@@ -20,7 +20,8 @@ class NewCommand(Command):
         {--extra-species= : List of extra required species}
         {--network= : Source of chemical network file}
         {--format= : The format of the chemical network}
-        {--dust= : Type of dust model}
+        {--dust-model= : Type of dust model}
+        {--dust-species= : The species represent dust}
         {--heating= : List of heating processes}
         {--cooling= : List of cooling processes}
         {--binding= : List of binding energy of ice species}
@@ -80,14 +81,17 @@ class NewCommand(Command):
         extra_species = self.option("extra-species")
         extra_species = extra_species.split(",") if extra_species else []
 
-        network = self.option("network")
-        network = network.split(",") if network else []
+        network = self.option("network") or ""
+        network = [n.strip() for n in network.split(",") if n]
 
-        format = self.option("format")
-        format = format.split(",") if format else []
+        format = self.option("format") or ""
+        format = [f.strip() for f in format.split(",") if f]
 
-        dusttype = self.option("dust")
-        dusttype = dusttype if dusttype else "none"
+        dustmodel = self.option("dust-model")
+        dustmodel = dustmodel if dustmodel else "none"
+
+        dustspecies = self.option("dust-species") or ""
+        dustspecies = [d.strip() for d in dustspecies.split(",") if d]
 
         heating = self.option("heating")
         heating = heating.split(",") if heating else []
@@ -141,7 +145,7 @@ class NewCommand(Command):
             heating=heating,
             cooling=cooling,
             shielding=shielding,
-            dusttype=dusttype,
+            dustmodel=dustmodel,
             rate_modifier=rate_modifier,
             ode_modifier=ode_modifier,
             solver=solver,

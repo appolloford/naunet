@@ -1,7 +1,8 @@
 description = "Example: a fake chemical network"
 network = "fake.krome"
 format = "krome"
-dust = "none"
+dustmodel = "none"
+dustspecies = []
 elements = ["H", "D"]
 pseudo_elements = []
 species = ["H", "D", "H2", "HD"]
