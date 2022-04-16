@@ -137,7 +137,7 @@ class ExampleCommand(Command):
         if example != "ism":
             shutil.copyfile(src, dest)
 
-        # TODO: improve the way to create project in a new directory
+        # create project
         os.chdir(path)
         self.call("init", options)
 

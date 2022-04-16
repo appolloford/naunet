@@ -104,6 +104,7 @@ class RR07Dust(Dust):
                 f"exp(-eb_{spec.alias}/{sym_tdust})",
             ],
         )
+        rate = f"mantabund > 1e-30 ? ({rate}) : 0.0"
         return rate
 
     def _rate_photon_desorption(

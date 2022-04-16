@@ -65,7 +65,7 @@ class UCLCHEMReaction(Reaction):
         "double cocol = 1e-5 * h2col",
         "double lamdabar = GetCharactWavelength(h2col, cocol)",
         "double H2shielding = GetShieldingFactor(IDX_H2I, h2col, h2col, Tgas, 1)",
-        "double H2formation = 1.0e-17 * sqrt(Tgas)",
+        "double H2formation = 1.0e-17 * sqrt(Tgas) * nH",
         "double H2dissociation = 5.1e-11 * G0 * GetGrainScattering(Av, 1000.0) * H2shielding",
     ]
 
@@ -117,7 +117,7 @@ class UCLCHEMReaction(Reaction):
         # cosmic-ray-induced thermal desorption
         elif rtype == self.ReactionType.UCLCHEM_CD:
             rate = dust.rateexpr(
-                self.reaction_type, self.reactants, a, b, c, sym_cr="zeta"
+                self.reaction_type, self.reactants, a, b, c, sym_cr=zeta
             )
 
         # photodesorption

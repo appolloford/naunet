@@ -436,11 +436,10 @@ class Species:
         """
         Check whether the species is sticking on surface (a surface species)
         """
-        # TODO: replace by checking dust species
-        # if self.is_dust:
-        #     return False
-        if "GRAIN" in self.name.upper():
+        if self.is_dust:
             return False
+        # if "GRAIN" in self.name.upper():
+        #     return False
         return self.name.startswith(self._surface_prefix)
 
     # TODO: python 3.9 support classmethod property
@@ -600,10 +599,17 @@ class Species:
         cls._dust_species = []
         cls.surface_prefix = "#"
 
-    # TODO: remove, add
     @classmethod
-    def set_dust_species(cls, dspecies: list[str]) -> None:
-        cls._dust_species = dspecies.copy()
+    def set_dust_species(cls, dustspecies: list[str]) -> None:
+        """Set the list of dust species
+
+        Args:
+            dustspecies (list[str]): the list of dust species
+        """
+        if not isinstance(dustspecies, list):
+            raise TypeError(f"{dustspecies} is not a list")
+
+        cls._dust_species = dustspecies.copy()
 
     @classmethod
     def set_known_elements(cls, elements: list) -> None:

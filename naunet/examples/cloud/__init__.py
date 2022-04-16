@@ -305,6 +305,6 @@ photon_yield = {}
 rate_modifier = {}
 
 ode_modifier = [
-    "ydot[IDX_H2I] += H2formation*y[IDX_HI]*nH - H2dissociation*y[IDX_H2I]",
-    "ydot[IDX_HI] += 2.0*(H2dissociation*y[IDX_H2I] - H2formation*y[IDX_HI]*nH)",
+    "ydot[IDX_H2I] += H2formation*y[IDX_HI] - H2dissociation*y[IDX_H2I]",
+    "ydot[IDX_HI] += 2.0*(H2dissociation*y[IDX_H2I] - H2formation*y[IDX_HI])",
 ]

@@ -240,9 +240,8 @@ def test_write_network():
     network.write("test/test_output/reactions.krome", format="krome")
 
 
+@pytest.mark.skipif(GITHUB_ACTIONS, reason="on github")
 def test_export_empty_network():
-    if GITHUB_ACTIONS:
-        return
     network = Network()
     network.export(prefix="test/test_output/empty_network", overwrite=True)
 
@@ -271,9 +270,8 @@ def test_export_empty_network():
 
 
 # TODO: update the github workflow to have proper environment for the test
+@pytest.mark.skipif(GITHUB_ACTIONS, reason="on github")
 def test_export_network():
-    if GITHUB_ACTIONS:
-        return
     network = Network(
         filelist=inpath / "fake.kida",
         fileformats="kida",

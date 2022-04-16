@@ -108,6 +108,7 @@ def test_massnumber():
 
 def test_surface():
     Species.reset()
+    Species.set_dust_species(["GRAIN0", "GRAIN-"])
     assert Species("#H2").is_surface == True
     assert Species("H2").is_surface == False
     # test changing surface symbol
