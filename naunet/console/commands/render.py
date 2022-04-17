@@ -150,6 +150,10 @@ class RenderCommand(Command):
         timerfile = pkgpath / "templates/common/include/naunet_timer.h"
         shutil.copyfile(timerfile, header_prefix / "naunet_timer.h")
 
+        demo = Path.cwd() / "demo.ipynb"
+        if not demo.exists():
+            shutil.copyfile(pkgpath / "templates/common/demo.ipynb", demo)
+
         pattern = self.option("with-pattern")
         if pattern:
             tl.render_sparsity(prefix=Path.cwd())

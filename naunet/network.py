@@ -610,12 +610,16 @@ class Network:
         tl.render_data(prefix=header_prefix)
         tl.render_cmake(prefix=prefix, version=version("naunet"))
 
-        src_parent_path = Path(__file__).parent
-        incfile = src_parent_path / "templates/common/include/naunet_timer.h"
+        pkgpath = Path(__file__).parent
+        incfile = pkgpath / "templates/common/include/naunet_timer.h"
         dest = header_prefix / "naunet_timer.h"
         shutil.copyfile(incfile, dest)
 
-        example_template_path = src_parent_path / "examples" / "template"
+        demo = prefix / "demo.ipynb"
+        if not demo.exists():
+            shutil.copyfile(pkgpath / "templates/common/demo.ipynb", demo)
+
+        example_template_path = pkgpath / "examples" / "template"
 
         if os.path.exists(prefix / "test") and not overwrite:
             logger.warning("Files exist in export test directory! Skip overwriting")
