@@ -278,21 +278,21 @@ class HH93Dust(Dust):
         sym_cr: str = "",
     ) -> str:
 
-        if rtype == ReactionType.GAS_LEEDS_RECOM:
+        if rtype == ReactionType.GRAIN_RECOMINE:
             return self._rate_recombination(reactants, alpha, beta, gamma, sym_tgas)
 
         elif rtype == ReactionType.GRAIN_FREEZE:
             return self._rate_depletion(reactants, alpha, beta, gamma, sym_tgas)
 
-        elif rtype == ReactionType.GRAIN_DESORPT_THERMAL:
+        elif rtype == ReactionType.GRAIN_DESORB_THERMAL:
             return self._rate_thermal_desorption(
                 reactants, alpha, beta, gamma, sym_tdust
             )
 
-        elif rtype == ReactionType.GRAIN_DESORPT_PHOTON:
+        elif rtype == ReactionType.GRAIN_DESORB_PHOTON:
             return self._rate_photon_desorption(reactants, alpha, beta, gamma, sym_phot)
 
-        elif rtype == ReactionType.GRAIN_DESORPT_COSMICRAY:
+        elif rtype == ReactionType.GRAIN_DESORB_COSMICRAY:
             return self._rate_cosmicray_desorption(
                 reactants, alpha, beta, gamma, sym_cr
             )
@@ -300,12 +300,12 @@ class HH93Dust(Dust):
         elif rtype == ReactionType.SURFACE_TWOBODY:
             return self._rate_surface_twobody(reactants, alpha, beta, gamma, sym_tdust)
 
-        elif rtype == ReactionType.GRAIN_DESORPT_REACTIVE:
+        elif rtype == ReactionType.GRAIN_DESORB_REACTIVE:
             return self._rate_reactive_desorption(
                 reactants, alpha, beta, gamma, sym_tdust
             )
 
-        elif rtype == ReactionType.GAS_LEEDS_ECAPTURE:
+        elif rtype == ReactionType.GRAIN_ECAPTURE:
             return self._rate_electron_capture(sym_tgas)
 
         else:

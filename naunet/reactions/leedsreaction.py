@@ -23,17 +23,17 @@ class LEEDSReaction(Reaction):
         # photoreaction
         LEEDS_PH = BasicType.GAS_PHOTON
         # direct X-ray ionisation
-        LEEDS_XR = BasicType.GAS_LEEDS_XRAY
+        LEEDS_XR = BasicType.GAS_XRAY
         # cation-grain recombination
-        LEEDS_RC = BasicType.GAS_LEEDS_RECOM
+        LEEDS_RC = BasicType.GRAIN_RECOMINE
         # accretion
         LEEDS_FR = BasicType.GRAIN_FREEZE
         # thermal desorption
-        LEEDS_TH = BasicType.GRAIN_DESORPT_THERMAL
+        LEEDS_TH = BasicType.GRAIN_DESORB_THERMAL
         # cosmic-ray-induced thermal desorption
-        LEEDS_CD = BasicType.GRAIN_DESORPT_COSMICRAY
+        LEEDS_CD = BasicType.GRAIN_DESORB_COSMICRAY
         # photodesorption
-        LEEDS_PD = BasicType.GRAIN_DESORPT_PHOTON
+        LEEDS_PD = BasicType.GRAIN_DESORB_PHOTON
         # grain-surface cosmic-ray-induced photoreaction
         LEEDS_SC = BasicType.SURFACE_COSMICRAY
         # grain-surface photoreaction
@@ -41,9 +41,9 @@ class LEEDSReaction(Reaction):
         # two-body grain-surface reaction
         LEEDS_SB = BasicType.SURFACE_TWOBODY
         # reactive desorption
-        LEEDS_RD = BasicType.GRAIN_DESORPT_REACTIVE
+        LEEDS_RD = BasicType.GRAIN_DESORB_REACTIVE
         # grain electron capture rate
-        LEEDS_EC = BasicType.GAS_LEEDS_ECAPTURE
+        LEEDS_EC = BasicType.GRAIN_ECAPTURE
 
     rtype2type = {
         1: ReactionType.LEEDS_MA,

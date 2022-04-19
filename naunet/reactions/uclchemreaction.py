@@ -21,15 +21,15 @@ class UCLCHEMReaction(Reaction):
         # accretion
         UCLCHEM_FR = BasicType.GRAIN_FREEZE
         # thermal desorption
-        UCLCHEM_TH = BasicType.GRAIN_DESORPT_THERMAL
+        UCLCHEM_TH = BasicType.GRAIN_DESORB_THERMAL
         # cosmic-ray-induced thermal desorption
-        UCLCHEM_CD = BasicType.GRAIN_DESORPT_COSMICRAY
+        UCLCHEM_CD = BasicType.GRAIN_DESORB_COSMICRAY
         # photodesorption
-        UCLCHEM_PD = BasicType.GRAIN_DESORPT_PHOTON
+        UCLCHEM_PD = BasicType.GRAIN_DESORB_PHOTON
         # reactive desorption
-        UCLCHEM_RD = BasicType.GRAIN_DESORPT_REACTIVE
+        UCLCHEM_RD = BasicType.GRAIN_DESORB_REACTIVE
         # H2-formation-induced desorption
-        UCLCHEM_HD = BasicType.GRAIN_DESORPT_H2
+        UCLCHEM_HD = BasicType.GRAIN_DESORB_H2
         # surface diffusion
         UCLCHEM_DF = BasicType.SURFACE_DIFFUSION
 

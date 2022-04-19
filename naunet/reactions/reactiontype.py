@@ -20,22 +20,22 @@ class ReactionType(IntEnum):
     # 12x: special types in UMIST
     GAS_UMIST_CRPHOT = 120
 
-    # 13x: special types from Walsh+2015
-    GAS_LEEDS_XRAY = 130
-    GAS_LEEDS_RECOM = 131
-    GAS_LEEDS_ECAPTURE = 132
+    # 13x: other special types
+    GAS_XRAY = 130
 
     # 20x: common types of gas-grain interaction
     GRAIN_FREEZE = 200
-    GRAIN_DESORPT_THERMAL = 201
-    GRAIN_DESORPT_COSMICRAY = 202
-    GRAIN_DESORPT_PHOTON = 203
+    GRAIN_DESORB_THERMAL = 201
+    GRAIN_DESORB_COSMICRAY = 202
+    GRAIN_DESORB_PHOTON = 203
+    GRAIN_DESORB_REACTIVE = 204
 
-    # 21x: special desorption from Walsh+2015
-    GRAIN_DESORPT_REACTIVE = 210
+    # 21x: special desoprtion
+    GRAIN_DESORB_H2 = 210  # H2 formation desorption (Roberts et al. 2007)
 
-    # 22x: special desoprtion from UCLCHEM
-    GRAIN_DESORPT_H2 = 220
+    # 22x: special grain involved reactions
+    GRAIN_RECOMINE = 220
+    GRAIN_ECAPTURE = 221
 
     # 30x: common types of surface reactions
     SURFACE_TWOBODY = 300
