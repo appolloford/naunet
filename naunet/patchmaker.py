@@ -1,3 +1,4 @@
+from __future__ import annotations
 import os
 import shutil
 from pathlib import Path
@@ -127,9 +128,9 @@ class EnzoPatch:
 
     def __init__(
         self,
-        netinfo: object,
+        netinfo: NetworkInfo,
         device: str,
-        defined_species: list = None,
+        defined_species: list[str] = None,
         startidx: int = 104,
     ) -> None:
 
@@ -196,8 +197,9 @@ class EnzoPatch:
         """
 
         derived_species_field = []
+        species = self.netinfo.species
 
-        for s in self.netinfo.species:
+        for s in species:
             alias = "Electron" if s.iselectron else s.alias
             derived_species_field.append(
                 "\n".join(
@@ -209,8 +211,33 @@ class EnzoPatch:
                         f"    if data.ds.parameters['MultiSpecies'] < 4:",
                         f"        return",
                         f"    dunit = data.ds.mass_unit/data.ds.length_unit**3",
-                        f"    num_unit = dunit / mh_cgs / {1.0 if s.iselectron else s.massnumber}",
+                        f"    num_unit = dunit / mh_cgs / {1.0 if s.iselectron else s.A}",
                         f"    arr = (num_unit*data['{alias}_Density']).to_ndarray()",
+                        f"    return arr",
+                    ]
+                )
+            )
+
+        for ele in Species.known_elements():
+            specalias = ["Electron" if s.iselectron else s.alias for s in species]
+            specnatom = [s.element_count.get(ele, 0) for s in species]
+            eleabund = [
+                f"{natom}*data['{alias}_ndensity']"
+                for natom, alias in zip(specnatom, specalias)
+                if natom
+            ]
+            eleabundstr = " + ".join(["0.0", *eleabund])
+            eleabundstr = _stmwrap(eleabundstr, 70, 10)
+            derived_species_field.append(
+                "\n".join(
+                    [
+                        f"@derived_field(name='element_{ele}_ndensity', sampling_type='cell')",
+                        f"def element_{ele}_ndensity(field, data):",
+                        f"    if 'enzo' not in data.ds.dataset_type:",
+                        f"        return",
+                        f"    if data.ds.parameters['MultiSpecies'] < 4:",
+                        f"        return",
+                        f"    arr = ({eleabundstr})",
                         f"    return arr",
                     ]
                 )
