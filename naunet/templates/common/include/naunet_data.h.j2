@@ -5,7 +5,7 @@
 struct NaunetData {
     // clang-format off
     {% for var, val in variables.varis.items() -%}
-        double {{ var }}{{ " = %5.3e" | format(val) if val else "" }};
+        double {{ var }}{{ "" if val is none else " = %5.3e" | format(val) }};
     {% endfor %}
 
     // clang-format on

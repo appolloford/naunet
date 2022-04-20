@@ -84,8 +84,8 @@ class HH93Dust(Dust):
         spec = spec[0]
         rate = " * ".join(
             [
-                f"cov",
-                f"opt_thd * nMono * densites",
+                f"opt_thd * cov",
+                f"nMono * densites",
                 f"sqrt(2.0*sites*kerg*eb_{spec.alias}/(pi*pi*amu*{c}))",
                 f"exp(-eb_{spec.alias}/({sym_tdust}))",
             ],
@@ -111,7 +111,7 @@ class HH93Dust(Dust):
             raise ValueError("Number of species in photon desoprtion should be 1.")
 
         spec = spec[0]
-        rate = f"cov * ({sym_phot}) * {spec.photon_yield()} * nMono * garea"
+        rate = f"opt_uvd * cov * ({sym_phot}) * {spec.photon_yield()} * nMono * garea"
         return rate
 
     def _rate_cosmicray_desorption(
@@ -135,7 +135,7 @@ class HH93Dust(Dust):
         spec = spec[0]
         rate = " * ".join(
             [
-                f"cov",
+                f"opt_crd * cov",
                 f"duty * nMono * densites",
                 f"({sym_cr})",
                 f"sqrt(2.0*sites*kerg*eb_{spec.alias}/(pi*pi*amu*{c}))",
@@ -261,7 +261,7 @@ class HH93Dust(Dust):
     ) -> str:
 
         rate = self._rate_surface_twobody(spec, a, b, c, sym_tdust)
-        rate = f"branch * {rate}"
+        rate = f"opt_rcd * branch * {rate}"
 
         return rate
 

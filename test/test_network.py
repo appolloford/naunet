@@ -8,7 +8,7 @@ from naunet.reactions.kidareaction import KIDAReaction
 from naunet.network import Network
 
 inpath = Path("test/test_input")
-GITHUB_ACTIONS = os.getenv("GITHUB_ACTIONS")
+GITHUB_ACTIONS = os.getenv("GITHUB_ACTIONS") == "true"
 
 
 def test_init_network():
