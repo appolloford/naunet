@@ -24,6 +24,7 @@ class RenderCommand(Command):
         {--f|force : forced to override the existing files}
         {--patch= : create patch for target code}
         {--with-pattern : render the jacobian pattern}
+        {--with-summary-py : render with a pymodule having network summary information}
     """
 
     def __init__(self):
@@ -160,6 +161,8 @@ class RenderCommand(Command):
 
         summary = tomlkit.table()
         dust = net.info.dust
+        all_species = [x.name for x in net.info.species]
+        all_alias = [x.alias for x in net.info.species]
         gas_species = [s.name for s in net.info.species if not s.is_surface]
         ice_species = [g.name for g in net.info.species if g.is_surface]
         dust_species = [d.name for d in dust.species] if dust else []
@@ -168,8 +171,8 @@ class RenderCommand(Command):
         summary["num_of_ice_species"] = len(ice_species)
         summary["num_of_dust_species"] = len(dust_species)
         summary["num_of_reactions"] = len(net.info.reactions)
-        summary["list_of_species"] = [x.name for x in net.info.species]
-        summary["list_of_species_alias"] = [x.alias for x in net.info.species]
+        summary["list_of_species"] = all_species
+        summary["list_of_species_alias"] = all_alias
         summary["list_of_gas_species"] = gas_species
         summary["list_of_ice_species"] = ice_species
         summary["list_of_dust_species"] = dust_species
@@ -179,6 +182,57 @@ class RenderCommand(Command):
         config_file = Path.cwd() / "naunet_config.toml"
         with open(config_file, "w", encoding="utf-8") as f:
             f.write(tomlkit.dumps(content))
+
+        if self.option("with-summary-py"):
+            with open("summary.py", "w") as outf:
+
+                outf.write(f"nspec = {len(all_species)}\n")
+                outf.write(f"ngas = {len(gas_species)}\n")
+                outf.write(f"nice = {len(ice_species)}\n")
+                outf.write(f"ndust = {len(dust_species)}\n")
+                outf.write(f"nreac = {len(net.info.reactions)}\n")
+                outf.write("\n\n")
+
+                speclistlist = [
+                    all_species,
+                    all_alias,
+                    gas_species,
+                    ice_species,
+                    dust_species,
+                ]
+                namelist = [
+                    "all_species",
+                    "all_alias",
+                    "gas_species",
+                    "ice_species",
+                    "dust_species",
+                ]
+
+                for speclist, name in zip(speclistlist, namelist):
+
+                    specstr = ",\n    ".join(f"'{x}'" for x in speclist)
+                    if specstr:
+                        outf.write("".join([f"{name} = [\n    ", specstr, ",\n]"]))
+                        outf.write("\n\n")
+
+                for ele in Species.known_elements():
+                    specnatom = [s.element_count.get(ele, 0) for s in net.info.species]
+                    eledictstr = f",\n    ".join(
+                        f"'{s}': {natom}"
+                        for s, natom in zip(all_species, specnatom)
+                        if natom
+                    )
+                    if eledictstr:
+                        outf.write(
+                            "".join(
+                                [
+                                    f"{ele}_dict = {{\n    ",
+                                    eledictstr,
+                                    f",\n}}",
+                                ]
+                            )
+                        )
+                        outf.write("\n\n")
 
         # progress = self.progress_bar()
         # progress.finish()
