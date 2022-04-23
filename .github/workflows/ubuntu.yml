@@ -15,59 +15,15 @@ on:
 
 jobs:
 
-  install:
-    strategy:
-      matrix:
-        os: [ubuntu-latest, ubuntu-18.04]
-        python: [3.8]
-
-    runs-on: ${{ matrix.os }}
-
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: ${{ matrix.python }}
-
-      - uses: Gr1N/setup-poetry@v4
-
-      - uses: actions/cache@v2
-        with:
-          path: ~/.cache/pypoetry/virtualenvs
-          key: ${{ matrix.os }}-python${{ matrix.python }}-poetry-${{ hashFiles('poetry.lock') }}
-
-      - run: poetry --version
-
-      - name: Install package dependencies
-        run: poetry install
-
-      - name: Pytest
-        run: poetry run pytest -rs -o log_cli=true -o log_cli_level=DEBUG --runslow test
-
-      - name: Install package
-        run: pip install .
-
-      - name: Check package installed
-        run: naunet --version
-        
-  build:
-    needs: install
-    
+  test:
     runs-on: ${{ matrix.os }}
     
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - os: ubuntu-18.04
-            cuda: "11.0"
-            python: "3.8"
-
-          - os: ubuntu-18.04
-            cuda: "10.2"
-            python: "3.8"
+        os: [ubuntu-latest, ubuntu-18.04]
+        cuda: [10.2, 11.0]
+        python: [3.8, 3.9]
 
     env:
       build_dir: "build"
@@ -76,26 +32,6 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
-
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: ${{ matrix.python }}
-
-      - name: Cache Python packages
-        uses: actions/cache@v2
-        with:
-          path: ~/.cache/pip
-          key: ${{ matrix.os }}-pip-${{ hashFiles('poetry.lock') }}
-
-      - name: Install package
-        run: pip install .
-
-      - name: Install packages for testing
-        run: pip install numpy
-
-      - name: Create naunet examples
-        run: source ./scripts/actions/create_examples.sh
 
       - name: Install BLAS & LAPACK
         run: sudo apt-get install libblas-dev liblapack-dev
@@ -164,6 +100,32 @@ jobs:
           else
             source ./scripts/actions/install_sundials.sh
           fi
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Set up poetry
+        uses: Gr1N/setup-poetry@v7
+
+      - uses: actions/cache@v2
+        with:
+          path: ~/.cache/pypoetry/virtualenvs
+          key: ${{ matrix.os }}-python${{ matrix.python }}-poetry-${{ hashFiles('poetry.lock') }}
+
+      - name: Install package dependencies and active virtual env
+        run: |
+          poetry --version 
+          poetry install
+          poetry shell
+          naunet --version
+
+      - name: Pytest
+        run: pytest -rs -o log_cli=true -o log_cli_level=DEBUG --runslow test
+
+      - name: Create naunet examples
+        run: source ./scripts/actions/create_examples.sh
 
       - name: Build naunet examples
         run: source ./scripts/actions/build_examples.sh
