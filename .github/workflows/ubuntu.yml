@@ -22,8 +22,15 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, ubuntu-18.04]
-        cuda: [10.2, 11.0]
+        cuda: ["10.2", "11.0"]
         python: [3.8, 3.9]
+        boost: [1.71, 1.65]
+
+        exclude:
+          - os: ubuntu-latest
+            boost: 1.65
+          - os: ubuntu-18.04
+            boost: 1.71
 
     env:
       build_dir: "build"
@@ -41,18 +48,19 @@ jobs:
         id: boost
         with:
           path: ~/boost
-          key: ${{ matrix.os }}-boost1.65
+          key: ${{ matrix.os }}-boost-${{ matrix.boost }}
           
       - name: Install boost
         env:
           CACHE_HIT: ${{ steps.boost.outputs.cache-hit }}
+          VERSION: ${{ matrix.boost }}
         run: |
           if [[ "$CACHE_HIT" == 'true' ]]; then
             sudo cp --force --recursive ~/boost/* /
           else
-            sudo apt-get update && sudo apt-get install -yq libboost1.65-dev
+            sudo apt-get update && sudo apt-get install -yq libboost${VERSION}-dev
             mkdir -p ~/boost
-            for dep in libboost1.65-dev; do
+            for dep in libboost${VERSION}-dev; do
                 dpkg -L $dep | while IFS= read -r f; do if test -f $f; then echo $f; fi; done | xargs cp --parents --target-directory ~/boost/
             done
           fi
@@ -114,18 +122,23 @@ jobs:
           path: ~/.cache/pypoetry/virtualenvs
           key: ${{ matrix.os }}-python${{ matrix.python }}-poetry-${{ hashFiles('poetry.lock') }}
 
+      # `poetry shell` doesn't work
       - name: Install package dependencies and active virtual env
         run: |
           poetry --version 
           poetry install
-          poetry shell
+          source $(poetry env info --path)/bin/activate
           naunet --version
 
       - name: Pytest
-        run: pytest -rs -o log_cli=true -o log_cli_level=DEBUG --runslow test
+        run: |
+          source $(poetry env info --path)/bin/activate
+          pytest -rs -o log_cli=true -o log_cli_level=DEBUG --runslow test
 
       - name: Create naunet examples
-        run: source ./scripts/actions/create_examples.sh
+        run: |
+          source $(poetry env info --path)/bin/activate
+          source ./scripts/actions/create_examples.sh
 
       - name: Build naunet examples
         run: source ./scripts/actions/build_examples.sh
