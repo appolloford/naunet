@@ -22,11 +22,13 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, ubuntu-18.04]
-        cuda: ["10.2", "11.0"]
+        cuda: ["10.2.89", "11.0.3"]
         python: [3.8, 3.9]
-        boost: [1.71, 1.65]
+        boost: [1.65, 1.71]
 
         exclude:
+          - os: ubuntu-latest
+            cuda: "10.2.89" # need gcc < 9
           - os: ubuntu-latest
             boost: 1.65
           - os: ubuntu-18.04
@@ -85,12 +87,16 @@ jobs:
             source ./scripts/actions/install_suitesparse.sh
           fi
 
-      # Use the script from https://github.com/ptheywood/cuda-cmake-github-actions
       - name: Install CUDA
-        env:
+        uses: Jimver/cuda-toolkit@v0.2.5
+        id: cuda-toolkit
+        with:
           cuda: ${{ matrix.cuda }}
-        run: source ./scripts/actions/install_cuda_ubuntu.sh
-        shell: bash
+
+      - run: |
+          echo "Installed cuda version is: ${{steps.cuda-toolkit.outputs.cuda}}"
+          echo "Cuda install location: ${{steps.cuda-toolkit.outputs.CUDA_PATH}}"
+          nvcc -V
 
       - name: Cache SUNDIALS
         uses: actions/cache@v2
@@ -144,4 +150,6 @@ jobs:
         run: source ./scripts/actions/build_examples.sh
 
       - name: Test naunet examples
-        run: source ./scripts/actions/test_examples.sh
+        run: |
+          source $(poetry env info --path)/bin/activate
+          source ./scripts/actions/test_examples.sh

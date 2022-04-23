@@ -10,7 +10,7 @@ do
     cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release \
           -DMAKE_PYTHON=ON -DMAKE_TEST=ON
   fi
-  cmake --build build
+  cmake --build build -j4
   # cd build && make install
 done
 
@@ -23,7 +23,7 @@ do
           -DCMAKE_CUDA_ARCHITECTURES=61 \
           -DMAKE_PYTHON=ON -DMAKE_TEST=ON
           # -DCMAKE_INSTALL_PREFIX=./ # not work on github workflow
-    cmake --build build
+    cmake --build build -j4
   elif [[ "$OSTYPE" == "darwin"* ]]; then
     echo "No CUDA driver! Skip! "
   fi
@@ -42,6 +42,6 @@ do
     cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release \
           -DMAKE_PYTHON=ON -DMAKE_TEST=ON
   fi
-  cmake --build build
+  cmake --build build -j4
   # cd build && make install
 done 
