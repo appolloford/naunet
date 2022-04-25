@@ -103,7 +103,7 @@ jobs:
         id: sundials
         with:
           path: ~/sundials
-          key: ${{ matrix.os }}-sundials
+          key: ${{ matrix.os }}-cuda-${{ matrix.cuda }}-sundials
 
       - name: Install SUNDIALS
         env:
@@ -147,7 +147,9 @@ jobs:
           source ./scripts/actions/create_examples.sh
 
       - name: Build naunet examples
-        run: source ./scripts/actions/build_examples.sh
+        run: |
+          source $(poetry env info --path)/bin/activate
+          source ./scripts/actions/build_examples.sh
 
       - name: Test naunet examples
         run: |
