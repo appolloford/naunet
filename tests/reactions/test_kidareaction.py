@@ -100,22 +100,9 @@ def test_reaction_str():
 
 
 @pytest.mark.slow
-def test_init_kidareaction_from_file():
-    kida_reactions = []
-    with open("test/test_input/deuspin.kida.uva.2017.in", "r") as react_file:
+def test_init_kidareaction_from_file(datadir):
+    with open(datadir / "deuspin.kida", "r") as react_file:
         for line in react_file.readlines():
-            kida_reactions.append(KIDAReaction(line))
-
-
-# def test_init_leedsreaction_from_file():
-#     leeds_reactions = []
-#     with open("test/test_input/rate12_full_HO.rates", "r") as react_file:
-#         for line in react_file.readlines():
-#             leeds_reactions.append(LEEDSReaction(line))
-
-
-# def test_init_umistreaction_from_file():
-#     umist_reaction = []
-#     with open("test/test_input/rate12.rates", "r") as react_file:
-#         for line in react_file.readlines():
-#             umist_reaction.append(UMISTReaction(line))
+            reaction = KIDAReaction(line)
+            rate = reaction.rateexpr() if not reaction.is_empty else "0.0"
+            assert rate  # check all reactions can produce a reaction rate

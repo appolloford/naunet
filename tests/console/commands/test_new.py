@@ -7,14 +7,14 @@ from naunet.species import Species
 from naunet.console.commands.new import NewCommand
 
 
-def test_command_new():
+def test_command_new(tmp_path):
     application = Application()
     application.add(NewCommand())
 
     command = application.find("new")
     command_tester = CommandTester(command)
 
-    path = Path("test/test_output/new_project")
+    path = Path(tmp_path / "new_project")
     command_tester.execute(path.as_posix())
 
     assert "new_project" in (command_tester.io.fetch_output())

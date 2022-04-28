@@ -234,6 +234,16 @@ class Reaction:
 
         pass
 
+    @property
+    def is_empty(self) -> bool:
+        """
+        Check whether the reaction if empty
+
+        Returns:
+            bool: True if there is neither reactants nor products
+        """
+        return len(self.reactants) == 0 and len(self.products) == 0
+
     @classmethod
     def finalize(cls) -> None:
         """

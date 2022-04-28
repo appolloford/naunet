@@ -1,0 +1,4 @@
+#An artificial two-reaction network, used for test
+@format:idx,R,R,R,P,P,P,P,P,Tmin,Tmax,rate
+1,C,CH,,H,C2,,,,10,280,6.590e-11
+2,H,C2,,C,CH,,,,10,800,4.67e-10*(T32)**(-5.000e-01)*exp(-3.040e+04*invT)

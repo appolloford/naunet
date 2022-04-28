@@ -326,11 +326,11 @@ class Network:
         # reset network information if content is changed
         self._info = None
 
-    def add_reaction_from_file(self, filename: str, format: str) -> None:
+    def add_reaction_from_file(self, filename: str | Path, format: str) -> None:
         """Add reactions into network from file
 
         Args:
-            filename (str): the file to be read
+            filename (str | Path): the file to be read
             format (str): the format will be used to parse the file
 
         Raises:
@@ -680,9 +680,6 @@ class Network:
 
     def patchmaker(self, target: str, device: str, *args, **kwargs):
 
-        if self._info and self._patchmaker:
-            return self._patchmaker
-
         self._patchmaker = PatchMaker(self.info, target, device, *args, **kwargs)
         return self._patchmaker
 
@@ -706,9 +703,6 @@ class Network:
         ratemodifier: dict[int, str] = None,
         odemodifier: list[str] = None,
     ) -> TemplateLoader:
-
-        if self._info and self._templateloader:
-            return self._templateloader
 
         self._templateloader = TemplateLoader(
             self.info, solver, method, device, ratemodifier, odemodifier

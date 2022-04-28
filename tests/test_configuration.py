@@ -1,4 +1,5 @@
 import tomlkit
+from naunet.species import Species
 from naunet.configuration import Configuration
 
 
@@ -14,5 +15,5 @@ def test_content():
     general = loaded["general"]
     chemistry = loaded["chemistry"]
     assert general["name"] == "newproject"
-    assert chemistry["elements"] == []
+    assert chemistry["elements"] == Species.known_elements()
     assert chemistry["species"] == []

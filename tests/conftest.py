@@ -1,4 +1,5 @@
 import pytest
+from pathlib import Path
 
 
 def pytest_addoption(parser):
@@ -19,3 +20,9 @@ def pytest_collection_modifyitems(config, items):
     for item in items:
         if "slow" in item.keywords:
             item.add_marker(skip_slow)
+
+
+@pytest.fixture
+def datadir():
+    # return Path(__file__).absolute().parent / "data"
+    return Path(__file__).absolute().parent / "data"
