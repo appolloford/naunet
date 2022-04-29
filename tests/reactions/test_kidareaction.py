@@ -104,5 +104,5 @@ def test_init_kidareaction_from_file(datadir):
     with open(datadir / "deuspin.kida", "r") as react_file:
         for line in react_file.readlines():
             reaction = KIDAReaction(line)
-            rate = reaction.rateexpr() if not reaction.is_empty else "0.0"
-            assert rate  # check all reactions can produce a reaction rate
+            # check all non-empty reactions produce a reaction rate
+            assert reaction.is_empty or reaction.rateexpr()

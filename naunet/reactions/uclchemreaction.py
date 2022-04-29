@@ -85,7 +85,15 @@ class UCLCHEMReaction(Reaction):
 
         # two-body gas-phase reaction
         if rtype == self.ReactionType.UCLCHEM_MA:
-            rate = f"{a} * pow(Tgas/300.0, {b}) * exp(-{c}/Tgas)"
+            rate = " * ".join(
+                s
+                for s in [
+                    f"{a}",
+                    f"pow(Tgas/300.0, {b})" if b else "",
+                    f"exp(-{c}/Tgas)" if c else "",
+                ]
+                if s
+            )
 
         # direct cosmic-ray ionisation
         elif rtype == self.ReactionType.UCLCHEM_CR:

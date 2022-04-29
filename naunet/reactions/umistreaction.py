@@ -56,7 +56,15 @@ class UMISTReaction(Reaction):
         rtype = self.reaction_type
 
         if rtype == self.ReactionType.UMIST_TWOBODY:
-            rate = f"{a} * pow(Tgas/300.0, {b}) * exp(-{c}/Tgas)"
+            rate = " * ".join(
+                s
+                for s in [
+                    f"{a}",
+                    f"pow(Tgas/300.0, {b})" if b else "",
+                    f"exp(-{c}/Tgas)" if c else "",
+                ]
+                if s
+            )
         elif rtype == self.ReactionType.UMIST_PH:
             rate = f"{a} * exp(-{c}*Av)"
         elif rtype == self.ReactionType.UMIST_CP:

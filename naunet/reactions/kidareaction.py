@@ -43,9 +43,17 @@ class KIDAReaction(Reaction):
         if formula == 1:
             rate = f"{a} * zeta"
         elif formula == 2:
-            rate = f"{a} * exp(-{c}*Av)"
+            rate = " * ".join(s for s in [f"{a}", f"exp(-{c}*Av)" if c else ""] if s)
         elif formula == 3:
-            rate = f"{a} * pow(Tgas/300.0, {b}) * exp(-{c}/Tgas)"
+            rate = " * ".join(
+                s
+                for s in [
+                    f"{a}",
+                    f"pow(Tgas/300.0, {b})" if b else "",
+                    f"exp(-{c}/Tgas)" if c else "",
+                ]
+                if s
+            )
         elif formula == 4:
             rate = f"{a} * {b} * (0.62 + 0.4767*{c}*sqrt(300.0/Tgas))"
         elif formula == 5:

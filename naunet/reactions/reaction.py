@@ -303,7 +303,15 @@ class Reaction:
 
         # two-body gas-phase reaction
         if rtype == ReactionType.GAS_TWOBODY:
-            rate = f"{a} * pow(Tgas/300.0, {b}) * exp(-{c}/Tgas)"
+            rate = " * ".join(
+                s
+                for s in [
+                    f"{a}",
+                    f"pow(Tgas/300.0, {b})" if b else "",
+                    f"exp(-{c}/Tgas)" if c else "",
+                ]
+                if s
+            )
 
         elif rtype == ReactionType.GAS_COSMICRAY:
             rate = f"{a} * zeta"
