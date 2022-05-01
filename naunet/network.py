@@ -172,20 +172,22 @@ class Network:
                         "Sizes of input files and sources are mismatching."
                     )
                 else:
-                    for fname, db in zip(filelist, fileformats):
-                        self.add_reaction_from_file(fname, db)
+                    for fname, fmt in zip(filelist, fileformats):
+                        if fname and fmt:
+                            self.add_reaction_from_file(fname, fmt)
 
             elif isinstance(fileformats, str):
 
                 for fname in filelist:
-                    self.add_reaction_from_file(fname, fileformats)
+                    if fname and fileformats:
+                        self.add_reaction_from_file(fname, fileformats)
 
             else:
                 raise RuntimeError(f"Unknown format: {fileformats}")
 
         elif isinstance(filelist, str) or isinstance(filelist, Path):
 
-            filelist = str(filelist)
+            fname = str(filelist)
 
             if isinstance(fileformats, list):
                 if len(fileformats) != 1:
@@ -193,10 +195,13 @@ class Network:
                         "Sizes of input files and sources are mismatching."
                     )
                 else:
-                    self.add_reaction_from_file(filelist, fileformats[0])
+                    fmt = fileformats[0]
+                    if fname and fmt:
+                        self.add_reaction_from_file(fname, fmt)
 
             elif isinstance(fileformats, str):
-                self.add_reaction_from_file(filelist, fileformats)
+                if fname and fileformats:
+                    self.add_reaction_from_file(fname, fileformats)
 
             else:
                 raise RuntimeError(f"Unknown format: {fileformats}")

@@ -1,0 +1,16 @@
+description = "Example: empty network"
+network = ""
+format = ""
+dustmodel = "none"
+dustspecies = []
+elements = []
+pseudo_elements = []
+species = []
+extra_species = []
+heating = []
+cooling = []
+shielding = {}
+binding_energy = {}
+photon_yield = {}
+rate_modifier = {}
+ode_modifier = []

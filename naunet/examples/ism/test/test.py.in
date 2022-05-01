@@ -79,12 +79,15 @@ timesteps = np.append(timesteps, times[1:] - times[:-1])
 
 with open("evolution_pymodule.dat", "w") as evoldat:
 
+    curtime = 0.0
+
     for ti, dtyr in enumerate(timesteps):
+        curtime += dtyr
         dt = dtyr * spy
         y = naunet_solver.Solve(y, dt, naunet_data)
 
         fmty = [f"{yi:13.7e}" for yi in y]
-        evoldat.write(" ".join([f"{times[ti+1]:13.7e}", *fmty]))
+        evoldat.write(" ".join([f"{curtime:13.7e}", *fmty]))
         evoldat.write("\n")
 
 naunet_solver.Finalize();

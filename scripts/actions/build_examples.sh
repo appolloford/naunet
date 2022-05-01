@@ -1,4 +1,4 @@
-for idx in 0 1 4 5 8 9 12 13
+for idx in 0 1 4 5 8 9 12 13 16 17
 do
   cd $HOME/naunet_example$idx
   if [[ "$OSTYPE" == "linux-gnu"* ]]; then
@@ -14,7 +14,7 @@ do
   # cd build && make install
 done
 
-for idx in 2 6 10
+for idx in 2 6 10 14
 do
   cd $HOME/naunet_example$idx
   if [[ "$OSTYPE" == "linux-gnu"* ]]; then
@@ -30,7 +30,7 @@ do
   # cd build && make install
 done
 
-for idx in 3 7 11 14
+for idx in 3 7 11 15 18
 do
   cd $HOME/naunet_example$idx
   if [[ "$OSTYPE" == "linux-gnu"* ]]; then

@@ -22,8 +22,8 @@ class InitCommand(Command):
         {--pseudo-elements=? : List of pseudo elements}
         {--species=? : List of species}
         {--extra-species=? : List of extra required species}
-        {--network= : Source of chemical network file}
-        {--format= : The format of the chemical network}
+        {--network=? : Source of chemical network file}
+        {--format=? : The format of the chemical network}
         {--dust-model= : Type of dust model}
         {--dust-species=? : The species represent dust}
         {--heating=? : List of heating processes}

@@ -41,6 +41,10 @@ class ExampleCommand(Command):
         name = path.name
 
         networklist = [
+            "empty/dense",
+            "empty/sparse",
+            "empty/cusparse",
+            "empty/rosenbrock4",
             "fake/dense",
             "fake/sparse",
             "fake/cusparse",
@@ -134,7 +138,7 @@ class ExampleCommand(Command):
         # copy network file
         src = examplesrc / network
         dest = path / network
-        if example != "ism":
+        if network and example != "ism":
             shutil.copyfile(src, dest)
 
         # create project
