@@ -139,7 +139,7 @@ jobs:
       - name: Pytest
         run: |
           source $(poetry env info --path)/bin/activate
-          pytest -rs -o log_cli=true -o log_cli_level=DEBUG --runslow test
+          pytest -rs -o log_cli=true -o log_cli_level=DEBUG --runslow tests
 
       - name: Create naunet examples
         run: |
