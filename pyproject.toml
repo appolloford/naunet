@@ -21,6 +21,7 @@ black = {version = "^20.8b1", allow-prereleases = true}
 numpy = "^1.20.3"
 mkdocstrings-python = "^0.6.5"
 mkdocs-material = "^8.2.5"
+pre-commit = "^2.18.1"
 
 [tool.poetry.scripts]
 naunet = "naunet.console:main"

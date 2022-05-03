@@ -1,0 +1,24 @@
+repos:
+- repo: local
+  hooks:
+    - id: black
+      name: black
+      entry: black
+      language: system
+      types: [python]
+
+    - id: clang-format
+      name: clang-format
+      files: \.(cpp|h).j2$
+      entry: clang-format
+      args: [-style=file, -i]
+      language: python
+      # types_or: [c++, c, c#, cuda]
+      # minimum_pre_commit_version: 2.9.2
+
+    # - id: pytest-check
+    #   name: pytest-check
+    #   entry: pytest
+    #   language: system
+    #   pass_filenames: false
+    #   always_run: true
