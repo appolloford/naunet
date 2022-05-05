@@ -78,7 +78,7 @@ if(MAKE_PYTHON)
                 ${CMAKE_COMMAND} -E env 
                     PYNAUNET_PATH=$<TARGET_FILE_DIR:${PYMODNAME}>
                     NAUNET_CONFIG_PATH=${CMAKE_SOURCE_DIR}
-                ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/test.py
+                ${Python3_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/test.py
         )
     endif()
 endif()

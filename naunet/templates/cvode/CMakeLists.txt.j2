@@ -30,6 +30,8 @@ set(SUNDIALS_MIN_VERSION "5.6.1")
 set(SUNDIALS_DIR "" CACHE PATH "Path to SUNDIALSConfig.cmake")
 find_package(SUNDIALS ${SUNDIALS_MIN_VERSION} REQUIRED CONFIG)
 
+message(STATUS "SUNDIALS_FOUND             = ${SUNDIALS_FOUND}")
+
 list(APPEND SUNDIALSLIB
     SUNDIALS::cvode
     {% if info.method == "dense" -%}
@@ -97,7 +99,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 if(MAKE_PYTHON)
     set(PYMODNAME "pynaunet" CACHE STRING "")
-    find_package(PythonInterp REQUIRED)
+    find_package(Python3 REQUIRED COMPONENTS Interpreter Development)
 endif()
 
 add_subdirectory(src)
