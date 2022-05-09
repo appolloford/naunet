@@ -591,7 +591,7 @@ class Network:
         with open(config_file, "w", encoding="utf-8") as outf:
             outf.write(content)
 
-        for subdir in ["include", "src"]:
+        for subdir in ["include", "src", "tests"]:
             subprefix = prefix / subdir
 
             if os.path.exists(subprefix):
@@ -605,6 +605,7 @@ class Network:
 
         header_prefix = prefix / "include"
         source_prefix = prefix / "src"
+        test_prefix = prefix / "tests"
 
         tl.render_constants(prefix=source_prefix, headerprefix=header_prefix)
         tl.render_macros(prefix=header_prefix)
@@ -613,36 +614,17 @@ class Network:
         tl.render_physics(prefix=source_prefix, headerprefix=header_prefix)
         tl.render_utilities(prefix=source_prefix, headerprefix=header_prefix)
         tl.render_data(prefix=header_prefix)
+        tl.render_tests(prefix=test_prefix)
         tl.render_cmake(prefix=prefix, version=version("naunet"))
 
         pkgpath = Path(__file__).parent
-        incfile = pkgpath / "templates/common/include/naunet_timer.h"
+        incfile = pkgpath / "templates/base/cpp/include/naunet_timer.h"
         dest = header_prefix / "naunet_timer.h"
         shutil.copyfile(incfile, dest)
 
         demo = prefix / "demo.ipynb"
         if not demo.exists():
-            shutil.copyfile(pkgpath / "templates/common/demo.ipynb", demo)
-
-        example_template_path = pkgpath / "examples" / "template"
-
-        if os.path.exists(prefix / "test") and not overwrite:
-            logger.warning("Files exist in export test directory! Skip overwriting")
-            return
-
-        for file in os.listdir(example_template_path):
-
-            # skip __init__.py and __pycache__
-            if not file.startswith("__"):
-
-                src = os.path.join(example_template_path, file)
-                dest = os.path.join(prefix, file)
-
-                if os.path.isdir(src):
-                    shutil.copytree(src, dest, dirs_exist_ok=True)
-
-                elif os.path.isfile(src):
-                    shutil.copyfile(src, dest)
+            shutil.copyfile(pkgpath / "templates/base/demo.ipynb", demo)
 
     @property
     def info(self):

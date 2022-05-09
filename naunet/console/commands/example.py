@@ -9,6 +9,7 @@ import urllib.parse
 import shutil
 
 from .command import Command
+from jinja2 import Environment, PackageLoader
 
 
 class ExampleCommand(Command):
@@ -146,7 +147,7 @@ class ExampleCommand(Command):
         self.call("init", options)
 
         # Check whether the test folder exists
-        prefix = path / "test"
+        prefix = path / "tests"
 
         if prefix.exists():
             if not os.path.isdir(prefix):
@@ -158,7 +159,21 @@ class ExampleCommand(Command):
                 if not overwrite:
                     sys.exit()
 
-        # Copy test folder and other
-        src = examplesrc / "test"
-        dest = path / "test"
-        shutil.copytree(src, dest, dirs_exist_ok=True)
+        else:
+            os.mkdir(prefix)
+
+        # get list of test templates
+        testpkgpath = f"templates/tests/{example}"
+        testenv = Environment(loader=PackageLoader("naunet", testpkgpath))
+        tmplnamelist = testenv.list_templates()
+
+        # render tests
+        env = Environment(loader=PackageLoader("naunet"))
+        tmplpath = f"tests/{example}"
+
+        for tmplname in tmplnamelist:
+            tmpl = env.get_template(f"{tmplpath}/{tmplname}")
+
+            dest = path / "tests" / tmplname.replace(".j2", "")
+            with open(dest, "w") as outf:
+                outf.write(tmpl.render())

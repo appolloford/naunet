@@ -148,12 +148,12 @@ class RenderCommand(Command):
         tl.render_cmake(prefix=Path.cwd(), version=ver)
 
         pkgpath = Path(naunet.__file__).parent
-        timerfile = pkgpath / "templates/common/include/naunet_timer.h"
+        timerfile = pkgpath / "templates/base/cpp/include/naunet_timer.h"
         shutil.copyfile(timerfile, header_prefix / "naunet_timer.h")
 
         demo = Path.cwd() / "demo.ipynb"
         if not demo.exists():
-            shutil.copyfile(pkgpath / "templates/common/demo.ipynb", demo)
+            shutil.copyfile(pkgpath / "templates/base/demo.ipynb", demo)
 
         pattern = self.option("with-pattern")
         if pattern:

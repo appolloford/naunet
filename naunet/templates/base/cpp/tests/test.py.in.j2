@@ -10,37 +10,51 @@ from @PYMODNAME@ import Naunet, NaunetData
 config_path = os.getenv('NAUNET_CONFIG_PATH')
 config = TOMLFile(os.path.join(config_path, "naunet_config.toml"))
 content = config.read()
-chemistry = content["chemistry"]
-species = chemistry["species"]
-
-times = np.logspace(3, 8, 51)
-timesteps = times[0]
-timesteps = np.append(timesteps, times[1:] - times[:-1])
+summary = content["summary"]
+species = summary["list_of_species"]
 
 naunet_solver = Naunet()
 naunet_data = NaunetData()
 
 spy = 86400.0 * 365.0
-nH = 1e5
+
+{% block parameters %}
+nH = 2e4
+Tgas = 15.0
 
 naunet_data.nH = nH
-naunet_data.Tgas = 15.0
+naunet_data.Tgas = Tgas
+{% endblock parameters %}
 
 naunet_solver.Init()
 if @USE_CUDA@:
     naunet_solver.Reset(1)
 
 y = np.ones(len(species)) * 1e-40
+{% block initial_abundance %}
+# Set your initial abundance here
+# e.g. y[species.index("H2")] = 0.5 * nH
+raise RuntimeError("Abundance has not been assigned")
+{% endblock initial_abundance %}
+
+{% block timesteps %}
+times = np.logspace(2, 7, 51)
+times = np.append(0.0, times)
+timesteps = times[1:] - times[:-1]
+{% endblock timesteps %}
 
 with open("evolution_pymodule.dat", "w") as evoldat:
 
     curtime = 0.0
+    fmty = [f"{yi:13.7e}" for yi in y]
+    evoldat.write(" ".join([f"{curtime:13.7e}", *fmty]))
+    evoldat.write("\n")
 
     for ti, dtyr in enumerate(timesteps):
-        curtime += dtyr
         dt = dtyr * spy
         y = naunet_solver.Solve(y, dt, naunet_data)
 
+        curtime += dtyr
         fmty = [f"{yi:13.7e}" for yi in y]
         evoldat.write(" ".join([f"{curtime:13.7e}", *fmty]))
         evoldat.write("\n")

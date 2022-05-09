@@ -502,7 +502,7 @@ class TemplateLoader:
         if header:
             headername = headername if headername else "naunet_constants.h"
             self._variables.header = headername
-            tname = "common/include/naunet_constants.h.j2"
+            tname = "base/cpp/include/naunet_constants.h.j2"
             template = self._env.get_template(tname)
             self._render(
                 template,
@@ -514,7 +514,7 @@ class TemplateLoader:
                 physics=self._physics,
             )
 
-        tname = "common/src/naunet_constants.cpp.j2"
+        tname = "base/cpp/src/naunet_constants.cpp.j2"
         template = self._env.get_template(tname)
         self._render(
             template,
@@ -532,7 +532,7 @@ class TemplateLoader:
         if not name and save:
             name = "naunet_macros.h"
 
-        tname = "common/include/naunet_macros.h.j2"
+        tname = "base/cpp/include/naunet_macros.h.j2"
         template = self._env.get_template(tname)
         self._render(template, prefix, name, save, macros=self._macros, info=self._info)
 
@@ -675,7 +675,7 @@ class TemplateLoader:
         if header:
             headername = headername if headername else "naunet_physics.h"
             self._physics.header = headername
-            tname = "common/include/naunet_physics.h.j2"
+            tname = "base/cpp/include/naunet_physics.h.j2"
             template = self._env.get_template(tname)
             self._render(
                 template,
@@ -686,7 +686,7 @@ class TemplateLoader:
                 info=self._info,
             )
 
-        tname = "common/src/naunet_physics.cpp.j2"
+        tname = "base/cpp/src/naunet_physics.cpp.j2"
         template = self._env.get_template(tname)
         self._render(
             template,
@@ -703,7 +703,7 @@ class TemplateLoader:
         if not name and save:
             name = "naunet_data.h"
 
-        tname = "common/include/naunet_data.h.j2"
+        tname = "base/cpp/include/naunet_data.h.j2"
         template = self._env.get_template(tname)
         self._render(template, prefix, name, save, variables=self._variables)
 
@@ -711,6 +711,17 @@ class TemplateLoader:
 
         with open(f"{prefix}/jac_pattern.dat", "w") as outf:
             outf.write(self._ode.jacpattern)
+
+    def render_tests(self, prefix) -> None:
+
+        testpkgpath = f"templates/base/cpp/tests"
+        testenv = Environment(loader=PackageLoader("naunet", testpkgpath))
+        tmplnamelist = testenv.list_templates()
+
+        for tmplname in tmplnamelist:
+            tmpl = self._env.get_template(f"base/cpp/tests/{tmplname}")
+            name = tmplname.replace(".j2", "")
+            self._render(tmpl, prefix, name, True)
 
     def render_utilities(
         self,
@@ -730,10 +741,10 @@ class TemplateLoader:
         if header:
             headername = headername if headername else "naunet_utilities.h"
             self._physics.header = headername
-            tname = "common/include/naunet_utilities.h.j2"
+            tname = "base/cpp/include/naunet_utilities.h.j2"
             template = self._env.get_template(tname)
             self._render(template, headerprefix, headername, save)
 
-        tname = "common/src/naunet_utilities.cpp.j2"
+        tname = "base/cpp/src/naunet_utilities.cpp.j2"
         template = self._env.get_template(tname)
         self._render(template, prefix, name, save)
