@@ -105,7 +105,18 @@ jobs:
         run: brew install suite-sparse
 
       - name: Install SUNDIALS
-        run: brew install sundials
+        run: |
+          wget https://github.com/LLNL/sundials/releases/download/v5.7.0/sundials-5.7.0.tar.gz
+          tar -zxvf sundials-5.7.0.tar.gz
+          mkdir build-sundials && cd build-sundials
+          cmake ../sundials-5.7.0 -DCMAKE_INSTALL_PREFIX=/usr/local/sundials \
+              -DSUNDIALS_INDEX_SIZE=32 -DENABLE_KLU=ON \
+              -DKLU_INCLUDE_DIR=$(brew --prefix suite-sparse)/include \
+              -DKLU_LIBRARY_DIR=$(brew --prefix suite-sparse)/lib
+              -DEXAMPLES_ENABLE_C=OFF -DEXAMPLES_INSTALL=OFF
+          make -j4 && sudo make install
+          # make a copy to home as a cache
+          sudo cp -r /usr/local/sundials $HOME/sundials
 
       - name: Build naunet examples
         run: source ./scripts/actions/build_examples.sh
