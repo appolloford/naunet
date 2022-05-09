@@ -1,0 +1,27 @@
+// {% extends "base/cpp/tests/multiplegrid.cpp.j2" %}
+// clang-format off
+{% block parameters %}
+    double nH       = 1e-2;
+    double Tgas     = 100000.0;
+
+    for (int isys = 0; isys < nsystem; isys++) {
+        data[isys].nH       = nH;
+        data[isys].Tgas     = Tgas;
+    }
+{% endblock parameters %}
+{% block initial_abundance %}
+        y[isys * NEQUATIONS + IDX_HI]   = nH;
+        y[isys * NEQUATIONS + IDX_HII]  = 1e-4 * nH;
+        y[isys * NEQUATIONS + IDX_HeI]  = 1e-1 * nH;
+        y[isys * NEQUATIONS + IDX_HDI]  = 1.5e-5 * nH;
+        y[isys * NEQUATIONS + IDX_H2I]  = 1.5e-5 * nH;
+        y[isys * NEQUATIONS + IDX_eM]   = 1e-4 * nH;
+        y[isys * NEQUATIONS + IDX_TGAS] = Tgas;
+{% endblock initial_abundance %}
+{% block temperature %}
+        // synchronize the temperature if you want to make chemistry and
+        // heating/cooling consistent
+        for (int isys = 0; isys < nsystem; isys++) {
+            data[isys].Tgas = y[isys * NEQUATIONS + IDX_TGAS];
+        }
+{% endblock temperature %}

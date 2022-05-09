@@ -1,0 +1,21 @@
+{% extends "base/cpp/tests/singlegrid.py.in.j2" %}
+{% block parameters %}
+nH = 1e-2
+tgas = 100000.0
+
+naunet_data.nH = nH
+naunet_data.Tgas = tgas
+{% endblock parameters %}
+{% block initial_abundance %}
+y[species.index("H")]      = nH
+y[species.index("H+")]     = 1e-4 * nH
+y[species.index("He")]     = 1e-1 * nH
+y[species.index("HD")]     = 1.5e-5 * nH
+y[species.index("H2")]     = 1.5e-5 *nH
+y[species.index("e-")]     = 1e-4 * nH
+if has_thermal:
+    y[nspec]               = tgas # Temperature
+{% endblock initial_abundance %}
+{% block temperature %}
+        naunet_data.Tgas = y[nspec]
+{% endblock temperature %}

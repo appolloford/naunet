@@ -5,11 +5,6 @@ do
       cd $HOME/naunet_example$idx/build
       ctest -R "single|pymodule" -j4 --output-on-failure
     fi
-  elif [[ "11" =~ (^|[[:space:]])"$idx"($|[[:space:]]) ]]; then
-    # TODO: not sure why pymodule test freezes
-    # ctest -R "single|pymodule" -j4 --output-on-failure
-    cd $HOME/naunet_example$idx/build
-    ctest -R "single" -j4 --output-on-failure
   else
     cd $HOME/naunet_example$idx/build
     ctest -R "single|pymodule" -j4 --output-on-failure

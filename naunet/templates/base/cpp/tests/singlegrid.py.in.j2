@@ -11,54 +11,57 @@ config_path = os.getenv('NAUNET_CONFIG_PATH')
 config = TOMLFile(os.path.join(config_path, "naunet_config.toml"))
 content = config.read()
 chemistry = content["chemistry"]
-species = chemistry["species"]
 heating = chemistry["heating"]
 cooling = chemistry["cooling"]
 has_thermal = True if heating or cooling else False
+summary = content["summary"]
+species = summary["list_of_species"]
 nspec = len(species)
-neqns = nspec + has_thermal
-
-times = np.logspace(3, 8, 51)
-timesteps = times[0]
-timesteps = np.append(timesteps, times[1:] - times[:-1])
 
 naunet_solver = Naunet()
 naunet_data = NaunetData()
 
 spy = 86400.0 * 365.0
-nH = 1e5
-tgas = 100000.0
+
+{% block parameters %}
+nH = 2e4
+Tgas = 15.0
 
 naunet_data.nH = nH
-naunet_data.Tgas = tgas
+naunet_data.Tgas = Tgas
+{% endblock parameters %}
 
 naunet_solver.Init()
 if @USE_CUDA@:
     naunet_solver.Reset(1)
 
-y = np.ones(neqns) * 1e-40
-# Only works if the species list in naunet_config.toml has been updated
-# Otherwise check the macros in naunet_macros.h
-y[species.index("H")]      = nH
-y[species.index("H+")]     = 1e-4 * nH
-y[species.index("He")]     = 1e-1 * nH
-y[species.index("HD")]     = 1.5e-5 * nH
-y[species.index("H2")]     = 1.5e-5 *nH
-y[species.index("e-")]     = 1e-4 * nH
-if has_thermal:
-    y[nspec]               = tgas # Temperature
+y = np.ones(len(species)+has_thermal) * 1e-40
+{% block initial_abundance %}
+# Set your initial abundance here
+# e.g. y[species.index("H2")] = 0.5 * nH
+raise RuntimeError("Abundance has not been assigned")
+{% endblock initial_abundance %}
+
+{% block timesteps %}
+times = np.logspace(2, 7, 51)
+times = np.append(0.0, times)
+timesteps = times[1:] - times[:-1]
+{% endblock timesteps %}
 
 with open("evolution_pymodule.dat", "w") as evoldat:
 
     curtime = 0.0
+    fmty = [f"{yi:13.7e}" for yi in y]
+    evoldat.write(" ".join([f"{curtime:13.7e}", *fmty]))
+    evoldat.write("\n")
 
     for ti, dtyr in enumerate(timesteps):
-        if has_thermal:
-            naunet_data.Tgas = y[nspec] # synchronize temperature
-        curtime += dtyr
         dt = dtyr * spy
         y = naunet_solver.Solve(y, dt, naunet_data)
+        {% block temperature%}
+        {% endblock temperature%}
 
+        curtime += dtyr
         fmty = [f"{yi:13.7e}" for yi in y]
         evoldat.write(" ".join([f"{curtime:13.7e}", *fmty]))
         evoldat.write("\n")
