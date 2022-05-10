@@ -1,0 +1,31 @@
+{% extends "base/cpp/tests/singlegrid.py.in.j2" %}
+{% block parameters %}
+pi = 3.14159265
+rD = 1.0e-5
+rhoD = 3.0
+DtoGM = 7.09e-3
+amH = 1.66043e-24
+nH = 1e5
+OPRH2 = 0.1
+
+naunet_data.nH = nH
+naunet_data.Tgas = 15.0
+naunet_data.user_Av = 30.0
+naunet_data.user_crflux = 2.5e-17
+naunet_data.user_GtoDN = (4.e0 * pi * rhoD * rD * rD * rD) / (3.e0 * DtoGM * amH)
+{% endblock parameters %}
+{% block initial_abundance %}
+y = np.ones(len(species)+has_thermal) * 1e-40
+y[species.index("pH2")]    = 1.0 / (1.0 + OPRH2) * 0.5 * nH
+y[species.index("oH2")]    = OPRH2 / (1.0 + OPRH2) * 0.5 * nH
+y[species.index("HD")]     = 1.5e-5 * nH
+y[species.index("He")]     = 1.0e-1 * nH
+y[species.index("N")]      = 2.1e-6 * nH
+y[species.index("O")]      = 1.8e-5 * nH
+y[species.index("C")]      = 7.3e-6 * nH
+y[species.index("GRAIN0")] = 1.3215e-12 * nH
+{% endblock initial_abundance %}
+{% block timesteps %}
+times = np.loadtxt("timeres.dat")
+timesteps = times[1:] - times[:-1]
+{% endblock timesteps %}

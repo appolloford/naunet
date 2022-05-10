@@ -44,6 +44,11 @@
     data.uvcreff  = uvcreff;
 {% endblock parameters %}
 {% block initial_abundance %}
+    double y[NEQUATIONS] = {0.0};
+    // for (int i = 0; i < NEQUATIONS; i++)
+    // {
+    //     y[i] = 1.e-40;
+    // }
     y[IDX_H2I]           = 0.5 * nH;
     y[IDX_HI]            = 5.0e-5 * nH;
     y[IDX_HeI]           = 9.75e-2 * nH;

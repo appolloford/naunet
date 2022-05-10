@@ -13,7 +13,9 @@ get_property(
 
 set(
     TESTTARGETS
+    {% block targets -%}
     singlegrid
+    {% endblock targets -%}
 )
 
 # force cmake to have the same macro defined in naunet_macros.h
@@ -25,7 +27,9 @@ if("CUDA" IN_LIST languages)
 
     list(
         APPEND TESTTARGETS
+            {% block gputargets -%}
             multiplegrid
+            {% endblock gputargets %}
     )
 endif()
 
@@ -82,3 +86,6 @@ if(MAKE_PYTHON)
         )
     endif()
 endif()
+
+{% block datafiles -%}
+{% endblock datafiles -%}

@@ -10,19 +10,14 @@
 #include "naunet_timer.h"
 
 int main() {
-    int nsystem      = 2048;
     double spy       = 86400.0 * 365.0;
 
-    NaunetData *data = new NaunetData[nsystem];
-    // {%- block parameters %}
-    double nH        = 2e4;
-    double Tgas      = 15.0;
+    // {%- block readdata %}
+    // {%- endblock readdata %}
 
-    for (int isys = 0; isys < nsystem; isys++) {
-        data[isys].nH   = nH;
-        data[isys].Tgas = Tgas;
-    }
-    // {%- endblock parameters %}
+    NaunetData *data = new NaunetData[nsystem];
+    // {%- block parameters%}
+    // {%- endblock parameters%}
 
     Naunet naunet;
     if (naunet.Init() == NAUNET_FAIL) {
@@ -30,24 +25,30 @@ int main() {
         return 1;
     }
 
-    if (naunet.Reset(nsystem) == NAUNET_FAIL) {
+#ifdef USE_CUDA
+    if (naunet.Reset(1) == NAUNET_FAIL) {
         throw std::runtime_error("Fail to reset the number of systems");
     }
+#endif
 
     // {%- block initial_abundance %}
-    double *y = new double[nsystem * NEQUATIONS];
+    double **y = new double *[nsystem];
+    for (int isys = 0; isys < nsystem; isys++) {
+        y[isys] = new double[NEQUATIONS];
+    }
+
     for (int isys = 0; isys < nsystem; isys++) {
         for (int i = 0; i < NEQUATIONS; i++) {
-            y[isys * NEQUATIONS + i] = 1.e-40;
+            y[isys][i] = 1.0e-40;
         }
-        // Set your initial abundance here
-        throw std::runtime_error("Abundance has not been assigned");
     }
+    // Set your initial abundance here
+    throw std::runtime_error("Abundance has not been assigned");
     // {%- endblock initial_abundance %}
 
-    FILE *fbin = fopen("evolution_multiplegrid.bin", "w");
-    FILE *ftxt = fopen("evolution_multiplegrid.txt", "w");
-    FILE *ttxt = fopen("time_parallel.txt", "w");
+    FILE *fbin = fopen("evolution_serialdata.bin", "w");
+    FILE *ftxt = fopen("evolution_serialdata.txt", "w");
+    FILE *ttxt = fopen("time_serialdata.txt", "w");
 
 #ifdef NAUNET_DEBUG
     printf("Initialization is done. Start to evolve.\n");
@@ -72,16 +73,17 @@ int main() {
     // write the initial abundances
     for (int isys = 0; isys < nsystem; isys++) {
         fwrite((double *)&isys, sizeof(double), 1, fbin);
-        fwrite(&curtime, sizeof(double), 1, fbin);
-        fwrite(&y[isys * NEQUATIONS], sizeof(double), NEQUATIONS, fbin);
+        fwrite(&time, sizeof(double), 1, fbin);
+        fwrite(y[isys], sizeof(double), NEQUATIONS, fbin);
 
         fprintf(ftxt, "%13.7e ", (double)isys);
-        fprintf(ftxt, "%13.7e ", curtime);
+        fprintf(ftxt, "%13.7e ", time);
         for (int j = 0; j < NEQUATIONS; j++) {
-            fprintf(ftxt, "%13.7e ", y[isys * NEQUATIONS + j]);
+            fprintf(ftxt, "%13.7e ", y[isys][j]);
         }
         fprintf(ftxt, "\n");
     }
+
     for (auto step = timesteps.begin(); step != timesteps.end(); step++) {
 #ifdef NAUNET_DEBUG
         // EvalRates only receive one system as input, disabled in parallel test
@@ -91,7 +93,6 @@ int main() {
         // }
         // fprintf(rtxt, "\n");
 #endif
-
         // {%- block temperature %}
         // {%- endblock temperature %}
 
@@ -99,7 +100,9 @@ int main() {
 
         Timer timer;
         timer.start();
-        naunet.Solve(y, dtyr * spy, data);
+        for (int isys = 0; isys < nsystem; isys++) {
+            naunet.Solve(y[isys], dtyr * spy, &data[isys]);
+        }
         timer.stop();
 
         curtime += dtyr;
@@ -107,13 +110,13 @@ int main() {
         // write the abundances after each step
         for (int isys = 0; isys < nsystem; isys++) {
             fwrite((double *)&isys, sizeof(double), 1, fbin);
-            fwrite(&curtime, sizeof(double), 1, fbin);
-            fwrite(&y[isys * NEQUATIONS], sizeof(double), NEQUATIONS, fbin);
+            fwrite(&time, sizeof(double), 1, fbin);
+            fwrite(y[isys], sizeof(double), NEQUATIONS, fbin);
 
             fprintf(ftxt, "%13.7e ", (double)isys);
-            fprintf(ftxt, "%13.7e ", curtime);
+            fprintf(ftxt, "%13.7e ", time);
             for (int j = 0; j < NEQUATIONS; j++) {
-                fprintf(ftxt, "%13.7e ", y[isys * NEQUATIONS + j]);
+                fprintf(ftxt, "%13.7e ", y[isys][j]);
             }
             fprintf(ftxt, "\n");
         }

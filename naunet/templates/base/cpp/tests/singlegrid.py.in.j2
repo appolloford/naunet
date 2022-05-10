@@ -35,8 +35,8 @@ naunet_solver.Init()
 if @USE_CUDA@:
     naunet_solver.Reset(1)
 
-y = np.ones(len(species)+has_thermal) * 1e-40
 {% block initial_abundance %}
+y = np.ones(len(species)+has_thermal) * 1e-40
 # Set your initial abundance here
 # e.g. y[species.index("H2")] = 0.5 * nH
 raise RuntimeError("Abundance has not been assigned")

@@ -1,0 +1,63 @@
+// {% extends "base/cpp/tests/serialdata.cpp.j2" %}
+// clang-format off
+{%- block readdata %}
+    int nsystem               = 4096;
+    double rawdata[4096][133] = {0.0};
+
+    FILE *fab                 = fopen("testgrids.dat", "r");
+    for (int i = 0; i < 4096; i++) {
+        if (feof(fab)) break;
+
+        for (int j = 0; j < 133; j++) {
+            fscanf(fab, "%lf", &(rawdata[i][j]));
+        }
+    }
+    fclose(fab);
+
+#ifdef NAUNET_DEBUG
+    printf("First row of input data\n");
+    for (int i = 0; i < 133; i++) {
+        printf("%13.7e ", rawdata[0][i]);
+    }
+    printf("\n");
+#endif
+{%- endblock readdata %}
+{%- block parameters %}
+    double pi                 = 3.14159265;
+    double rD                 = 1.0e-5;
+    double rhoD               = 3.0;
+    double DtoGM              = 7.09e-3;
+    double amH                = 1.66043e-24;
+    double OPRH2              = 0.1;
+
+    for (int isys = 0; isys < nsystem; isys++) {
+        data[isys].nH          = rawdata[isys][0];
+        data[isys].Tgas        = rawdata[isys][1];
+        // data[isys].Tgas = 15.0;
+        data[isys].user_Av     = 30.0;
+        data[isys].user_crflux = 2.5e-17;
+        data[isys].user_GtoDN =
+            (4.e0 * pi * rhoD * rD * rD * rD) / (3.e0 * DtoGM * amH);
+    }
+{%- endblock parameters %}
+{%- block initial_abundance %}
+    double **y = new double *[nsystem];
+
+    for (int isys = 0; isys < nsystem; isys++) {
+        y[isys] = new double[NEQUATIONS];
+    }
+
+    for (int isys = 0; isys < nsystem; isys++) {
+        for (int i = 0; i < NEQUATIONS; i++) {
+            y[isys][i] = rawdata[isys][i + 2];
+        }
+    }
+
+#ifdef NAUNET_DEBUG
+    printf("Abundances in the first system\n");
+    for (int i = 0; i < NEQUATIONS; i++) {
+        printf("%13.7e ", y[0][i]);
+    }
+    printf("\n");
+#endif
+{%- endblock initial_abundance %}

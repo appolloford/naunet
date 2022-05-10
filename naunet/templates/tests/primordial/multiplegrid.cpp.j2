@@ -10,6 +10,11 @@
     }
 {% endblock parameters %}
 {% block initial_abundance %}
+    double *y = new double[nsystem * NEQUATIONS];
+    for (int isys = 0; isys < nsystem; isys++) {
+        for (int i = 0; i < NEQUATIONS; i++) {
+            y[isys * NEQUATIONS + i] = 1.e-40;
+        }
         y[isys * NEQUATIONS + IDX_HI]   = nH;
         y[isys * NEQUATIONS + IDX_HII]  = 1e-4 * nH;
         y[isys * NEQUATIONS + IDX_HeI]  = 1e-1 * nH;
@@ -17,6 +22,7 @@
         y[isys * NEQUATIONS + IDX_H2I]  = 1.5e-5 * nH;
         y[isys * NEQUATIONS + IDX_eM]   = 1e-4 * nH;
         y[isys * NEQUATIONS + IDX_TGAS] = Tgas;
+    }
 {% endblock initial_abundance %}
 {% block temperature %}
         // synchronize the temperature if you want to make chemistry and

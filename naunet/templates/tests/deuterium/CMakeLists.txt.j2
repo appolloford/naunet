@@ -1,0 +1,13 @@
+{% extends "base/cpp/tests/CMakeLists.txt.j2" %}
+{% block targets -%}
+    singlegrid
+    serialdata
+{% endblock targets -%}
+{% block gputargets -%}
+            multiplegrid
+            paralleldata
+{% endblock gputargets -%}
+{% block datafiles -%}
+file(COPY timeres.dat DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+file(COPY testgrids.dat DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+{% endblock datafiles -%}

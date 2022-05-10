@@ -22,17 +22,22 @@ int main() {
     // {%- endblock parameters %}
 
     Naunet naunet;
-    naunet.Init();
+    if (naunet.Init() == NAUNET_FAIL) {
+        printf("Initialize Fail\n");
+        return 1;
+    }
 
 #ifdef USE_CUDA
-    naunet.Reset(1);
+    if (naunet.Reset(1) == NAUNET_FAIL) {
+        throw std::runtime_error("Fail to reset the number of systems");
+    }
 #endif
 
+    // {%- block initial_abundance %}
     double y[NEQUATIONS] = {0.0};
     for (int i = 0; i < NEQUATIONS; i++) {
         y[i] = 1.e-40;
     }
-    // {%- block initial_abundance %}
     // Set your initial abundance here
     throw std::runtime_error("Abundance has not been assigned");
     // {%- endblock initial_abundance %}
@@ -114,7 +119,10 @@ int main() {
     fclose(rtxt);
 #endif
 
-    naunet.Finalize();
+    if (naunet.Finalize() == NAUNET_FAIL) {
+        printf("Finalize Fail\n");
+        return 1;
+    }
 
     return 0;
 }
