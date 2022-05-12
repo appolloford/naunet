@@ -10,13 +10,27 @@
 
 // clang-format off
 {% if info.device == "gpu" -%} __device__ __host__ {% endif -%}
+double GetElementAbund(double *y, int elemidx) {
+    {% for idx, eqn in zip(macros.elemcidx, physics.elemabund) -%}
+    if (elemidx == {{ idx }}) {
+        return {{ eqn | stmwrap(80, 12) }};
+    }
+    {% endfor %}
+
+}
+
+{% if info.device == "gpu" -%} __device__ __host__ {% endif -%}
 double GetMantleDens(double *y) {
     return {{ physics.mantles | stmwrap(80, 8) }};
 }
 
 {% if info.device == "gpu" -%} __device__ __host__ {% endif -%}
 double GetHNuclei(double *y) {
-    return {{ physics.Hnuclei | stmwrap(80, 8) }};
+#ifdef IDX_ELEM_H
+    return GetElementAbund(y, IDX_ELEM_H);
+#else
+    return 0.0;
+#endif
 }
 
 {% if info.device == "gpu" -%} __device__ __host__ {% endif -%}

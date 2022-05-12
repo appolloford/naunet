@@ -1,0 +1,34 @@
+// {% extends "base/cpp/tests/renorm.cpp.j2" %}
+// clang-format off
+{% block parameters %}
+    double nH       = 2e4;
+{% endblock parameters %}
+{% block reference_abundance %}
+    double y[NEQUATIONS] = {0.0};
+    // for (int i = 0; i < NEQUATIONS; i++)
+    // {
+    //     y[i] = 1.e-40;
+    // }
+    y[IDX_H2I]           = 0.5 * nH;
+    y[IDX_HI]            = 5.0e-5 * nH;
+    y[IDX_HeI]           = 9.75e-2 * nH;
+    y[IDX_NI]            = 7.5e-5 * nH;
+    y[IDX_OI]            = 1.8e-4 * nH;
+    y[IDX_COI]           = 1.4e-4 * nH;
+    y[IDX_SI]            = 8.0e-8 * nH;
+    y[IDX_SiI]           = 8.0e-9 * nH;
+    y[IDX_MgI]           = 7.0e-9 * nH;
+    y[IDX_ClI]           = 4.0e-9 * nH;
+{% endblock reference_abundance %}
+{% block updated_abundance %}
+    y[IDX_H2I]           = 0.4 * nH;
+    y[IDX_HI]            = 1.0e-3 * nH;
+    y[IDX_HeI]           = 1.9e-1 * nH;
+    y[IDX_NI]            = 7.5e-5 * nH;
+    y[IDX_OI]            = 8.0e-5 * nH;
+    y[IDX_COI]           = 2.8e-4 * nH;
+    y[IDX_SI]            = 4.0e-8 * nH;
+    y[IDX_SiI]           = 2.0e-9 * nH;
+    y[IDX_MgI]           = 2.0e-9 * nH;
+    y[IDX_ClI]           = 1.0e-9 * nH;
+{% endblock updated_abundance %}

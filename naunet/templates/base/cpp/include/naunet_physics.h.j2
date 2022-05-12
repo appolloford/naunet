@@ -2,6 +2,7 @@
 #define __NAUNET_PHYSICS_H__
 
 /* {% if info.device == "gpu" %} */
+__device__ __host__ double GetElementAbund(double *y, int elemidx);
 __device__ __host__ double GetMantleDens(double *y);
 __device__ __host__ double GetHNuclei(double *y);
 __device__ __host__ double GetMu(double *y);
@@ -22,6 +23,7 @@ __device__ double GetN2shieldingInt(double tgas, double h2col, double coldens);
 __device__ double GetGrainScattering(double av, double wavelength);
 __device__ double GetCharactWavelength(double h2col, double cocol);
 /* {% else %} */
+double GetElementAbund(double *y, int elemidx);
 double GetMantleDens(double *y);
 double GetHNuclei(double *y);
 double GetMu(double *y);

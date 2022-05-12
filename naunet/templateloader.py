@@ -63,6 +63,7 @@ class TemplateLoader:
         nheating: str
         ncooling: str
         speclist: list[str]
+        elemcidx: list[str]
         nnz: str = None
 
     @dataclass
@@ -83,6 +84,8 @@ class TemplateLoader:
         spjaccvalarr: str = None
         spjacdata: list[str] = None
         header: str = None
+        renormmat: list[str] = None
+        renorm: list[str] = None
         odemodifier: list[str] = None
         ratemodifier: list[str] = None
 
@@ -96,6 +99,7 @@ class TemplateLoader:
         Hnuclei: str
         mu: str
         gamma: str
+        elemabund: list[str]
         h2shielding: str = None
         coshielding: str = None
         n2shielding: str = None
@@ -176,6 +180,12 @@ class TemplateLoader:
         nheating = f"#define NHEATPROCS {len(heating) if heating else 0}"
         ncooling = f"#define NCOOLPROCS {len(cooling) if cooling else 0}"
         speclist = [f"#define IDX_{x.alias} {i}" for i, x in enumerate(species)]
+        # speccidx = [f"IDX_{x.alias}" for x in species]
+        elements = [spec for spec in species if spec.is_atom]
+        # get the exact element string
+        elenames = [next(iter(ele.element_count)) for ele in elements]
+        elemcidx = [f"IDX_ELEM_{ename}" for ename in elenames]
+        nele = len(elenames)
         if has_thermal:
             speclist.append(f"#define IDX_TGAS {n_spec}")
 
@@ -192,13 +202,14 @@ class TemplateLoader:
             nheating,
             ncooling,
             speclist,
+            elemcidx,
         )
 
         mantles = " + ".join(f"y[IDX_{g.alias}]" for g in species if g.is_surface)
         mantles = mantles if mantles else "0.0"
 
         Hnuclei = " + ".join(
-            f"{s.element_count.get('H'):3.1e}*y[IDX_{s.alias}]"
+            f"{s.element_count.get('H'):.1f}*y[IDX_{s.alias}]"
             for s in species
             if "H" in s.element_count.keys()
         )
@@ -212,11 +223,21 @@ class TemplateLoader:
         # TODO: different ways to get adiabatic index
         gamma = "5.0 / 3.0"
 
+        elemabund = []
+        for iele, einame in enumerate(elenames):
+            term = "0.0"
+            for ispec, spec in enumerate(species):
+                ci = spec.element_count.get(einame, 0)
+                if ci:
+                    term = f"{term} + {ci:.1f} * y[IDX_{spec.alias}]"
+            elemabund.append(term)
+
         self._physics = self.PhysicsContent(
             mantles,
             Hnuclei,
             mu,
             gamma,
+            elemabund,
             h2shielding=netinfo.shielding.get("H2", ""),
             coshielding=netinfo.shielding.get("CO", ""),
             n2shielding=netinfo.shielding.get("N2", ""),
@@ -423,6 +444,29 @@ class TemplateLoader:
         spjacrptrarr = ", ".join(spjacrptrarr)
         spjaccvalarr = ", ".join(spjaccvalarr)
 
+        renormmat = []
+        for iele, einame in enumerate(elenames):
+            for jele, ejname in enumerate(elenames):
+                term = f"IJth(A, IDX_ELEM_{einame}, IDX_ELEM_{ejname}) = 0.0"
+                for ispec, spec in enumerate(species):
+                    ci = spec.element_count.get(einame, 0)
+                    cj = spec.element_count.get(ejname, 0)
+                    if not spec.iselectron and ci and cj:
+                        term = f"{term} + {(ci * cj * elements[jele].A)} * ab[IDX_{spec.alias}] / {spec.A} / Hnuclei"
+                renormmat.append(term)
+
+        renorm = []
+        for ispec, spec in enumerate(species):
+            if spec.iselectron:
+                factor = "1.0"
+            else:
+                factor = "0.0"
+                for einame, espec in zip(elenames, elements):
+                    ci = spec.element_count.get(einame, 0)
+                    if ci:
+                        factor = f"{factor} + {(ci * espec.A)} * rptr[IDX_ELEM_{einame}] / {spec.A}"
+            renorm.append(f"ab[IDX_{spec.alias}] = ({factor}) * ab[IDX_{spec.alias}]")
+
         self._ode = self.ODEContent(
             rateeqns,
             hrateeqns,
@@ -435,6 +479,8 @@ class TemplateLoader:
             spjacrptrarr=spjacrptrarr,
             spjaccvalarr=spjaccvalarr,
             spjacdata=spjacdata,
+            renormmat=renormmat,
+            renorm=renorm,
             odemodifier=odemodifier,
             ratemodifier=ratemodifier,
         )
@@ -574,8 +620,10 @@ class TemplateLoader:
             save,
             info=self._info,
             header=headername,
+            macros=self._macros,
             physics=self._physics,
             variables=self._variables,
+            ode=self._ode,
         )
 
     def render_ode(
@@ -695,6 +743,7 @@ class TemplateLoader:
             save,
             physics=self._physics,
             info=self._info,
+            macros=self._macros,
         )
 
     def render_data(

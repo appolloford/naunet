@@ -77,6 +77,17 @@ def test_charge():
     assert Species("Si++++").charge == 4
 
 
+def test_atom():
+    Species.reset()
+    Species.set_dust_species(["GRAIN0", "GRAIN-"])
+    assert Species("H").is_atom
+    assert Species("C").is_atom
+    assert not Species("E").is_atom
+    assert not Species("CO").is_atom
+    assert not Species("GRAIN0").is_atom
+    assert not Species("#H").is_atom
+
+
 def test_element_counting():
     Species.reset()
     assert Species("H2").element_count.get("H") == 2

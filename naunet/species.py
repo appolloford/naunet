@@ -418,6 +418,16 @@ class Species:
         )
 
     @property
+    def is_dust(self) -> bool:
+        """
+        Check whether the species is one form of dust
+
+        Returns:
+            bool: True if the species is one dust form
+        """
+        return self.name in self._dust_species
+
+    @property
     def iselectron(self) -> bool:
         """
         A conveninent function to check whether the species is electron.
@@ -428,8 +438,23 @@ class Species:
         return self.name.upper() in ["E", "E-"]
 
     @property
-    def is_dust(self) -> bool:
-        return self.name in self._dust_species
+    def is_atom(self) -> bool:
+        """
+        Check whether the species is the atomic form of an element, including
+        dust species (e.g. GRAIN0) if it is provided
+
+        Returns:
+            bool: True if the species is an atom
+        """
+        names, counts = self.element_count.keys(), self.element_count.values()
+        return (
+            len(names) == 1
+            and sum(counts) == 1
+            and self.charge == 0
+            and not self.iselectron
+            # and not self.is_dust
+            and not self.is_surface
+        )
 
     @property
     def is_surface(self) -> bool:

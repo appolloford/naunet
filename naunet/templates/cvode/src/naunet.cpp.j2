@@ -6,14 +6,17 @@
 #include <sunmatrix/sunmatrix_dense.h>  // access to dense SUNMatrix
 /* {% elif info.method == "sparse" -%} */
 #include <nvector/nvector_serial.h>      // access to serial N_Vector
+#include <sunlinsol/sunlinsol_dense.h>   // access to dense SUNLinearSolver
 #include <sunlinsol/sunlinsol_klu.h>     // access to KLU sparse direct solver
 #include <sunmatrix/sunmatrix_sparse.h>  // access to sparse SUNMatrix
 /* {% elif info.method == "cusparse" -%} */
 #include <nvector/nvector_cuda.h>
 #include <sunlinsol/sunlinsol_cusolversp_batchqr.h>
+#include <sunlinsol/sunlinsol_dense.h>  // access to dense SUNLinearSolver
 #include <sunmatrix/sunmatrix_cusparse.h>
 /* {% elif info.method == "spgmr" -%} */
 #include <cvode/cvode_spils.h>          // access to CVSpils interface
+#include <sunlinsol/sunlinsol_dense.h>  // access to dense SUNLinearSolver
 #include <sunlinsol/sunlinsol_spgmr.h>  // access to SPGMR SUNLinearSolver
 /* {% endif -%} */
 /* {% if header %} */
@@ -26,10 +29,13 @@
 #include "naunet_data.h"
 /* {% endif %} */
 #include "naunet_ode.h"
+#include "naunet_physics.h"
 /* {% if "VB88Table" in physics.coshielding -%} */
 #include "naunet_constants.h"
 #include "naunet_utilities.h"
 /* {% endif -%} */
+
+#define IJth(A, i, j) SM_ELEMENT_D(A, i, j)
 
 Naunet::Naunet(){};
 
@@ -440,6 +446,51 @@ int Naunet::PrintDebugInfo() {
     return NAUNET_SUCCESS;
 };
 
+#ifdef IDX_ELEM_H
+int Naunet::Renorm(realtype *ab) {
+    N_Vector b     = N_VMake_Serial(NELEMENTS, ab_ref_);
+    N_Vector r     = N_VNew_Serial(NELEMENTS);
+    SUNMatrix A    = SUNDenseMatrix(NELEMENTS, NELEMENTS);
+    double Hnuclei = GetHNuclei(ab);
+
+    N_VConst(0.0, r);
+    // clang-format off
+    {% for term in ode.renormmat -%}
+    {{ term | stmwrap(80, 8) }};
+    {% endfor %}
+
+    // clang-format on
+
+    SUNLinearSolver LS = SUNLinSol_Dense(r, A);
+
+    int flag;
+    flag = SUNLinSolSetup(LS, A);
+    if (CheckFlag(&flag, "SUNLinSolSetup", 1, errfp_) == NAUNET_FAIL) {
+        return NAUNET_FAIL;
+    }
+    flag = SUNLinSolSolve(LS, A, r, b, 0.0);
+    if (CheckFlag(&flag, "SUNLinSolSolve", 1, errfp_) == NAUNET_FAIL) {
+        return NAUNET_FAIL;
+    }
+
+    realtype *rptr = N_VGetArrayPointer(r);
+
+    // clang-format off
+    {% for factor in ode.renorm -%}
+    {{ factor }};
+    {% endfor %}
+
+    // clang-format on
+
+    N_VDestroy(b);
+    N_VDestroy(r);
+    SUNMatDestroy(A);
+    SUNLinSolFree(LS);
+
+    return NAUNET_SUCCESS;
+};
+#endif
+
 // To reset the size of cusparse solver
 int Naunet::Reset(int nsystem, double atol, double rtol, int mxsteps) {
     n_system_ = nsystem;
@@ -543,6 +594,23 @@ int Naunet::Reset(int nsystem, double atol, double rtol, int mxsteps) {
 
     return NAUNET_SUCCESS;
 };
+
+#ifdef IDX_ELEM_H
+int Naunet::SetReferenceAbund(realtype *ref, int opt) {
+    if (opt == 0) {
+        for (int i = 0; i < NELEMENTS; i++) {
+            ab_ref_[i] = ref[i] / ref[IDX_ELEM_H];
+        }
+    } else if (opt == 1) {
+        double Hnuclei = GetHNuclei(ref);
+        for (int i = 0; i < NELEMENTS; i++) {
+            ab_ref_[i] = GetElementAbund(ref, i) / Hnuclei;
+        }
+    }
+
+    return NAUNET_SUCCESS;
+}
+#endif
 
 int Naunet::Solve(realtype *ab, realtype dt, NaunetData *data) {
     int cvflag;
