@@ -1,0 +1,16 @@
+// {% extends "base/cpp/tests/singlegrid.cpp.j2" %}
+// clang-format off
+{% block parameters %}
+    double nH  = 1e5;
+
+    data.nH   = nH;
+    data.Tgas = 15.0;
+{% endblock parameters %}
+{% block initial_abundance %}
+    double y[NEQUATIONS];
+    for (int i = 0; i < NEQUATIONS; i++) {
+        y[i] = 1.e-40;
+    }
+    y[IDX_HI]  = nH;
+    y[IDX_C2I] = 7.0e-5 * nH;
+{% endblock initial_abundance %}

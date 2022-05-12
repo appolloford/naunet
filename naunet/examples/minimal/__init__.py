@@ -1,11 +1,11 @@
 description = "Example: a fake chemical network"
-network = "fake.krome"
-format = "krome"
+network = "minimal.kida"
+format = "kida"
 dustmodel = "none"
 dustspecies = []
-elements = ["H", "D"]
+elements = ["H", "C"]
 pseudo_elements = []
-species = ["H", "D", "H2", "HD"]
+species = ["H", "C2", "C", "CH"]
 extra_species = []
 heating = []
 cooling = []

@@ -1,4 +1,0 @@
-#An artificial two-reaction network, used for test
-@format:idx,R,R,P,P,rate
-1,H2,D,HD,H,3d-10
-2,HD,H,H2,D,5d-11
