@@ -60,7 +60,6 @@ class Species:
         "Fe",
         "Ni",
         "GRAIN",
-        "g",
     ]
     default_pseudoelements = [
         "CR",
@@ -77,6 +76,7 @@ class Species:
         "c-",
         "l-",
         "*",
+        "g",
     ]
     surface_prefix = "#"
 
