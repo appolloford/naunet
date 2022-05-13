@@ -1,4 +1,8 @@
 // {% extends "base/cpp/tests/singlegrid.cpp.j2" %}
 // clang-format off
 {% block initial_abundance %}
+    double y[NEQUATIONS] = {0.0};
+    for (int i = 0; i < NEQUATIONS; i++) {
+        y[i] = 1.e-40;
+    }
 {% endblock initial_abundance %}

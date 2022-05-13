@@ -60,9 +60,9 @@ class TemplateLoader:
         nreact: int
         nheating: int
         ncooling: int
+        nnz: int
         elemcidx: list[str]
         speccidx: list[str]
-        nnz: str = None
 
     @dataclass
     class ODEContent:
@@ -189,6 +189,7 @@ class TemplateLoader:
             n_react,
             nheating,
             ncooling,
+            -1,
             elemcidx,
             speccidx,
         )
@@ -404,22 +405,21 @@ class TemplateLoader:
         spjacdata = []
         spjacrptrarr = []
         spjaccvalarr = []
-        if "sparse" in method:
-            # TODO: Too slow! Optimize it
-            nnz = 0
-            for row in range(n_eqns):
-                spjacrptr.append(f"rowptrs[{row}] = {nnz};")
-                spjacrptrarr.append(str(nnz))
-                for col in range(n_eqns):
-                    elem = jacrhs[row * n_eqns + col]
-                    if elem != "0.0":
-                        spjaccval.append(f"colvals[{nnz}] = {col};")
-                        spjaccvalarr.append(str(col))
-                        spjacdata.append(f"data[{nnz}] = {elem};")
-                        nnz += 1
-            spjacrptr.append(f"rowptrs[{n_eqns}] = {nnz};")
+
+        nnz = 0
+        for row in range(n_eqns):
+            spjacrptr.append(f"rowptrs[{row}] = {nnz};")
             spjacrptrarr.append(str(nnz))
-            self._macros.nnz = f"#define NNZ {nnz}"
+            for col in range(n_eqns):
+                elem = jacrhs[row * n_eqns + col]
+                if elem != "0.0":
+                    spjaccval.append(f"colvals[{nnz}] = {col};")
+                    spjaccvalarr.append(str(col))
+                    spjacdata.append(f"data[{nnz}] = {elem};")
+                    nnz += 1
+        spjacrptr.append(f"rowptrs[{n_eqns}] = {nnz};")
+        spjacrptrarr.append(str(nnz))
+        self._macros.nnz = nnz
 
         spjacrptrarr = ", ".join(spjacrptrarr)
         spjaccvalarr = ", ".join(spjaccvalarr)
