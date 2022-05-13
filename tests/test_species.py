@@ -82,9 +82,9 @@ def test_atom():
     Species.set_dust_species(["GRAIN0", "GRAIN-"])
     assert Species("H").is_atom
     assert Species("C").is_atom
+    assert Species("GRAIN0").is_atom
     assert not Species("E").is_atom
     assert not Species("CO").is_atom
-    assert not Species("GRAIN0").is_atom
     assert not Species("#H").is_atom
 
 

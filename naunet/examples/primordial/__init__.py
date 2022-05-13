@@ -3,8 +3,8 @@ network = "primordial.krome"
 format = "krome"
 dustmodel = "none"
 dustspecies = []
-elements = ["e", "H", "D", "He", "GRAIN"]
-pseudo_elements = []
+elements = ["e", "H", "D", "He"]
+pseudo_elements = ["Photon"]
 species = [
     "e-",
     "H",
@@ -18,7 +18,7 @@ species = [
     "H2",
     "H2+",
     "HD",
-    "GRAIN",
+    "Photon",
 ]
 extra_species = []
 heating = []

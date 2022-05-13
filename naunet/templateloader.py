@@ -57,13 +57,11 @@ class TemplateLoader:
         The variables required by macros file
         """
 
-        nspec: str
-        neqns: str
-        nreact: str
-        nheating: str
-        ncooling: str
-        speclist: list[str]
+        nreact: int
+        nheating: int
+        ncooling: int
         elemcidx: list[str]
+        speccidx: list[str]
         nnz: str = None
 
     @dataclass
@@ -96,7 +94,6 @@ class TemplateLoader:
         """
 
         mantles: str
-        Hnuclei: str
         mu: str
         gamma: str
         elemabund: list[str]
@@ -169,25 +166,18 @@ class TemplateLoader:
         has_thermal = True if heating or cooling else False
         n_spec = len(species)
         n_react = len(reactions)
-        n_eqns = n_spec + has_thermal
-        n_eqns = max(n_eqns, 1)
+        n_eqns = max(n_spec + has_thermal, 1)
 
         self._info = self.InfoContent(method, device)
 
-        nspec = f"#define NSPECIES {n_spec}"
-        neqns = f"#define NEQUATIONS {n_eqns}"
-        nreact = f"#define NREACTIONS {n_react}"
-        nheating = f"#define NHEATPROCS {len(heating) if heating else 0}"
-        ncooling = f"#define NCOOLPROCS {len(cooling) if cooling else 0}"
-        speclist = [f"#define IDX_{x.alias} {i}" for i, x in enumerate(species)]
-        # speccidx = [f"IDX_{x.alias}" for x in species]
+        nheating = len(heating) if heating else 0
+        ncooling = len(cooling) if cooling else 0
+        # speclist = [f"#define IDX_{x.alias} {i}" for i, x in enumerate(species)]
+        speccidx = [f"IDX_{x.alias}" for x in species]
         elements = [spec for spec in species if spec.is_atom]
         # get the exact element string
         elenames = [next(iter(ele.element_count)) for ele in elements]
         elemcidx = [f"IDX_ELEM_{ename}" for ename in elenames]
-        nele = len(elenames)
-        if has_thermal:
-            speclist.append(f"#define IDX_TGAS {n_spec}")
 
         consts = netinfo.consts
         varis = netinfo.varis
@@ -196,24 +186,15 @@ class TemplateLoader:
         self._variables = self.VariablesContent(consts, varis, locvars)
 
         self._macros = self.MacrosContent(
-            nspec,
-            neqns,
-            nreact,
+            n_react,
             nheating,
             ncooling,
-            speclist,
             elemcidx,
+            speccidx,
         )
 
         mantles = " + ".join(f"y[IDX_{g.alias}]" for g in species if g.is_surface)
         mantles = mantles if mantles else "0.0"
-
-        Hnuclei = " + ".join(
-            f"{s.element_count.get('H'):.1f}*y[IDX_{s.alias}]"
-            for s in species
-            if "H" in s.element_count.keys()
-        )
-        Hnuclei = Hnuclei if Hnuclei else "0.0"
 
         # TODO: exclude electron, grain?
         density = " + ".join(f"y[IDX_{s.alias}]*{s.massnumber}" for s in species)
@@ -234,7 +215,6 @@ class TemplateLoader:
 
         self._physics = self.PhysicsContent(
             mantles,
-            Hnuclei,
             mu,
             gamma,
             elemabund,

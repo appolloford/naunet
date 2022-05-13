@@ -6,11 +6,12 @@
 #define NAUNET_FAIL 1
 
 #define NELEMENTS {{ macros.elemcidx | length }}
-{{ macros.nspec }}
-{{ macros.neqns }}
-{{ macros.nreact }}
-{{ macros.nheating }}
-{{ macros.ncooling }}
+#define NSPECIES {{ macros.speccidx | length }}
+#define NHEATPROCS {{ macros.nheating }}
+#define NCOOLPROCS {{ macros.ncooling }}
+#define THERMAL (NHEATPROCS || NCOOLPROCS)
+#define NEQUATIONS (NSPECIES + THERMAL)
+#define NREACTIONS {{ macros.nreact }}
 {% if info.method == "sparse" or info.method == "cusparse" -%}
 {{ macros.nnz }}
 {% endif %}
@@ -24,12 +25,16 @@
 #define MAX_NSYSTEMS 1
 {% endif %}
 
-{% for idx in macros.speclist -%}
-    {{ idx }}
-{% endfor %}
-
 {% for idx in macros.elemcidx %}
 #define {{ idx }} {{ loop.index0 }}
 {% endfor %}
+
+{% for idx in macros.speccidx %}
+#define {{ idx }} {{ loop.index0 }}
+{% endfor %}
+
+#if THERMAL
+#define IDX_TGAS NSPECIES
+#endif
 
 #endif
