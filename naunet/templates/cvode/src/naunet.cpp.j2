@@ -11,11 +11,13 @@
 #include <sunmatrix/sunmatrix_sparse.h>  // access to sparse SUNMatrix
 /* {% elif info.method == "cusparse" -%} */
 #include <nvector/nvector_cuda.h>
+#include <nvector/nvector_serial.h>  // access to serial N_Vector
 #include <sunlinsol/sunlinsol_cusolversp_batchqr.h>
 #include <sunlinsol/sunlinsol_dense.h>  // access to dense SUNLinearSolver
 #include <sunmatrix/sunmatrix_cusparse.h>
 /* {% elif info.method == "spgmr" -%} */
 #include <cvode/cvode_spils.h>          // access to CVSpils interface
+#include <nvector/nvector_serial.h>     // access to serial N_Vector
 #include <sunlinsol/sunlinsol_dense.h>  // access to dense SUNLinearSolver
 #include <sunlinsol/sunlinsol_spgmr.h>  // access to SPGMR SUNLinearSolver
 /* {% endif -%} */
