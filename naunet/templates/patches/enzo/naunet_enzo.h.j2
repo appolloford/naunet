@@ -15,13 +15,19 @@
 
 
 {% for s in species -%}
-#define A_{{ s.alias }} {{ s.massnumber }}
+#define A_{{ s.alias }} {{ 1.0 if s.iselectron else s.massnumber }}
 {% endfor %}
 
 
-const float A_Table[{{ neqns }}] = {
+const float A_Table[NSPECIES] = {
     {% for s in species -%}
     A_{{ s.alias }}{{ ",\n    " if not loop.last else "\n" }}
+    {%- endfor -%}
+};
+
+const field_type NauentFields[NSPECIES] = {
+    {% for s in species -%}
+    {{ "Electron" if s.iselectron else s.alias }}Density{{ ",\n    " if not loop.last else "\n" }}
     {%- endfor -%}
 };
 
