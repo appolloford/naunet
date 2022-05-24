@@ -86,7 +86,7 @@ int grid::UpdateMHDPrim(float **dU, float c1, float c2)
     case 2:  NSpecies_renorm = 8;  break;
     case 3:  NSpecies_renorm = 11; break;
 #ifdef USE_NAUNET
-    case NAUNET_SPECIES:  NSpecies_renorm = NAUNET_NSPECIES; break;
+    case NAUNET_SPECIES:  NSpecies_renorm = ENZO_NSPECIES; break;
 #endif
     default: NSpecies_renorm = 0;  break;
     }

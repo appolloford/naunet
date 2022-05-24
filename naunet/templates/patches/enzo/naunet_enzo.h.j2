@@ -4,10 +4,11 @@
 #include "naunet.h"
 #include "naunet_data.h"
 
+// the MultiSpecies option of ENZO
 #define NAUNET_SPECIES 4
-// number of equations to be solved
-#define NAUNET_NSPECIES {{ nspec }}
-#define NAUNET_NEQUATIONS {{ neqns }}
+// the number of species in ENZO, including the fields which are not present
+// in the naunet header
+#define ENZO_NSPECIES {{ nspec }}
 
 
 {% for s in species -%}

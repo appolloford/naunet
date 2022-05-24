@@ -1951,7 +1951,7 @@ int ReadParameterFile(FILE *fptr, TopGridData &MetaData, float *Initialdt)
   case 2:  NSpecies = 8;  break;
   case 3:  NSpecies = 11; break;
 #ifdef USE_NAUNET
-  case NAUNET_SPECIES:  NSpecies = NAUNET_NSPECIES; break;
+  case NAUNET_SPECIES:  NSpecies = ENZO_NSPECIES; break;
 #endif
   default: NSpecies = 0;  break;
   }
