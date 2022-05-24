@@ -1,3 +1,5 @@
+#include <boost/numeric/ublas/io.hpp>
+#include <boost/numeric/ublas/lu.hpp>
 /* {% if header %} */
 #include "{{ header }}"
 /* {% else %} */
@@ -5,6 +7,7 @@
 /* {% endif %} */
 #include "naunet_macros.h"
 #include "naunet_ode.h"
+#include "naunet_physics.h"
 /* {% if "VB88Table" in physics.coshielding -%} */
 #include "naunet_constants.h"
 #include "naunet_utilities.h"
@@ -18,7 +21,7 @@ Naunet::~Naunet(){};
 
 int Naunet::Finalize() {
     fclose(errfp_);
-    return NAUNET_SUCCESS; 
+    return NAUNET_SUCCESS;
 };
 
 int Naunet::Init(int nsystem, double atol, double rtol, int mxsteps) {
@@ -57,7 +60,8 @@ int Naunet::Init(int nsystem, double atol, double rtol, int mxsteps) {
     // free_matrix(y, 1, 6, 1, 7);
     // free_matrix(y2, 1, 6, 1, 7);
 
-    // splie2(COShieldingTableX, COShieldingTableY, COShieldingTable, 6, 7, COShieldingTableD2);
+    // splie2(COShieldingTableX, COShieldingTableY, COShieldingTable, 6, 7,
+    // COShieldingTableD2);
 
     /* {% endif -%} */
 
@@ -65,12 +69,43 @@ int Naunet::Init(int nsystem, double atol, double rtol, int mxsteps) {
 };
 
 int Naunet::PrintDebugInfo() {
-
     printf("\nFinal Statistics:\n");
     printf("nst = %-6ld\n", step_);
 
     return NAUNET_SUCCESS;
 };
+
+#ifdef IDX_ELEM_H
+int Naunet::Renorm(double *ab) {
+    namespace ublas = boost::numeric::ublas;
+
+    vector_type rptr(NELEMENTS);
+    matrix_type A(NELEMENTS, NELEMENTS);
+    for (int i = 0; i < NELEMENTS; i++) {
+        rptr[i] = ab_ref_[i];
+    }
+    double Hnuclei = GetHNuclei(ab);
+
+    // clang-format off
+    {% for term in ode.renormmat -%}
+    {{ term | stmwrap(80, 8) }};
+    {% endfor %}
+
+    // clang-format on
+    ublas::permutation_matrix<size_t>
+        pm(A.size1());
+    lu_factorize(A, pm);
+    lu_substitute(A, pm, rptr);
+
+    // clang-format off
+    {% for factor in ode.renorm -%}
+    {{ factor }};
+    {% endfor %}
+
+    // clang-format on
+    return NAUNET_SUCCESS;
+};
+#endif
 
 int Naunet::Reset(int nsystem, double atol, double rtol, int mxsteps) {
     if (nsystem != 1) {
@@ -86,8 +121,24 @@ int Naunet::Reset(int nsystem, double atol, double rtol, int mxsteps) {
     return NAUNET_SUCCESS;
 };
 
-int Naunet::Solve(double *abund, double dt, NaunetData *data) {
+#ifdef IDX_ELEM_H
+int Naunet::SetReferenceAbund(double *ref, int opt) {
+    if (opt == 0) {
+        for (int i = 0; i < NELEMENTS; i++) {
+            ab_ref_[i] = ref[i] / ref[IDX_ELEM_H];
+        }
+    } else if (opt == 1) {
+        double Hnuclei = GetHNuclei(ref);
+        for (int i = 0; i < NELEMENTS; i++) {
+            ab_ref_[i] = GetElementAbund(ref, i) / Hnuclei;
+        }
+    }
 
+    return NAUNET_SUCCESS;
+};
+#endif
+
+int Naunet::Solve(double *abund, double dt, NaunetData *data) {
     int flag = NAUNET_SUCCESS;
 
     vector_type y(NEQUATIONS);
@@ -113,7 +164,7 @@ int Naunet::Solve(double *abund, double dt, NaunetData *data) {
         step_ = integrate_adaptive(
             make_controlled<rosenbrock4<double>>(atol_, rtol_),
             std::make_pair(Fex(data), Jac(data)), y, 0.0, dt, dt, observer);
-    } catch(const std::runtime_error& e) {
+    } catch (const std::runtime_error &e) {
         fprintf(errfp_, "%s\n", e.what());
 
         flag = NAUNET_FAIL;

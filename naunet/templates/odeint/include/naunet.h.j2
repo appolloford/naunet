@@ -2,6 +2,7 @@
 #define __NAUNET_H__
 
 #include <stdio.h>
+
 #include "naunet_data.h"
 #include "naunet_macros.h"
 
@@ -17,9 +18,23 @@ class Naunet {
     Naunet();
     ~Naunet();
     int Finalize();
-    int Init(int nsystem = MAX_NSYSTEMS, double atol = 1e-20, double rtol = 1e-5, int mxsteps = 500);
+    int Init(int nsystem = MAX_NSYSTEMS, double atol = 1e-20,
+             double rtol = 1e-5, int mxsteps = 500);
     int PrintDebugInfo();
-    int Reset(int nsystem = MAX_NSYSTEMS, double atol = 1e-20, double rtol = 1e-5, int mxsteps = 500);
+#ifdef IDX_ELEM_H
+    /* Renormalize the species abundances accroding to `ab_ref_`(private).
+       This conserves the element fractions but does not change the overall
+       density */
+    int Renorm(double *ab);
+#endif
+    int Reset(int nsystem = MAX_NSYSTEMS, double atol = 1e-20,
+              double rtol = 1e-5, int mxsteps = 500);
+#ifdef IDX_ELEM_H
+    /* Set the reference abundance `ab_ref_`. `opt == 0` assumes that the input
+       is element abundances. `opt == 1` assumes the input is species
+       abundances. */
+    int SetReferenceAbund(double *ref, int opt = 0);
+#endif
     int Solve(double *abund, double dt, NaunetData *data);
 #ifdef PYMODULE
     py::array_t<double> PyWrapSolve(py::array_t<double> arr, double dt,
@@ -33,7 +48,7 @@ class Naunet {
     double atol_;
     double rtol_;
     FILE *errfp_;
-
+    double ab_ref_[NELEMENTS];
 };
 
 #ifdef PYMODULE

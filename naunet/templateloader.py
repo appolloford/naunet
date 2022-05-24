@@ -427,7 +427,12 @@ class TemplateLoader:
         renormmat = []
         for iele, einame in enumerate(elenames):
             for jele, ejname in enumerate(elenames):
-                term = f"IJth(A, IDX_ELEM_{einame}, IDX_ELEM_{ejname}) = 0.0"
+                term = f"IDX_ELEM_{einame}, IDX_ELEM_{ejname}"
+                if self._solver == "cvode":
+                    term = f"IJth(A, {term}) = 0.0"
+                elif self._solver == "odeint":
+                    term = f"A({term}) = 0.0"
+
                 for ispec, spec in enumerate(species):
                     ci = spec.element_count.get(einame, 0)
                     cj = spec.element_count.get(ejname, 0)
