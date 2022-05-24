@@ -8,6 +8,9 @@
 ************************************************************************/
 // clang-format off
 #include "preincludes.h"
+#ifdef USE_NAUNET
+#include "naunet_enzo.h"
+#endif
 #include "macros_and_parameters.h"
 #include "typedefs.h"
 #include "global_data.h"
@@ -38,5 +41,25 @@ int grid::IdentifyNaunetSpeciesFields({{ arguments | stmwrap(80, 38) }})
 
     return SUCCESS;
 }
+
+int grid::IdentifyNaunetSpeciesFields(int *specnum)
+{
+
+    const field_type NauentFields[114] = {
+        {% for s in species -%}
+        {{ "Electron" if s.iselectron else s.alias }}Density{{ ",\n        " if not loop.last else "\n    " }}
+        {%- endfor -%}
+    };
+
+    for (int sidx = 0; sidx < NSPECIES; sidx ++) {
+        specnum[sidx] = FindField(NauentFields[sidx], FieldType, NumberOfBaryonFields);
+        if (specnum[sidx] < 0) {
+            ENZO_VFAIL("specnum[%" ISYM "]=%" ISYM "\n", sidx, specnum[sidx]);
+        }
+    }
+
+    return SUCCESS;
+}
+
 
 #endif

@@ -1829,6 +1829,8 @@ int TransferSubgridActiveParticles(grid* Subgrids[], int NumberOfSubgrids,
   /* Identify Multi-species fields from Naunet. */
   int IdentifyNaunetSpeciesFields({{ arguments | stmwrap(80, 32) }});
 
+  int IdentifyNaunetSpeciesFields(int *specnum);
+
   /* Identify shock fields. */
   int IdentifyShockSpeciesFields(int &MachNum,int &PSTempNum, int &PSDenNum);
 

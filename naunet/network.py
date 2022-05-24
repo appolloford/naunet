@@ -691,6 +691,18 @@ class Network:
         odemodifier: list[str] = None,
     ) -> TemplateLoader:
 
+        reactindices = [reac.idxfromfile for reac in self.reaction_list]
+        if all([idx == -1 for idx in reactindices]):
+            self.reindex()
+            logger.warning(
+                "Reactions have no index information, reindex with the joining order."
+            )
+        elif any([idx == -1 for idx in reactindices]) and ratemodifier:
+            logger.warning(
+                "Some reaction has not set index. The rate modifier will not work on them."
+            )
+        # TODO: repeat indices
+
         self._templateloader = TemplateLoader(
             self.info, solver, method, device, ratemodifier, odemodifier
         )

@@ -9,10 +9,6 @@
 #define NAUNET_NSPECIES {{ nspec }}
 #define NAUNET_NEQUATIONS {{ neqns }}
 
-{% for s in species -%}
-#define IDX_{{ s.alias }} {{ loop.index0 }}
-{% endfor %}
-
 
 {% for s in species -%}
 #define A_{{ s.alias }} {{ 1.0 if s.iselectron else s.massnumber }}
@@ -22,12 +18,6 @@
 const float A_Table[NSPECIES] = {
     {% for s in species -%}
     A_{{ s.alias }}{{ ",\n    " if not loop.last else "\n" }}
-    {%- endfor -%}
-};
-
-const field_type NauentFields[NSPECIES] = {
-    {% for s in species -%}
-    {{ "Electron" if s.iselectron else s.alias }}Density{{ ",\n    " if not loop.last else "\n" }}
     {%- endfor -%}
 };
 

@@ -308,6 +308,7 @@ class EnzoPatch:
             initial=initial,
             findfield=findfield,
             check=check,
+            species=self.netinfo.species,
         )
         with open(
             os.path.join(prefix, "Grid_IdentifyNaunetSpeciesFields.C"), "w"
