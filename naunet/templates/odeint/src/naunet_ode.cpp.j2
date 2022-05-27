@@ -1,20 +1,9 @@
 #include <math.h>
-/* {% if ode.header %} */
-#include "{{ ode.header }}"
-/* {% else %} */
-#include <boost/numeric/odeint.hpp>
 
-#include "naunet_data.h"
-/* {% endif %} */
 #include "naunet_constants.h"
 #include "naunet_macros.h"
+#include "naunet_ode.h"
 #include "naunet_physics.h"
-
-/* {% if ode.header %} */
-/* {% else %} */
-typedef boost::numeric::ublas::vector<double> vector_type;
-typedef boost::numeric::ublas::matrix<double> matrix_type;
-/* {% endif %} */
 
 /* {% set wrap = "\n        " -%} */
 /* {% set bclose = wrap + "}" -%} */
@@ -105,18 +94,19 @@ int EvalCoolingRates(double *kc, double *y, NaunetData *u_data) {
 
 Observer::Observer(int mxsteps) {
     mxsteps_ = mxsteps;
-    step_ = 0;
-    time_ = 0.0;
+    step_    = 0;
+    time_    = 0.0;
 };
 
 Observer::~Observer(){};
 
-void Observer::operator()( const vector_type &x , double t ) {
+void Observer::operator()(const vector_type &x, double t) {
     step_ += 1;
     time_ = t;
-    if( step_ > mxsteps_ ) {
+    if (step_ > mxsteps_) {
         char err[70];
-        sprintf(err, "mxstep steps taken before reaching tout. t=%13.7e", time_);
+        sprintf(err, "mxstep steps taken before reaching tout. t=%13.7e",
+                time_);
         throw std::runtime_error(err);
     }
 };
@@ -126,20 +116,16 @@ Fex::Fex(NaunetData *data) {
     *u_data = *data;
 };
 
-Fex& Fex::operator=(const Fex& rhs) {
+Fex &Fex::operator=(const Fex &rhs) {
     if (this != &rhs) {
         *u_data = *rhs.u_data;
     }
     return *this;
 }
 
-Fex::Fex(const Fex& rhs) {
-    u_data = new NaunetData(*(rhs.u_data));
-};
+Fex::Fex(const Fex &rhs) { u_data = new NaunetData(*(rhs.u_data)); };
 
-Fex::~Fex(){
-    delete u_data;
-};
+Fex::~Fex() { delete u_data; };
 
 void Fex::operator()(const vector_type &abund, vector_type &ydot, double t) {
     // clang-format off
@@ -160,8 +146,8 @@ void Fex::operator()(const vector_type &abund, vector_type &ydot, double t) {
 
     {% for v in variables.locvars -%}
         {{ v }};
-    {% endfor %}  
-    
+    {% endfor %}
+
     // clang-format on
 
     double k[NREACTIONS] = {0.0};
@@ -170,7 +156,7 @@ void Fex::operator()(const vector_type &abund, vector_type &ydot, double t) {
 #if NHEATPROCS
     double kh[NHEATPROCS] = {0.0};
     EvalHeatingRates(kh, y, u_data);
-#endif 
+#endif
 
 #if NCOOLPROCS
     double kc[NCOOLPROCS] = {0.0};
@@ -193,20 +179,16 @@ Jac::Jac(NaunetData *data) {
     *u_data = *data;
 };
 
-Jac& Jac::operator=(const Jac& rhs) {
+Jac &Jac::operator=(const Jac &rhs) {
     if (this != &rhs) {
         *u_data = *rhs.u_data;
     }
     return *this;
 }
 
-Jac::Jac(const Jac& rhs) {
-    u_data = new NaunetData(*(rhs.u_data));
-};
+Jac::Jac(const Jac &rhs) { u_data = new NaunetData(*(rhs.u_data)); };
 
-Jac::~Jac(){
-    delete u_data;
-};
+Jac::~Jac() { delete u_data; };
 
 void Jac::operator()(const vector_type &abund, matrix_type &j, const double &t,
                      vector_type &dfdt) {
@@ -234,7 +216,7 @@ void Jac::operator()(const vector_type &abund, matrix_type &j, const double &t,
 #if NHEATPROCS
     double kh[NHEATPROCS] = {0.0};
     EvalHeatingRates(kh, y, u_data);
-#endif 
+#endif
 
 #if NCOOLPROCS
     double kc[NCOOLPROCS] = {0.0};

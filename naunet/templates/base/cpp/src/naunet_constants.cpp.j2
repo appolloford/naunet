@@ -1,7 +1,5 @@
 // clang-format off
-{% if variables.header %}
-#include "{{ variables.header }}"
-{% endif %}
+#include "naunet_constants.h"
 
 {% if info.device == "gpu" %}
 __constant__ double pi              = 3.1415926;

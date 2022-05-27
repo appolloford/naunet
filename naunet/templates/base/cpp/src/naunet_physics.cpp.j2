@@ -5,8 +5,8 @@
 
 #include "naunet_constants.h"
 #include "naunet_macros.h"
+#include "naunet_physics.h"
 #include "naunet_utilities.h"
-#include "{{ physics.header }}"
 
 // clang-format off
 {% if info.device == "gpu" -%} __device__ __host__ {% endif -%}

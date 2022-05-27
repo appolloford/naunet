@@ -9,15 +9,9 @@
 #include <nvector/nvector_cuda.h>
 #include <sunmatrix/sunmatrix_cusparse.h>
 /* {% endif -%} */
-/* {% if ode.header %} */
-#include "{{ ode.header }}"
-/* {% else %} */
-#include <sundials/sundials_types.h>  // defs. of realtype, sunindextype
-
-#include "naunet_data.h"
-/* {% endif %} */
 #include "naunet_constants.h"
 #include "naunet_macros.h"
+#include "naunet_ode.h"
 #include "naunet_physics.h"
 
 #define IJth(A, i, j) SM_ELEMENT_D(A, i, j)
@@ -126,4 +120,3 @@ int EvalCoolingRates(realtype *kc, realtype *y, NaunetData *u_data) {
 
     return NAUNET_SUCCESS;
 }
-

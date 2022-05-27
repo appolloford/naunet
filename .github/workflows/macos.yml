@@ -112,7 +112,7 @@ jobs:
           cmake ../sundials-5.7.0 -DCMAKE_INSTALL_PREFIX=/usr/local/sundials \
               -DSUNDIALS_INDEX_SIZE=32 -DENABLE_KLU=ON \
               -DKLU_INCLUDE_DIR=$(brew --prefix suite-sparse)/include \
-              -DKLU_LIBRARY_DIR=$(brew --prefix suite-sparse)/lib
+              -DKLU_LIBRARY_DIR=$(brew --prefix suite-sparse)/lib \
               -DEXAMPLES_ENABLE_C=OFF -DEXAMPLES_INSTALL=OFF
           make -j4 && sudo make install
           # make a copy to home as a cache

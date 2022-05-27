@@ -21,15 +21,7 @@
 #include <sunlinsol/sunlinsol_dense.h>  // access to dense SUNLinearSolver
 #include <sunlinsol/sunlinsol_spgmr.h>  // access to SPGMR SUNLinearSolver
 /* {% endif -%} */
-/* {% if header %} */
-#include "{{ header }}"
-/* {% else %} */
-#include <sundials/sundials_linearsolver.h>
-#include <sundials/sundials_math.h>   // contains the macros ABS, SUNSQR, EXP
-#include <sundials/sundials_types.h>  // defs. of realtype, sunindextype
-
-#include "naunet_data.h"
-/* {% endif %} */
+#include "naunet.h"
 #include "naunet_ode.h"
 #include "naunet_physics.h"
 /* {% if "VB88Table" in physics.coshielding -%} */
