@@ -1,9 +1,9 @@
 # To use CUDA by enabling language
 cmake_minimum_required(VERSION 3.18)
 {% if info.device == "gpu" -%}
-project(NAUNET VERSION {{ version }} LANGUAGES CUDA CXX)
+project(NAUNET VERSION {{ info.version }} LANGUAGES CUDA CXX)
 {% else %}
-project(NAUNET VERSION {{ version }} LANGUAGES CXX)
+project(NAUNET VERSION {{ info.version }} LANGUAGES CXX)
 {% endif %}
 
 include(CMakePrintHelpers)

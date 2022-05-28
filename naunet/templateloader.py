@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass
+from importlib.metadata import version
 from pathlib import Path
 from tqdm import tqdm
 from jinja2 import Template, Environment, PackageLoader
@@ -50,6 +51,7 @@ class TemplateLoader:
 
         method: str
         device: str
+        version: str
 
     @dataclass
     class MacrosContent:
@@ -125,9 +127,10 @@ class TemplateLoader:
         self._env = Environment(loader=loader)
         self._env.globals.update(zip=zip)
         self._env.filters["stmwrap"] = _stmwrap
-        self._solver = solver
         self._env.trim_blocks = True
         self._env.rstrip_blocks = True
+
+        self._solver = solver
 
         self._ode_modifier = odemodifier.copy() if odemodifier else []
         self._rate_modifier = ratemodifier.copy() if ratemodifier else {}
@@ -165,7 +168,7 @@ class TemplateLoader:
         n_react = len(reactions)
         n_eqns = max(n_spec + has_thermal, 1)
 
-        self._info = self.InfoContent(method, device)
+        self._info = self.InfoContent(method, device, version("naunet"))
 
         nheating = len(heating) if heating else 0
         ncooling = len(cooling) if cooling else 0
@@ -468,28 +471,70 @@ class TemplateLoader:
         )
 
     def _render(
-        self, template: Template, prefix: str, name: str, save: bool, *args, **kwargs
+        self,
+        template: Template,
+        save: bool = True,
+        path: Path | str = None,
     ) -> None:
 
-        # template = self.env.get_template(os.path.join(template_prefix, template_file))
+        result = template.render(
+            info=self._info,
+            macros=self._macros,
+            physics=self._physics,
+            variables=self._variables,
+            ode=self._ode,
+        )
+        name = template.name.replace(".j2", "")
+        name = name.replace(f"{self._solver}/", "")
         if save:
-            template.stream(**kwargs).dump(os.path.join(prefix, name))
+            path = Path(path)
+            headerpath = path / "include"
+            sourcepath = path / "src"
 
+            for p in [path, headerpath, sourcepath]:
+                if not p.exists():
+                    p.mkdir(parents=True)
+
+            print(path / name)
+            with open(path / name, "w") as outf:
+                outf.write(result)
         else:
-            result = template.render(**kwargs)
             print(result)
 
-    def render(self, prefix="./source", save=True):
+    def render(
+        self,
+        templates: list[str] = None,
+        save: bool = True,
+        path: Path | str = None,
+    ) -> None:
 
-        Path(prefix).mkdir(parents=True, exist_ok=True)
+        templates = templates or self.templates
+        solver = self._solver
 
-        self.render_constants(prefix=prefix, save=save)
-        self.render_macros(prefix=prefix, save=save)
-        self.render_data(prefix=prefix, save=save)
-        self.render_ode(prefix=prefix, save=save)
-        self.render_physics(prefix=prefix, save=save)
-        self.render_naunet(prefix=prefix, save=save)
-        self.render_utilities(prefix=prefix, save=save)
+        for tmplname in templates:
+            tmpl = self._env.get_template(f"{solver}/{tmplname}")
+            self._render(tmpl, save, path)
+
+    @property
+    def templates(self):
+        solver = self._solver
+        return [
+            tmpl.replace(f"{solver}/", "")
+            for tmpl in self._env.list_templates()
+            if tmpl.startswith(solver)
+        ]
+
+    # def render(self, prefix="./source", save=True):
+
+    #     Path(prefix).mkdir(parents=True, exist_ok=True)
+
+    #     self.render_constants(prefix=prefix, save=save)
+    #     self.render_macros(prefix=prefix, save=save)
+    #     self.render_data(prefix=prefix, save=save)
+    #     self.render_ode(prefix=prefix, save=save)
+    #     self.render_physics(prefix=prefix, save=save)
+    #     self.render_naunet(prefix=prefix, save=save)
+    #     self.render_utilities(prefix=prefix, save=save)
 
     # This function should not be used outside console commands
     def render_cmake(self, prefix: str = "./", version: str = None) -> None:
@@ -588,7 +633,6 @@ class TemplateLoader:
             name,
             save,
             info=self._info,
-            header=headername,
             macros=self._macros,
             physics=self._physics,
             variables=self._variables,
