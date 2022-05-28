@@ -10,7 +10,6 @@ import shutil
 
 import tomlkit
 
-from importlib.metadata import version
 from tomlkit.toml_file import TOMLFile
 
 from .command import Command
@@ -31,8 +30,6 @@ class RenderCommand(Command):
         super(RenderCommand, self).__init__()
 
     def handle(self):
-
-        ver = version("naunet")
 
         config = TOMLFile("naunet_config.toml")
 
@@ -138,18 +135,9 @@ class RenderCommand(Command):
             odemodifier=ode_modifier,
         )
 
-        tl.render_constants(prefix=source_prefix, headerprefix=header_prefix)
-        tl.render_macros(prefix=header_prefix)
-        tl.render_naunet(prefix=source_prefix, headerprefix=header_prefix)
-        tl.render_ode(prefix=source_prefix, headerprefix=header_prefix)
-        tl.render_physics(prefix=source_prefix, headerprefix=header_prefix)
-        tl.render_utilities(prefix=source_prefix, headerprefix=header_prefix)
-        tl.render_data(prefix=header_prefix)
-        tl.render_cmake(prefix=Path.cwd(), version=ver)
+        tl.render(path=Path.cwd())
 
         pkgpath = Path(naunet.__file__).parent
-        timerfile = pkgpath / "templates/base/cpp/include/naunet_timer.h"
-        shutil.copyfile(timerfile, header_prefix / "naunet_timer.h")
 
         demo = Path.cwd() / "demo.ipynb"
         if not demo.exists():

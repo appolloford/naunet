@@ -603,24 +603,10 @@ class Network:
             else:
                 os.mkdir(subprefix)
 
-        header_prefix = prefix / "include"
-        source_prefix = prefix / "src"
-        test_prefix = prefix / "tests"
-
-        tl.render_constants(prefix=source_prefix, headerprefix=header_prefix)
-        tl.render_macros(prefix=header_prefix)
-        tl.render_naunet(prefix=source_prefix, headerprefix=header_prefix)
-        tl.render_ode(prefix=source_prefix, headerprefix=header_prefix)
-        tl.render_physics(prefix=source_prefix, headerprefix=header_prefix)
-        tl.render_utilities(prefix=source_prefix, headerprefix=header_prefix)
-        tl.render_data(prefix=header_prefix)
-        tl.render_tests(prefix=test_prefix)
-        tl.render_cmake(prefix=prefix, version=version("naunet"))
+        tl.render(path=prefix)
+        tl.render_tests(path=prefix)
 
         pkgpath = Path(__file__).parent
-        incfile = pkgpath / "templates/base/cpp/include/naunet_timer.h"
-        dest = header_prefix / "naunet_timer.h"
-        shutil.copyfile(incfile, dest)
 
         demo = prefix / "demo.ipynb"
         if not demo.exists():
@@ -719,7 +705,7 @@ class Network:
     ):
 
         tl = self.templateloader(solver, method, device, ratemodifier, odemodifier)
-        tl.render(prefix=prefix, save=True)
+        tl.render(path=prefix, save=True)
 
     def write(self, filename: str | Path, format: str = "") -> None:
 

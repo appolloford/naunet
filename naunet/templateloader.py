@@ -486,6 +486,12 @@ class TemplateLoader:
         )
         name = template.name.replace(".j2", "")
         name = name.replace(f"{self._solver}/", "")
+
+        cuda_support = ["constants", "fex", "jac", "physics", "rates"]
+        for substr in cuda_support:
+            if substr in name and self._info.device == "gpu":
+                name = name.replace("cpp", "cu")
+
         if save:
             path = Path(path)
             headerpath = path / "include"
@@ -524,271 +530,19 @@ class TemplateLoader:
             if tmpl.startswith(solver)
         ]
 
-    # def render(self, prefix="./source", save=True):
-
-    #     Path(prefix).mkdir(parents=True, exist_ok=True)
-
-    #     self.render_constants(prefix=prefix, save=save)
-    #     self.render_macros(prefix=prefix, save=save)
-    #     self.render_data(prefix=prefix, save=save)
-    #     self.render_ode(prefix=prefix, save=save)
-    #     self.render_physics(prefix=prefix, save=save)
-    #     self.render_naunet(prefix=prefix, save=save)
-    #     self.render_utilities(prefix=prefix, save=save)
-
-    # This function should not be used outside console commands
-    def render_cmake(self, prefix: str = "./", version: str = None) -> None:
-
-        template_names = [
-            "CMakeLists.txt.j2",
-            "src/CMakeLists.txt.j2",
-        ]
-        for name in template_names:
-            tname = os.path.join(self._solver, name)
-            template = self._env.get_template(tname)
-            target = name.replace(".j2", "")
-            self._render(
-                template,
-                prefix,
-                name=target,
-                save=True,
-                info=self._info,
-                version=version,
-            )
-
-    def render_constants(
-        self,
-        prefix: str = "./",
-        name: str = None,
-        save: bool = True,
-        headerprefix: str = None,
-    ) -> None:
-
-        if save:
-            suffix = "cu" if self._info.device == "gpu" else "cpp"
-            name = name if name else f"naunet_constants.{suffix}"
-            headerprefix = headerprefix if headerprefix else prefix
-
-        headername = "naunet_constants.h"
-        tname = "base/cpp/include/naunet_constants.h.j2"
-        template = self._env.get_template(tname)
-        self._render(
-            template,
-            headerprefix,
-            headername,
-            save,
-            variables=self._variables,
-            info=self._info,
-            physics=self._physics,
-        )
-
-        tname = "base/cpp/src/naunet_constants.cpp.j2"
-        template = self._env.get_template(tname)
-        self._render(
-            template,
-            prefix,
-            name,
-            save,
-            variables=self._variables,
-            info=self._info,
-            physics=self._physics,
-        )
-
-    def render_macros(self, prefix: str = "./", save: bool = True) -> None:
-
-        name = "naunet_macros.h"
-        tname = "base/cpp/include/naunet_macros.h.j2"
-        template = self._env.get_template(tname)
-        self._render(template, prefix, name, save, macros=self._macros, info=self._info)
-
-    def render_naunet(
-        self,
-        prefix: str = "./",
-        name: str = None,
-        save: bool = True,
-        headerprefix: str = None,
-    ):
-
-        if save:
-            name = name if name else "naunet.cpp"
-            headerprefix = headerprefix if headerprefix else prefix
-
-        headername = "naunet.h"
-        tname = os.path.join(self._solver, "include/naunet.h.j2")
-        template = self._env.get_template(tname)
-        self._render(
-            template,
-            headerprefix,
-            headername,
-            save,
-            info=self._info,
-            variables=self._variables,
-        )
-
-        tname = os.path.join(self._solver, "src/naunet.cpp.j2")
-        template = self._env.get_template(tname)
-        self._render(
-            template,
-            prefix,
-            name,
-            save,
-            info=self._info,
-            macros=self._macros,
-            physics=self._physics,
-            variables=self._variables,
-            ode=self._ode,
-        )
-
-    def render_ode(
-        self,
-        prefix: str = "./",
-        name: str = None,
-        save: bool = True,
-        headerprefix: str = None,
-    ) -> None:
-
-        if save:
-            suffix = "cu" if self._info.device == "gpu" else "cpp"
-            name = name if name else f"naunet_ode.{suffix}"
-            headerprefix = headerprefix if headerprefix else prefix
-
-        headername = "naunet_ode.h"
-        tname = os.path.join(self._solver, "include/naunet_ode.h.j2")
-        template = self._env.get_template(tname)
-        self._render(
-            template,
-            headerprefix,
-            headername,
-            save,
-            ode=self._ode,
-            info=self._info,
-        )
-
-        if self._solver == "cvode":
-            tname = os.path.join(self._solver, "src/naunet_rates.cpp.j2")
-            template = self._env.get_template(tname)
-            self._render(
-                template,
-                prefix,
-                f"naunet_rates.{suffix}",
-                save,
-                ode=self._ode,
-                info=self._info,
-                variables=self._variables,
-            )
-            tname = os.path.join(self._solver, "src/naunet_fex.cpp.j2")
-            template = self._env.get_template(tname)
-            self._render(
-                template,
-                prefix,
-                f"naunet_fex.{suffix}",
-                save,
-                ode=self._ode,
-                info=self._info,
-                variables=self._variables,
-            )
-            tname = os.path.join(self._solver, "src/naunet_jac.cpp.j2")
-            template = self._env.get_template(tname)
-            self._render(
-                template,
-                prefix,
-                f"naunet_jac.{suffix}",
-                save,
-                ode=self._ode,
-                info=self._info,
-                variables=self._variables,
-            )
-
-        else:
-            tname = os.path.join(self._solver, "src/naunet_ode.cpp.j2")
-            template = self._env.get_template(tname)
-            self._render(
-                template,
-                prefix,
-                name,
-                save,
-                ode=self._ode,
-                info=self._info,
-                variables=self._variables,
-            )
-
-    def render_physics(
-        self,
-        prefix: str = "./",
-        name: str = None,
-        save: bool = True,
-        headerprefix: str = None,
-    ):
-
-        if save:
-            suffix = "cu" if self._info.device == "gpu" else "cpp"
-            name = name if name else f"naunet_physics.{suffix}"
-            headerprefix = headerprefix if headerprefix else prefix
-
-        headername = "naunet_physics.h"
-        tname = "base/cpp/include/naunet_physics.h.j2"
-        template = self._env.get_template(tname)
-        self._render(
-            template,
-            headerprefix,
-            headername,
-            save,
-            physics=self._physics,
-            info=self._info,
-        )
-
-        tname = "base/cpp/src/naunet_physics.cpp.j2"
-        template = self._env.get_template(tname)
-        self._render(
-            template,
-            prefix,
-            name,
-            save,
-            physics=self._physics,
-            info=self._info,
-            macros=self._macros,
-        )
-
-    def render_data(self, prefix: str = "./", save: bool = True) -> None:
-
-        name = "naunet_data.h"
-        tname = "base/cpp/include/naunet_data.h.j2"
-        template = self._env.get_template(tname)
-        self._render(template, prefix, name, save, variables=self._variables)
-
     def render_jac_pattern(self, prefix: str = "./") -> None:
 
         with open(f"{prefix}/jac_pattern.dat", "w") as outf:
             outf.write(self._ode.jacpattern)
 
-    def render_tests(self, prefix) -> None:
+    def render_tests(self, path: Path | str) -> None:
+
+        path = Path(path)
 
         testpkgpath = f"templates/base/cpp/tests"
         testenv = Environment(loader=PackageLoader("naunet", testpkgpath))
         tmplnamelist = testenv.list_templates()
 
         for tmplname in tmplnamelist:
-            tmpl = self._env.get_template(f"base/cpp/tests/{tmplname}")
-            name = tmplname.replace(".j2", "")
-            self._render(tmpl, prefix, name, True)
-
-    def render_utilities(
-        self,
-        prefix: str = "./",
-        name: str = None,
-        save: bool = True,
-        headerprefix: str = None,
-    ):
-
-        if save:
-            name = name if name else f"naunet_utilities.cpp"
-            headerprefix = headerprefix if headerprefix else prefix
-
-        headername = "naunet_utilities.h"
-        tname = "base/cpp/include/naunet_utilities.h.j2"
-        template = self._env.get_template(tname)
-        self._render(template, headerprefix, headername, save)
-
-        tname = "base/cpp/src/naunet_utilities.cpp.j2"
-        template = self._env.get_template(tname)
-        self._render(template, prefix, name, save)
+            tmpl = testenv.get_template(tmplname)
+            self._render(tmpl, True, path / "tests")
