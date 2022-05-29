@@ -19,7 +19,7 @@ jobs:
     strategy:
       matrix:
         os: [macos-latest]
-        python: [3.8]
+        python: ["3.8", "3.9", "3.10"]
 
     runs-on: ${{ matrix.os }}
 
@@ -31,27 +31,25 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
 
-      - uses: Gr1N/setup-poetry@v4
+      - uses: Gr1N/setup-poetry@v7
 
       - uses: actions/cache@v2
         with:
           path: ~/.cache/pypoetry/virtualenvs
           key: ${{ matrix.os }}-python${{ matrix.python }}-poetry-${{ hashFiles('poetry.lock') }}
 
-      - run: poetry --version
-
-      - name: Install package dependencies
-        run: poetry install
-
       - name: Pytest
-        run: poetry run pytest -rs -o log_cli=true -o log_cli_level=DEBUG --runslow tests
+        run: |
+          poetry --version 
+          poetry install
+          poetry run pytest -rs -o log_cli=true -o log_cli_level=DEBUG --runslow tests
 
-      - name: Install package
-        run: pip install .
+      # `poetry shell` doesn't work
+      - name: Test venv
+        run: |
+          source $(poetry env info --path)/bin/activate
+          naunet --version
 
-      - name: Check package installed
-        run: naunet --version
-        
   build:
     needs: install
     
@@ -67,26 +65,6 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
-
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: 3.8
-
-      - name: Cache Python packages
-        uses: actions/cache@v2
-        with:
-          path: ~/.cache/pip
-          key: ${{ matrix.os }}-pip-${{ hashFiles('poetry.lock') }}
-
-      - name: Install package
-        run: pip install .
-
-      - name: Install packages for testing
-        run: pip install numpy
-
-      - name: Create naunet examples
-        run: source ./scripts/actions/create_examples.sh
 
       - name: Install BLAS & LAPACK
         run: brew install openblas lapack
@@ -118,8 +96,35 @@ jobs:
           # make a copy to home as a cache
           sudo cp -r /usr/local/sundials $HOME/sundials
 
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+
+      - name: Set up poetry
+        uses: Gr1N/setup-poetry@v7
+
+      - uses: actions/cache@v2
+        with:
+          path: ~/.cache/pypoetry/virtualenvs
+          key: ${{ matrix.os }}-python${{ matrix.python }}-poetry-${{ hashFiles('poetry.lock') }}
+
+      - name: Install
+        run: |
+          poetry --version 
+          poetry install
+
+      - name: Create naunet examples
+        run: |
+          source $(poetry env info --path)/bin/activate
+          source ./scripts/actions/create_examples.sh
+
       - name: Build naunet examples
-        run: source ./scripts/actions/build_examples.sh
+        run: |
+          source $(poetry env info --path)/bin/activate
+          source ./scripts/actions/build_examples.sh
 
       - name: Test naunet examples
-        run: source ./scripts/actions/test_examples.sh
+        run: |
+          source $(poetry env info --path)/bin/activate
+          source ./scripts/actions/test_examples.sh
