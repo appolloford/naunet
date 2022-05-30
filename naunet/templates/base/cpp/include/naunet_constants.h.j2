@@ -3,7 +3,7 @@
 #define __NAUNET_CONSTANTS_H__
 // clang-format off
 
-{% if info.device == "gpu" %}
+{% if general.device == "gpu" %}
 extern __constant__ double pi;
 
 // atomic mass unit (g)
@@ -30,18 +30,18 @@ extern __constant__ double echarge;
 // Boltzmann constant (erg/K)
 extern __constant__ double kerg;
 
-{% for c in variables.consts.keys() %}
+{% for c in network.consts.keys() %}
 extern __constant__ double {{ c }};
 {% endfor %}
 
-{% if physics.h2shielding == "L96Table" %}
+{% if network.shielding.get("H2") == "L96Table" %}
 // H2 column density
 extern __device__ double H2ShieldingTableX[105];
 // H2 shielding factor
 extern __device__ double H2ShieldingTable[105];
 {% endif %}
 
-{% if physics.coshielding == "V09Table" %}
+{% if network.shielding.get("CO") == "V09Table" %}
 // Excitation temperature
 extern __device__ double COShieldingTableX[5];
 // H2 column density
@@ -52,7 +52,7 @@ extern __device__ double COShieldingTableZ[46];
 extern __device__ double COShieldingTable[5][41][46];
 {% endif %}
 
-{% if physics.n2shielding == "L13Table" %}
+{% if network.shielding.get("N2") == "L13Table" %}
 // Excitation temperature
 extern __device__ double N2ShieldingTableX[5];
 // H2 column density
@@ -90,18 +90,18 @@ extern const double echarge;
 // Boltzmann constant (erg/K)
 extern const double kerg;
 
-{% for c in variables.consts.keys() %}
+{% for c in network.consts.keys() %}
 extern const double {{ c }};
 {% endfor %}
 
-{% if physics.h2shielding == "L96Table" %}
+{% if network.shielding.get("H2") == "L96Table" %}
 // H2 column density
 extern const double H2ShieldingTableX[105];
 // shielding factor (theta)
 extern const double H2ShieldingTable[105];
 {% endif %}
 
-{% if physics.coshielding == "V09Table" %}
+{% if network.shielding.get("CO") == "V09Table" %}
 // Excitation temperature
 extern const double COShieldingTableX[5];
 // H2 column density
@@ -110,7 +110,7 @@ extern const double COShieldingTableY[41];
 extern const double COShieldingTableZ[46];
 // CO shielding factor
 extern const double COShieldingTable[5][41][46];
-{% elif physics.coshielding == "VB88Table" %}
+{% elif network.shielding.get("CO") == "VB88Table" %}
 // van Dishoeck & Black (1988)
 // H2 column density
 extern const double COShieldingTableX[6];
@@ -122,7 +122,7 @@ extern const double COShieldingTable[6][7];
 // extern double COShieldingTableD2[6][7];
 {% endif %}
 
-{% if physics.n2shielding == "L13Table" %}
+{% if network.shielding.get("N2") == "L13Table" %}
 // Excitation temperature
 extern const double N2ShieldingTableX[5];
 // H2 column density

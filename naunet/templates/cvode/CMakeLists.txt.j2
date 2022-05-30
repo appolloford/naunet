@@ -1,10 +1,7 @@
 # To use CUDA by enabling language
 cmake_minimum_required(VERSION 3.18)
-{% if info.device == "gpu" -%}
-project(NAUNET VERSION {{ info.version }} LANGUAGES CUDA CXX)
-{% else %}
-project(NAUNET VERSION {{ info.version }} LANGUAGES CXX)
-{% endif %}
+{% set lang = "CUDA CXX" if general.device == "gpu" else "CXX" %}
+project(NAUNET VERSION {{ general.version }} LANGUAGES {{ lang }})
 
 include(CMakePrintHelpers)
 
@@ -34,12 +31,12 @@ message(STATUS "SUNDIALS_FOUND             = ${SUNDIALS_FOUND}")
 
 list(APPEND SUNDIALSLIB
     SUNDIALS::cvode
-    {% if info.method == "dense" -%}
+    {% if general.method == "dense" -%}
     SUNDIALS::nvecserial
-    {% elif info.method == "sparse" -%}
+    {% elif general.method == "sparse" -%}
     SUNDIALS::sunlinsolklu
     SUNDIALS::sunmatrixsparse
-    {% elif info.method == "cusparse" -%}
+    {% elif general.method == "cusparse" -%}
     SUNDIALS::nveccuda
     SUNDIALS::sunmatrixcusparse
     SUNDIALS::sunlinsolcusolversp
@@ -58,7 +55,7 @@ list(APPEND SUNDIALSLIB
 
 set(NVIDIA_GPU_COUNT 0)
 
-{% if info.device == "gpu" -%}
+{% if general.device == "gpu" -%}
 # check the available GPUs if using GPU solver
 find_program(_nvidia_smi NAMES nvidia-smi)
 if (_nvidia_smi)

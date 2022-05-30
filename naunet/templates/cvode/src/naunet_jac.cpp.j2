@@ -1,11 +1,11 @@
 #include <math.h>
-/* {% if info.method == "dense" -%} */
+/* {% if general.method == "dense" -%} */
 #include <nvector/nvector_serial.h>
 #include <sunmatrix/sunmatrix_dense.h>  // access to dense SUNMatrix
-/* {% elif info.method == "sparse" -%} */
+/* {% elif general.method == "sparse" -%} */
 #include <nvector/nvector_serial.h>
 #include <sunmatrix/sunmatrix_sparse.h>  // access to sparse SUNMatrix
-/* {% elif info.method == "cusparse" -%} */
+/* {% elif general.method == "cusparse" -%} */
 #include <nvector/nvector_cuda.h>
 #include <sunmatrix/sunmatrix_cusparse.h>
 /* {% endif -%} */
@@ -22,7 +22,7 @@
 #define NVEC_CUDA_GRIDSIZE(x, n) \
     (NVEC_CUDA_CONTENT(x)->stream_exec_policy->gridSize(n))
 
-/* {% if info.method == "cusparse" -%} */
+/* {% if general.method == "cusparse" -%} */
 int InitJac(SUNMatrix jmatrix) {
     // Zero out the Jacobian
     SUNMatZero(jmatrix);
@@ -60,7 +60,7 @@ __global__ void JacKernel(realtype *y, realtype *data, NaunetData *d_udata,
         NaunetData *udata      = &d_udata[cur];
 
         // clang-format off
-        {% for v in variables.varis.keys() -%}
+        {% for v in network.varis.keys() -%}
             realtype {{ v }} = udata->{{ v }};
         {% endfor %}
         
@@ -94,11 +94,11 @@ __global__ void JacKernel(realtype *y, realtype *data, NaunetData *d_udata,
 
 int Jac(realtype t, N_Vector u, N_Vector fu, SUNMatrix jmatrix, void *user_data,
         N_Vector tmp1, N_Vector tmp2, N_Vector tmp3) {
-    /* {% if info.method == "dense" -%} */
+    /* {% if general.method == "dense" -%} */
     realtype *y            = N_VGetArrayPointer(u);
     NaunetData *u_data     = (NaunetData *)user_data;
     // clang-format off
-    {% for v in variables.varis.keys() -%}
+    {% for v in network.varis.keys() -%}
         realtype {{ v }} = u_data->{{ v }};
     {% endfor %}
     
@@ -129,7 +129,7 @@ int Jac(realtype t, N_Vector u, N_Vector fu, SUNMatrix jmatrix, void *user_data,
         {{ eq | stmwrap(80, 8) }}
     {% endfor %}  // clang-format on
 
-    /* {% elif info.method == "sparse" -%} */
+    /* {% elif general.method == "sparse" -%} */
     realtype *y            = N_VGetArrayPointer(u);
     sunindextype *rowptrs  = SUNSparseMatrix_IndexPointers(jmatrix);
     sunindextype *colvals  = SUNSparseMatrix_IndexValues(jmatrix);
@@ -137,7 +137,7 @@ int Jac(realtype t, N_Vector u, N_Vector fu, SUNMatrix jmatrix, void *user_data,
     NaunetData *u_data     = (NaunetData *)user_data;
 
     // clang-format off
-    {% for v in variables.varis.keys() -%}
+    {% for v in network.varis.keys() -%}
         realtype {{ v }} = u_data->{{ v }};
     {% endfor %}
     
@@ -179,7 +179,7 @@ int Jac(realtype t, N_Vector u, N_Vector fu, SUNMatrix jmatrix, void *user_data,
 
     // clang-format on
 
-    /* {% elif info.method == "cusparse" -%} */
+    /* {% elif general.method == "cusparse" -%} */
 
     cudaStream_t stream = *(NVEC_CUDA_STREAM(u));
 

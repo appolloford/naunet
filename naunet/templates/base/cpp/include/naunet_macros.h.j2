@@ -6,7 +6,7 @@
 #define NAUNET_SUCCESS 0
 #define NAUNET_FAIL 1
 
-{% if info.method == "cusparse" -%}
+{% if general.method == "cusparse" -%}
 #define USE_CUDA
 #define MAX_NSYSTEMS 4096
 #define NSTREAMS 1 // looks no benefit to use multiple streams
@@ -16,26 +16,26 @@
 #define MAX_NSYSTEMS 1
 {% endif %}
 
-#define NELEMENTS {{ macros.elemcidx | length }}
-#define NSPECIES {{ macros.speccidx | length }}
-#define NHEATPROCS {{ macros.nheating }}
-#define NCOOLPROCS {{ macros.ncooling }}
+#define NELEMENTS {{ network.elements | length }}
+#define NSPECIES {{ network.species | length }}
+#define NHEATPROCS {{ network.heating | length }}
+#define NCOOLPROCS {{ network.cooling | length }}
 #define THERMAL (NHEATPROCS || NCOOLPROCS)
 #if (NSPECIES + THERMAL)
 #define NEQUATIONS (NSPECIES + THERMAL)
 #else
 #define NEQUATIONS 1
 #endif
-#define NREACTIONS {{ macros.nreact }}
+#define NREACTIONS {{ network.reactions | length }}
 // non-zero terms in jacobian matrix, used in sparse matrix
-#define NNZ {{ macros.nnz }}
+#define NNZ {{ ode.nnz }}
 
-{% for idx in macros.elemcidx %}
-#define {{ idx }} {{ loop.index0 }}
+{% for spec in network.elements %}
+#define IDX_ELEM_{{ spec.element_count.keys() | first }} {{ loop.index0 }}
 {% endfor %}
 
-{% for idx in macros.speccidx %}
-#define {{ idx }} {{ loop.index0 }}
+{% for spec in network.species %}
+#define IDX_{{ spec.alias }} {{ loop.index0 }}
 {% endfor %}
 
 #if THERMAL

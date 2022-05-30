@@ -1,21 +1,21 @@
 #include <cvode/cvode.h>  // prototypes for CVODE fcts., consts.
-/* {% if info.method == "dense" -%} */
+/* {% if general.method == "dense" -%} */
 #include <nvector/nvector_serial.h>     // access to serial N_Vector
 #include <sundials/sundials_dense.h>    // use generic dense solver in precond
 #include <sunlinsol/sunlinsol_dense.h>  // access to dense SUNLinearSolver
 #include <sunmatrix/sunmatrix_dense.h>  // access to dense SUNMatrix
-/* {% elif info.method == "sparse" -%} */
+/* {% elif general.method == "sparse" -%} */
 #include <nvector/nvector_serial.h>      // access to serial N_Vector
 #include <sunlinsol/sunlinsol_dense.h>   // access to dense SUNLinearSolver
 #include <sunlinsol/sunlinsol_klu.h>     // access to KLU sparse direct solver
 #include <sunmatrix/sunmatrix_sparse.h>  // access to sparse SUNMatrix
-/* {% elif info.method == "cusparse" -%} */
+/* {% elif general.method == "cusparse" -%} */
 #include <nvector/nvector_cuda.h>
 #include <nvector/nvector_serial.h>  // access to serial N_Vector
 #include <sunlinsol/sunlinsol_cusolversp_batchqr.h>
 #include <sunlinsol/sunlinsol_dense.h>  // access to dense SUNLinearSolver
 #include <sunmatrix/sunmatrix_cusparse.h>
-/* {% elif info.method == "spgmr" -%} */
+/* {% elif general.method == "spgmr" -%} */
 #include <cvode/cvode_spils.h>          // access to CVSpils interface
 #include <nvector/nvector_serial.h>     // access to serial N_Vector
 #include <sunlinsol/sunlinsol_dense.h>  // access to dense SUNLinearSolver
@@ -24,7 +24,7 @@
 #include "naunet.h"
 #include "naunet_ode.h"
 #include "naunet_physics.h"
-/* {% if "VB88Table" in physics.coshielding -%} */
+/* {% if network.shielding.get("CO") == "VB88Table" -%} */
 #include "naunet_constants.h"
 #include "naunet_utilities.h"
 /* {% endif -%} */
@@ -76,7 +76,7 @@ int Naunet::CheckFlag(void *flagvalue, const char *funcname, int opt,
 };
 
 int Naunet::Finalize() {
-    /* {% if info.method == "dense" or info.method == "sparse" -%} */
+    /* {% if general.method == "dense" or general.method == "sparse" -%} */
 
     N_VDestroy(cv_y_);
     // N_VFreeEmpty(cv_y_);
@@ -84,7 +84,7 @@ int Naunet::Finalize() {
     SUNLinSolFree(cv_ls_);
     // delete m_data;
 
-    /* {% elif info.method == "cusparse" -%} */
+    /* {% elif general.method == "cusparse" -%} */
     for (int i = 0; i < n_stream_in_use_; i++) {
         // N_VDestroy(cv_y_[i]);
         N_VFreeEmpty(cv_y_[i]);
@@ -169,7 +169,7 @@ int Naunet::HandleError(int cvflag, realtype *ab, realtype dt, realtype t0) {
     fprintf(errfp_, "CVode failed in Naunet! Flag = %d\n", cvflag);
     fprintf(errfp_, "Calling HandleError to fix the problem\n");
 
-    /* {% if info.method == "dense" or info.method == "sparse" -%} */
+    /* {% if general.method == "dense" or general.method == "sparse" -%} */
 
     realtype dt_init = dt;
 
@@ -242,7 +242,7 @@ int Naunet::HandleError(int cvflag, realtype *ab, realtype dt, realtype t0) {
         }
     }
 
-    /* {% elif info.method == "cusparse" -%} */
+    /* {% elif general.method == "cusparse" -%} */
 
     // TODO: No error handling for cusparse solver yet
 
@@ -258,7 +258,7 @@ int Naunet::Init(int nsystem, double atol, double rtol, int mxsteps) {
     rtol_     = rtol;
     errfp_    = fopen("naunet_error_record.txt", "a");
 
-    /* {% if info.method == "dense" -%} */
+    /* {% if general.method == "dense" -%} */
     if (nsystem != 1) {
         printf("This solver doesn't support nsystem > 1!");
         return NAUNET_FAIL;
@@ -268,7 +268,7 @@ int Naunet::Init(int nsystem, double atol, double rtol, int mxsteps) {
     cv_a_  = SUNDenseMatrix(NEQUATIONS, NEQUATIONS);
     cv_ls_ = SUNLinSol_Dense(cv_y_, cv_a_);
 
-    /* {% elif info.method == "sparse" -%} */
+    /* {% elif general.method == "sparse" -%} */
     if (nsystem != 1) {
         printf("This solver doesn't support nsystem > 1!");
         return NAUNET_FAIL;
@@ -278,7 +278,7 @@ int Naunet::Init(int nsystem, double atol, double rtol, int mxsteps) {
     cv_a_  = SUNSparseMatrix(NEQUATIONS, NEQUATIONS, NNZ, CSR_MAT);
     cv_ls_ = SUNLinSol_KLU(cv_y_, cv_a_);
 
-    /* {% elif info.method == "cusparse" -%} */
+    /* {% elif general.method == "cusparse" -%} */
 
     // if (nsystem < NSTREAMS ||  nsystem % NSTREAMS != 0) {
     //     printf("Invalid size of system!");
@@ -329,7 +329,7 @@ int Naunet::Init(int nsystem, double atol, double rtol, int mxsteps) {
         InitJac(cv_a_[i]);
     }
 
-    /* {% elif info.method == "spgmr" -%} */
+    /* {% elif general.method == "spgmr" -%} */
     // TODO: Try GMRES solvers
     // cv_ls_ = SUNLinSol_SPGMR(cv_y_, 0, 0);
     // if (CheckFlag((void *)cv_ls_, "SUNLinSol_SPGMR", 0, errfp_) ==
@@ -349,19 +349,19 @@ int Naunet::Init(int nsystem, double atol, double rtol, int mxsteps) {
     /* {% endif %} */
 
     // reset the n_vector to empty, maybe not necessary
-    /* {% if info.method == "dense" or info.method == "sparse" -%} */
+    /* {% if general.method == "dense" or general.method == "sparse" -%} */
 
     // N_VDestroy(cv_y_);
     // cv_y_ = N_VNewEmpty_Serial((sunindextype)NEQUATIONS);
 
-    /* {% elif info.method == "cusparse" -%} */
+    /* {% elif general.method == "cusparse" -%} */
 
     // N_VDestroy(cv_y_);
     // cv_y_ = N_VNewEmpty_Cuda();
 
     /* {% endif -%} */
 
-    /* {% if "VB88Table" in physics.coshielding -%} */
+    /* {% if network.shielding.get("CO") == "VB88Table" -%} */
 
     // TODO: The result is not saved
     // double *x1  = vector(1, 6);
@@ -397,7 +397,7 @@ int Naunet::PrintDebugInfo() {
     long int nst, nfe, nsetups, nje, netf, nge, nni, ncfn;
     int flag;
 
-    /* {% if info.method == "dense" or info.method == "sparse" -%} */
+    /* {% if general.method == "dense" or general.method == "sparse" -%} */
 
     if (GetCVStates(cv_mem_, nst, nfe, nsetups, nje, netf, nge, nni, ncfn) ==
         NAUNET_FAIL) {
@@ -410,7 +410,7 @@ int Naunet::PrintDebugInfo() {
     printf("nni = %-6ld ncfn = %-6ld netf = %-6ld    nge = %ld\n \n", nni, ncfn,
            netf, nge);
 
-    /* {% elif info.method == "cusparse" %} */
+    /* {% elif general.method == "cusparse" %} */
 
     size_t cuSpInternalSize, cuSpWorkSize;
 
@@ -492,7 +492,7 @@ int Naunet::Reset(int nsystem, double atol, double rtol, int mxsteps) {
     atol_     = atol;
     rtol_     = rtol;
 
-    /* {% if info.method == "dense" -%} */
+    /* {% if general.method == "dense" -%} */
     if (nsystem != 1) {
         printf("This solver doesn't support nsystem > 1!");
         return NAUNET_FAIL;
@@ -507,7 +507,7 @@ int Naunet::Reset(int nsystem, double atol, double rtol, int mxsteps) {
     cv_a_  = SUNDenseMatrix(NEQUATIONS, NEQUATIONS);
     cv_ls_ = SUNLinSol_Dense(cv_y_, cv_a_);
 
-    /* {% elif info.method == "sparse" -%} */
+    /* {% elif general.method == "sparse" -%} */
     if (nsystem != 1) {
         printf("This solver doesn't support nsystem > 1!");
         return NAUNET_FAIL;
@@ -522,7 +522,7 @@ int Naunet::Reset(int nsystem, double atol, double rtol, int mxsteps) {
     cv_a_            = SUNSparseMatrix(NEQUATIONS, NEQUATIONS, NNZ, CSR_MAT);
     cv_ls_           = SUNLinSol_KLU(cv_y_, cv_a_);
 
-    /* {% elif info.method == "cusparse" %} */
+    /* {% elif general.method == "cusparse" %} */
 
     // if (nsystem < NSTREAMS ||  nsystem % NSTREAMS != 0) {
     //     printf("Invalid size of system!");
@@ -610,7 +610,7 @@ int Naunet::Solve(realtype *ab, realtype dt, NaunetData *data) {
     int cvflag;
     realtype t0 = 0.0;
 
-    /* {% if info.method == "dense" or info.method == "sparse" -%} */
+    /* {% if general.method == "dense" or general.method == "sparse" -%} */
 
     for (int i = 0; i < NEQUATIONS; i++) {
         ab_init_[i] = ab[i];
@@ -672,7 +672,7 @@ int Naunet::Solve(realtype *ab, realtype dt, NaunetData *data) {
                 cvflag);
         fprintf(errfp_, "Initial condition: \n");
 
-        /* {% for v in variables.varis.keys() -%} */
+        /* {% for v in network.varis.keys() -%} */
         fprintf(errfp_, "    data.{{ v }} = %13.7e;\n", data->{{v}});
         /* {% endfor %} */
 
@@ -696,7 +696,7 @@ int Naunet::Solve(realtype *ab, realtype dt, NaunetData *data) {
 
     return flag;
 
-    /* {% elif info.method == "cusparse" -%} */
+    /* {% elif general.method == "cusparse" -%} */
 
     for (int i = 0; i < n_system_; i++) {
         h_data[i] = data[i];

@@ -10,22 +10,22 @@
 #include "naunet_utilities.h"
 
 // clang-format off
-{% if info.device == "gpu" -%} __device__ __host__ {% endif -%}
+{% if general.device == "gpu" -%} __device__ __host__ {% endif -%}
 double GetElementAbund(double *y, int elemidx) {
-    {% for idx, eqn in zip(macros.elemcidx, physics.elemabund) -%}
-    if (elemidx == {{ idx }}) {
+    {% for elem, eqn in zip(network.elements, physics.elemabund) -%}
+    if (elemidx == IDX_ELEM_{{ elem.element_count.keys() | first }}) {
         return {{ eqn | stmwrap(80, 12) }};
     }
     {% endfor %}
 
 }
 
-{% if info.device == "gpu" -%} __device__ __host__ {% endif -%}
+{% if general.device == "gpu" -%} __device__ __host__ {% endif -%}
 double GetMantleDens(double *y) {
     return {{ physics.mantles | stmwrap(80, 8) }};
 }
 
-{% if info.device == "gpu" -%} __device__ __host__ {% endif -%}
+{% if general.device == "gpu" -%} __device__ __host__ {% endif -%}
 double GetHNuclei(double *y) {
 #ifdef IDX_ELEM_H
     return GetElementAbund(y, IDX_ELEM_H);
@@ -34,17 +34,17 @@ double GetHNuclei(double *y) {
 #endif
 }
 
-{% if info.device == "gpu" -%} __device__ __host__ {% endif -%}
+{% if general.device == "gpu" -%} __device__ __host__ {% endif -%}
 double GetMu(double *y) {
     return {{ physics.mu | stmwrap(80, 8) }};
 }
 
-{% if info.device == "gpu" -%} __device__ __host__ {% endif -%}
+{% if general.device == "gpu" -%} __device__ __host__ {% endif -%}
 double GetGamma(double *y) {
     return {{ physics.gamma | stmwrap(80, 8) }};
 }
 
-{% if info.device == "gpu" -%} __device__ __host__ {% endif -%}
+{% if general.device == "gpu" -%} __device__ __host__ {% endif -%}
 double GetNumDens(double *y) {
     double numdens = 0.0;
 
@@ -54,7 +54,7 @@ double GetNumDens(double *y) {
 // clang-format on
 
 // clang-format off
-{% if info.device == "gpu" -%} __device__ {% endif -%}
+{% if general.device == "gpu" -%} __device__ {% endif -%}
 double GetShieldingFactor(int specidx, double h2coldens, double spcoldens,
                           double tgas, int method) {
     // clang-format on
@@ -79,7 +79,7 @@ double GetShieldingFactor(int specidx, double h2coldens, double spcoldens,
 }
 
 // clang-format off
-{% if info.device == "gpu" -%} __device__ {% endif -%}
+{% if general.device == "gpu" -%} __device__ {% endif -%}
 double GetH2shielding(double coldens, int method) {
     // clang-format on
     double shielding = -1.0;
@@ -97,7 +97,7 @@ double GetH2shielding(double coldens, int method) {
 }
 
 // clang-format off
-{% if info.device == "gpu" -%} __device__ {% endif -%}
+{% if general.device == "gpu" -%} __device__ {% endif -%}
 double GetCOshielding(double tgas, double h2col, double coldens, int method) {
     // clang-format on
     double shielding = -1.0;
@@ -115,7 +115,7 @@ double GetCOshielding(double tgas, double h2col, double coldens, int method) {
 }
 
 // clang-format off
-{% if info.device == "gpu" -%} __device__ {% endif -%}
+{% if general.device == "gpu" -%} __device__ {% endif -%}
 double GetN2shielding(double tgas, double h2col, double coldens, int method) {
     // clang-format on
     double shielding = -1.0;
@@ -131,13 +131,13 @@ double GetN2shielding(double tgas, double h2col, double coldens, int method) {
 
 // Interpolate/Extropolate from table (must be rendered in naunet constants)
 // clang-format off
-{% if info.device == "gpu" -%} __device__ {% endif -%}
+{% if general.device == "gpu" -%} __device__ {% endif -%}
 double GetH2shieldingInt(double coldens) {
     // clang-format on
 
     double shielding = -1.0;
 
-    /* {% if "L96Table" in physics.h2shielding -%} */
+    /* {% if network.shielding.get("H2") == "L96Table" -%} */
     if (coldens >= H2ShieldingTableX[104]) {
         double x1 = H2ShieldingTableX[103];
         double x2 = H2ShieldingTableX[104];
@@ -176,7 +176,7 @@ double GetH2shieldingInt(double coldens) {
 // Ref: Federman et al. apj vol.227 p.466.
 // Originally implemented in UCLCHEM
 // clang-format off
-{% if info.device == "gpu" -%} __device__ {% endif -%}
+{% if general.device == "gpu" -%} __device__ {% endif -%}
 double GetH2shieldingFGK(double coldens) {
     // clang-format on
 
@@ -220,12 +220,12 @@ double GetH2shieldingFGK(double coldens) {
 
 // Interpolate/Extropolate from table (must be rendered in naunet constants)
 // clang-format off
-{% if info.device == "gpu" -%} __device__ {% endif -%}
+{% if general.device == "gpu" -%} __device__ {% endif -%}
 double GetCOshieldingInt(double tgas, double h2col, double coldens) {
     // clang-format on
     double shielding = -1.0;
 
-    /* {% if "V09Table" in physics.coshielding -%} */
+    /* {% if network.shielding.get("CO") == "V09Table" -%} */
     double x1, x2, y1, y2, z1, z2;
     int i1, i2, j1, j2, k1, k2;
     for (int i = 0; i < 4; i++) {
@@ -304,18 +304,18 @@ double GetCOshieldingInt(double tgas, double h2col, double coldens) {
 }
 
 // clang-format off
-{% if info.device == "gpu" -%} __device__ {% endif -%}
+{% if general.device == "gpu" -%} __device__ {% endif -%}
 double GetCOshieldingInt1(double h2col, double coldens) {
     // clang-format on
     double shielding = -1.0;
 
-    /* {% if "VB88Table" in physics.coshielding -%} */
+    /* {% if network.shielding.get("CO") == "VB88Table" -%} */
     double logh2     = std::min(std::max(log10(h2col), COShieldingTableX[0]),
                                 COShieldingTableX[5]);
     double logco     = std::min(std::max(log10(coldens), COShieldingTableY[0]),
                                 COShieldingTableY[6]);
 
-    /* {% if info.device == "gpu" -%} */
+    /* {% if general.device == "gpu" -%} */
 
     printf("WARNING!! Not Implemented! Return CO shielding = -1.\n");
 
@@ -359,13 +359,13 @@ double GetCOshieldingInt1(double h2col, double coldens) {
 
 // Interpolate/Extropolate from table (must be rendered in naunet constants)
 // clang-format off
-{% if info.device == "gpu" -%} __device__ {% endif -%}
+{% if general.device == "gpu" -%} __device__ {% endif -%}
 double GetN2shieldingInt(double tgas, double h2col, double coldens) {
     // clang-format on
 
     double shielding = -1.0;
 
-    /* {% if "L13Table" in physics.n2shielding -%} */
+    /* {% if network.shielding.get("N2") == "L13Table" -%} */
     double x1, x2, y1, y2, z1, z2;
     int i1, i2, j1, j2, k1, k2;
     for (int i = 0; i < 4; i++) {
@@ -448,7 +448,7 @@ double GetN2shieldingInt(double tgas, double h2col, double coldens) {
 // wavelength x (cf. b.d.savage and j.s.mathis, annual
 // review of astronomy and astrophysics vol.17(1979),p.84)
 // clang-format off
-{% if info.device == "gpu" -%} __device__ {% endif -%}
+{% if general.device == "gpu" -%} __device__ {% endif -%}
 double xlamda(double wavelength) {
     // clang-format on
     double x[29] = {910.0,  950.0,  1000.0,  1050.0,  1110.0, 1180.0,
@@ -483,7 +483,7 @@ double xlamda(double wavelength) {
 // Ref: Wagenblast & Hartquist, mnras237, 1019 (1989)
 // Adapted from UCLCHEM
 // clang-format off
-{% if info.device == "gpu" -%} __device__ {% endif -%}
+{% if general.device == "gpu" -%} __device__ {% endif -%}
 double GetGrainScattering(double av, double wavelength) {
     // clang-format on
     double c[6] = {1.0e0, 2.006e0, -1.438e0, 7.364e-1, -5.076e-1, -5.920e-2};
@@ -515,7 +515,7 @@ double GetGrainScattering(double av, double wavelength) {
 // and black, apj 334, p771 (1988)
 // Adapted from UCLCHEM
 // clang-format off
-{% if info.device == "gpu" -%} __device__ {% endif -%}
+{% if general.device == "gpu" -%} __device__ {% endif -%}
 double GetCharactWavelength(double h2col, double cocol) {
     // clang-format on
     double logco = log10(abs(cocol) + 1.0);
@@ -530,7 +530,7 @@ double GetCharactWavelength(double h2col, double cocol) {
     // the wavelength of band 33 (1076.1a) and not be smaller than
     // the wavelength of band 1 (913.6a).
 
-    /* {% if info.device == "gpu" -%} */
+    /* {% if general.device == "gpu" -%} */
     lbar = min(1076.0, max(913.0, lbar));
     /* {% else -%} */
     lbar = std::min(1076.0, std::max(913.0, lbar));

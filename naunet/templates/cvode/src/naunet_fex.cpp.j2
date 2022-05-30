@@ -1,11 +1,11 @@
 #include <math.h>
-/* {% if info.method == "dense" -%} */
+/* {% if general.method == "dense" -%} */
 #include <nvector/nvector_serial.h>
 #include <sunmatrix/sunmatrix_dense.h>  // access to dense SUNMatrix
-/* {% elif info.method == "sparse" -%} */
+/* {% elif general.method == "sparse" -%} */
 #include <nvector/nvector_serial.h>
 #include <sunmatrix/sunmatrix_sparse.h>  // access to sparse SUNMatrix
-/* {% elif info.method == "cusparse" -%} */
+/* {% elif general.method == "cusparse" -%} */
 #include <nvector/nvector_cuda.h>
 #include <sunmatrix/sunmatrix_cusparse.h>
 /* {% endif -%} */
@@ -22,7 +22,7 @@
 #define NVEC_CUDA_GRIDSIZE(x, n) \
     (NVEC_CUDA_CONTENT(x)->stream_exec_policy->gridSize(n))
 
-/* {% if info.method == "cusparse" -%} */
+/* {% if general.method == "cusparse" -%} */
 __global__ void FexKernel(realtype *y, realtype *ydot, NaunetData *d_udata,
                           int nsystem) {
     int tidx = blockIdx.x * blockDim.x + threadIdx.x;
@@ -34,11 +34,11 @@ __global__ void FexKernel(realtype *y, realtype *ydot, NaunetData *d_udata,
         NaunetData *udata      = &d_udata[cur];
 
         // clang-format off
-        {% for v in variables.varis.keys() -%}
+        {% for v in network.varis.keys() -%}
             realtype {{ v }} = udata->{{ v }};
         {% endfor %}
 
-        {% for v in variables.locvars -%}
+        {% for v in network.locvars -%}
             {{ v }};
         {% endfor %}
         
@@ -77,16 +77,16 @@ __global__ void FexKernel(realtype *y, realtype *ydot, NaunetData *d_udata,
 /* {% endif -%} */
 
 int Fex(realtype t, N_Vector u, N_Vector udot, void *user_data) {
-    /* {% if info.method == "dense" or info.method == "sparse" -%} */
+    /* {% if general.method == "dense" or general.method == "sparse" -%} */
     realtype *y            = N_VGetArrayPointer(u);
     realtype *ydot         = N_VGetArrayPointer(udot);
     NaunetData *u_data     = (NaunetData *)user_data;
     // clang-format off
-    {% for v in variables.varis.keys() -%}
+    {% for v in network.varis.keys() -%}
         realtype {{ v }} = u_data->{{ v }};
     {% endfor %}
 
-    {% for v in variables.locvars -%}
+    {% for v in network.locvars -%}
         {{ v }};
     {% endfor %}
 
@@ -125,7 +125,7 @@ int Fex(realtype t, N_Vector u, N_Vector udot, void *user_data) {
 
     // clang-format on
 
-    /* {% elif info.method == "cusparse" -%} */
+    /* {% elif general.method == "cusparse" -%} */
 
     cudaStream_t stream = *(NVEC_CUDA_STREAM(u));
 

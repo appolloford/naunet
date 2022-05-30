@@ -5,7 +5,6 @@ import logging
 from pathlib import Path
 from typing import Type
 from tqdm import tqdm
-from importlib.metadata import version
 from .patchmaker import PatchMaker
 from .templateloader import NetworkInfo, TemplateLoader
 from .species import Species
@@ -620,11 +619,14 @@ class Network:
         rqdsp = set([Species(s) for s in self._required_species])
         speclist = sorted(self._reactants | self._products | rqdsp)
 
+        elements = [spec for spec in speclist if spec.is_atom]
+
         heating = [self.allowed_heating.get(h) for h in self._heating_names]
         cooling = [self.allowed_cooling.get(c) for c in self._cooling_names]
 
         # rclasses = [supported_reaction_class.get(fmt) for fmt in self.format_list]
         self._info = NetworkInfo(
+            elements,
             speclist,
             self.reaction_list,
             heating=heating,

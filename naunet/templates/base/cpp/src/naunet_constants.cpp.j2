@@ -2,7 +2,7 @@
 // clang-format off
 #include "naunet_constants.h"
 
-{% if info.device == "gpu" %}
+{% if general.device == "gpu" %}
 __constant__ double pi              = 3.1415926;
 
 // atomic mass unit (g)
@@ -29,7 +29,7 @@ __constant__ double echarge         = 4.80320425e-10;
 // Boltzmann constant (erg/K)
 __constant__ double kerg            = 1.380658e-16;
 
-{% for c, cv in variables.consts.items() %}
+{% for c, cv in network.consts.items() %}
 __constant__ double {{ c }} = {{ cv }};
 {% endfor %}
 
@@ -60,28 +60,26 @@ const double echarge         = 4.80320425e-10;
 // Boltzmann constant (erg/K)
 const double kerg            = 1.380658e-16;
 
-{% for c, cv in variables.consts.items() %}
+{% for c, cv in network.consts.items() %}
 const double {{ c }} = {{ cv }};
 {% endfor %}
 
 {% endif %}
 
-{% with device = info.device %}
+{% with device = general.device %}
 
-{% if physics.h2shielding == "L96Table" %}
+{% if network.shielding.get("H2") == "L96Table" %}
 {% include "data/H2shielding.dat.j2" %}
 {% endif %}
 
-{% if physics.coshielding == "V09Table" %}
+{% if network.shielding.get("CO") == "V09Table" %}
 {% include "data/COshielding_11.2bH2_5e20nH.dat.j2" %}
-{% endif %}
-
-{% if physics.n2shielding == "L13Table" %}
-{% include "data/N2shielding_11.2bH2_1e20nH.dat.j2" %}
-{% endif %}
-
-{% if physics.coshielding == "VB88Table" %}
+{% elif network.shielding.get("CO") == "VB88Table" %}
 {% include "data/COshielding_VB88.dat.j2" %}
+{% endif %}
+
+{% if network.shielding.get("N2") == "L13Table" %}
+{% include "data/N2shielding_11.2bH2_1e20nH.dat.j2" %}
 {% endif %}
 
 {% endwith %}

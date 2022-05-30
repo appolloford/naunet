@@ -23,6 +23,7 @@ from .utilities import _stmwrap
 # define in this file to avoid circular import
 @dataclass
 class NetworkInfo:
+    elements: list[Species]
     species: list[Species]
     reactions: list[Reaction]
     heating: list[str]
@@ -44,27 +45,14 @@ class TemplateLoader:
     """
 
     @dataclass
-    class InfoContent:
+    class GeneralInfo:
         """
-        General solver information
+        General information
         """
 
         method: str
         device: str
         version: str
-
-    @dataclass
-    class MacrosContent:
-        """
-        The variables required by macros file
-        """
-
-        nreact: int
-        nheating: int
-        ncooling: int
-        nnz: int
-        elemcidx: list[str]
-        speccidx: list[str]
 
     @dataclass
     class ODEContent:
@@ -78,6 +66,7 @@ class TemplateLoader:
         fex: list[str]
         jac: list[str]
         jacpattern: list[str]
+        nnz: int
         spjacrptr: list[str] = None
         spjaccval: list[str] = None
         spjacrptrarr: str = None
@@ -98,19 +87,6 @@ class TemplateLoader:
         mu: str
         gamma: str
         elemabund: list[str]
-        h2shielding: str = None
-        coshielding: str = None
-        n2shielding: str = None
-
-    @dataclass
-    class VariablesContent:
-        """
-        The variables defined in reactions or thermal processes
-        """
-
-        consts: dict[str, str]
-        varis: dict[str, float]
-        locvars: list[str]
 
     def __init__(
         self,
@@ -130,20 +106,19 @@ class TemplateLoader:
         self._env.trim_blocks = True
         self._env.rstrip_blocks = True
 
+        self._network_info = netinfo
         self._solver = solver
 
         self._ode_modifier = odemodifier.copy() if odemodifier else []
         self._rate_modifier = ratemodifier.copy() if ratemodifier else {}
 
-        self._info = None
-        self._macros = None
+        self._general = self.GeneralInfo(method, device, version("naunet"))
         self._ode = None
         self._physics = None
-        self._variables = None
 
-        self._prepare_contents(netinfo, method, device)
+        self._prepare_contents(netinfo)
 
-    def _prepare_contents(self, netinfo: NetworkInfo, method: str, device: str) -> None:
+    def _prepare_contents(self, netinfo: NetworkInfo) -> None:
 
         species = netinfo.species
         reactions = netinfo.reactions
@@ -165,34 +140,11 @@ class TemplateLoader:
 
         has_thermal = True if heating or cooling else False
         n_spec = len(species)
-        n_react = len(reactions)
         n_eqns = max(n_spec + has_thermal, 1)
 
-        self._info = self.InfoContent(method, device, version("naunet"))
-
-        nheating = len(heating) if heating else 0
-        ncooling = len(cooling) if cooling else 0
-        # speclist = [f"#define IDX_{x.alias} {i}" for i, x in enumerate(species)]
-        speccidx = [f"IDX_{x.alias}" for x in species]
         elements = [spec for spec in species if spec.is_atom]
         # get the exact element string
         elenames = [next(iter(ele.element_count)) for ele in elements]
-        elemcidx = [f"IDX_ELEM_{ename}" for ename in elenames]
-
-        consts = netinfo.consts
-        varis = netinfo.varis
-        locvars = netinfo.locvars
-
-        self._variables = self.VariablesContent(consts, varis, locvars)
-
-        self._macros = self.MacrosContent(
-            n_react,
-            nheating,
-            ncooling,
-            -1,
-            elemcidx,
-            speccidx,
-        )
 
         mantles = " + ".join(f"y[IDX_{g.alias}]" for g in species if g.is_surface)
         mantles = mantles if mantles else "0.0"
@@ -219,13 +171,10 @@ class TemplateLoader:
             mu,
             gamma,
             elemabund,
-            h2shielding=netinfo.shielding.get("H2", ""),
-            coshielding=netinfo.shielding.get("CO", ""),
-            n2shielding=netinfo.shielding.get("N2", ""),
         )
 
         # prepare reaction rate expressions
-        rates = [f"k[{r}]" for r in range(n_react)]
+        rates = [f"k[{ridx}]" for ridx, _ in enumerate(reactions)]
         ltrange = [f"Tgas>={r.temp_min}" if r.temp_min > 0 else "" for r in reactions]
         utrange = [f"Tgas<{r.temp_max}" if r.temp_max > 0 else "" for r in reactions]
         crits = [
@@ -419,7 +368,6 @@ class TemplateLoader:
                     nnz += 1
         spjacrptr.append(f"rowptrs[{n_eqns}] = {nnz};")
         spjacrptrarr.append(str(nnz))
-        self._macros.nnz = nnz
 
         spjacrptrarr = ", ".join(spjacrptrarr)
         spjaccvalarr = ", ".join(spjaccvalarr)
@@ -459,6 +407,7 @@ class TemplateLoader:
             fex,
             jac,
             jacpattern=patternstr,
+            nnz=nnz,
             spjacrptr=spjacrptr,
             spjaccval=spjaccval,
             spjacrptrarr=spjacrptrarr,
@@ -478,10 +427,9 @@ class TemplateLoader:
     ) -> None:
 
         result = template.render(
-            info=self._info,
-            macros=self._macros,
+            network=self._network_info,
+            general=self._general,
             physics=self._physics,
-            variables=self._variables,
             ode=self._ode,
         )
         name = template.name.replace(".j2", "")
@@ -489,7 +437,7 @@ class TemplateLoader:
 
         cuda_support = ["constants", "fex", "jac", "physics", "rates"]
         for substr in cuda_support:
-            if substr in name and self._info.device == "gpu":
+            if substr in name and self._general.device == "gpu":
                 name = name.replace("cpp", "cu")
 
         if save:

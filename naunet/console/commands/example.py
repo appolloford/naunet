@@ -20,6 +20,7 @@ class ExampleCommand(Command):
         {--dry : show the full command only, not create example}
         {--path= : The path to create the project at, create locally if not assigned}
         {--select= : select the example}
+        {--render-force : force render}
     """
 
     def __init__(self):
@@ -106,6 +107,8 @@ class ExampleCommand(Command):
         ratemodifierstr = ",".join(f"{r}:{rv}" for r, rv in rate_modifier.items())
         odemodifierstr = ";".join(ode_modifier)
 
+        overwrite = self.option("render-force")
+
         options = " ".join(
             [
                 f"--name={name}",
@@ -129,6 +132,7 @@ class ExampleCommand(Command):
                 f"--device={device}",
                 f"--method={method}",
                 f"--render",
+                f"--render-force" if overwrite else "",
             ]
         )
 
@@ -154,7 +158,9 @@ class ExampleCommand(Command):
                 raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), prefix)
 
             elif os.listdir(prefix):
-                overwrite = self.confirm(f"Non-empty test directory. Overwrite?", False)
+                overwrite = overwrite or self.confirm(
+                    f"Non-empty test directory. Overwrite?", False
+                )
 
                 if not overwrite:
                     sys.exit()

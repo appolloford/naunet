@@ -7,7 +7,7 @@ set(
 )
 
 
-{% if info.device == "gpu" -%}
+{% if general.device == "gpu" -%}
 foreach(name ${OBJTARGETS})
     add_library(
         ${name}
@@ -56,7 +56,7 @@ if(MAKE_SHARED)
             PROPERTIES
                 OUTPUT_NAME naunet
     )
-    {% if info.device == "gpu" -%}
+    {% if general.device == "gpu" -%}
     set_target_properties(
         naunet_shared
             PROPERTIES
@@ -101,7 +101,7 @@ if(MAKE_STATIC)
             PROPERTIES
                 OUTPUT_NAME naunet
     )
-    {% if info.device == "gpu" -%}
+    {% if general.device == "gpu" -%}
     set_target_properties(
         naunet_static
             PROPERTIES

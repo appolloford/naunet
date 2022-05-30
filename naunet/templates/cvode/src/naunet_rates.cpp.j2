@@ -1,11 +1,11 @@
 #include <math.h>
-/* {% if info.method == "dense" -%} */
+/* {% if general.method == "dense" -%} */
 #include <nvector/nvector_serial.h>
 #include <sunmatrix/sunmatrix_dense.h>  // access to dense SUNMatrix
-/* {% elif info.method == "sparse" -%} */
+/* {% elif general.method == "sparse" -%} */
 #include <nvector/nvector_serial.h>
 #include <sunmatrix/sunmatrix_sparse.h>  // access to sparse SUNMatrix
-/* {% elif info.method == "cusparse" -%} */
+/* {% elif general.method == "cusparse" -%} */
 #include <nvector/nvector_cuda.h>
 #include <sunmatrix/sunmatrix_cusparse.h>
 /* {% endif -%} */
@@ -17,14 +17,14 @@
 #define IJth(A, i, j) SM_ELEMENT_D(A, i, j)
 
 // clang-format off
-{% if info.device == "gpu" -%} __device__ {% endif -%}
+{% if general.device == "gpu" -%} __device__ {% endif -%}
 int EvalRates(realtype *k, realtype *y, NaunetData *u_data) {
 
-    {% for v in variables.varis.keys() -%}
+    {% for v in network.varis.keys() -%}
         realtype {{ v }} = u_data->{{ v }};
     {% endfor %}
 
-    {% for v in variables.locvars -%}
+    {% for v in network.locvars -%}
         {{ v }};
     {% endfor %}
 
@@ -54,14 +54,14 @@ int EvalRates(realtype *k, realtype *y, NaunetData *u_data) {
 }
 
 // clang-format off
-{% if info.device == "gpu" -%} __device__ {% endif -%}
+{% if general.device == "gpu" -%} __device__ {% endif -%}
 int EvalHeatingRates(realtype *kh, realtype *y, NaunetData *u_data) {
 
-    {% for v in variables.varis.keys() -%}
+    {% for v in network.varis.keys() -%}
         realtype {{ v }} = u_data->{{ v }};
     {% endfor %}
 
-    {% for v in variables.locvars -%}
+    {% for v in network.locvars -%}
         {{ v }};
     {% endfor %}
 
@@ -88,14 +88,14 @@ int EvalHeatingRates(realtype *kh, realtype *y, NaunetData *u_data) {
 }
 
 // clang-format off
-{% if info.device == "gpu" -%} __device__ {% endif -%}
+{% if general.device == "gpu" -%} __device__ {% endif -%}
 int EvalCoolingRates(realtype *kc, realtype *y, NaunetData *u_data) {
 
-    {% for v in variables.varis.keys() -%}
+    {% for v in network.varis.keys() -%}
         realtype {{ v }} = u_data->{{ v }};
     {% endfor %}
 
-    {% for v in variables.locvars -%}
+    {% for v in network.locvars -%}
         {{ v }};
     {% endfor %}
 

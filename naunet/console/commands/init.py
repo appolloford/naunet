@@ -37,6 +37,7 @@ class InitCommand(Command):
         {--device= : Device}
         {--method= : Linear solver used in CVode or algorithm in ODEInt}
         {--render : render template immediately}
+        {--render-force : force render}
     """
 
     def __init__(self):
@@ -187,7 +188,8 @@ class InitCommand(Command):
         )
 
         if render:
-            self.call("render")
+            overwrite = self.option("render-force")
+            self.call("render", "--force" if overwrite else "")
 
     def option(self, key=None):
 

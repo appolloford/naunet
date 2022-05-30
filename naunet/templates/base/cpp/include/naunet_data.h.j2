@@ -5,7 +5,7 @@
 // Struct for holding the nessesary additional variables for the problem.
 struct NaunetData {
     // clang-format off
-    {% for var, val in variables.varis.items() -%}
+    {% for var, val in network.varis.items() -%}
         double {{ var }}{{ "" if val is none else " = %5.3e" | format(val) }};
     {% endfor %}
 

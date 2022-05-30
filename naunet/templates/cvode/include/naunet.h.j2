@@ -4,7 +4,7 @@
 #include <sundials/sundials_linearsolver.h>
 #include <sundials/sundials_math.h>   // contains the macros ABS, SUNSQR, EXP
 #include <sundials/sundials_types.h>  // defs. of realtype, sunindextype
-/* {% if info.method == "cusparse" -%} */
+/* {% if general.method == "cusparse" -%} */
 #include <nvector/nvector_cuda.h>
 #include <sunlinsol/sunlinsol_cusolversp_batchqr.h>
 /* {% endif -%} */
@@ -55,7 +55,7 @@ class Naunet {
     FILE *errfp_;
     realtype ab_ref_[NELEMENTS];
 
-    /* {% if info.method == "cusparse" -%} */
+    /* {% if general.method == "cusparse" -%} */
 
     int n_stream_in_use_;
 
@@ -116,7 +116,7 @@ PYBIND11_MODULE(PYMODNAME, m) {
     // clang-format off
     py::class_<NaunetData>(m, "NaunetData")
         .def(py::init())
-        {% for v in variables.varis.keys() -%}
+        {% for v in network.varis.keys() -%}
             .def_readwrite("{{ v }}", &NaunetData::{{ v }})
         {% endfor -%}
         ;

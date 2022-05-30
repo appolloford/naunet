@@ -12,11 +12,11 @@ using namespace boost::numeric::odeint;
 
 int EvalRates(double *k, double *y, NaunetData *u_data) {
     // clang-format off
-    {% for v in variables.varis.keys() -%}
+    {% for v in network.varis.keys() -%}
         double {{ v }} = u_data->{{ v }};
     {% endfor %}
 
-    {% for v in variables.locvars -%}
+    {% for v in network.locvars -%}
         {{ v }};
     {% endfor %}
 
@@ -45,7 +45,7 @@ int EvalRates(double *k, double *y, NaunetData *u_data) {
 
 int EvalHeatingRates(double *kh, double *y, NaunetData *u_data) {
     // clang-format off
-    {% for v in variables.varis.keys() -%}
+    {% for v in network.varis.keys() -%}
         double {{ v }} = u_data->{{ v }};
     {% endfor %}
     // clang-format on
@@ -70,7 +70,7 @@ int EvalHeatingRates(double *kh, double *y, NaunetData *u_data) {
 
 int EvalCoolingRates(double *kc, double *y, NaunetData *u_data) {
     // clang-format off
-    {% for v in variables.varis.keys() -%}
+    {% for v in network.varis.keys() -%}
         double {{ v }} = u_data->{{ v }};
     {% endfor %}
     // clang-format on
@@ -135,7 +135,7 @@ void Fex::operator()(const vector_type &abund, vector_type &ydot, double t) {
         y[i] = abund[i];
     }
 
-    {% for v in variables.varis.keys() -%}
+    {% for v in network.varis.keys() -%}
         double {{ v }} = u_data->{{ v }};
     {% endfor %}
 
@@ -144,7 +144,7 @@ void Fex::operator()(const vector_type &abund, vector_type &ydot, double t) {
     if (gamma < 0) gamma = GetGamma(y);
 #endif
 
-    {% for v in variables.locvars -%}
+    {% for v in network.locvars -%}
         {{ v }};
     {% endfor %}
 
@@ -199,7 +199,7 @@ void Jac::operator()(const vector_type &abund, matrix_type &j, const double &t,
         y[i] = abund[i];
     }
 
-    {% for v in variables.varis.keys() -%}
+    {% for v in network.varis.keys() -%}
         double {{ v }} = u_data->{{ v }};
     {% endfor %}
 
