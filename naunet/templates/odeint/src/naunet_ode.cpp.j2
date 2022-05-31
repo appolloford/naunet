@@ -226,8 +226,11 @@ void Jac::operator()(const vector_type &abund, matrix_type &j, const double &t,
     j = boost::numeric::ublas::zero_matrix<double>(NEQUATIONS, NEQUATIONS);
 
     // clang-format off
-    {% for eq in ode.jac -%}
-        {{ eq | stmwrap(80, 8) }}
+    // TODO: move neqns out from jac
+    {% for l, r in zip(ode.jac.lhs, ode.jac.rhs) -%}
+    {% if r != "0.0" -%}
+    {{ l }} = {{ r | stmwrap(80, 8) }};
+    {% endif -%}
     {% endfor %}
     // clang-format on
 

@@ -56,6 +56,27 @@ class TemplateLoader:
         version: str
 
     @dataclass
+    class Jacobian:
+        """
+        Analytical Jacobian matrix of the differtial equations. The sparse form
+        is save in CSR style.
+
+        Attributes:
+            nnz (int): number of non-zero terms
+            rows (list[int]): number of elements in a row
+            cols (list[int]): column index of elements
+            vals (list[str]): non-zero terms
+            rhs: all elements, including zero terms
+        """
+
+        nnz: int
+        rows: list[int]
+        cols: list[int]
+        vals: list[str]
+        lhs: list[str]
+        rhs: list[str]
+
+    @dataclass
     class ODEContent:
         """
         The information required by ode expressions
@@ -65,14 +86,7 @@ class TemplateLoader:
         hrateeqns: list[str]
         crateeqns: list[str]
         fex: list[str]
-        jac: list[str]
-        jacpattern: list[str]
-        nnz: int
-        spjacrptr: list[str] = None
-        spjaccval: list[str] = None
-        spjacrptrarr: str = None
-        spjaccvalarr: str = None
-        spjacdata: list[str] = None
+        jac: TemplateLoader.Jacobian
         renormmat: list[str] = None
         renorm: list[str] = None
         odemodifier: list[str] = None
@@ -116,6 +130,16 @@ class TemplateLoader:
         self._general = self.GeneralInfo(method, device, version("naunet"))
         self._ode = None
         self._physics = None
+
+        species = netinfo.species
+        reactions = netinfo.reactions
+        if not reactions:
+            reactions.append(Reaction(reaction_type=ReactionType.DUMMY))
+            netinfo.varis.update({**Reaction.varis})
+
+        self._has_thermal = True if netinfo.heating or netinfo.cooling else False
+        self._n_spec = len(species)
+        self._n_eqns = max(self._n_spec + self._has_thermal, 1)
 
         self._prepare_contents(netinfo)
 
@@ -161,9 +185,6 @@ class TemplateLoader:
         elements = netinfo.elements
         species = netinfo.species
         reactions = netinfo.reactions
-        if not reactions:
-            reactions.append(Reaction(reaction_type=ReactionType.DUMMY))
-            netinfo.varis.update({**Reaction.varis})
 
         heating = netinfo.heating
         cooling = netinfo.cooling
@@ -177,9 +198,9 @@ class TemplateLoader:
             if key == reac.idxfromfile
         ]
 
-        has_thermal = True if heating or cooling else False
-        n_spec = len(species)
-        n_eqns = max(n_spec + has_thermal, 1)
+        has_thermal = self._has_thermal
+        n_spec = self._n_spec
+        n_eqns = self._n_eqns
 
         # get the exact element string
         elenames = [next(iter(ele.element_count)) for ele in elements]
@@ -313,50 +334,32 @@ class TemplateLoader:
 
         fex = [f"{l} = {r};" for l, r in zip(lhs, rhs)]
 
+        jaclhs = []
         if self._solver == "cvode":
-            jac = [
-                f"IJth(jmatrix, {idx//n_eqns}, {idx%n_eqns}) = {j};"
-                for idx, j in enumerate(jacrhs)
-                if j != "0.0"
+            jaclhs = [
+                f"IJth(jmatrix, {idx//n_eqns}, {idx%n_eqns})"
+                for idx, _ in enumerate(jacrhs)
             ]
         elif self._solver == "odeint":
-            jac = [
-                f"j({idx//n_eqns}, {idx%n_eqns}) = {j};"
-                for idx, j in enumerate(jacrhs)
-                if j != "0.0"
-            ]
-
-        jacpattern = [0 if j == "0.0" else 1 for j in jacrhs]
-
-        rowpattern = []
-        for row in range(n_eqns):
-            rowdata = jacpattern[row * n_eqns : (row + 1) * n_eqns]
-            rowpattern.append(" ".join(str(e) for e in rowdata))
-
-        patternstr = "\n".join(rowpattern)
+            jaclhs = [f"j({idx//n_eqns}, {idx%n_eqns})" for idx, _ in enumerate(jacrhs)]
 
         spjacrptr = []
         spjaccval = []
         spjacdata = []
-        spjacrptrarr = []
-        spjaccvalarr = []
 
         nnz = 0
+
         for row in range(n_eqns):
-            spjacrptr.append(f"rowptrs[{row}] = {nnz};")
-            spjacrptrarr.append(str(nnz))
+            spjacrptr.append(nnz)
             for col in range(n_eqns):
                 elem = jacrhs[row * n_eqns + col]
                 if elem != "0.0":
-                    spjaccval.append(f"colvals[{nnz}] = {col};")
-                    spjaccvalarr.append(str(col))
-                    spjacdata.append(f"data[{nnz}] = {elem};")
+                    spjaccval.append(col)
+                    spjacdata.append(f"{elem}")
                     nnz += 1
-        spjacrptr.append(f"rowptrs[{n_eqns}] = {nnz};")
-        spjacrptrarr.append(str(nnz))
+        spjacrptr.append(nnz)
 
-        spjacrptrarr = ", ".join(spjacrptrarr)
-        spjaccvalarr = ", ".join(spjaccvalarr)
+        jac = self.Jacobian(nnz, spjacrptr, spjaccval, spjacdata, jaclhs, jacrhs)
 
         renormmat = []
         for iele, einame in enumerate(elenames):
@@ -392,13 +395,6 @@ class TemplateLoader:
             crateeqns,
             fex,
             jac,
-            jacpattern=patternstr,
-            nnz=nnz,
-            spjacrptr=spjacrptr,
-            spjaccval=spjaccval,
-            spjacrptrarr=spjacrptrarr,
-            spjaccvalarr=spjaccvalarr,
-            spjacdata=spjacdata,
             renormmat=renormmat,
             renorm=renorm,
             odemodifier=odemodifier,
@@ -464,10 +460,30 @@ class TemplateLoader:
             if tmpl.startswith(solver)
         ]
 
-    def render_jac_pattern(self, prefix: str = "./") -> None:
+    def render_jac_pattern(self, path: Path | str = "./") -> None:
+        """
+        Render the pattern of jacobian matrix, saved in texts of 0 and 1
 
-        with open(f"{prefix}/jac_pattern.dat", "w") as outf:
-            outf.write(self._ode.jacpattern)
+        Args:
+            path (Path | str, optional): path to save file. Defaults to "./".
+        """
+
+        path = Path(path)
+
+        n_eqns = self._n_eqns
+        jacrhs = self._ode.jac.rhs
+
+        pattern = [0 if j == "0.0" else 1 for j in jacrhs]
+
+        rowpattern = []
+        for row in range(n_eqns):
+            rowdata = pattern[row * n_eqns : (row + 1) * n_eqns]
+            rowpattern.append(" ".join(str(e) for e in rowdata))
+
+        pattern = "\n".join(rowpattern)
+
+        with open(path / "jac_pattern.dat", "w") as outf:
+            outf.write(pattern)
 
     def render_tests(self, path: Path | str) -> None:
 
