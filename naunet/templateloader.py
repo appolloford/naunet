@@ -10,6 +10,7 @@ from jinja2 import Template, Environment, PackageLoader
 from .species import Species
 from .reactions.reaction import Reaction
 from .reactions.reactiontype import ReactionType
+from .thermalprocess import ThermalProcess
 from .dusts.dust import Dust
 from .utilities import _stmwrap
 
@@ -118,8 +119,46 @@ class TemplateLoader:
 
         self._prepare_contents(netinfo)
 
+    def _assign_rates(
+        self,
+        rate_sym: str,
+        reactions: list[Reaction | ThermalProcess],
+        dust: Dust = None,
+    ) -> list[str]:
+
+        # check the temperature range exists
+        ltranges = [f"Tgas>={r.temp_min}" if r.temp_min > 0 else "" for r in reactions]
+        utranges = [f"Tgas<{r.temp_max}" if r.temp_max > 0 else "" for r in reactions]
+        tranges = [
+            "".join([lt, " && " if lt and ut else "", ut])
+            for lt, ut in zip(ltranges, utranges)
+        ]
+
+        if dust:
+            # chemical reations
+            rateexprs = [reac.rateexpr(dust) for reac in reactions]
+        else:
+            # thermal process
+            rateexprs = [reac.rateexpr() for reac in reactions]
+
+        rateassign = [
+            "\n".join(
+                [
+                    f"if ({trange}) {{",
+                    f"{rate_sym}[{ridx}] = {rateexpr};",
+                    f"}}",
+                ]
+            )
+            if trange
+            else f"{rate_sym}[{ridx}] = {rateexpr};"
+            for ridx, (trange, rateexpr) in enumerate(zip(tranges, rateexprs))
+        ]
+
+        return rateassign
+
     def _prepare_contents(self, netinfo: NetworkInfo) -> None:
 
+        elements = netinfo.elements
         species = netinfo.species
         reactions = netinfo.reactions
         if not reactions:
@@ -142,7 +181,6 @@ class TemplateLoader:
         n_spec = len(species)
         n_eqns = max(n_spec + has_thermal, 1)
 
-        elements = [spec for spec in species if spec.is_atom]
         # get the exact element string
         elenames = [next(iter(ele.element_count)) for ele in elements]
 
@@ -173,26 +211,8 @@ class TemplateLoader:
             elemabund,
         )
 
-        # prepare reaction rate expressions
-        rates = [f"k[{ridx}]" for ridx, _ in enumerate(reactions)]
-        ltrange = [f"Tgas>={r.temp_min}" if r.temp_min > 0 else "" for r in reactions]
-        utrange = [f"Tgas<{r.temp_max}" if r.temp_max > 0 else "" for r in reactions]
-        crits = [
-            "".join([lt, " && " if lt and ut else "", ut])
-            for lt, ut in zip(ltrange, utrange)
-        ]
-        rateeqns = [
-            "\n".join(
-                [
-                    f"if ({crit}) {{",
-                    f"{rate} = {reac.rateexpr(dust)};",
-                    f"}}",
-                ]
-            )
-            if crit
-            else f"{rate} = {reac.rateexpr(dust)};"
-            for crit, rate, reac in zip(crits, rates, reactions)
-        ]
+        rate_sym = "k"
+        rateeqns = self._assign_rates(rate_sym, reactions, dust)
 
         y = [f"y[IDX_{x.alias}]" for x in species]
         if has_thermal:
@@ -208,9 +228,9 @@ class TemplateLoader:
             rsym = [y[idx] for idx in rspecidx]
             rsym_mul = "*".join(rsym)
             for specidx in rspecidx:
-                rhs[specidx] += f" - {rates[rl]}*{rsym_mul}"
+                rhs[specidx] += f" - {rate_sym}[{rl}]*{rsym_mul}"
             for specidx in pspecidx:
-                rhs[specidx] += f" + {rates[rl]}*{rsym_mul}"
+                rhs[specidx] += f" + {rate_sym}[{rl}]*{rsym_mul}"
 
             # Jacobian
             for specidx in rspecidx:
@@ -218,13 +238,13 @@ class TemplateLoader:
                 for ri in rspecidx:
                     rsymcopy = rsym.copy()
                     rsymcopy.remove(y[ri])
-                    term = f" - {'*'.join([rates[rl], *rsymcopy])}"
+                    term = f" - {'*'.join([f'{rate_sym}[{rl}]', *rsymcopy])}"
                     jacrhs[specidx * n_eqns + ri] += term
             for specidx in pspecidx:
                 for ri in rspecidx:
                     rsymcopy = rsym.copy()
                     rsymcopy.remove(y[ri])
-                    term = f" + {'*'.join([rates[rl], *rsymcopy])}"
+                    term = f" + {'*'.join([f'{rate_sym}[{rl}]', *rsymcopy])}"
                     jacrhs[specidx * n_eqns + ri] += term
 
             # for specidx, _ in enumerate(species):
@@ -234,25 +254,8 @@ class TemplateLoader:
             #         rhs[specidx] = "naunet_rate_tiny"
 
         # prepare heating rate expressions
-        hrates = [f"kh[{hidx}]" for hidx, _ in enumerate(heating)]
-        ltrange = [f"Tgas>={h.temp_min}" if h.temp_min > 0 else "" for h in heating]
-        utrange = [f"Tgas<{h.temp_max}" if h.temp_max > 0 else "" for h in heating]
-        crits = [
-            "".join([lt, " && " if lt and ut else "", ut])
-            for lt, ut in zip(ltrange, utrange)
-        ]
-        hrateeqns = [
-            "\n".join(
-                [
-                    f"if ({crit}) {{",
-                    f"{hrate} = {h.rateexpr()};",
-                    f"}}",
-                ]
-            )
-            if crit
-            else f"{hrate} = {h.rateexpr()};"
-            for crit, hrate, h in zip(crits, hrates, heating)
-        ]
+        hrate_sym = "kh"
+        hrateeqns = self._assign_rates(hrate_sym, heating)
 
         # fex/jac of thermal process
         for hidx, h in enumerate(heating):
@@ -262,35 +265,18 @@ class TemplateLoader:
             rsym_mul = "*".join(rsym)
 
             # temperature index is n_spec
-            rhs[n_spec] += f" + {hrates[hidx]} * {rsym_mul}"
+            rhs[n_spec] += f" + {hrate_sym}[{hidx}] * {rsym_mul}"
 
             for ri in rspecidx:
                 rsymcopy = rsym.copy()
                 rsymcopy.remove(y[ri])
-                term = f" + {'*'.join([hrates[hidx], *rsymcopy])}"
+                term = f" + {'*'.join([f'{hrate_sym}[{hidx}]', *rsymcopy])}"
                 # only fill the last row of jacobian
                 jacrhs[n_spec * n_eqns + ri] += term
 
         # prepare cooling rate expressions
-        crates = [f"kc[{cidx}]" for cidx, _ in enumerate(cooling)]
-        ltrange = [f"Tgas>={c.temp_min}" if c.temp_min > 0 else "" for c in cooling]
-        utrange = [f"Tgas<{c.temp_max}" if c.temp_max > 0 else "" for c in cooling]
-        crits = [
-            "".join([lt, " && " if lt and ut else "", ut])
-            for lt, ut in zip(ltrange, utrange)
-        ]
-        crateeqns = [
-            "\n".join(
-                [
-                    f"if ({crit}) {{",
-                    f"{crate} = {c.rateexpr()};",
-                    f"}}",
-                ]
-            )
-            if crit
-            else f"{crate} = {c.rateexpr()};"
-            for crit, crate, c in zip(crits, crates, cooling)
-        ]
+        crate_sym = "kc"
+        crateeqns = self._assign_rates(crate_sym, cooling)
 
         for cidx, c in enumerate(cooling):
 
@@ -299,12 +285,12 @@ class TemplateLoader:
             rsym_mul = "*".join(rsym)
 
             # temperature index is n_spec
-            rhs[n_spec] += f" - {crates[cidx]} * {rsym_mul}"
+            rhs[n_spec] += f" - {crate_sym}[{cidx}] * {rsym_mul}"
 
             for ri in rspecidx:
                 rsymcopy = rsym.copy()
                 rsymcopy.remove(y[ri])
-                term = f" - {'*'.join([crates[cidx], *rsymcopy])}"
+                term = f" - {'*'.join([f'{crate_sym}[{cidx}]', *rsymcopy])}"
                 # only fill the last row of jacobian
                 jacrhs[n_spec * n_eqns + ri] += term
 

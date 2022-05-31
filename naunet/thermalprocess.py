@@ -13,7 +13,7 @@ class ThermalProcess:
     ) -> None:
 
         self._reactants = reactants.copy()
-        self.temp_min = 1.0
+        self.temp_min = -1.0
         self.temp_max = -1.0
         self._rate = rate
         self.consts = consts.copy() if consts else {}
