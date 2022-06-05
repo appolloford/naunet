@@ -9,7 +9,7 @@ from .templateloader import NetworkInfo
 from .utilities import _prefix, _suffix, _stmwrap
 
 
-class PatchMaker:
+class PatchFactory:
     def __init__(
         self,
         netinfo: NetworkInfo,

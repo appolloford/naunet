@@ -100,12 +100,12 @@ class RenderCommand(Command):
 
         # if elements are all capital, checking the repeat species in capital
         cap_species_name = all([e == e.upper() for e in element])
-        patch = self.option("patch")
+        patchname = self.option("patch")
         source = self.option("patch-source")
         # Don't change the include/src/test when rendering patches
-        if patch:
-            pm = net.patchmaker(patch, device, cap_species_name, source)
-            pm.render(path=Path.cwd() / patch)
+        if patchname:
+            patch = net.patch(patchname, device, cap_species_name, source)
+            patch.render(path=Path.cwd() / patchname)
             return
 
         # If not creating patch, check whether include and src folders exist

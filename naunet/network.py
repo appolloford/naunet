@@ -5,7 +5,7 @@ import logging
 from pathlib import Path
 from typing import Type
 from tqdm import tqdm
-from .patchmaker import PatchMaker
+from .patches import PatchFactory
 from .templateloader import NetworkInfo, TemplateLoader
 from .species import Species
 from .reactions.reaction import Reaction
@@ -652,7 +652,7 @@ class Network:
 
         return self._info
 
-    def patchmaker(
+    def patch(
         self,
         target: str,
         device: str,
@@ -660,7 +660,7 @@ class Network:
         source: str = None,
     ):
 
-        return PatchMaker(self.info, target, device, cap_species_name, source)
+        return PatchFactory(self.info, target, device, cap_species_name, source)
 
     @property
     def products(self):

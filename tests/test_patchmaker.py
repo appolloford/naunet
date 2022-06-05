@@ -5,7 +5,7 @@ from naunet.dusts.dust import Dust
 from naunet.reactions.reaction import Reaction
 from naunet.reactions.reactiontype import ReactionType
 from naunet.templateloader import NetworkInfo
-from naunet.patchmaker import EnzoPatch
+from naunet.patches import EnzoPatch
 
 
 @pytest.fixture
