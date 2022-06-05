@@ -48,7 +48,8 @@ int grid::TurbulenceInitializeGrid(float CloudDensity, float CloudSoundSpeed, FL
     kphHeIINum, kdissH2INum, RPresNum1, RPresNum2, RPresNum3;
   int ColourNum;
 #ifdef USE_NAUNET
-  int {{ declare | stmwrap(80, 6) }};
+  {% set specnum = species.network_diff_grackle | map(attribute='alias') | map('suffix', "Num") -%}
+  int {{ specnum | join(", ") | stmwrap(80, 6) }};
 #endif
 
   NumberOfBaryonFields = 0;
@@ -94,10 +95,12 @@ int grid::TurbulenceInitializeGrid(float CloudDensity, float CloudSoundSpeed, FL
       FieldType[HDINum  = NumberOfBaryonFields++] = HDIDensity;
     }
 #ifdef USE_NAUNET
+    {# FieldType[{{ "{:<12}".format(s.alias + "Num") }} = NumberOfBaryonFields++] = {{ s.alias }}Density; #}
     if (MultiSpecies == NAUNET_SPECIES) {
-      {% for f in addfieldtype -%}
-      {{ f }};
-      {% endfor -%}
+      {% for s in species.network_diff_grackle -%}
+      FieldType[{{ s.alias + "Num" }}  = NumberOfBaryonFields++] = {{ s.alias }}Density;
+      {% endfor %}
+
     }
 #endif
   }

@@ -91,8 +91,8 @@ int TurbulenceInitialize(FILE *fptr, FILE *Outfptr,
   
 #ifdef USE_NAUNET
   /* Additional species in deuterium network*/
-  {% for name in addname -%}
-  const char *{{ name }};
+  {% for s in species.network_diff_grackle -%}
+  const char *{{ "{:<22}".format(s.alias + "Name") }} = "{{ s.alias }}_Density";
   {% endfor %}
 #endif
 
@@ -314,9 +314,10 @@ printf("Plasma beta=%"GSYM"\n", CloudDensity*CloudSoundSpeed*CloudSoundSpeed/(In
     }
 #ifdef USE_NAUNET
     if (MultiSpecies == NAUNET_SPECIES) {
-      {% for l in addlabel -%}
-        {{ l }};
-      {% endfor -%}
+      {% for s in species.network_diff_grackle -%}
+        DataLabel[count++] = (char*) {{ s.alias }}Name;
+      {% endfor %}
+
     }
 #endif
   }  // if Multispecies                                                                                                   

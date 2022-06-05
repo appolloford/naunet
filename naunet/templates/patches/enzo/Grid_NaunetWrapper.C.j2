@@ -55,7 +55,8 @@ int grid::NaunetWrapper()
 
   LCAPERF_START("grid_NaunetWrapper");
 
-  int {{ declare | stmwrap(80, 6) }};
+  {% set specnum = species.network | map(attribute='alias') | map('suffix', "Num") -%}
+  int {{ specnum | join(", ") | stmwrap(80, 6) }};
 
   int DensNum, GENum, Vel1Num, Vel2Num, Vel3Num, TENum;
 
@@ -91,10 +92,12 @@ int grid::NaunetWrapper()
 
   // Find Multi-species fields.
 
-  {{ initial | stmwrap(80, 4) }};
+  {% set specnum = species.network | map(attribute='alias') | map('suffix', "Num") -%}
+  {{ specnum | join(" = ") | stmwrap(80, 4) }} = 0;
  
+  {% set specnum = species.network | map(attribute='alias') | map('suffix', "Num") -%}
   if (MultiSpecies == NAUNET_SPECIES)
-    if (IdentifyNaunetSpeciesFields({{ declare | stmwrap(80, 36) }}) == FAIL) {
+    if (IdentifyNaunetSpeciesFields({{ specnum | join(", ") | stmwrap(80, 36) }}) == FAIL) {
       ENZO_FAIL("Error in grid->IdentifyNaunetSpeciesFields.\n");
     }
  
@@ -152,8 +155,9 @@ int grid::NaunetWrapper()
         data.nH = BaryonField[iden][i] * DensityUnits / (1.4 * mh);
         data.Tgas = temperature[igrid];
 
-        {% for ab in abund -%}
-          {{ ab }};
+        {% set specnum = species.network | map(attribute='alias') | map('suffix', "Num") -%}
+        {% for s, n in zip(network.species, specnum) -%}
+          y[IDX_{{ s.alias }}] = max(BaryonField[{{ n }}][igrid], 1e-40) * NumberDensityUnits / {{ 1.0 if s.iselectron else s.A }};
         {% endfor %}
 
         if (naunet.Solve(y, dt_chem * TimeUnits, &data) == NAUNET_FAIL) {    
@@ -161,8 +165,9 @@ int grid::NaunetWrapper()
           ENZO_FAIL("Naunet failed in NaunetWrapper.C!");
         }
 
-        {% for iab in invabund -%}
-          {{ iab }};
+        {% set specnum = species.network | map(attribute='alias') | map('suffix', "Num") -%}
+        {% for s, n in zip(network.species, specnum) -%}
+          BaryonField[{{ n }}][igrid] = max(y[IDX_{{ s.alias }}] * {{ 1.0 if s.iselectron else s.A }} / NumberDensityUnits, 1e-40);
         {% endfor %}
 
       }
@@ -188,8 +193,8 @@ int grid::NaunetWrapper()
         data[sidx].nH = BaryonField[iden][igrid] * DensityUnits / (1.4 * mh);
         data[sidx].Tgas = temperature[igrid];
 
-        {% for ab in abund -%}
-          {{ ab }};
+        {% for s, n in zip(species.network, specnum) -%}
+          y[sidx + IDX_{{ s.alias }}] = max(BaryonField[{{ n }}][igrid], 1e-40) * NumberDensityUnits / {{ s.A }};
         {% endfor %}
 
         if (naunet.Solve(y, dt_chem * TimeUnits, data) == NAUNET_FAIL) {    
@@ -197,8 +202,8 @@ int grid::NaunetWrapper()
           ENZO_FAIL("Naunet failed in NaunetWrapper.C!");
         }
 
-        {% for iab in invabund -%}
-          {{ iab }};
+        {% for s, n in zip(species.network, specnum) -%}
+          BaryonField[{{ n }}][igrid] = max(y[sidx + IDX_{{ s.alias }}] * {{ s.A }} / NumberDensityUnits, 1e-40);
         {% endfor %}
 
       }

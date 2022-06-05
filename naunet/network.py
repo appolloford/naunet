@@ -121,7 +121,6 @@ class Network:
         self._products = set()
         self._skipped_reactions = []
         self._info = None
-        self._patchmaker = None
         self._templateloader = None
 
         dustparams = dustparams if dustparams else {}
@@ -653,10 +652,15 @@ class Network:
 
         return self._info
 
-    def patchmaker(self, target: str, device: str, *args, **kwargs):
+    def patchmaker(
+        self,
+        target: str,
+        device: str,
+        cap_species_name: bool = False,
+        source: str = None,
+    ):
 
-        self._patchmaker = PatchMaker(self.info, target, device, *args, **kwargs)
-        return self._patchmaker
+        return PatchMaker(self.info, target, device, cap_species_name, source)
 
     @property
     def products(self):

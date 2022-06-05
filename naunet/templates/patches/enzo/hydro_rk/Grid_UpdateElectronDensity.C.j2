@@ -46,10 +46,12 @@ int grid::UpdateElectronDensity(void)
 			      HMNum, H2INum, H2IINum, DINum, DIINum, HDINum);
 
 #ifdef USE_NAUNET
-  int {{ declare | stmwrap(80, 6) }};
+  {% set specnum = species.network_diff_grackle | map(attribute='alias') | map('suffix', "Num") -%}
+  int {{ specnum | join(", ") | stmwrap(80, 6) }};
 
+  {% set specnum = species.network | map(attribute='alias') | map('suffix', "Num") -%}
   if (MultiSpecies == NAUNET_SPECIES) {
-    if (IdentifyNaunetSpeciesFields({{ identify | stmwrap(80, 36) }}) == FAIL) {
+    if (IdentifyNaunetSpeciesFields({{ specnum | join(", ") | stmwrap(80, 36) }}) == FAIL) {
       ENZO_FAIL("Error in grid->IdentifyNaunetSpeciesFields.");
     }
   }
@@ -71,9 +73,17 @@ int grid::UpdateElectronDensity(void)
       BaryonField[DeNum][i] += 0.5*BaryonField[DIINum][i];
 
 #ifdef USE_NAUNET
+  {% set specnum = species.network_diff_grackle | map(attribute='alias') | map("suffix", "Num") | list -%}
+  {% set charge = species.network_diff_grackle | map(attribute='charge') -%}
+  {% set mass = species.network_diff_grackle | map(attribute='massnumber') -%}
   if (MultiSpecies == NAUNET_SPECIES) {
     for (i = 0; i < size; i++) {
-      BaryonField[DeNum][i] += {{ ionchargesum | stmwrap(80, 28) }};
+      {% for n, c, m in zip(specnum, charge, mass) -%}
+      {% if c != 0 -%}
+      BaryonField[DeNum][i] += {{ "{:.1f}".format(c) }} * BaryonField[{{ n }}][i] / {{ m }};
+      {% endif %}
+      {%- endfor %}
+
     }
   }
 #endif

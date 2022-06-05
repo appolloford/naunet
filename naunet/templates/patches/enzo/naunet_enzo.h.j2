@@ -7,17 +7,19 @@
 // the MultiSpecies option of ENZO
 #define NAUNET_SPECIES 4
 // the number of species in ENZO, including the fields which are not present
-// in the naunet header
-#define ENZO_NSPECIES {{ nspec }}
+// in the naunet header, not including electron as it is not renormed with 
+// others
+{# the -1 in the end is for electron #}
+#define ENZO_NSPECIES {{ (species.network | length) + (species.grackle | length) - (species.network_int_grackle | length) - 1 }}
 
 
-{% for s in species -%}
+{% for s in network.species -%}
 #define A_{{ s.alias }} {{ 1.0 if s.iselectron else s.massnumber }}
 {% endfor %}
 
 
 const float A_Table[NSPECIES] = {
-    {% for s in species -%}
+    {% for s in network.species -%}
     A_{{ s.alias }}{{ ",\n    " if not loop.last else "\n" }}
     {%- endfor -%}
 };

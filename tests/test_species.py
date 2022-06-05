@@ -99,6 +99,12 @@ def test_element_counting():
     assert Species("GRAIN-").element_count.get("GRAIN") == 1
 
 
+def test_eq():
+    Species.reset()
+    assert Species("E") == Species("e-")
+    assert Species("E") in [Species("e-")]
+
+
 def test_mass():
     Species.reset()
     assert Species("H").mass == 1.007

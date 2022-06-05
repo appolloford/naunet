@@ -28,7 +28,7 @@
 #endif
 #define NREACTIONS {{ network.reactions | length }}
 // non-zero terms in jacobian matrix, used in sparse matrix
-#define NNZ {{ ode.nnz }}
+#define NNZ {{ ode.jac.nnz }}
 
 {% for spec in network.elements %}
 #define IDX_ELEM_{{ spec.element_count.keys() | first }} {{ loop.index0 }}

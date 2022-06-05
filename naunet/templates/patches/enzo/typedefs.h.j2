@@ -11,7 +11,7 @@
 /  PURPOSE:
 /
 ************************************************************************/
-
+// clang-format off
 #include "CloudyCoolingData.h"
 #include "CoolData.h"
 #include "RateData.h"
@@ -180,9 +180,10 @@ const field_type
   FDMDensity = 103,
 
 #ifdef USE_NAUNET
-    {% for idx in idxdefine -%}
-    {{ idx }}
+    {% for s in species.network_diff_enzo -%}
+    {{ s.alias }}Density = {{ loop.index0 + 104 }},
     {% endfor -%}
+    FieldUndefined = {{ species.network_diff_enzo | length + 104}};
 #else
     FieldUndefined = 104;
 #endif

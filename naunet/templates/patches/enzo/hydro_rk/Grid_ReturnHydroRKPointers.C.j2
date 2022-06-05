@@ -42,7 +42,8 @@ int grid::ReturnHydroRKPointers(float **Prim, bool ReturnMassFractions)
   int DeNum, HINum, HIINum, HeINum, HeIINum, HeIIINum, HMNum, H2INum, H2IINum,
       DINum, DIINum, HDINum;
 #ifdef USE_NAUNET
-  int {{ declare | stmwrap(80, 6) }};
+  {% set specnum = species.network_diff_grackle | map(attribute='alias') | map('suffix', "Num") -%}
+  int {{ specnum | join(", ") | stmwrap(80, 6) }};
 #endif
 
   /* Add the physical quantities */
@@ -86,8 +87,9 @@ int grid::ReturnHydroRKPointers(float **Prim, bool ReturnMassFractions)
     this->IdentifySpeciesFields(DeNum, HINum, HIINum, HeINum, HeIINum, HeIIINum, 
                                 HMNum, H2INum, H2IINum, DINum, DIINum, HDINum);
 #ifdef USE_NAUNET
+  {% set specnum = species.network | map(attribute='alias') | map('suffix', "Num") -%}
   if (MultiSpecies == NAUNET_SPECIES)
-    if (IdentifyNaunetSpeciesFields({{ identify | stmwrap(80, 36) }}) == FAIL) {
+    if (IdentifyNaunetSpeciesFields({{ specnum | join(", ") | stmwrap(80, 36) }}) == FAIL) {
       ENZO_FAIL("Error in grid->IdentifyNaunetSpeciesFields.");
     }
 #endif
@@ -113,9 +115,10 @@ int grid::ReturnHydroRKPointers(float **Prim, bool ReturnMassFractions)
 
 #ifdef USE_NAUNET
     if (MultiSpecies == NAUNET_SPECIES) {
-      {% for p in prim -%}
-        {{ p }};
-      {% endfor -%}
+      {% for s in species.network_diff_grackle -%}
+        Prim[nfield++] = BaryonField[{{ s.alias }}Num];
+      {% endfor %}
+
     }
 #endif
 

@@ -22,6 +22,7 @@ class RenderCommand(Command):
     render
         {--f|force : forced to override the existing files}
         {--patch= : create patch for target code}
+        {--patch-source= : source directory of patch}
         {--with-pattern : render the jacobian pattern}
         {--with-summary-py : render with a pymodule having network summary information}
     """
@@ -97,11 +98,14 @@ class RenderCommand(Command):
 
         net.check_duplicate_reaction()
 
-        # Don't change the include/src/test when rendering patches
+        # if elements are all capital, checking the repeat species in capital
+        cap_species_name = all([e == e.upper() for e in element])
         patch = self.option("patch")
+        source = self.option("patch-source")
+        # Don't change the include/src/test when rendering patches
         if patch:
-            pm = net.patchmaker(patch, device)
-            pm.render(Path.cwd() / patch)
+            pm = net.patchmaker(patch, device, cap_species_name, source)
+            pm.render(path=Path.cwd() / patch)
             return
 
         # If not creating patch, check whether include and src folders exist

@@ -25,18 +25,23 @@ int FindField(int f, int farray[], int n);
 
 #ifdef USE_NAUNET
 
-int grid::IdentifyNaunetSpeciesFields({{ arguments | stmwrap(80, 38) }})
+{% set specnum = species.network | map(attribute="alias") | map("suffix", "Num") %}
+
+int grid::IdentifyNaunetSpeciesFields({{ specnum | map('prefix', "int &") | join(", ") | stmwrap(80, 38) }})
 {
-    {{ initial | stmwrap(80, 4) }};
+    {% set specnum = species.network | map(attribute="alias") | map("suffix", "Num") -%}
+    {{ specnum | join(" = ") | stmwrap(80, 4) }} = 0;
 
     // Find Fields for the Naunet species
-    {% for f in findfield -%}
-        {{ f }}
+    {% set specnum = species.network | map(attribute="alias") | map("suffix", "Num") -%}
+    {% for n, s in zip(specnum, species.network) -%}
+        {{ n }} = FindField({{ "Electron" if s.iselectron else s.alias }}Density, FieldType, NumberOfBaryonFields);
     {% endfor -%}
 
     // check fields exist
-    {% for c in check -%}
-        {{ c }};
+    {% set specnum = species.network | map(attribute="alias") | map("suffix", "Num") -%}
+    {% for n in specnum -%}
+        if ({{ n }} < 0) ENZO_VFAIL("{{ n }}=%" ISYM "\n", {{ n }});
     {% endfor -%}
 
     return SUCCESS;
@@ -46,9 +51,9 @@ int grid::IdentifyNaunetSpeciesFields(int *specnum)
 {
 
     const field_type NauentFields[114] = {
-        {% for s in species -%}
-        {{ "Electron" if s.iselectron else s.alias }}Density{{ ",\n        " if not loop.last else "\n    " }}
-        {%- endfor -%}
+        {% for s in species.network -%}
+        {{ "Electron" if s.iselectron else s.alias }}Density{{ ",\n        " if not loop.last else "\n" }}
+        {%- endfor %}
     };
 
     for (int sidx = 0; sidx < NSPECIES; sidx ++) {

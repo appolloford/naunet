@@ -1,6 +1,14 @@
 from textwrap import wrap, fill
 
 
+def _prefix(text: str, pre: str) -> str:
+    return "".join([pre, text])
+
+
+def _suffix(text: str, suf: str) -> str:
+    return "".join([text, suf])
+
+
 def _stmwrap(text: str, width: int = 80, indent: int = 4):
 
     longindent = " " * indent

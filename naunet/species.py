@@ -140,9 +140,12 @@ class Species:
             key.upper(): value for key, value in self.element_count.items()
         }
 
+    def __copy__(self) -> Species:
+        return type(self)(self.name)
+
     def __eq__(self, o: object) -> bool:
         if isinstance(o, Species):
-            return self.name == o.name
+            return (self.iselectron and o.iselectron) or self.name == o.name
         return NotImplemented
 
     def __hash__(self) -> int:
