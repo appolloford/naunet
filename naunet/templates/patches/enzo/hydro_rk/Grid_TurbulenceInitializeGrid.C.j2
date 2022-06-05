@@ -95,10 +95,9 @@ int grid::TurbulenceInitializeGrid(float CloudDensity, float CloudSoundSpeed, FL
       FieldType[HDINum  = NumberOfBaryonFields++] = HDIDensity;
     }
 #ifdef USE_NAUNET
-    {# FieldType[{{ "{:<12}".format(s.alias + "Num") }} = NumberOfBaryonFields++] = {{ s.alias }}Density; #}
     if (MultiSpecies == NAUNET_SPECIES) {
       {% for s in species.network_diff_grackle -%}
-      FieldType[{{ s.alias + "Num" }}  = NumberOfBaryonFields++] = {{ s.alias }}Density;
+      FieldType[{{ "{:<12}".format(s.alias + "Num") }} = NumberOfBaryonFields++] = {{ s.alias }}Density;
       {% endfor %}
 
     }
