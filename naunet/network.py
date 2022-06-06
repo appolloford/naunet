@@ -1,7 +1,7 @@
 from __future__ import annotations
+import logging
 import os
 import shutil
-import logging
 from pathlib import Path
 from typing import Type
 from tqdm import tqdm
@@ -27,6 +27,7 @@ logger = logging.getLogger()
 
 
 supported_dust_model = {
+    "base": Dust,
     "hh93": HH93Dust,
     "rr07": RR07Dust,
 }
@@ -41,11 +42,13 @@ supported_reaction_class = {
 }
 
 
-def _dust_factory(model: str = "none", **kwargs) -> Dust:
+def _dust_factory(model: str, **kwargs) -> Dust:
 
     dustmodel = supported_dust_model.get(model)
-    if not dustmodel:
+    if model and not dustmodel:
         raise ValueError(f"Unknown dust model: {model}")
+    elif dustmodel is None:
+        return dustmodel
 
     return dustmodel(**kwargs)
 
@@ -111,7 +114,7 @@ class Network:
         heating: list[str] = None,
         cooling: list[str] = None,
         shielding: dict[str, str] = None,
-        dustmodel: str = "none",
+        dustmodel: str = "",
         dustparams: dict = None,
     ) -> None:
 
@@ -125,7 +128,7 @@ class Network:
 
         dustparams = dustparams if dustparams else {}
         dustparams = {**dustparams, "model": dustmodel}
-        self._dust = None if dustmodel == "none" else _dust_factory(**dustparams)
+        self._dust = _dust_factory(**dustparams)
         self._allowed_species = allowed_species.copy() if allowed_species else []
         self._required_species = required_species.copy() if required_species else []
         self._allowed_heating = None
@@ -517,7 +520,7 @@ class Network:
                 indices = [
                     idx
                     for idx, reac in enumerate(self.reaction_list)
-                    if species in reac.reactants + reac.products
+                    if species in reac
                 ]
 
             else:
@@ -574,7 +577,7 @@ class Network:
             heating=self._heating_names,
             cooling=self._cooling_names,
             shielding=self._shielding,
-            dustmodel=self.dust.model if self.dust else "none",
+            dustmodel=self.dust.model if self.dust else "",
             dustspecies=Species.dust_species(),
             rate_modifier=ratemodifier,
             ode_modifier=odemodifier,

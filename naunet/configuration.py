@@ -27,7 +27,7 @@ cooling = []
 ode_modifier = []
 
 [chemistry.dust]
-model = "none"
+model = ""
 species = []
 
 [chemistry.binding_energy]

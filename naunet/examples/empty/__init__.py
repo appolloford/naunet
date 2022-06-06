@@ -1,7 +1,7 @@
 description = "Example: empty network"
 network = ""
 format = ""
-dustmodel = "none"
+dustmodel = ""
 dustspecies = []
 elements = []
 pseudo_elements = []

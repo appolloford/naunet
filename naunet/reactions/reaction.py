@@ -55,6 +55,11 @@ class Reaction:
         # if react_string:
         self._parse_string(react_string)
 
+    def __contains__(self, spec: Species) -> bool:
+        if not isinstance(spec, Species):
+            return NotImplemented
+        return spec in self.reactants or spec in self.products
+
     def __str__(self) -> str:
         verbose = (
             (

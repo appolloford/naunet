@@ -164,3 +164,11 @@ def test_eq_reaction(reference, reaction, is_equal):
 
     assert (reference == reaction) == is_equal
     assert (set([reference, reaction]) == set([reference])) == is_equal
+
+
+def test_contains(reference):
+
+    assert Species("He") in reference
+    assert Species("He+") in reference
+    assert Species("e") in reference
+    assert Species("H") not in reference
