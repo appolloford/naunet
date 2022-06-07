@@ -12,7 +12,7 @@ from .reactions.reaction import Reaction
 from .reactions.reactiontype import ReactionType
 from .thermalprocess import ThermalProcess
 from .dusts.dust import Dust
-from .utilities import _stmwrap
+from .utilities import _prefix, _suffix, _stmwrap
 
 # class RelativeEnvironment(Environment):
 #     """Override join_path() to enable relative template paths."""
@@ -92,17 +92,6 @@ class TemplateLoader:
         odemodifier: list[str] = None
         ratemodifier: list[str] = None
 
-    @dataclass
-    class PhysicsContent:
-        """
-        The information required by general physics function
-        """
-
-        mantles: str
-        mu: str
-        gamma: str
-        elemabund: list[str]
-
     def __init__(
         self,
         netinfo: NetworkInfo,
@@ -117,6 +106,8 @@ class TemplateLoader:
         # self._env = RelativeEnvironment(loader=loader)
         self._env = Environment(loader=loader)
         self._env.globals.update(zip=zip)
+        self._env.filters["prefix"] = _prefix
+        self._env.filters["suffix"] = _suffix
         self._env.filters["stmwrap"] = _stmwrap
         self._env.trim_blocks = True
         self._env.rstrip_blocks = True
@@ -129,7 +120,6 @@ class TemplateLoader:
 
         self._general = self.GeneralInfo(method, device, version("naunet"))
         self._ode = None
-        self._physics = None
 
         species = netinfo.species
         reactions = netinfo.reactions
@@ -204,33 +194,6 @@ class TemplateLoader:
 
         # get the exact element string
         elenames = [next(iter(ele.element_count)) for ele in elements]
-
-        mantles = " + ".join(f"y[IDX_{g.alias}]" for g in species if g.is_surface)
-        mantles = mantles if mantles else "0.0"
-
-        # TODO: exclude electron, grain?
-        density = " + ".join(f"y[IDX_{s.alias}]*{s.massnumber}" for s in species)
-        npartile = " + ".join(f"y[IDX_{s.alias}]" for s in species)
-        mu = f"({density}) / ({npartile})" if density else "0.0"
-
-        # TODO: different ways to get adiabatic index
-        gamma = "5.0 / 3.0"
-
-        elemabund = []
-        for iele, einame in enumerate(elenames):
-            term = "0.0"
-            for ispec, spec in enumerate(species):
-                ci = spec.element_count.get(einame, 0)
-                if ci:
-                    term = f"{term} + {ci:.1f} * y[IDX_{spec.alias}]"
-            elemabund.append(term)
-
-        self._physics = self.PhysicsContent(
-            mantles,
-            mu,
-            gamma,
-            elemabund,
-        )
 
         rate_sym = "k"
         rateeqns = self._assign_rates(rate_sym, reactions, dust)
@@ -411,7 +374,6 @@ class TemplateLoader:
         result = template.render(
             network=self._network_info,
             general=self._general,
-            physics=self._physics,
             ode=self._ode,
         )
         name = template.name.replace(".j2", "")

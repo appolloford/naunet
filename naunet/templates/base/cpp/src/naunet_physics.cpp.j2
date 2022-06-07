@@ -10,11 +10,23 @@
 #include "naunet_utilities.h"
 
 // clang-format off
+{# {{ "{:<19}".format("\n") if not loop.last else ""}} #}
 {% if general.device == "gpu" -%} __device__ __host__ {% endif -%}
 double GetElementAbund(double *y, int elemidx) {
-    {% for elem, eqn in zip(network.elements, physics.elemabund) -%}
+    {% for elem in network.elements -%}
+    {% set elemname = elem.element_count.keys() | first -%}
     if (elemidx == IDX_ELEM_{{ elem.element_count.keys() | first }}) {
-        return {{ eqn | stmwrap(80, 12) }};
+        {% set specabund = network.species | map(attribute="alias") | map("prefix", "y[IDX_") | map("suffix", "]") -%}
+        {% set count = [0] -%}
+        return {% for spec, ab in zip(network.species, specabund) -%}
+               {% set natom = spec.element_count.get(elemname) -%}
+               {% if natom -%}
+               {{ "{:<16}".format("\n") if count[0] and count[0] % 4 == 0 else "" -}}
+               {{ "{:.1f}".format(natom) ~ "*" ~ ab ~ " + "}}
+               {%- set _ = count.append(count.pop() + 1) -%}
+               {%- endif %}
+               {%- endfor -%}
+               0.0;
     }
     {% endfor %}
 
@@ -22,7 +34,9 @@ double GetElementAbund(double *y, int elemidx) {
 
 {% if general.device == "gpu" -%} __device__ __host__ {% endif -%}
 double GetMantleDens(double *y) {
-    return {{ physics.mantles | stmwrap(80, 8) }};
+    {% set mantlenames = network.species | selectattr("is_surface") | map(attribute="alias") -%}
+    {% set mantles = mantlenames | map("prefix", "y[IDX_") | map("suffix", "]") -%}
+    return {{ mantles | join(" + ") | stmwrap(80, 8) }} + 0.0;
 }
 
 {% if general.device == "gpu" -%} __device__ __host__ {% endif -%}
@@ -36,12 +50,25 @@ double GetHNuclei(double *y) {
 
 {% if general.device == "gpu" -%} __device__ __host__ {% endif -%}
 double GetMu(double *y) {
-    return {{ physics.mu | stmwrap(80, 8) }};
+    // TODO: exclude electron, grain?
+    {% set specnames = network.species | map(attribute="alias") -%}
+    {% set abunds = specnames | map("prefix", "y[IDX_") | map("suffix", "]") -%}
+    {% set massnumbers = network.species | map(attribute="massnumber") -%}
+    double mass = {% for row in zip(abunds, massnumbers) | batch(4) -%} 
+                  {% for ab, m in row %}{{ m }}*{{ ab }} + {% endfor -%}
+                  {{ "{:<19}".format("\n") if not loop.last else ""}}
+                  {%- endfor -%} 0.0;
+    {% set specnames = network.species | map(attribute="alias") -%}
+    {% set abunds = specnames | map("prefix", "y[IDX_") | map("suffix", "]") -%}
+    double num = {{ abunds | join(" + ") | stmwrap(80, 17)}} + 0.0;
+
+    return mass / num;
 }
 
 {% if general.device == "gpu" -%} __device__ __host__ {% endif -%}
 double GetGamma(double *y) {
-    return {{ physics.gamma | stmwrap(80, 8) }};
+    // TODO: different ways to get adiabatic index
+    return 5.0 / 3.0;
 }
 
 {% if general.device == "gpu" -%} __device__ __host__ {% endif -%}
