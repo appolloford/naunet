@@ -122,7 +122,7 @@ class ExampleCommand(Command):
                 f"--heating='{','.join(heating)}'",
                 f"--cooling='{','.join(cooling)}'",
                 f"--shielding='{shieldingstr}'",
-                f"--dust-model={dustmodel}",
+                f"--dust-model='{dustmodel}'",
                 f"--dust-species='{','.join(dustspecies)}'",
                 f"--binding='{bindingstr}'",
                 f"--yield='{yieldstr}'",

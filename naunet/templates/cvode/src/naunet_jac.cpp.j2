@@ -30,12 +30,12 @@ int InitJac(SUNMatrix jmatrix) {
     // clang-format off
     // number of non-zero elements in each row
     int rowptrs[NEQUATIONS + 1] = { 
-        {{ ode.jac.rows | map(str) | join(", ") | stmwrap(80, 8) }}
+        {{ ode.jac.rows | map('string') | join(", ") | stmwrap(80, 8) }}
     };
 
     // the column index of non-zero elements
     int colvals[NNZ] = {
-        {{ ode.jac.cols | map(str) | join(", ") | stmwrap(80, 8) }}
+        {{ ode.jac.cols | map('string') | join(", ") | stmwrap(80, 8) }}
     };
 
     // clang-format on
