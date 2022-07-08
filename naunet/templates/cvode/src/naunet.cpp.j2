@@ -449,7 +449,7 @@ int Naunet::Renorm(realtype *ab) {
 
     N_VConst(0.0, r);
     // clang-format off
-    {% for term in ode.renormmat -%}
+    {% for term in renorm.matrix -%}
     {{ term | stmwrap(80, 8) }};
     {% endfor %}
 
@@ -470,8 +470,8 @@ int Naunet::Renorm(realtype *ab) {
     realtype *rptr = N_VGetArrayPointer(r);
 
     // clang-format off
-    {% for factor in ode.renorm -%}
-    {{ factor }};
+    {% for fac in renorm.factor -%}
+    {{ fac }};
     {% endfor %}
 
     // clang-format on

@@ -84,7 +84,7 @@ int Naunet::Renorm(double *ab) {
     double Hnuclei = GetHNuclei(ab);
 
     // clang-format off
-    {% for term in ode.renormmat -%}
+    {% for term in renorm.matrix -%}
     {{ term | stmwrap(80, 8) }};
     {% endfor %}
 
@@ -95,8 +95,8 @@ int Naunet::Renorm(double *ab) {
     lu_substitute(A, pm, rptr);
 
     // clang-format off
-    {% for factor in ode.renorm -%}
-    {{ factor }};
+    {% for fac in renorm.factor -%}
+    {{ fac }};
     {% endfor %}
 
     // clang-format on

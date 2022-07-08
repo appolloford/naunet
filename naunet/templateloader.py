@@ -69,6 +69,7 @@ class TemplateLoader:
             rhs: all elements, including zero terms
         """
 
+        nrow: int
         nnz: int
         rows: list[int]
         cols: list[int]
@@ -87,10 +88,13 @@ class TemplateLoader:
         crateeqns: list[str]
         fex: list[str]
         jac: TemplateLoader.Jacobian
-        renormmat: list[str] = None
-        renorm: list[str] = None
         odemodifier: list[str] = None
         ratemodifier: list[str] = None
+
+    @dataclass
+    class RenormContent:
+        factor: list[str]
+        matrix: list[str]
 
     def __init__(
         self,
@@ -98,8 +102,8 @@ class TemplateLoader:
         solver: str,
         method: str,
         device: str,
-        ratemodifier: dict[int, str] = None,
-        odemodifier: list[str] = None,
+        rate_modifier: dict[int, str] = None,
+        ode_modifier: list[str] = None,
     ) -> None:
 
         loader = PackageLoader("naunet")
@@ -115,23 +119,14 @@ class TemplateLoader:
         self._network_info = netinfo
         self._solver = solver
 
-        self._ode_modifier = odemodifier.copy() if odemodifier else []
-        self._rate_modifier = ratemodifier.copy() if ratemodifier else {}
-
-        self._general = self.GeneralInfo(method, device, version("naunet"))
-        self._ode = None
-
-        species = netinfo.species
         reactions = netinfo.reactions
         if not reactions:
             reactions.append(Reaction(reaction_type=ReactionType.DUMMY))
             netinfo.varis.update({**Reaction.varis})
 
-        self._has_thermal = True if netinfo.heating or netinfo.cooling else False
-        self._n_spec = len(species)
-        self._n_eqns = max(self._n_spec + self._has_thermal, 1)
-
-        self._prepare_contents(netinfo)
+        self._general = self.GeneralInfo(method, device, version("naunet"))
+        self._ode = self._prepare_ode_content(netinfo, rate_modifier, ode_modifier)
+        self._renorm = self._prepare_renorm_content(netinfo)
 
     def _assign_rates(
         self,
@@ -170,9 +165,13 @@ class TemplateLoader:
 
         return rateassign
 
-    def _prepare_contents(self, netinfo: NetworkInfo) -> None:
+    def _prepare_ode_content(
+        self,
+        netinfo: NetworkInfo,
+        rate_modifier: dict[int, str] = None,
+        ode_modifier: list[str] = None,
+    ) -> None:
 
-        elements = netinfo.elements
         species = netinfo.species
         reactions = netinfo.reactions
 
@@ -180,20 +179,18 @@ class TemplateLoader:
         cooling = netinfo.cooling
         dust = netinfo.dust
 
-        odemodifier = self._ode_modifier
+        odemodifier = ode_modifier.copy() if ode_modifier else []
+        ratemodifier = rate_modifier.copy() if rate_modifier else {}
         ratemodifier = [
             f"k[{idx}] = {value}"
             for idx, reac in enumerate(reactions)
-            for key, value in self._rate_modifier.items()
+            for key, value in ratemodifier.items()
             if key == reac.idxfromfile
         ]
 
-        has_thermal = self._has_thermal
-        n_spec = self._n_spec
-        n_eqns = self._n_eqns
-
-        # get the exact element string
-        elenames = [next(iter(ele.element_count)) for ele in elements]
+        has_thermal = True if netinfo.heating or netinfo.cooling else False
+        n_spec = len(species)
+        n_eqns = max(n_spec + has_thermal, 1)
 
         rate_sym = "k"
         rateeqns = self._assign_rates(rate_sym, reactions, dust)
@@ -322,9 +319,28 @@ class TemplateLoader:
                     nnz += 1
         spjacrptr.append(nnz)
 
-        jac = self.Jacobian(nnz, spjacrptr, spjaccval, spjacdata, jaclhs, jacrhs)
+        jac = self.Jacobian(
+            n_eqns, nnz, spjacrptr, spjaccval, spjacdata, jaclhs, jacrhs
+        )
 
-        renormmat = []
+        return self.ODEContent(
+            rateeqns,
+            hrateeqns,
+            crateeqns,
+            fex,
+            jac,
+            odemodifier=odemodifier,
+            ratemodifier=ratemodifier,
+        )
+
+    def _prepare_renorm_content(self, netinfo: NetworkInfo) -> None:
+
+        # get the exact element string
+        elements = netinfo.elements
+        species = netinfo.species
+        elenames = [next(iter(ele.element_count)) for ele in elements]
+
+        matrix = []
         for iele, einame in enumerate(elenames):
             for jele, ejname in enumerate(elenames):
                 term = f"IDX_ELEM_{einame}, IDX_ELEM_{ejname}"
@@ -338,7 +354,7 @@ class TemplateLoader:
                     cj = spec.element_count.get(ejname, 0)
                     if not spec.iselectron and ci and cj:
                         term = f"{term} + {(ci * cj * elements[jele].A)} * ab[IDX_{spec.alias}] / {spec.A} / Hnuclei"
-                renormmat.append(term)
+                matrix.append(term)
 
         renorm = []
         for ispec, spec in enumerate(species):
@@ -352,17 +368,7 @@ class TemplateLoader:
                         factor = f"{factor} + {(ci * espec.A)} * rptr[IDX_ELEM_{einame}] / {spec.A}"
             renorm.append(f"ab[IDX_{spec.alias}] = ({factor}) * ab[IDX_{spec.alias}]")
 
-        self._ode = self.ODEContent(
-            rateeqns,
-            hrateeqns,
-            crateeqns,
-            fex,
-            jac,
-            renormmat=renormmat,
-            renorm=renorm,
-            odemodifier=odemodifier,
-            ratemodifier=ratemodifier,
-        )
+        return self.RenormContent(renorm, matrix)
 
     def _render(
         self,
@@ -372,9 +378,10 @@ class TemplateLoader:
     ) -> None:
 
         result = template.render(
-            network=self._network_info,
             general=self._general,
+            network=self._network_info,
             ode=self._ode,
+            renorm=self._renorm,
         )
         name = template.name.replace(".j2", "")
         name = name.replace(f"{self._solver}/", "")
@@ -432,8 +439,8 @@ class TemplateLoader:
 
         path = Path(path)
 
-        n_eqns = self._n_eqns
         jacrhs = self._ode.jac.rhs
+        n_eqns = self._ode.jac.nrow
 
         pattern = [0 if j == "0.0" else 1 for j in jacrhs]
 
