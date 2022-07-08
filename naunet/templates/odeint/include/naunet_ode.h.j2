@@ -1,13 +1,8 @@
 #ifndef __NAUNET_ODE_H__
 #define __NAUNET_ODE_H__
 
-#include <boost/numeric/odeint.hpp>
-
-#include "naunet_macros.h"
 #include "naunet_data.h"
-
-typedef boost::numeric::ublas::vector<double> vector_type;
-typedef boost::numeric::ublas::matrix<double> matrix_type;
+#include "naunet_macros.h"
 
 int EvalRates(double *k, double *y, NaunetData *user_data);
 #if NHEATPROCS
@@ -27,7 +22,7 @@ class Observer {
     Observer(int mxsteps);
     ~Observer();
 
-    void operator()( const vector_type &x , double t );
+    void operator()(const vector_type &x, double t);
 };
 
 class Fex {
@@ -36,8 +31,8 @@ class Fex {
 
    public:
     Fex(NaunetData *data);
-    Fex(const Fex& rhs);
-    Fex& operator=(const Fex& rhs);
+    Fex(const Fex &rhs);
+    Fex &operator=(const Fex &rhs);
     ~Fex();
 
     void operator()(const vector_type &abund, vector_type &ydot, double t);
@@ -49,8 +44,8 @@ class Jac {
 
    public:
     Jac(NaunetData *data);
-    Jac(const Jac& rhs);
-    Jac& operator=(const Jac& rhs);
+    Jac(const Jac &rhs);
+    Jac &operator=(const Jac &rhs);
     ~Jac();
 
     void operator()(const vector_type &abund, matrix_type &j, const double &t,

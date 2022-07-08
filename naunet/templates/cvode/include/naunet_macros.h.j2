@@ -1,6 +1,10 @@
 #ifndef __NAUNET_MACROS_H__
 #define __NAUNET_MACROS_H__
 
-// {% extends "base/cpp/include/naunet_macros.h.j2" %}
+#include <sunmatrix/sunmatrix_dense.h>
+
+// {% include "base/cpp/include/naunet_macros.h.j2" %}
+
+#define IJth(A, i, j) SM_ELEMENT_D(A, i, j)
 
 #endif

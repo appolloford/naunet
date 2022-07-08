@@ -1,6 +1,11 @@
 #ifndef __NAUNET_MACROS_H__
 #define __NAUNET_MACROS_H__
 
-// {% extends "base/cpp/include/naunet_macros.h.j2" %}
+#include <boost/numeric/odeint.hpp>
+
+// {% include "base/cpp/include/naunet_macros.h.j2" %}
+
+typedef boost::numeric::ublas::vector<double> vector_type;
+typedef boost::numeric::ublas::matrix<double> matrix_type;
 
 #endif
