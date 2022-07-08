@@ -1,12 +1,9 @@
 
-#ifndef __NAUNET_MACROS_H__
-#define __NAUNET_MACROS_H__
-
 // clang-format off
 #define NAUNET_SUCCESS 0
 #define NAUNET_FAIL 1
 
-{% if general.method == "cusparse" -%}
+{% if general.method == "cusparse" %}
 #define USE_CUDA
 #define MAX_NSYSTEMS 4096
 #define NSTREAMS 1 // looks no benefit to use multiple streams
@@ -40,6 +37,4 @@
 
 #if THERMAL
 #define IDX_TGAS NSPECIES
-#endif
-
 #endif
