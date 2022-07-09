@@ -74,7 +74,6 @@ class TemplateLoader:
         rows: list[int]
         cols: list[int]
         vals: list[str]
-        lhs: list[str]
         rhs: list[str]
 
     @dataclass
@@ -294,15 +293,6 @@ class TemplateLoader:
 
         fex = [f"{l} = {r};" for l, r in zip(lhs, rhs)]
 
-        jaclhs = []
-        if self._solver == "cvode":
-            jaclhs = [
-                f"IJth(jmatrix, {idx//n_eqns}, {idx%n_eqns})"
-                for idx, _ in enumerate(jacrhs)
-            ]
-        elif self._solver == "odeint":
-            jaclhs = [f"j({idx//n_eqns}, {idx%n_eqns})" for idx, _ in enumerate(jacrhs)]
-
         spjacrptr = []
         spjaccval = []
         spjacdata = []
@@ -319,9 +309,7 @@ class TemplateLoader:
                     nnz += 1
         spjacrptr.append(nnz)
 
-        jac = self.Jacobian(
-            n_eqns, nnz, spjacrptr, spjaccval, spjacdata, jaclhs, jacrhs
-        )
+        jac = self.Jacobian(n_eqns, nnz, spjacrptr, spjaccval, spjacdata, jacrhs)
 
         return self.ODEContent(
             rateeqns,
@@ -381,7 +369,7 @@ class TemplateLoader:
         name = template.name.replace(".j2", "")
         name = name.replace(f"{self._solver}/", "")
 
-        cuda_support = ["constants", "fex", "jac", "physics", "rates"]
+        cuda_support = ["constants", "fex", "jac", "physics", "rates", "renorm"]
         for substr in cuda_support:
             if substr in name and self._general.device == "gpu":
                 name = name.replace("cpp", "cu")

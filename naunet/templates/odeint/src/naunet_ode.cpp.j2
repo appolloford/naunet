@@ -227,9 +227,10 @@ void Jac::operator()(const vector_type &abund, matrix_type &j, const double &t,
 
     // clang-format off
     // TODO: move neqns out from jac
-    {% for l, r in zip(ode.jac.lhs, ode.jac.rhs) -%}
+    {% for r in ode.jac.rhs -%}
+    {% set neqns = ode.jac.nrow -%}
     {% if r != "0.0" -%}
-    {{ l }} = {{ r | stmwrap(80, 8) }};
+    j({{ loop.index0/neqns | int }}, {{ loop.index0%neqns }}) = {{ r | stmwrap(80, 24)}};
     {% endif -%}
     {% endfor %}
     // clang-format on

@@ -126,10 +126,10 @@ int Jac(realtype t, N_Vector u, N_Vector fu, SUNMatrix jmatrix, void *user_data,
     SUNMatZero(jmatrix);
 
     // clang-format off
-    // TODO: move neqns out from jac
-    {% for l, r in zip(ode.jac.lhs, ode.jac.rhs) -%}
+    {% for r in ode.jac.rhs -%}
+    {% set neqns = ode.jac.nrow -%}
     {% if r != "0.0" -%}
-    {{ l }} = {{ r | stmwrap(80, 8) }};
+    IJth(jmatrix, {{ (loop.index0/neqns) | int }}, {{ loop.index0%neqns }}) = {{ r | stmwrap(80, 24)}};
     {% endif -%}
     {% endfor %}
 
