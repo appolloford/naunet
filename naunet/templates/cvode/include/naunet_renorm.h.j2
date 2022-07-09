@@ -3,7 +3,8 @@
 
 #include <sundials/sundials_matrix.h>
 
-int InitRenorm(realtype *ab, SUNMatrix A);
-int RenormAbundance(realtype *rptr, realtype *ab);
+// clang-format off
+{% if general.device == "gpu" -%} __host__ {% endif %}int InitRenorm(realtype *ab, SUNMatrix A);
+{% if general.device == "gpu" -%} __host__ {% endif %}int RenormAbundance(realtype *rptr, realtype *ab);
 
 #endif

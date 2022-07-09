@@ -2,7 +2,10 @@
 #include "naunet_physics.h"
 #include "naunet_renorm.h"
 
+// clang-format off
+{% if general.device == "gpu" -%} __host__ {% endif -%}
 int InitRenorm(realtype *ab, SUNMatrix A) {
+    // clang-format on
     realtype Hnuclei = GetHNuclei(ab);
 
     // clang-format off
@@ -19,8 +22,10 @@ int InitRenorm(realtype *ab, SUNMatrix A) {
     return NAUNET_SUCCESS;
 }
 
+// clang-format off
+{% if general.device == "gpu" -%} __host__ {% endif -%}
 int RenormAbundance(realtype *rptr, realtype *ab) {
-    // clang-format off
+    
     {% for spec, fac in zip(network.species, renorm.factor) -%}
     {% set specidx = spec.alias | prefix("IDX_") -%}
     ab[{{ specidx }}] = ab[{{ specidx }}] * ({{ fac }});
