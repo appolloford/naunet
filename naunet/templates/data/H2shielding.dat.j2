@@ -1,6 +1,6 @@
 // Table of H2 self-shielding factor (Walsh et al. 2015)
 // H2 column density
-{% if device == "gpu" %}
+{% if general.device == "gpu" %}
 __device__
 {% else %}
 const
@@ -30,7 +30,7 @@ double H2ShieldingTableX[105] =
  4.644e+21, 5.127e+21, 5.945e+21, 8.205e+21, 1.015e+22};
 {% endraw %}
 
-{% if device == "gpu" %}
+{% if general.device == "gpu" %}
 __device__
 {% else %}
 const

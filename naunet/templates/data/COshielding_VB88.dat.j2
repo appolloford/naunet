@@ -1,6 +1,6 @@
 // Table of CO self-shielding factor
 // H2 column density
-{% if device == "gpu" %}
+{% if general.device == "gpu" %}
 __device__
 {% else %}
 const
@@ -11,7 +11,7 @@ double COShieldingTableX[6] =
 {% endraw %}
 
 // CO column density
-{% if device == "gpu" %}
+{% if general.device == "gpu" %}
 __device__
 {% else %}
 const
@@ -21,7 +21,7 @@ double COShieldingTableY[7] =
 {12.0, 13.0, 14.0, 15.0, 16.0, 17.0, 18.0};
 {% endraw %}
 
-{% if device == "gpu" %}
+{% if general.device == "gpu" %}
 __device__
 {% else %}
 const

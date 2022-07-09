@@ -1,6 +1,6 @@
 // Table of N2 self-shielding factor
 // Excitation temperature
-{% if device == "gpu" %}
+{% if general.device == "gpu" %}
 __device__
 {% else %}
 const
@@ -11,7 +11,7 @@ double N2ShieldingTableX[5] =
 {% endraw %}
 
 // H2 column density
-{% if device == "gpu" %}
+{% if general.device == "gpu" %}
 __device__
 {% else %}
 const
@@ -28,7 +28,7 @@ double N2ShieldingTableY[46] =
 {% endraw %}
 
 // N2 column density
-{% if device == "gpu" %}
+{% if general.device == "gpu" %}
 __device__
 {% else %}
 const
@@ -44,7 +44,7 @@ double N2ShieldingTableZ[46] =
  2.512e+18, 3.981e+18, 6.310e+18, 1.000e+19};
 {% endraw %}
 
-{% if device == "gpu" %}
+{% if general.device == "gpu" %}
 __device__
 {% else %}
 const
