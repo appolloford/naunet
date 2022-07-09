@@ -14,13 +14,14 @@
 #include "naunet_ode.h"
 #include "naunet_physics.h"
 
-#define IJth(A, i, j) SM_ELEMENT_D(A, i, j)
+#ifdef USE_CUDA
 #define NVEC_CUDA_CONTENT(x) ((N_VectorContent_Cuda)(x->content))
 #define NVEC_CUDA_STREAM(x) (NVEC_CUDA_CONTENT(x)->stream_exec_policy->stream())
 #define NVEC_CUDA_BLOCKSIZE(x) \
     (NVEC_CUDA_CONTENT(x)->stream_exec_policy->blockSize())
 #define NVEC_CUDA_GRIDSIZE(x, n) \
     (NVEC_CUDA_CONTENT(x)->stream_exec_policy->gridSize(n))
+#endif
 
 /* {% if general.method == "cusparse" -%} */
 int InitJac(SUNMatrix jmatrix) {

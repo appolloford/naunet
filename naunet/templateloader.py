@@ -338,35 +338,30 @@ class TemplateLoader:
         # get the exact element string
         elements = netinfo.elements
         species = netinfo.species
-        elenames = [next(iter(ele.element_count)) for ele in elements]
+        elemnames = [next(iter(elem.element_count)) for elem in elements]
 
         matrix = []
-        for iele, einame in enumerate(elenames):
-            for jele, ejname in enumerate(elenames):
-                term = f"IDX_ELEM_{einame}, IDX_ELEM_{ejname}"
-                if self._solver == "cvode":
-                    term = f"IJth(A, {term}) = 0.0"
-                elif self._solver == "odeint":
-                    term = f"A({term}) = 0.0"
-
+        for iele, einame in enumerate(elemnames):
+            for jele, ejname in enumerate(elemnames):
+                terms = ["0.0"]
                 for ispec, spec in enumerate(species):
                     ci = spec.element_count.get(einame, 0)
                     cj = spec.element_count.get(ejname, 0)
                     if not spec.iselectron and ci and cj:
-                        term = f"{term} + {(ci * cj * elements[jele].A)} * ab[IDX_{spec.alias}] / {spec.A} / Hnuclei"
-                matrix.append(term)
+                        terms.append(
+                            f"{(ci * cj * elements[jele].A)} * ab[IDX_{spec.alias}] / {spec.A} / Hnuclei"
+                        )
+                matrix.append(" + ".join(terms))
 
         renorm = []
-        for ispec, spec in enumerate(species):
-            if spec.iselectron:
-                factor = "1.0"
-            else:
-                factor = "0.0"
-                for einame, espec in zip(elenames, elements):
-                    ci = spec.element_count.get(einame, 0)
-                    if ci:
-                        factor = f"{factor} + {(ci * espec.A)} * rptr[IDX_ELEM_{einame}] / {spec.A}"
-            renorm.append(f"ab[IDX_{spec.alias}] = ({factor}) * ab[IDX_{spec.alias}]")
+        for spec in species:
+            counts = [spec.element_count.get(ename, 0) for ename in elemnames]
+            factor = [
+                f"{c * elem.A} * rptr[IDX_ELEM_{ename}] / {spec.A}"
+                for c, ename, elem in zip(counts, elemnames, elements)
+                if c
+            ]
+            renorm.append(1.0 if spec.iselectron else " + ".join(factor))
 
         return self.RenormContent(renorm, matrix)
 

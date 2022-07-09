@@ -2,6 +2,7 @@ set(
     OBJTARGETS
         naunet_constants
         naunet_physics
+        naunet_renorm
         naunet_rates
         naunet_fex
         naunet_jac

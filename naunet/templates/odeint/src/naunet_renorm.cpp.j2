@@ -1,0 +1,31 @@
+#include "naunet_macros.h"
+#include "naunet_physics.h"
+#include "naunet_renorm.h"
+
+int InitRenorm(double *ab, matrix_type &A) {
+    double Hnuclei = GetHNuclei(ab);
+
+    // clang-format off
+    {# get the element index names #}
+    {% set elemidxnames = network.elements | map(attribute="element_count") | map("first") | map("prefix", "IDX_ELEM_") | list %}
+    {% set nelem = elemidxnames | length %}
+
+    {% for term in renorm.matrix -%}
+    {% set i, j = (loop.index0/nelem) | int, loop.index0%nelem -%}
+    A({{ elemidxnames[i] }}, {{ elemidxnames[j] }}) = {{ term | stmwrap(80, 32) }};
+    {% endfor %}
+    // clang-format on
+
+    return NAUNET_SUCCESS;
+}
+
+int RenormAbundance(vector_type rptr, double *ab) {
+    // clang-format off
+    {% for spec, fac in zip(network.species, renorm.factor) -%}
+    {% set specidx = spec.alias | prefix("IDX_") -%}
+    ab[{{ specidx }}] = ab[{{ specidx }}] * ({{ fac }});
+    {% endfor %}
+    // clang-format on
+
+    return NAUNET_SUCCESS;
+}

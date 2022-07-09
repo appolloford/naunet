@@ -24,12 +24,11 @@
 #include "naunet.h"
 #include "naunet_ode.h"
 #include "naunet_physics.h"
+#include "naunet_renorm.h"
 /* {% if network.shielding.get("CO") == "VB88Table" -%} */
 #include "naunet_constants.h"
 #include "naunet_utilities.h"
 /* {% endif -%} */
-
-#define IJth(A, i, j) SM_ELEMENT_D(A, i, j)
 
 Naunet::Naunet(){};
 
@@ -442,18 +441,13 @@ int Naunet::PrintDebugInfo() {
 
 #ifdef IDX_ELEM_H
 int Naunet::Renorm(realtype *ab) {
-    N_Vector b     = N_VMake_Serial(NELEMENTS, ab_ref_);
-    N_Vector r     = N_VNew_Serial(NELEMENTS);
-    SUNMatrix A    = SUNDenseMatrix(NELEMENTS, NELEMENTS);
-    double Hnuclei = GetHNuclei(ab);
+    N_Vector b  = N_VMake_Serial(NELEMENTS, ab_ref_);
+    N_Vector r  = N_VNew_Serial(NELEMENTS);
+    SUNMatrix A = SUNDenseMatrix(NELEMENTS, NELEMENTS);
 
     N_VConst(0.0, r);
-    // clang-format off
-    {% for term in renorm.matrix -%}
-    {{ term | stmwrap(80, 8) }};
-    {% endfor %}
 
-    // clang-format on
+    InitRenorm(ab, A);
 
     SUNLinearSolver LS = SUNLinSol_Dense(r, A);
 
@@ -469,12 +463,7 @@ int Naunet::Renorm(realtype *ab) {
 
     realtype *rptr = N_VGetArrayPointer(r);
 
-    // clang-format off
-    {% for fac in renorm.factor -%}
-    {{ fac }};
-    {% endfor %}
-
-    // clang-format on
+    RenormAbundance(rptr, ab);
 
     N_VDestroy(b);
     N_VDestroy(r);

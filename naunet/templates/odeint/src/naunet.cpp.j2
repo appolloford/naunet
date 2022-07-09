@@ -5,6 +5,7 @@
 #include "naunet_macros.h"
 #include "naunet_ode.h"
 #include "naunet_physics.h"
+#include "naunet_renorm.h"
 /* {% if network.shielding.get("CO") == "VB88Table" -%} */
 #include "naunet_constants.h"
 #include "naunet_utilities.h"
@@ -81,25 +82,15 @@ int Naunet::Renorm(double *ab) {
     for (int i = 0; i < NELEMENTS; i++) {
         rptr[i] = ab_ref_[i];
     }
-    double Hnuclei = GetHNuclei(ab);
 
-    // clang-format off
-    {% for term in renorm.matrix -%}
-    {{ term | stmwrap(80, 8) }};
-    {% endfor %}
+    InitRenorm(ab, A);
 
-    // clang-format on
-    ublas::permutation_matrix<size_t>
-        pm(A.size1());
+    ublas::permutation_matrix<size_t> pm(A.size1());
     lu_factorize(A, pm);
     lu_substitute(A, pm, rptr);
 
-    // clang-format off
-    {% for fac in renorm.factor -%}
-    {{ fac }};
-    {% endfor %}
+    RenormAbundance(rptr, ab);
 
-    // clang-format on
     return NAUNET_SUCCESS;
 };
 #endif
