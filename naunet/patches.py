@@ -280,6 +280,30 @@ class EnzoPatch:
                 )
             )
 
+            # element abundance on surface
+            speconsurface = [s.is_surface for s in species]
+            iceeleabund = [
+                f"{natom}*data['{alias}_ndensity']"
+                for natom, surf, alias in zip(specnatom, speconsurface, specalias)
+                if natom and surf
+            ]
+            iceeleabundstr = " + ".join(["0.0", *iceeleabund])
+            iceeleabundstr = _stmwrap(iceeleabundstr, 70, 10)
+            derived_species_field.append(
+                "\n".join(
+                    [
+                        f"@derived_field(name='surface_element_{ele}_ndensity', sampling_type='cell')",
+                        f"def surface_element_{ele}_ndensity(field, data):",
+                        f"    if 'enzo' not in data.ds.dataset_type:",
+                        f"        return",
+                        f"    if data.ds.parameters['MultiSpecies'] < 4:",
+                        f"        return",
+                        f"    arr = ({iceeleabundstr})",
+                        f"    return arr",
+                    ]
+                )
+            )
+
         with open(path / "derived_fields_of_network.py", "w") as outf:
             outf.write("import yt\n")
             outf.write("from yt import derived_field\n\n")
