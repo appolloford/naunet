@@ -29,6 +29,38 @@ find_package(SUNDIALS ${SUNDIALS_MIN_VERSION} REQUIRED CONFIG)
 
 message(STATUS "SUNDIALS_FOUND             = ${SUNDIALS_FOUND}")
 
+{% if general.method == "dense" -%}
+if (NOT SUNDIALS_FOUND)
+    include(ExternalProject)
+    include(GNUInstallDirs)
+    ExternalProject_Add(
+        sundials_project
+        URL https://github.com/LLNL/sundials/releases/download/v5.8.0/sundials-5.8.0.tar.gz
+        PREFIX ${PROJECT_SOURCE_DIR}/external/sundials
+        CMAKE_ARGS "-DSUNDIALS_INDEX_SIZE=32"
+                   "-DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS}"
+                   "-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}"
+                   "-DCMAKE_INSTALL_PREFIX=${PROJECT_SOURCE_DIR}/external/sundials"
+        UPDATE_COMMAND ""
+    )
+
+    set(_IMPORT_PREFIX ${PROJECT_SOURCE_DIR}/external/sundials)
+    add_library(SUNDIALS::nvecserial SHARED IMPORTED)
+    set_target_properties(SUNDIALS::nvecserial PROPERTIES
+        INTERFACE_INCLUDE_DIRECTORIES "${_IMPORT_PREFIX}/include"
+        IMPORTED_LOCATION "${_IMPORT_PREFIX}/lib/libsundials_nvecserial.so"
+    )
+    add_dependencies(SUNDIALS::nvecserial sundials_project)
+
+    add_library(SUNDIALS::cvode SHARED IMPORTED)
+    set_target_properties(SUNDIALS::cvode PROPERTIES
+        INTERFACE_INCLUDE_DIRECTORIES "${_IMPORT_PREFIX}/include"
+        IMPORTED_LOCATION "${_IMPORT_PREFIX}/lib/libsundials_cvodes.so"
+    )
+    add_dependencies(SUNDIALS::cvode sundials_project)
+endif()
+{% endif %}
+
 list(APPEND SUNDIALSLIB
     SUNDIALS::cvode
     {% if general.method == "dense" -%}

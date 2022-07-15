@@ -15,7 +15,7 @@ on:
 
 jobs:
 
-  install:
+  package_install_and_test:
     strategy:
       matrix:
         os: [macos-latest]
@@ -50,8 +50,8 @@ jobs:
           source $(poetry env info --path)/bin/activate
           naunet --version
 
-  build:
-    needs: install
+  example_build_and_test:
+    needs: package_install_and_test
     
     runs-on: macos-latest
     
@@ -128,3 +128,56 @@ jobs:
         run: |
           source $(poetry env info --path)/bin/activate
           source ./scripts/actions/test_examples.sh
+
+  external_project_test:
+    needs: package_install_and_test
+    runs-on: macos-latest
+    
+    strategy:
+      fail-fast: false
+
+    env:
+      build_dir: "build"
+      config: "Release"
+
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+
+      - name: Set up poetry
+        uses: Gr1N/setup-poetry@v7
+
+      - uses: actions/cache@v2
+        with:
+          path: ~/.cache/pypoetry/virtualenvs
+          key: ${{ matrix.os }}-python${{ matrix.python }}-poetry-${{ hashFiles('poetry.lock') }}
+
+      - name: Install
+        run: |
+          poetry --version 
+          poetry install
+
+      - name: Create naunet examples
+        run: |
+          source $(poetry env info --path)/bin/activate
+          cd $HOME
+          naunet example --select=4 --path=naunet_ext_example4
+
+      - name: Build naunet examples
+        run: |
+          source $(poetry env info --path)/bin/activate
+          cd $HOME/naunet_ext_example4
+          cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release -DMAKE_PYTHON=ON
+          cmake --build build -j4
+          cd build && ctest
+
+      - name: Test naunet examples
+        run: |
+          source $(poetry env info --path)/bin/activate
+          source ./scripts/actions/test_examples.sh
+
