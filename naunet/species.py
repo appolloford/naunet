@@ -159,6 +159,9 @@ class Species:
     def __repr__(self) -> str:
         return f"Species('{self.name}')"
 
+    def __format__(self, spec) -> str:
+        return f"{self.name:{spec}}"
+
     def _add_element_count(self, element: str, count: int):
         """
         Add the count of elements in the species. Used in `_parse_molecule_name`

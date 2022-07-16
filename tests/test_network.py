@@ -203,26 +203,33 @@ def test_find_species(
 def test_init_network_from_kida(datadir):
     network = Network()
     network.add_reaction_from_file(datadir / "deuspin.kida", "kida")
-    network.check_duplicate_reaction()
 
 
-def test_check_duplicate(datadir):
+@pytest.mark.parametrize(
+    "filename, mode, dupidx",
+    [
+        ("duplicate.kida", "", [2, 3]),
+        ("duplicate.kida", "short", [2, 3]),
+        ("multiduplicate.kida", "", [2, 3, 4, 5, 6, 7]),
+    ],
+)
+def test_check_duplicate(datadir, filename, mode, dupidx):
     network = Network()
-    network.add_reaction_from_file(datadir / "duplicate.kida", "kida")
-    network.check_duplicate_reaction(full_check=False)
+    network.add_reaction_from_file(datadir / filename, "kida")
+    dupes = network.find_duplicate_reaction(mode=mode)
+    idx = [dup[0] for dup in dupes]
+    assert idx == dupidx
 
 
 def test_generate_cvode_code_from_kida(tmp_path, datadir):
     network = Network()
     network.add_reaction_from_file(datadir / "minimal.kida", "kida")
-    network.check_duplicate_reaction()
     network.to_code(method="sparse", prefix=tmp_path / "cvode_kida")
 
 
 def test_generate_cvode_code_from_leeds(tmp_path, datadir):
     network = Network()
     network.add_reaction_from_file(datadir / "rate12_HO.leeds", "leeds")
-    network.check_duplicate_reaction()
     network.to_code(prefix=tmp_path / "cvode_leeds")
 
 

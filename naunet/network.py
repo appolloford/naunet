@@ -434,30 +434,36 @@ class Network:
             )
         self._dust = dust
 
-    def check_duplicate_reaction(self, full_check: bool = True):
+    def find_duplicate_reaction(self, mode: str = "") -> list[tuple[int, Reaction]]:
+        """
+        Find the duplicate reactions in the network. The default behaviour checks the
+        reactants, products, temperature ranges, and reaction type. Only checking the
+        reactants and products if mode == "short".
+
+        Args:
+            mode (str, optional): the method of checking duplicates. Defaults to "".
+
+        Returns:
+            list[tuple[int, Reaction]]: the duplicate reactions and their indices
+        """
 
         seen = {}
         dupes = []
 
         check_list = (
-            self.reaction_list
-            if full_check
-            else [f"{react:short}" for react in self.reaction_list]
+            [f"{react:{mode}}" for react in self.reaction_list]
+            if mode
+            else self.reaction_list
         )
 
-        for x in check_list:
-            if x not in seen:
-                seen[x] = 1
+        for idx, chk in enumerate(check_list):
+            if chk not in seen:
+                seen[chk] = 1
             else:
-                if seen[x] == 1:
-                    dupes.append(x)
-                seen[x] += 1
+                if seen[chk] >= 1:
+                    dupes.append((idx, chk))
+                seen[chk] += 1
 
-        logger.info(
-            "The following {} reactions are duplicate:\n{}".format(
-                len(dupes), "\n".join([str(x) for x in dupes])
-            )
-        )
         return dupes
 
     def check_source_sink(self):
@@ -674,8 +680,43 @@ class Network:
         return self._reactants
 
     def reindex(self) -> None:
+        """
+        Reindex reactions in the network
+        """
         for idx, reac in enumerate(self.reaction_list):
             reac.idxfromfile = idx
+
+    def remove_reaction(self, reaction: int | Reaction | list[int | Reaction]) -> None:
+        """
+        Remove one or multiple reaction.
+
+        Args:
+            reaction (int | Reaction | list[int] | list[Reaction]): the reactions to be
+                removed or their indices of reactions in the network
+
+        Raises:
+            TypeError: if the argument is not the type of int | Reaction or
+                list[int | Reaction]
+        """
+
+        if isinstance(reaction, int):
+            self.reaction_list.pop(reaction)
+
+        elif isinstance(reaction, list) and all(isinstance(r, int) for r in reaction):
+            self.reaction_list = [
+                r for idx, r in enumerate(self.reaction_list) if idx not in reaction
+            ]
+
+        elif isinstance(reaction, Reaction):
+            self.reaction_list = [r for r in self.reaction_list if r != reaction]
+
+        elif isinstance(reaction, list) and all(
+            isinstance(r, Reaction) for r in reaction
+        ):
+            self.reaction_list = [r for r in self.reaction_list if r not in reaction]
+
+        else:
+            raise TypeError
 
     def templateloader(
         self,

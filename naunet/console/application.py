@@ -6,6 +6,7 @@ from .commands.new import NewCommand
 from .commands.init import InitCommand
 from .commands.render import RenderCommand
 from .commands.example import ExampleCommand
+from .commands.extend import ExtendCommand
 
 
 class Application(BaseApplication):
@@ -21,6 +22,7 @@ class Application(BaseApplication):
             InitCommand(),
             RenderCommand(),
             ExampleCommand(),
+            ExtendCommand(),
         ]
 
         return commands

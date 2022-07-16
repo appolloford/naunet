@@ -52,6 +52,7 @@ class Reaction:
         self.format = format
         self.idxfromfile = idxfromfile
 
+        self.react_string = react_string
         # if react_string:
         self._parse_string(react_string)
 
@@ -98,6 +99,9 @@ class Reaction:
 
         verbose = None
 
+        def fill(orig: list, nitem: int, dummy) -> list:
+            return orig + [dummy] * (nitem - len(orig))
+
         if not format:
             verbose = str(self)
 
@@ -108,10 +112,8 @@ class Reaction:
             )
 
         elif format == "naunet":
-            rnames = [f"{x.name:>12}" for x in sorted(self.reactants)]
-            rnames = [rnames[i] if i < len(rnames) else f"{'':>12}" for i in range(3)]
-            pnames = [f"{x.name:>12}" for x in sorted(self.products)]
-            pnames = [pnames[i] if i < len(pnames) else f"{'':>12}" for i in range(5)]
+            rnames = fill([f"{x:>12}" for x in sorted(self.reactants)], 3, f"{'':>12}")
+            pnames = fill([f"{x:>12}" for x in sorted(self.products)], 5, f"{'':>12}")
             verbose = ",".join(
                 [
                     f"{self.idxfromfile:<5}",
@@ -127,11 +129,30 @@ class Reaction:
                 ]
             )
 
+        elif format == "kida":
+            rnames = fill([f"{x:<11}" for x in sorted(self.reactants)], 3, f"{'':>11}")
+            pnames = fill([f"{x:<11}" for x in sorted(self.products)], 5, f"{'':>11}")
+            verbose = " ".join(
+                [
+                    f"".join(rnames),
+                    f"".join(pnames),
+                    f" {self.alpha:9.3e}",
+                    f" {self.beta:9.3e}",
+                    f" {self.gamma:9.3e}",
+                    f"xxxxxxxx",
+                    f"xxxxxxxx",
+                    f"xxxx  x   ",
+                    f" {int(self.temp_min):<4d}",
+                    f" {int(self.temp_max):<4d}",
+                    f"x",
+                    f"{self.idxfromfile:>5d}",
+                    f"x  x",
+                ]
+            )
+
         elif format == "krome":
-            rnames = [f"{x.name}" for x in sorted(self.reactants)]
-            rnames = [rnames[i] if i < len(rnames) else "" for i in range(3)]
-            pnames = [f"{x.name}" for x in sorted(self.products)]
-            pnames = [pnames[i] if i < len(pnames) else "" for i in range(5)]
+            rnames = fill([f"{x}" for x in sorted(self.reactants)], 3, "")
+            pnames = fill([f"{x:<11}" for x in sorted(self.products)], 5, "")
             verbose = ",".join(
                 [
                     f"{self.idxfromfile}",

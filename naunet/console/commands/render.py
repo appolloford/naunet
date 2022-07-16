@@ -96,7 +96,9 @@ class RenderCommand(Command):
             shielding=shielding,
         )
 
-        net.check_duplicate_reaction()
+        dupes = net.find_duplicate_reaction()
+        print(f"The following {len(dupes)} reactions are duplicate:\n")
+        print("\n".join([str(dup[1]) for dup in dupes]))
 
         # if elements are all capital, checking the repeat species in capital
         cap_species_name = all([e == e.upper() for e in element])

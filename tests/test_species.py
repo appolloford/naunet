@@ -105,6 +105,13 @@ def test_eq():
     assert Species("E") in [Species("e-")]
 
 
+def test_format():
+    Species.reset()
+    spec = Species("H")
+    assert f"{spec}" == f"{spec.name}"
+    assert f"{spec:<12}" == f"{spec.name:<12}"
+
+
 def test_mass():
     Species.reset()
     assert Species("H").mass == 1.007
