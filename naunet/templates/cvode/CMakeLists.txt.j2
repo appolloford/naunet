@@ -49,19 +49,21 @@ if (NOT SUNDIALS_FOUND)
     )
 
     set(_IMPORT_PREFIX ${PROJECT_SOURCE_DIR}/external/sundials)
+    set(_IMPORT_LIBDIR ${_IMPORT_PREFIX}/${CMAKE_INSTALL_LIBDIR})
+    set(_SUFFIX ${CMAKE_SHARED_LIBRARY_SUFFIX})
     include_directories("${_IMPORT_PREFIX}/include")
 
     add_library(SUNDIALS::nvecserial SHARED IMPORTED)
     set_target_properties(SUNDIALS::nvecserial PROPERTIES
         # INTERFACE_INCLUDE_DIRECTORIES "${_IMPORT_PREFIX}/include"
-        IMPORTED_LOCATION "${_IMPORT_PREFIX}/lib/libsundials_nvecserial.so"
+        IMPORTED_LOCATION "${_IMPORT_LIBDIR}/libsundials_nvecserial${_SUFFIX}"
     )
     add_dependencies(SUNDIALS::nvecserial sundials_project)
 
     add_library(SUNDIALS::cvode SHARED IMPORTED)
     set_target_properties(SUNDIALS::cvode PROPERTIES
         # INTERFACE_INCLUDE_DIRECTORIES "${_IMPORT_PREFIX}/include"
-        IMPORTED_LOCATION "${_IMPORT_PREFIX}/lib/libsundials_cvodes.so"
+        IMPORTED_LOCATION "${_IMPORT_LIBDIR}/libsundials_cvodes${_SUFFIX}"
     )
     add_dependencies(SUNDIALS::cvode sundials_project)
 endif()

@@ -168,16 +168,10 @@ jobs:
           cd $HOME
           naunet example --select=4 --path=naunet_ext_example4
 
-      - name: Build naunet examples
+      - name: Build and test naunet examples
         run: |
           source $(poetry env info --path)/bin/activate
           cd $HOME/naunet_ext_example4
           cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release -DMAKE_PYTHON=ON
           cmake --build build -j4
           cd build && ctest
-
-      - name: Test naunet examples
-        run: |
-          source $(poetry env info --path)/bin/activate
-          source ./scripts/actions/test_examples.sh
-
