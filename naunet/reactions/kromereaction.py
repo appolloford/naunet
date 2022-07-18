@@ -65,10 +65,10 @@ class KROMEReaction(Reaction):
                     continue
                 elif key == "idx":
                     self.idxfromfile = int(value)
-                elif key == "r" and self.create_species(value):
-                    self.reactants.append(self.create_species(value))
-                elif key == "p" and self.create_species(value):
-                    self.products.append(self.create_species(value))
+                elif key == "r" and self._create_species(value):
+                    self.reactants.append(self._create_species(value))
+                elif key == "p" and self._create_species(value):
+                    self.products.append(self._create_species(value))
                 elif key == "tmin":
                     if value.upper() not in ["N", "NONE", "N/A", "NO", ""]:
                         for opstr in ["<", ">", ".LE.", ".GE.", ".LT.", ".GT."]:

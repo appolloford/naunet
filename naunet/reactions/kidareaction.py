@@ -81,14 +81,14 @@ class KIDAReaction(Reaction):
             # print(react_string[:rlen].split())
             # print(react_string[rlen : rlen + plen].split())
             self.reactants = [
-                self.create_species(r)
+                self._create_species(r)
                 for r in react_string[:rlen].split()
-                if self.create_species(r)
+                if self._create_species(r)
             ]
             self.products = [
-                self.create_species(p)
+                self._create_species(p)
                 for p in react_string[rlen : rlen + plen].split()
-                if self.create_species(p)
+                if self._create_species(p)
             ]
 
             a, b, c, _, _, _, itype, lt, ut, form, idx, _, _ = react_string[

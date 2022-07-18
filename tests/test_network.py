@@ -186,17 +186,18 @@ def test_init_network_with_file(datadir):
     )
 
 
-def test_find_species(
-    example_network_from_reaction_list,
-    example_reaction_list,
-):
+def test_find_reaction(example_network_from_reaction_list, example_reaction_list):
+    network = example_network_from_reaction_list
+    assert network.where_reaction(example_reaction_list[0]) == [0]
+
+
+def test_find_species(example_network_from_reaction_list):
 
     network = example_network_from_reaction_list
-    assert network.where(example_reaction_list[0]) == [0]
-    assert network.where(species="H2", mode="reactant") == [1, 2]
-    assert network.where(species="e-", mode="product") == [0, 2]
-    assert network.where(species="C") == [1]
-    assert network.where(species="H") == [0, 1, 2]
+    assert network.where_species(species="H2", mode="reactant") == [1, 2]
+    assert network.where_species(species="e-", mode="product") == [0, 2]
+    assert network.where_species(species="C") == [1]
+    assert network.where_species(species="H") == [0, 1, 2]
 
 
 @pytest.mark.slow

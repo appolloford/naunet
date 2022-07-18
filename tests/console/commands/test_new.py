@@ -29,5 +29,3 @@ def test_command_new(tmp_path):
         assert chemistry["elements"] == Species.default_elements
         assert chemistry["pseudo_elements"] == Species.default_pseudoelements
         assert chemistry["species"] == []
-
-    shutil.rmtree(path)

@@ -34,12 +34,12 @@ class Reaction:
     ) -> None:
 
         self.reactants = (
-            [self.create_species(r) for r in reactants if self.create_species(r)]
+            [self._create_species(r) for r in reactants if self._create_species(r)]
             if reactants
             else []
         )
         self.products = (
-            [self.create_species(p) for p in products if self.create_species(p)]
+            [self._create_species(p) for p in products if self._create_species(p)]
             if products
             else []
         )
@@ -136,15 +136,15 @@ class Reaction:
                 [
                     f"".join(rnames),
                     f"".join(pnames),
-                    f" {self.alpha:9.3e}",
-                    f" {self.beta:9.3e}",
-                    f" {self.gamma:9.3e}",
+                    f"{self.alpha:+9.3e}" if self.alpha < 0 else f" {self.alpha:9.3e}",
+                    f"{self.beta:+9.3e}" if self.beta < 0 else f" {self.beta:9.3e}",
+                    f"{self.gamma:+9.3e}" if self.gamma < 0 else f" {self.gamma:9.3e}",
                     f"xxxxxxxx",
                     f"xxxxxxxx",
-                    f"xxxx  x   ",
-                    f" {int(self.temp_min):<4d}",
-                    f" {int(self.temp_max):<4d}",
-                    f"x",
+                    f"xxxx  x",
+                    f"{int(self.temp_min):>6d}",
+                    f"{int(self.temp_max):>6d}",
+                    f"xx",
                     f"{self.idxfromfile:>5d}",
                     f"x  x",
                 ]
@@ -215,14 +215,14 @@ class Reaction:
 
         idx, *rps, a, b, c, lt, ut, rtype, format = react_string.split(",")
         self.reactants = [
-            self.create_species(r.strip())
+            self._create_species(r.strip())
             for r in rps[0:3]
-            if self.create_species(r.strip())
+            if self._create_species(r.strip())
         ]
         self.products = [
-            self.create_species(p.strip())
+            self._create_species(p.strip())
             for p in rps[3:8]
-            if self.create_species(p.strip())
+            if self._create_species(p.strip())
         ]
 
         self.alpha = float(a)
@@ -234,7 +234,7 @@ class Reaction:
         self.reaction_type = ReactionType(int(rtype))
         self.format = format
 
-    def create_species(self, species_name: Species | str) -> Species:
+    def _create_species(self, species_name: Species | str) -> Species:
         """
         Create a Species instance if the name is not a pseudo element
         (e.g. CR, CRPHOT), else return None

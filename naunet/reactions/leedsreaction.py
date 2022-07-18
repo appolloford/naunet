@@ -255,16 +255,16 @@ class LEEDSReaction(Reaction):
                     self.idxfromfile = int(clip)
                 elif label == "reac":
                     self.reactants = [
-                        self.create_species(r.replace("YC", "CH2OHC"))
+                        self._create_species(r.replace("YC", "CH2OHC"))
                         for r in clip.split()
-                        if self.create_species(r.replace("YC", "CH2OHC"))
+                        if self._create_species(r.replace("YC", "CH2OHC"))
                     ]
 
                 elif label == "prod":
                     self.products = [
-                        self.create_species(p.replace("YC", "CH2OHC"))
+                        self._create_species(p.replace("YC", "CH2OHC"))
                         for p in clip.split()
-                        if self.create_species(p.replace("YC", "CH2OHC"))
+                        if self._create_species(p.replace("YC", "CH2OHC"))
                     ]
 
                 elif label == "a":

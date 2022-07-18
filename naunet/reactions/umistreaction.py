@@ -90,10 +90,10 @@ class UMISTReaction(Reaction):
             idx, code, *rps, _, a, b, c, lt, ut = react_string.split(":")[:14]
             # print(id, rps)
             self.reactants = [
-                self.create_species(r) for r in rps[0:2] if self.create_species(r)
+                self._create_species(r) for r in rps[0:2] if self._create_species(r)
             ]
             self.products = [
-                self.create_species(p) for p in rps[2:6] if self.create_species(p)
+                self._create_species(p) for p in rps[2:6] if self._create_species(p)
             ]
 
             self.alpha = float(a)

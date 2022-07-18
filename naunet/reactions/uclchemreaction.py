@@ -188,8 +188,8 @@ class UCLCHEMReaction(Reaction):
             products = [p for p in rpspec[3:7] if p not in kwlist]
 
             self.reactants = [
-                self.create_species(r) for r in reactants if self.create_species(r)
+                self._create_species(r) for r in reactants if self._create_species(r)
             ]
             self.products = [
-                self.create_species(p) for p in products if self.create_species(p)
+                self._create_species(p) for p in products if self._create_species(p)
             ]

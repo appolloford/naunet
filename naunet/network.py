@@ -220,7 +220,7 @@ class Network:
 
         # return empty set for updating if it is a fake react_string
         if not reaction:
-            return set()
+            return set(), set()
 
         if self._allowed_species:
             if not all(
@@ -239,7 +239,7 @@ class Network:
         self._products.update(new_products)
         # if len(self.reaction_list) % 100 == 0:
         #     print("Processing: {} reactions...".format(len(self.reaction_list)))
-        return new_reactants | new_products
+        return new_reactants, new_products
 
     def _consts(self) -> dict[str, str]:
 
@@ -315,8 +315,11 @@ class Network:
             else:
                 raise RuntimeError(f"Unknown format: {format}")
 
-        new_species = self._add_reaction(reaction)
-        logger.info("New species are added: {}".format(new_species))
+        new_reactants, new_products = self._add_reaction(reaction)
+        if new_reactants:
+            logger.info(f"New reactants are added: {new_reactants}")
+        if new_products:
+            logger.info(f"New products are added: {new_products}")
 
         self._reactconsts.update(
             {f"{c:<15}": f"{cv}" for c, cv in rclass.consts.items()}
@@ -344,7 +347,8 @@ class Network:
         """
 
         self.format_list.update({format})
-        new_species = set()
+        new_reactants = set()
+        new_products = set()
 
         # change some global settings or class attibutes if needed
         rclass = supported_reaction_class.get(format)
@@ -357,7 +361,9 @@ class Network:
             for _, line in enumerate(
                 tqdm(networkfile.readlines(), desc="Reading File...")
             ):
-                new_species.update(self._add_reaction((line, format)))
+                reac, prod = self._add_reaction((line, format))
+                new_reactants.update(reac)
+                new_products.update(prod)
 
             # print("New species: \n{}".format("\n".join(str(x) for x in new_species)))
 
@@ -466,71 +472,96 @@ class Network:
 
         return dupes
 
-    def check_source_sink(self):
+    def find_source_sink(self) -> tuple[set[Species], set[Species]]:
+        """
+        Find the source/sink species in the network
+
+        Returns:
+            tuple[set[Species], set[Species]]: the tuple of (source, sink), source and
+                sink are set of Species
+        """
         source = self._reactants.difference(self._products)
         sink = self._products.difference(self._reactants)
-        if len(source) == 0 and len(sink) == 0:
-            print("Found no source or sink")
-        elif len(source) != 0:
-            print("Found sources: ", source)
-        elif len(sink) != 0:
-            print("Found sinks: ", sink)
 
-    def where(
-        self,
-        reaction: Reaction = None,
-        species: Species | str = None,
-        mode: str = "all",
-    ) -> list[int]:
+        return source, sink
+
+    def where_reaction(self, reaction: Reaction, mode: str = "all") -> list[int]:
+        """
+        Find the index of a reaction
+
+        Args:
+            reaction (Reaction): target reaction
+            mode (str, optional): the way to compare the equality. Defaults to "all".
+
+        Raises:
+            RuntimeError: if mode is unkown
+
+        Returns:
+            list[int]: the index(es) of the reaction
+        """
 
         indices = []
 
-        if reaction:
-            if mode == "all":
-                indices = [
-                    idx
-                    for idx, reac in enumerate(self.reaction_list)
-                    if reac == reaction
-                ]
+        if mode == "all":
+            indices = [
+                idx for idx, reac in enumerate(self.reaction_list) if reac == reaction
+            ]
 
-            elif mode == "short":
-                indices = [
-                    idx
-                    for idx, reac in enumerate(self.reaction_list)
-                    if f"{reac:short}" == f"{reaction:short}"
-                ]
+        elif mode == "short":
+            indices = [
+                idx
+                for idx, reac in enumerate(self.reaction_list)
+                if f"{reac:short}" == f"{reaction:short}"
+            ]
 
-            else:
-                raise RuntimeError("Unknown mode: {mode}")
+        else:
+            raise RuntimeError("Unknown mode: {mode}")
 
-        elif species:
-            species = species if isinstance(species, Species) else Species(species)
+        return indices
 
-            if mode == "reactant":
-                indices = [
-                    idx
-                    for idx, reac in enumerate(self.reaction_list)
-                    if species in reac.reactants
-                ]
+    def where_species(self, species: Species | str, mode: str = "all") -> list[int]:
+        """
+        Find the index of reactions involving the species. Use `mode` to select find
+        in `reactants`, `products`, or `all`.
 
-            elif mode == "product":
+        Args:
+            species (Species | str): target species or its name
+            mode (str, optional): where to find species. Defaults to "all".
 
-                indices = [
-                    idx
-                    for idx, reac in enumerate(self.reaction_list)
-                    if species in reac.products
-                ]
+        Raises:
+            RuntimeError: if mode is unkown
 
-            elif mode == "all":
+        Returns:
+            list[int]: the index(es) of the reactions
+        """
 
-                indices = [
-                    idx
-                    for idx, reac in enumerate(self.reaction_list)
-                    if species in reac
-                ]
+        indices = []
 
-            else:
-                raise RuntimeError("Unknown mode: {mode}")
+        species = species if isinstance(species, Species) else Species(species)
+
+        if mode == "reactant":
+            indices = [
+                idx
+                for idx, reac in enumerate(self.reaction_list)
+                if species in reac.reactants
+            ]
+
+        elif mode == "product":
+
+            indices = [
+                idx
+                for idx, reac in enumerate(self.reaction_list)
+                if species in reac.products
+            ]
+
+        elif mode == "all":
+
+            indices = [
+                idx for idx, reac in enumerate(self.reaction_list) if species in reac
+            ]
+
+        else:
+            raise RuntimeError("Unknown mode: {mode}")
 
         return indices
 
