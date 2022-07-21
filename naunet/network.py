@@ -213,6 +213,11 @@ class Network:
         else:
             raise TypeError(f"Unknown type of filelist {type(filelist)}")
 
+    def __contains__(self, reac: Reaction) -> bool:
+        if not isinstance(reac, Reaction):
+            return NotImplemented
+        return reac in self.reaction_list
+
     def _add_reaction(self, reaction: Reaction | tuple[str, str]) -> list:
 
         if not isinstance(reaction, Reaction):
@@ -657,6 +662,14 @@ class Network:
 
         rqdsp = set([Species(s) for s in self._required_species])
         speclist = sorted(self._reactants | self._products | rqdsp)
+
+        connection = {sp: set() for sp in speclist}
+        for reac in self.reaction_list:
+            reacrp = reac.reactants + reac.products
+            for rp in reacrp:
+                connection[rp].update(reacrp)
+
+        speclist = sorted(speclist, key=lambda x: (len(connection[x]), x))
 
         elements = [spec for spec in speclist if spec.is_atom]
 

@@ -596,10 +596,10 @@ int Naunet::SetReferenceAbund(realtype *ref, int opt) {
 #endif
 
 int Naunet::Solve(realtype *ab, realtype dt, NaunetData *data) {
+    /* {% if general.method == "dense" or general.method == "sparse" -%} */
+
     int cvflag;
     realtype t0 = 0.0;
-
-    /* {% if general.method == "dense" or general.method == "sparse" -%} */
 
     for (int i = 0; i < NEQUATIONS; i++) {
         ab_init_[i] = ab[i];
@@ -696,6 +696,7 @@ int Naunet::Solve(realtype *ab, realtype dt, NaunetData *data) {
     }
 
     for (int i = 0; i < n_stream_in_use_; i++) {
+        int cvflag;
         realtype t0 = 0.0;
 
         // ! Bug: I don't know why n_vector does not save the stream_exec_policy

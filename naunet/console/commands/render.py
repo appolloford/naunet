@@ -151,7 +151,7 @@ class RenderCommand(Command):
 
         pattern = self.option("with-pattern")
         if pattern:
-            tl.render_sparsity(prefix=Path.cwd())
+            tl.render_jac_pattern()
 
         summary = tomlkit.table()
         dust = net.info.dust
