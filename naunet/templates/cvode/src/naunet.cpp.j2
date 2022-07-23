@@ -99,9 +99,6 @@ int Naunet::Finalize() {
     cudaFreeHost(h_ab);
     cudaFreeHost(h_data);
 
-    // cudaFree(d_ab);
-    // cudaFree(d_data);
-
     /* {% endif %} */
 
     fclose(errfp_);
@@ -286,9 +283,6 @@ int Naunet::Init(int nsystem, double atol, double rtol, int mxsteps) {
 
     cudaMallocHost((void **)&h_ab, sizeof(realtype) * n_system_ * NEQUATIONS);
     cudaMallocHost((void **)&h_data, sizeof(NaunetData) * n_system_);
-
-    // cudaMalloc((void**)&d_ab, sizeof(realtype) * n_system_ * NEQUATIONS);
-    // cudaMalloc((void**)&d_data, sizeof(NaunetData) * n_system_);
 
     n_stream_in_use_        = nsystem / NSTREAMS >= 32 ? NSTREAMS : 1;
     int n_system_per_stream = nsystem / n_stream_in_use_;
@@ -525,14 +519,8 @@ int Naunet::Reset(int nsystem, double atol, double rtol, int mxsteps) {
     cudaFreeHost(h_ab);
     cudaFreeHost(h_data);
 
-    cudaFree(d_ab);
-    cudaFree(d_data);
-
     cudaMallocHost((void **)&h_ab, sizeof(realtype) * n_system_ * NEQUATIONS);
     cudaMallocHost((void **)&h_data, sizeof(NaunetData) * n_system_);
-
-    cudaMalloc((void **)&d_ab, sizeof(realtype) * n_system_ * NEQUATIONS);
-    cudaMalloc((void **)&d_data, sizeof(NaunetData) * n_system_);
 
     int flag;
 
@@ -712,8 +700,6 @@ int Naunet::Solve(realtype *ab, realtype dt, NaunetData *data) {
         // }
         N_VSetHostArrayPointer_Cuda(
             h_ab + i * n_system_ * NEQUATIONS / n_stream_in_use_, cv_y_[i]);
-        // N_VSetDeviceArrayPointer_Cuda(d_ab + i * n_system_ * NEQUATIONS /
-        // n_stream_in_use_, cv_y_[i]);
         N_VCopyToDevice_Cuda(cv_y_[i]);
 
 #ifdef NAUNET_DEBUG
