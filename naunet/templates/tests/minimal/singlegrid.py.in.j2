@@ -8,5 +8,6 @@ naunet_data.Tgas = 15.0
 {% block initial_abundance %}
 y = np.ones(len(species)) * 1e-40
 y[species.index("H")]      = nH
-y[species.index("C2")]     = 7.0e-5 * nH
+y[species.index("C")]      = 7.0e-5 * nH
+y[species.index("CH")]     = 7.0e-5 * nH
 {% endblock initial_abundance %}

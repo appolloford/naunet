@@ -15,6 +15,7 @@
             y[isys * NEQUATIONS + i] = 1.e-40;
         }
         y[isys * NEQUATIONS + IDX_HI]      = nH;
-        y[isys * NEQUATIONS + IDX_C2I]     = 7.0e-5 * nH;
+        y[isys * NEQUATIONS + IDX_CI]      = 7.0e-5 * nH;
+        y[isys * NEQUATIONS + IDX_CHI]     = 7.0e-5 * nH;
     }
 {% endblock initial_abundance %}
