@@ -4,6 +4,7 @@ import re
 import csv
 import os
 from collections import namedtuple
+from pathlib import Path
 from . import chemistry
 
 
@@ -84,6 +85,7 @@ class Species:
     _known_pseudoelements = []
     _periodic_table = []
     _isotopes_table = []
+    _enthalpy_table = []
     _dust_species = []
 
     def __init__(self, name: str) -> None:
@@ -101,9 +103,10 @@ class Species:
         self.element_count = dict()
         self._alias = None
         self._binding_energy = None
-        self._photon_yield = None
+        self._enthalpy = 0.0
         self._mass = 0.0
         self._massnumber = 0
+        self._photon_yield = None
         self._surface_prefix = self.surface_prefix
 
         # Initialize known elements if not set when the fist species is instanciated
@@ -113,25 +116,32 @@ class Species:
             Species._known_elements.extend(Species.default_elements)
             Species._known_pseudoelements.extend(Species.default_pseudoelements)
 
+        chemistry_data_path = Path(chemistry.__file__).parent
         # Create periodic table if not created
         if not Species._periodic_table:
-            path = os.path.dirname(chemistry.__file__)
             # Load the periodic table as a list of namedtuple
             # Source: https://gist.github.com/GoodmanSciences/c2dd862cd38f21b0ad36b8f96b4bf1ee
-            with open(os.path.join(path, "periodictable.csv"), newline="") as infile:
+            with open(chemistry_data_path / "periodictable.csv", newline="") as infile:
                 # remove comment lines in case
                 reader = csv.reader(filter(lambda row: row[0] != "#", infile))
                 Element = namedtuple("Element", next(reader))
                 Species._periodic_table = list(map(Element._make, reader))
 
         if not Species._isotopes_table:
-            path = os.path.dirname(chemistry.__file__)
             # reference: http://moltensalt.org/references/static/downloads/pdf/stable-isotopes.pdf
-            with open(os.path.join(path, "isotopestable.csv"), newline="") as infile:
+            with open(chemistry_data_path / "isotopestable.csv", newline="") as infile:
                 # remove comment lines in case
                 reader = csv.reader(filter(lambda row: row[0] != "#", infile))
                 Isotope = namedtuple("Isotope", next(reader))
                 Species._isotopes_table = list(map(Isotope._make, reader))
+
+        if not Species._enthalpy_table:
+            # reference: https://cccbdb.nist.gov/hf0k.asp
+            with open(chemistry_data_path / "enthalpytable.csv", newline="") as infile:
+                # remove comment lines in case
+                reader = csv.reader(filter(lambda row: row[0] != "#", infile))
+                Enthalpy = namedtuple("Enthalpy", next(reader))
+                Species._enthalpy_table = list(map(Enthalpy._make, reader))
 
         self._parse_molecule_name()
 
@@ -410,6 +420,22 @@ class Species:
     @classmethod
     def dust_species(cls) -> list[str]:
         return cls._dust_species
+
+    @property
+    def enthalpy(self) -> float:
+        """
+        The enthalpy (in kJ/mol) of formation at 0K (surface species only, from CCCBDB)
+        """
+        if not self.is_surface:
+            return 0.0
+
+        if self._enthalpy:
+            return self._enthalpy
+
+        avails = {e.Species: float(e.Enthalpy) for e in Species._enthalpy_table}
+        self._enthalpy = avails.get(self.gasname, 0.0)
+
+        return self._enthalpy
 
     @property
     def gasname(self) -> str:

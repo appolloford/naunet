@@ -1,0 +1,452 @@
+### Table from https://cccbdb.nist.gov/hf0k.asp
+Species,Name,"Hfg 0K",Reference,DOI
+D,"Deuterium atom",219.8,Gurvich,
+H,"Hydrogen atom",216.0,CODATA,10.1002/bbpc.19900940121
+H+,"Hydrogen atom cation",1528.1,Gurvich,
+D2,"Deuterium diatomic",0.0,JANAF,
+H2,"Hydrogen diatomic",0.0,CODATA,10.1002/bbpc.19900940121
+H2+,"Hydrogen cation",1488.4,webbook,10.18434/T4D303
+HD,"Deuterium hydride",0.3,Gurvich,
+Li,"Lithium atom",157.7,CODATA,10.1002/bbpc.19900940121
+LiH,"Lithium Hydride",140.8,JANAF,
+Be,"Beryllium atom",319.8,CODATA,10.1002/bbpc.19900940121
+BeH,"beryllium monohydride",319.0,JANAF,
+BeH2,"beryllium dihydride",127.2,JANAF,
+B,"Boron atom",559.9,CODATA,10.1002/bbpc.19900940121
+BH,"Boron monohydride",439.5,JANAF,
+BH2,"boron dihydride",318.0,Gurvich,
+BH3,"boron trihydride",91.9,Gurvich,
+C,"Carbon atom",711.2,CODATA,10.1002/bbpc.19900940121
+C+,"Carbon atom cation",1797.6,JANAF,
+CH,Methylidyne,592.5,2005Rus/Bog:573,10.1063/1.1724828
+CH+,"Methylidyne cation",1617.2,webbook,10.18434/T4D303
+CH2,Methylene,390.7,2005Rus/Bog:573,10.1063/1.1724828
+CH2,Methylene,428.3,2005Rus/Bog:573,10.1063/1.1724828
+CH3,"Methyl radical",150.0,2005Rus/Bog:573,10.1063/1.1724828
+CH4,Methane,-66.6,Gurvich,
+N,"Nitrogen atom",470.8,CODATA,10.1002/bbpc.19900940121
+NH,Imidogen,358.4,Gurvich,
+ND2,Amidogen-d2,188.3,JANAF,
+NH2,"Amino radical",189.1,2005Rus/Bog:573,10.1063/1.1724828
+ND3,Ammonia-d3,-51.6,JANAF,
+NH3,Ammonia,-38.9,CODATA,10.1002/bbpc.19900940121
+O,"Oxygen atom",246.8,2006Rus/Pin:6592,10.1021/jp056311j
+DO,Hydroxyl-d,36.9,Gurvich,
+OH,"Hydroxyl radical",37.1,2006Rus/Pin:6592,10.1021/jp056311j
+OH-,"hydroxide anion",-137.0,Gurvich,
+OH+,"hydoxyl cation",1284.1,Gurvich,
+D2O,"Deuterium oxide",-246.3,Gurvich,
+H2O,Water,-238.9,2006Rus/Pin:6592,10.1021/jp056311j
+HDO,Water-d1,-242.3,Gurvich,
+F,"Fluorine atom",77.3,CODATA,10.1002/bbpc.19900940121
+DF,"Hydrofluoric acid-d",-276.2,Gurvich,
+HF,"Hydrogen fluoride",-273.3,CODATA,10.1002/bbpc.19900940121
+Na,"Sodium atom",107.8,CODATA,10.1002/bbpc.19900940121
+NaH,"sodium hydride",126.2,JANAF,
+Mg,"Magnesium atom",145.9,CODATA,10.1002/bbpc.19900940121
+MgH,"magnesium monohydride",230.3,Gurvich,
+Al,"Aluminum atom",327.6,CODATA,10.1002/bbpc.19900940121
+AlH,"aluminum monohydride",249.4,Gurvich,
+AlH2,"aluminum dihydride",279.7,Gurvich,
+AlH3,"aluminum trihydride",135.7,Gurvich,
+Si,"Silicon atom",445.7,CODATA,10.1002/bbpc.19900940121
+SiH,Silylidyne,366.9,Gurvich,
+SiH2,"silicon dihydride",275.0,Gurvich,
+SiH3,"Silyl radical",206.0,1991Set/Fen:1658,10.1021/j100157a030
+SiH4,Silane,43.9,Gurvich,
+P,"Phosphorus atom",315.7,CODATA,10.1002/bbpc.19900940121
+PH,"phosphorus monohydride",254.5,JANAF,
+PH2,"Phosphino radical",123.4,Gurvich,
+PH3,Phosphine,13.4,JANAF,
+S,"Sulfur atom",274.9,CODATA,10.1002/bbpc.19900940121
+DS,Mercapto-d,137.9,JANAF,
+HS,"Mercapto radical",140.0,Gurvich,
+D2S,"Hydrogen sulfide-d2",-21.0,JANAF,
+H2S,"Hydrogen sulfide",-17.7,CODATA,10.1002/bbpc.19900940121
+Cl,"Chlorine atom",119.6,CODATA,10.1002/bbpc.19900940121
+DCl,"Hydrochloric acid-d",-93.3,Gurvich,
+HCl,"Hydrogen chloride",-92.1,CODATA,10.1002/bbpc.19900940121
+K,"Potassium atom",89.9,CODATA,10.1002/bbpc.19900940121
+Ca,"Calcium atom",177.3,CODATA,10.1002/bbpc.19900940121
+Ti,"Titanium atom",470.0,CODATA,10.1002/bbpc.19900940121
+Cu,"Copper atom",336.2,CODATA,10.1002/bbpc.19900940121
+Zn,"Zinc atom",129.9,webbook,10.18434/T4D303
+GeH4,Germane,101.2,1990Rus/Sch:1865,10.1063/1.458587
+AsH,"Arsenic monohydride",233.5,1993Jor/Rob:215,10.1007/BF00224744
+AsH2,"Arsenic dihydride",171.3,1993Jor/Rob:215,10.1007/BF00224744
+AsH3,Arsine,73.9,1993Jor/Rob:215,10.1007/BF00224744
+Se,"Selenium atom",235.4,2005Se,
+Br,"Bromine atom",117.9,CODATA,10.1002/bbpc.19900940121
+Br-,"Bromine atom anion",-206.8,Gurvich,
+HBr,"hydrogen bromide",-28.4,CODATA,10.1002/bbpc.19900940121
+I,"Iodine atom",107.2,CODATA,10.1002/bbpc.19900940121
+HI,"Hydrogen iodide",28.7,CODATA,10.1002/bbpc.19900940121
+Li2,"Lithium diatomic",215.5,JANAF,
+Be2,"Beryllium diatomic",631.1,JANAF,
+B2,"Boron diatomic",829.8,Gurvich,
+B2H6,Diborane,52.4,Gurvich,
+C2,"Carbon diatomic",822.4,Gurvich,
+C2H,"Ethynyl radical",565.0,Gurvich,
+C2H2,Acetylene,228.0,Gurvich,
+C2H4,Ethylene,61.0,Gurvich,
+C2H5,"Ethyl radical",131.8,1994Ber/Ell:2744,10.1021/j100062a009
+C2H6,Ethane,-68.4,Gurvich,
+BN,"boron nitride",560.7,Gurvich,
+CN,"Cyano radical",437.0,Gurvich,
+N2,"Nitrogen diatomic",0.0,CODATA,10.1002/bbpc.19900940121
+HCN,"Hydrogen cyanide",132.4,Gurvich,
+HNC,"hydrogen isocyanide",194.0,Gurvich,
+N2H2,(E)-diazene,219.0,Gurvich,
+N2H2,(Z)-Diazene,255.0,Gurvich,
+CH2NH,Methanimine,91.2,webbook,10.18434/T4D303
+N2H4,Hydrazine,109.3,Gurvich,
+CH3NH2,"methyl amine",-7.8,TRC,
+BeO,"beryllium oxide",134.0,JANAF,
+BO,"boron monoxide",6.7,Gurvich,
+CO,"Carbon monoxide",-113.8,CODATA,10.1002/bbpc.19900940121
+LiO,"lithium oxide",84.1,JANAF,
+NO,"Nitric oxide",90.5,2006Rus/Pin:6592,10.1021/jp056311j
+O2,"Oxygen diatomic",0.0,CODATA,10.1002/bbpc.19900940121
+BeOH,"beryllium monohydroxide",-100.0,Gurvich,
+HBO,"Boron hydride oxide",-210.0,Gurvich,
+HCO,"Formyl radical",41.6,Gurvich,
+HNO,"Nitrosyl hydride",110.0,Gurvich,
+HO2,"Hydroperoxy radical",15.2,2006Rus/Pin:6592,10.1021/jp056311j
+LiOH,"lithium hydroxide",-227.1,1996Gur/Ber:1211,10.1063/1.555982
+H2CO,Formaldehyde,-104.9,Gurvich,
+H2O2,"Hydrogen peroxide",-129.7,2006Rus/Pin:6592,10.1021/jp056311j
+CH2OH,"Hydroxymethyl radical",-10.7,2005Rus/Bog:573,10.1063/1.1724828
+CH3O,"Methoxy radical",28.4,2005Rus/Bog:573,10.1063/1.1724828
+NH2OH,hydroxylamine,-39.9,Gurvich,
+CH3OH,"Methyl alcohol",-190.1,Gurvich,
+BeF,"Beryllium monofluoride",-172.2,JANAF,
+BF,"Boron monofluoride",-110.0,Gurvich,
+CF,Fluoromethylidyne,251.6,JANAF,
+F2,"Fluorine diatomic",0.0,CODATA,10.1002/bbpc.19900940121
+FO,"Oxygen monofluoride",108.4,Gurvich,
+LiF,"lithium fluoride",-340.6,JANAF,
+NF,"nitrogen fluoride",233.0,Gurvich,
+HCF,Fluoromethylene,105.0,Gurvich,
+HOF,"Hypofluorous acid",-94.0,Gurvich,
+H2F2,"Hydrogen fluoride dimer",-566.5,Gurvich,
+CH3F,"Methyl fluoride",-247.0,Gurvich,
+Na2,"Sodium diatomic",144.6,JANAF,
+NaF,"sodium fluoride",-288.8,JANAF,
+NaLi,"lithium sodium",178.9,1977Zmb/Wu:4603,10.1063/1.434621
+NaO,"sodium monoxide",85.0,JANAF,
+NaOH,"sodium hydroxide",-187.4,JANAF,
+Mg2,"Magnesium diatomic",288.2,JANAF,
+MgF,"Magnesium monofluoride",-231.8,Gurvich,
+MgO,"magnesium oxide",151.0,1989OPE/TEW9152,10.1021/ja00208a002
+MgOH,"magnesium hydroxide",-92.0,1989OPE/TEW9152,10.1021/ja00208a002
+Al2,"Aluminum diatomic",525.9,1990Fu/Lem:8420,10.1063/1.459280
+AlF,"Aluminum monofluoride",-265.6,JANAF,
+AlN,"Aluminum nitride",438.4,Gurvich,
+AlO,"Aluminum monoxide",67.0,JANAF,
+Si2,"Silicon diatomic",580.0,Gurvich,
+SiF,"silicon monofluoride",-27.1,Gurvich,
+SiN,"Silicon nitride",402.5,Gurvich,
+SiO,"Silicon monoxide",-101.6,JANAF,
+SiH3F,monofluorosilane,-367.2,JANAF,
+CP,"Carbon monophosphide",517.9,Gurvich,
+P2,"Phosphorus diatomic",145.8,CODATA,10.1002/bbpc.19900940121
+PF,"phosphorus monofluoride",-51.3,JANAF,
+PN,"Phosphorus mononitride",172.5,Gurvich,
+PO,"Phosphorus monoxide",-27.5,Gurvich,
+HCP,Phosphaethyne,213.5,JANAF,
+HPO,"Hydrogen phosphorus oxide",-53.0,Gurvich,
+CH2PH,Phosphaethene,-281.8,webbook,10.18434/T4D303
+P2H4,Diphosphine,-12.5,webbook,10.18434/T4D303
+AlS,"Aluminum sulfide",232.6,Gurvich,
+BeS,"beryllium sulfide",261.0,JANAF,
+BS,"boron sulfide",240.0,JANAF,
+CS,"carbon monosulfide",273.2,1979Ela/Ber:5151,10.1063/1.437355
+MgS,"magnesium sulfide",120.8,Gurvich,
+NS,"Mononitrogen monosulfide",266.8,Gurvich,
+PS,"phosphorus sulfide",150.6,Gurvich,
+S2,"Sulfur diatomic",128.3,CODATA,10.1002/bbpc.19900940121
+SF,"Monosulfur monofluoride",14.8,Gurvich,
+SiS,"silicon monosulfide",104.7,JANAF,
+SO,"Sulfur monoxide",5.0,JANAF,
+HBS,"hydrogen boron sulfide",-16.7,JANAF,
+H2CS,Thioformaldehyde,118.4,1993RUS/BER:2568,10.1063/1.464139
+H2S2,Disulfane,21.2,TRC,
+CH3S,thiomethoxy,129.9,1999BIS/CHO805,10.1063/1.478048
+CH3SH,Methanethiol,-11.9,webbook,10.18434/T4D303
+AlCl,"Aluminum monochloride",-51.7,JANAF,
+BCl,"boron monochloride",169.5,Gurvich,
+BeCl,"beryllium monochloride",58.3,JANAF,
+CCl,"carbon monochloride",435.8,Gurvich,
+Cl2,"Chlorine diatomic",0.0,CODATA,10.1002/bbpc.19900940121
+ClF,"Chlorine monofluoride",-50.2,JANAF,
+ClO,"Monochlorine monoxide",101.3,JANAF,
+LiCl,"lithium chloride",-195.6,JANAF,
+MgCl,"magnesium monochloride",-54.5,Gurvich,
+NaCl,"Sodium Chloride",-180.0,JANAF,
+PCl,"phosphorus chloride",135.3,Gurvich,
+SCl,"sulfur monochloride",155.6,JANAF,
+SiCl,Clorosilylidyne,140.3,Gurvich,
+DOCl,"Hypochlorous acid-d",-75.3,JANAF,
+HCCl,Chloromethylene,319.1,2005Tar/Mil:2881,10.1039/b506790a
+HOCl,"hypochlorous acid",-71.5,JANAF,
+CH3Cl,"Methyl chloride",-73.9,Gurvich,
+SiH3Cl,chlorosilane,-132.8,JANAF,
+Ar2,"Argon diatomic",-1.0,1976Col/Dou:1741-1745,10.1063/1.433319
+CaO,"Calcium monoxide",39.1,Gurvich,
+CaOH,"Calcium monohydroxide",-170.0,Gurvich,
+CuCl,"Copper monochloride",91.2,JANAF,
+CuF,"Copper monofluoride",12.2,JANAF,
+CuO,"Copper Monoxide",305.9,JANAF,
+GeF,"Germanium monofluoride",-70.7,Gurvich,
+SiGe,"Silicon Germanium",530.3,1995Vis/Sch:763,10.1006/jcht.1995.0079
+Br2,"Bromine diatomic",45.7,CODATA,10.1002/bbpc.19900940121
+BrCl,"Bromine monochloride",22.2,Gurvich,
+BrF,"Bromine monofluoride",-51.2,Gurvich,
+BrO+,"Bromine monoxide cation",1139.3,ATcT,
+HOBr,"Hypobromous acid",-47.7,2001Joe:11041,10.1021/jp011833u
+CH3Br,"methyl bromide",-21.0,Gurvich,
+I2,"Iodine diatomic",65.5,Gurvich,
+C3H4,cyclopropene,285.8,TRC,
+CH2CCH2,allene,198.4,1970COX/PIL,10.1002/bbpc.19700740727
+CH3CCH,propyne,191.6,webbook,10.18434/T4D303
+C3H5+,"Allyl cation",957.7,webbook,10.18434/T4D303
+C3H6,Cyclopropane,70.4,TRC,
+CH2CHCH3,Propene,34.7,TRC,
+C3H8,Propane,-82.4,TRC,
+HN3,"hydrogen azide",300.3,Gurvich,
+CH2NN,diazomethane,215.0,webbook,10.18434/T4D303
+CH3CN,Acetonitrile,71.5,TRC,
+C2H5N,Aziridine,142.5,TRC,
+CH3CH2NH2,Ethylamine,-26.7,TRC,
+CH3NHCH3,Dimethylamine,3.0,TRC,
+BO2,"Boron dioxide",-310.0,Gurvich,
+CO2,"Carbon dioxide",-393.1,CODATA,10.1002/bbpc.19900940121
+N2O,"Nitrous oxide",85.0,Gurvich,
+NO2,"Nitrogen dioxide",36.8,2006Rus/Pin:6592,10.1021/jp056311j
+O3,Ozone,144.5,Gurvich,
+HNCO,"Isocyanic acid",-98.7,JANAF,
+HNO2,"Nitrous acid",-72.8,Gurvich,
+CH2CO,Ketene,-44.5,2005Rus/Bog:573,10.1063/1.1724828
+HCOOH,"Formic acid",-371.5,Gurvich,
+CH3CO,"Acetyl radical",-3.6,2005Rus/Bog:573,10.1063/1.1724828
+C2H4O,"Ethylene oxide",-40.1,JANAF,
+CH3CHO,Acetaldehyde,-160.2,webbook,10.18434/T4D303
+CH3CH2O,"Ethoxy radical",-0.2,2005Rus/Bog:573,10.1063/1.1724828
+CH3CH2OH,Ethanol,-217.1,Gurvich,
+CH3OCH3,"Dimethyl ether",-166.6,TRC,
+BeF2,"Beryllium fluoride",-796.7,Gurvich,
+CF2,Difluoromethylene,-184.6,1997Pou/Pau:5327,10.1021/jp970778f
+F2O,"Difluorine monoxide",26.8,Gurvich,
+FCN,"Cyanogen fluoride",34.0,Gurvich,
+FNO,"Nitrosyl fluoride",-62.6,Gurvich,
+FOO,"Dioxygen monofluoride radical",27.2,JANAF,
+NF2,"Difluoroamino radical",37.0,Gurvich,
+BHF2,Difluoroborane,-736.0,Gurvich,
+CH2F2,"Methane, difluoro-",-444.5,Gurvich,
+CH2CHF,"Ethene, fluoro-",-132.2,Gurvich,
+MgF2,"Magnesium fluoride",-734.3,Gurvich,
+SiO2,"silicon dioxide",-320.7,Gurvich,
+PO2,"Phosphorus dioxide",-278.0,Gurvich,
+CS2,"Carbon disulfide",115.9,Gurvich,
+OCS,"Carbonyl sulfide",-141.8,Gurvich,
+S3,"Sulfur trimer",146.0,Gurvich,
+SF2,"sulfur difluoride",-291.0,Gurvich,
+SO2,"Sulfur dioxide",-294.3,CODATA,10.1002/bbpc.19900940121
+SSO,"Disulfur monoxide",-54.0,Gurvich,
+C2H4S,Thiirane,94.4,TRC,
+CH3CH2SH,ethanethiol,-29.2,TRC,
+BeCl2,"Beryllium chloride",-362.5,Gurvich,
+CCl2,dichloromethylene,226.9,2005Tar/Mil:2881,10.1039/b506790a
+Cl2O,"Dichlorine monoxide",82.8,JANAF,
+ClCN,chlorocyanogen,133.5,Gurvich,
+ClNO,"Nitrosyl chloride",54.6,Gurvich,
+ClOO,"chloroperoxy radical",99.7,JANAF,
+ClS2,"Sulfur chloride",79.5,JANAF,
+MgCl2,"Magnesium dichloride",-398.9,Gurvich,
+OClO,"Chlorine dioxide",99.0,JANAF,
+SiCl2,Dichlorosilylene,-163.2,Gurvich,
+BHCl2,"Borane, dichloro-",-249.0,Gurvich,
+CHCl2+,"dichloromethyl cation",891.7,2008Shu/Zha:10533-10538,10.1021/jp8056459
+CH2Cl2,"Methylene chloride",-88.2,Gurvich,
+SiH2Cl2,dichlorosilane,-313.0,JANAF,
+CH3CH2Cl,"Ethyl chloride",-97.7,TRC,
+CaCl2,"Calcium Chloride",-485.2,Gurvich,
+CaF2,"Calcium difluoride",-789.1,Gurvich,
+GeCl2,"Germanium dichloride",-170.5,Gurvich,
+GeO2,"Germanium dioxide",-104.1,Gurvich,
+BrCN,"Cyanogen bromide",192.8,JANAF,
+CH2Br2,dibromomethane,31.0,Gurvich,
+CH2BrI,bromoiodomethane,70.4,2005Lag/Ker:1802-1809,10.1021/jp045337s
+C2H3I,"Vinyl iodide",140.2,2008Shu/Och:5647-5652,10.1021/jp8007255
+B4H10,Tetraborane(10),97.8,1998Yu/Bau:807,10.1063/1.556022
+C4,"Carbon tetramer",964.0,JANAF,
+C4H6,1-Methylcyclopropene,257.9,1970COX/PIL,10.1002/bbpc.19700740727
+C4H6,Cyclobutene,173.8,1970COX/PIL,10.1002/bbpc.19700740727
+C4H6,Methylenecyclopropane,216.3,1970COX/PIL,10.1002/bbpc.19700740727
+CH2CCHCH3,"1,2-Butadiene",175.8,1970COX/PIL,10.1002/bbpc.19700740727
+CH2CHCHCH2,"1,3-Butadiene",124.5,1970COX/PIL,10.1002/bbpc.19700740727
+CH3CCCH3,2-Butyne,159.0,1970COX/PIL,10.1002/bbpc.19700740727
+CHCCH2CH3,1-Butyne,178.9,1970COX/PIL,10.1002/bbpc.19700740727
+C4H8,cyclobutane,53.0,TRC,
+CH2C(CH3)CH3,"1-Propene, 2-methyl-",4.0,1970COX/PIL,10.1002/bbpc.19700740727
+CH2CHCH2CH3,1-Butene,20.4,TRC,
+C(CH3)3,"Tert-butyl radical",75.7,1994Ber/Ell:2744,10.1021/j100062a009
+CH3CHCH2CH3,"2-Butyl radical",91.6,1994Ber/Ell:2744,10.1021/j100062a009
+CH3CH(CH3)CH3,Isobutane,-106.4,TRC,
+CH3CH2CH2CH3,Butane,-98.5,TRC,
+C2N2,Cyanogen,307.2,Gurvich,
+C3H3N,acrylonitrile,187.2,TRC,
+C3H7N,Cyclopropylamine,97.5,TRC,
+CH3CH(NH2)CH3,2-Propanamine,-56.9,TRC,
+NH2CH2CH2CH3,1-Propanamine,-42.4,TRC,
+B2O2,"Diboron dioxide",-460.0,Gurvich,
+NO3,"Nitrogen trioxide",78.9,1993Dav/Kim:2172,10.1021/j100112a018
+HNO3,"Nitric acid",-124.2,Gurvich,
+C2H2O2,Ethanedial,-206.4,TRC,
+C3H4O,Methylketene,-77.0,TRC,
+CH2CHCHO,Acrolein,-74.0,TRC,
+CH3COOH,"Acetic acid",-418.1,TRC,
+NH2CONH2,Urea,-220.7,TRC,
+CH3CONH2,Acetamide,-221.0,TRC,
+C2H6O2,"1,2-Ethanediol",-367.9,TRC,
+C3H6O,Oxetane,-60.5,1992Dor:9,10.1016/0040-6031(92)80002-E
+C3H6O,"Propylene oxide",-75.2,TRC,
+CH3CH2CHO,Propanal,-170.6,TRC,
+CH3COCH3,Acetone,-200.5,TRC,
+C3H7OH,1-Propanol,-231.3,TRC,
+CH3CHOHCH3,"Isopropyl alcohol",-248.6,TRC,
+CH3OC2H5,"Ethane, methoxy-",-193.6,TRC,
+BF3,"Borane, trifluoro-",-1133.2,CODATA,10.1002/bbpc.19900940121
+CF2O,"Carbonic difluoride",-620.0,Gurvich,
+CF3,"Trifluoromethyl radical",-469.2,Gurvich,
+N2F2,(Z)-Difluorodiazene,67.0,Gurvich,
+N2F2,"Dinitrogen difluoride, (E)-",72.6,Gurvich,
+NF3,"Nitrogen trifluoride",-126.4,JANAF,
+CHF3,"Methane, trifluoro-",-689.7,Gurvich,
+CH2CF2,"Ethene, 1,1-difluoro-",-329.5,Gurvich,
+CH3COF,"Acetyl fluoride",-432.4,TRC,
+CH3CHF2,"Ethane, 1,1-difluoro-",-487.0,TRC,
+AlF3,"Aluminum trifluoride",-1205.6,JANAF,
+P4,"Phosphorus tetramer",66.2,CODATA,10.1002/bbpc.19900940121
+SF3,"Sulfur trifluoride",6.1,1995Iri:5357,10.1063/1.469263
+SO3,"Sulfur trioxide",-390.2,Gurvich,
+CH3CHSHCH3,2-Propanethiol,-52.9,webbook,10.18434/T4D303
+AlCl3,"Aluminum trichloride",-582.8,JANAF,
+AlF2Cl,"Aluminum chloride difluoride",-996.0,Gurvich,
+AlFCl2,"Aluminum dichloride fluoride",-789.0,Gurvich,
+BCl3,"Borane, trichloro-",-402.0,JANAF,
+CCl2O,Phosgene,-218.4,JANAF,
+CCl3,"Trichloromethyl radical",69.9,1991Hud/Joh:4400,10.1021/j100164a043
+ClF3,"Chlorine trifluoride",-160.5,Gurvich,
+ClNO2,"Nitryl chloride",17.9,Gurvich,
+ClSSCl,"Disulfur dichloride",-15.2,JANAF,
+Na2Cl2,"Disodium dichloride",-562.5,JANAF,
+PCl3,"Phosphorus trichloride",-285.5,JANAF,
+CHCl3,Chloroform,-97.9,Gurvich,
+SiHCl3,Trichlorosilane,-491.1,JANAF,
+CH3COCl,"Acetyl Chloride",-233.8,TRC,
+CH2ClCH2Cl,"Ethane, 1,2-dichloro-",-120.1,2002Man:123,10.1063/1.1420703
+CH3CHCl2,"Ethane, 1,1-dichloro-",-119.8,TRC,
+CH3CHFCl,"Ethane, 1-chloro-1-fluoro-",-300.4,TRC,
+CH2ClCH2CH3,"Propane, 1-chloro-",-111.2,TRC,
+CH3CHClCH3,"Propane, 2-chloro-",-124.3,TRC,
+BrF3,"Bromine trifluoride",-244.8,Gurvich,
+CHBr3,bromoform,81.0,2008Shu/Zha:10533-10538,10.1021/jp8056459
+CHBrCl2,"Methane, bromodichloro-",-38.2,2008Shu/Zha:10533-10538,10.1021/jp8056459
+CHClBr2,"Methane, dibromochloro-",23.1,2008Shu/Zha:10533-10538,10.1021/jp8056459
+B5H9,pentaborane9,101.3,1998Yu/Bau:807,10.1063/1.556022
+C5H6,"1,3-Cyclopentadiene",151.4,TRC,
+C5H8,"1,2-Butadiene, 3-methyl-",148.0,TRC,
+C5H8,"1,2-Pentadiene",160.5,TRC,
+C5H8,"1,3-Butadiene, 2-methyl-",96.3,TRC,
+C5H8,"1,3-Pentadiene, (E)-",96.3,TRC,
+C5H8,"1,3-Pentadiene, (Z)-",103.0,TRC,
+C5H8,"1,4-Pentadiene",121.6,TRC,
+C5H8,"2,3-Pentadiene",152.6,TRC,
+C5H8,"Cyclobutane, methylene-",144.9,TRC,
+C5H8,Cyclopentene,58.2,TRC,
+C5H10,"1-Butene, 2-methyl-",-8.2,TRC,
+C5H10,"2-Butene, 2-methyl-",-13.4,TRC,
+C5H10,"2-Pentene, (E)-",-4.6,TRC,
+C5H10,"2-Pentene, (Z)-",1.3,TRC,
+C5H10,Cyclopentane,-44.5,TRC,
+C5H10,"Cyclopropane, 1,1-dimethyl-",20.8,TRC,
+C5H12,"Butane, 2-methyl-",-119.7,TRC,
+C5H12,Pentane,-114.9,TRC,
+C5H12,"Propane, 2,2-dimethyl-",-135.0,TRC,
+CH2N4,1H-Tetrazole,342.0,TRC,
+C4H5N,(E)-2-Butenenitrile,153.1,TRC,
+C4H5N,(Z)-2-Butenenitrile,146.6,TRC,
+C4H5N,Pyrrole,124.8,TRC,
+CH3CH(CH3)CN,"Propanenitrile, 2-methyl-",43.7,TRC,
+CH3CH2CH2CN,Butanenitrile,55.7,TRC,
+C(CH3)3NH2,"2-Propanamine, 2-methyl-",-87.1,TRC,
+C3O2,"Carbon suboxide",-99.7,Gurvich,
+N2O3,"Dinitrogen trioxide",91.2,Gurvich,
+C3H3NO,Isoxazole,91.3,TRC,
+C3H3NO,Oxazole,-2.9,TRC,
+C3H4O2,β–Propiolactone,-282.3,TRC,
+C3H4O2,"2-Propenoic acid",-311.0,TRC,
+C4H4O,Furan,-21.6,1977Ped/Ryl,
+C3H6O2,"1,3-Dioxolane",-275.0,1992Dor:9,10.1016/0040-6031(92)80002-E
+C4H8O,"Furan, tetrahydro-",-156.4,1992Dor:9,10.1016/0040-6031(92)80002-E
+CH3COCH2CH3,2-Butanone,-217.1,TRC,
+CHOCH2CH2CH3,Butanal,-185.7,TRC,
+C4H10O,1-Butanol,-244.4,TRC,
+C4H10O,"Ethanol, 1,1-dimethyl-",-282.2,TRC,
+C4H10O,"Ethoxy ethane",-223.4,TRC,
+CF4,"Carbon tetrafluoride",-927.2,Gurvich,
+F3NO,"Nitrogen trifluoride oxide",-178.8,Gurvich,
+FNO3,"Fluorine nitrate",22.3,Gurvich,
+CF3OH,trifluoromethanol,-900.8,1997Ash/App:9111,10.1063/1.474017
+SiF4,"Silicon tetrafluoride",-1609.5,CODATA,10.1002/bbpc.19900940121
+F3PO,"Phosphoryl fluoride",-1243.2,Gurvich,
+SF4,"Sulfur tetrafluoride",-753.0,Gurvich,
+H2SO4,"Sulfuric acid",-719.0,Gurvich,
+C4H4S,Thiophene,127.2,1995Dor/Gur:1351,10.1063/1.555962
+C4H6S,"Thiophene, 2,3-dihydro-",109.8,1995Dor/Gur:1351,10.1063/1.555962
+C4H6S,"Thiophene, 2,5-dihydro-",105.5,1995Dor/Gur:1351,10.1063/1.555962
+C4H8S,"Thiophene, tetrahydro-",-8.3,1995Dor/Gur:1351,10.1063/1.555962
+CCl4,"Carbon tetrachloride",-93.3,Gurvich,
+CF2Cl2,difluorodichloromethane,-481.8,Gurvich,
+CF3Cl,"Methane, chlorotrifluoro-",-702.7,Gurvich,
+CFCl3,Trichloromonofluoromethane,-281.8,Gurvich,
+Cl3PO,"Phosphoryl chloride",-554.2,JANAF,
+ClFO3,"Perchloryl fluoride",-12.7,JANAF,
+SiCl4,"Silane, tetrachloro-",-660.1,Gurvich,
+SO2Cl2,"Sulfuryl chloride",-348.6,JANAF,
+CHClCCl2,Trichloroethylene,-14.0,2002Man:123,10.1063/1.1420703
+CH3CCl3,"Ethane, 1,1,1-trichloro-",-131.9,2002Man:123,10.1063/1.1420703
+CBr4,"Carbon tetrabromide",150.0,Gurvich,
+C6H5,phenyl,352.7,1996Dav/Bie:2590,10.1021/ja00114a023
+C6H6,Benzene,100.4,TRC,
+C6H8,"1,3-Cyclohexadiene",130.1,TRC,
+C6H8,"1,4-Cyclohexadiene",132.6,TRC,
+C6H12,Cyclohexane,-83.8,TRC,
+C6H12,Ethylcyclobutane,7.7,webbook,10.18434/T4D303
+C6H14,"Butane, 2,2-dimethyl-",-143.5,TRC,
+C6H14,Hexane,-130.1,TRC,
+C6H14,"Pentane, 2-methyl-",-135.3,TRC,
+C6H14,"Pentane, 3-methyl-",-132.5,TRC,
+C4N2,2-Butynedinitrile,528.6,JANAF,
+C5H9N,"Butanenitrile, 2-methyl-",28.8,webbook,10.18434/T4D303
+N2O4,"Dinitrogen tetroxide",20.4,Gurvich,
+C5H8O,Cyclopentanone,-165.8,TRC,
+C5H12O,1-Pentanol,-260.4,TRC,
+B2F4,"Diboron tetrafluoride",-1435.6,Gurvich,
+C2F4,Tetrafluoroethylene,-656.1,Gurvich,
+CF3CN,"Acetonitrile, trifluoro-",-491.6,JANAF,
+PF5,"Phosphorus pentafluoride",-1582.4,Gurvich,
+C5H10S,"2H-Thiopyran, tetrahydro-",-30.0,1995Dor/Gur:1351,10.1063/1.555962
+C5H12S,"Ethyl propyl sulfide",-71.5,webbook,10.18434/T4D303
+C5H12S,"Propane, 2-methyl-2-(methylthio)-",-86.1,webbook,10.18434/T4D303
+B2Cl4,"Diboron tetrachloride",-490.8,Gurvich,
+C2Cl4,Tetrachloroethylene,-23.6,2002Man:123,10.1063/1.1420703
+PCl5,"Phosphorus pentachloride",-354.7,JANAF,
+BrF5,"bromine pentafluoride",-413.7,Gurvich,
+C6H5CH2,"benzyl radical",226.8,2005Rus/Bog:573,10.1063/1.1724828
+C7H14,cycloheptane,-72.9,TRC,
+SF6,"Sulfur Hexafluoride",-1206.5,JANAF,
+C2F6,hexafluoroethane,-1335.6,JANAF,
+S8,Octasulfur,104.4,JANAF,
+SF5CF3,"Sulfur, pentafluoro(trifluoromethyl)-",-1770.0,2001Chi/Ken:8403,10.1021/jp0116050

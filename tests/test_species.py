@@ -99,6 +99,12 @@ def test_element_counting():
     assert Species("GRAIN-").element_count.get("GRAIN") == 1
 
 
+def test_enthalpy():
+    Species.reset()
+    assert Species("#H2O").enthalpy == -57.1
+    assert Species("#CH").enthalpy == 141.6
+
+
 def test_eq():
     Species.reset()
     assert Species("E") == Species("e-")
