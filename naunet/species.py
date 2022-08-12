@@ -649,7 +649,7 @@ class Species:
     def reset(cls) -> None:
         """Reset class attributes in Species
 
-        Reset known_elements, known_pseudoelements, and surface_prefix.
+        Reset known_elements, known_pseudoelements, dust_species, and surface_prefix.
         """
         cls._known_elements = []
         cls._known_pseudoelements = []

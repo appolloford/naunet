@@ -57,7 +57,6 @@ class UCLCHEMReaction(Reaction):
         "Av": 1.0,  # visual extinction
         "omega": 0.5,  # dust grain albedo
         "G0": 1.0,  # UV field in Habing
-        "uvcreff": 1.0e-3,  # UVCREFF is ratio of CR induced UV to ISRF UV
     }
 
     locvars = [
@@ -82,6 +81,14 @@ class UCLCHEMReaction(Reaction):
 
         re1 = self.reactants[0]
         # re2 = self.reactants[1] if len(self.reactants) > 1 else None
+
+        if dust:
+            dust.sym_av = "Av"
+            dust.sym_tgas = "Tgas"
+            dust.sym_tdust = "Tgas"
+            dust.sym_radfield = "G0"
+            dust.sym_crrate = f"{zeta}"
+            dust.sym_h2form = f"1.0e-17 * sqrt(Tgas) * y[IDX_HI] * nH"
 
         # two-body gas-phase reaction
         if rtype == self.ReactionType.UCLCHEM_MA:
@@ -112,37 +119,23 @@ class UCLCHEMReaction(Reaction):
 
         # accretion
         elif rtype == self.ReactionType.UCLCHEM_FR:
-            rate = dust.rateexpr(
-                self.reaction_type, self.reactants, a, b, c, sym_tgas="Tgas"
-            )
+            rate = dust.rateexpr(self)
 
         # thermal desorption
         elif rtype == self.ReactionType.UCLCHEM_TH:
-            rate = dust.rateexpr(
-                self.reaction_type, self.reactants, a, b, c, sym_tdust="Tgas"
-            )
+            rate = dust.rateexpr(self)
 
         # cosmic-ray-induced thermal desorption
         elif rtype == self.ReactionType.UCLCHEM_CD:
-            rate = dust.rateexpr(
-                self.reaction_type, self.reactants, a, b, c, sym_cr=zeta
-            )
+            rate = dust.rateexpr(self)
 
         # photodesorption
         elif rtype == self.ReactionType.UCLCHEM_PD:
-            uvphot = f"({zeta} + (G0/uvcreff) * exp(-1.8*Av) )"
-            rate = dust.rateexpr(
-                self.reaction_type, self.reactants, a, b, c, sym_phot=uvphot
-            )
+            rate = dust.rateexpr(self)
 
         # H2 formation induced desorption
         elif rtype == self.ReactionType.UCLCHEM_HD:
-            # Epsilon is efficieny of this process, number of molecules removed per event
-            # h2form is formation rate of h2, dependent on hydrogen abundance.
-            h2formrate = f"1.0e-17 * sqrt(Tgas) * y[IDX_HI] * nH"
-            rate = dust.rateexpr(
-                self.reaction_type, self.reactants, a, b, c, sym_h2form=h2formrate
-            )
+            rate = dust.rateexpr(self)
 
         else:
             raise ValueError(f"Unsupported type: {rtype}")

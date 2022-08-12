@@ -65,10 +65,7 @@ class LEEDSReaction(Reaction):
 
     consts = {
         "gism": 1.6e-3,
-        "habing": 1e8,
         "zism": 1.3e-17,
-        "crphot": 1e4,
-        "hbar": 1.054571726e-27,
     }
     varis = {
         "nH": None,  # hydorgen nuclei number densuty
@@ -106,6 +103,13 @@ class LEEDSReaction(Reaction):
         re1 = self.reactants[0]
         re2 = self.reactants[1] if len(self.reactants) > 1 else None
 
+        if dust:
+            dust.sym_av = "Av"
+            dust.sym_tgas = "Tgas"
+            dust.sym_tdust = "Tgas"
+            dust.sym_radfield = "G0"
+            dust.sym_crrate = "zeta_cr/zism"
+
         # two-body gas-phase reaction
         if rtype == 1:
             rate = " * ".join(
@@ -140,34 +144,23 @@ class LEEDSReaction(Reaction):
 
         # cation-grain recombination
         elif rtype == 6:
-            rate = dust.rateexpr(
-                self.reaction_type, self.reactants, a, b, c, sym_tgas="Tgas"
-            )
+            rate = dust.rateexpr(self)
 
         # accretion
         elif rtype == 7:
-            rate = dust.rateexpr(
-                self.reaction_type, self.reactants, a, b, c, sym_tgas="Tgas"
-            )
+            rate = dust.rateexpr(self)
 
         # thermal desorption
         elif rtype == 8:
-            rate = dust.rateexpr(
-                self.reaction_type, self.reactants, a, b, c, sym_tdust="Tdust"
-            )
+            rate = dust.rateexpr(self)
 
         # cosmic-ray-induced thermal desorption
         elif rtype == 9:
-            rate = dust.rateexpr(
-                self.reaction_type, self.reactants, a, b, c, sym_cr="zeta_cr/zism"
-            )
+            rate = dust.rateexpr(self)
 
         # photodesorption
         elif rtype == 10:
-            uvphot = f"G0*habing*exp(-Av*3.02) + crphot * zeta_cr/zism"
-            rate = dust.rateexpr(
-                self.reaction_type, self.reactants, a, b, c, sym_phot=uvphot
-            )
+            rate = dust.rateexpr(self)
 
         # grain-surface cosmic-ray-induced photoreaction
         elif rtype == 11:
@@ -185,15 +178,11 @@ class LEEDSReaction(Reaction):
 
         # two-body grain-surface reaction
         elif rtype == 13:
-            rate = dust.rateexpr(
-                self.reaction_type, self.reactants, a, b, c, sym_tdust="Tdust"
-            )
+            rate = dust.rateexpr(self)
 
         # reactive desorption
         elif rtype == 14:
-            rate = dust.rateexpr(
-                self.reaction_type, self.reactants, a, b, c, sym_tdust="Tdust"
-            )
+            rate = dust.rateexpr(self)
 
         # three-body association *
         # collisional dissociation *
@@ -205,9 +194,7 @@ class LEEDSReaction(Reaction):
 
         # grain electron capture rate
         elif rtype == 20:
-            rate = dust.rateexpr(
-                self.reaction_type, self.reactants, a, b, c, sym_tgas="Tgas"
-            )
+            rate = dust.rateexpr(self)
 
         else:
             raise RuntimeError(

@@ -1,5 +1,5 @@
 ### Table from https://cccbdb.nist.gov/hf0k.asp
-Species,Name,"Hfg 0K",Reference,DOI
+Species,Name,Enthalpy,Reference,DOI
 D,"Deuterium atom",219.8,Gurvich,
 H,"Hydrogen atom",216.0,CODATA,10.1002/bbpc.19900940121
 H+,"Hydrogen atom cation",1528.1,Gurvich,

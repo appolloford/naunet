@@ -3,10 +3,11 @@ import subprocess
 import pytest
 from pathlib import Path
 from naunet.species import Species
+from naunet.dusts.dust import Dust
 from naunet.reactions.reaction import Reaction
 from naunet.reactions.reactiontype import ReactionType
 from naunet.reactions.kidareaction import KIDAReaction
-from naunet.network import Network
+from naunet.network import Network, define_dust, supported_dust_model
 
 GITHUB_ACTIONS = os.getenv("GITHUB_ACTIONS") == "true"
 
@@ -118,6 +119,14 @@ def test_init_network(empty_network):
     assert empty_network.reaction_list == []
     assert empty_network._reactants == set()
     assert empty_network._products == set()
+
+
+def test_define_dust():
+    @define_dust()
+    class TestDust(Dust):
+        model = "test"
+
+    assert supported_dust_model.get("test") == TestDust
 
 
 def test_add_reaction(empty_network, example_reaction1):

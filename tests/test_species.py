@@ -101,8 +101,8 @@ def test_element_counting():
 
 def test_enthalpy():
     Species.reset()
-    assert Species("#H2O").enthalpy == -57.1
-    assert Species("#CH").enthalpy == 141.6
+    assert Species("#H2O").enthalpy == -238.9
+    assert Species("#CH").enthalpy == 592.5
 
 
 def test_eq():

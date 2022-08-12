@@ -15,9 +15,8 @@ from .reactions.leedsreaction import LEEDSReaction
 from .reactions.uclchemreaction import UCLCHEMReaction
 from .reactions.umistreaction import UMISTReaction
 from .reactions.converter import ExpressionConverter
+from .dusts import builtin_dust_model
 from .dusts.dust import Dust
-from .dusts.hh93dust import HH93Dust
-from .dusts.rr07dust import RR07Dust
 from .thermalprocess import ThermalProcess, get_allowed_cooling, get_allowed_heating
 from .configuration import Configuration
 
@@ -26,11 +25,7 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger()
 
 
-supported_dust_model = {
-    "base": Dust,
-    "hh93": HH93Dust,
-    "rr07": RR07Dust,
-}
+supported_dust_model = {cls.model: cls for cls in builtin_dust_model}
 
 supported_reaction_class = {
     "naunet": Reaction,
@@ -82,20 +77,29 @@ def define_reaction(name: str):
 
     def insert_class(reactcls: Type[Reaction]):
         supported_reaction_class.update({name: reactcls})
+        return reactcls
 
     return insert_class
 
 
-def define_dust(name: str):
+def define_dust():
     """
     Decorator for users to add customized dust model
-
-    Args:
-        name (str): name of the class / model of the dust
     """
 
     def insert_class(dustcls: Type[Dust]):
-        supported_dust_model.update({name: dustcls})
+
+        if not isinstance(dustcls.model, str):
+            raise TypeError("Dust model name must be string")
+
+        if not dustcls.model or dustcls.model in supported_dust_model.keys():
+            raise RuntimeError(
+                "Model name is not set properly. Try to set"
+                "`model = '<name>'` in the given dust class"
+            )
+
+        supported_dust_model.update({dustcls.model: dustcls})
+        return dustcls
 
     return insert_class
 
@@ -620,7 +624,7 @@ class Network:
             cooling=self._cooling_names,
             shielding=self._shielding,
             dustmodel=self.dust.model if self.dust else "",
-            dustspecies=Species.dust_species(),
+            dustspecies=self.dust.species if self.dust else [],
             rate_modifier=ratemodifier,
             ode_modifier=odemodifier,
             solver=solver,

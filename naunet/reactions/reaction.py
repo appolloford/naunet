@@ -354,6 +354,19 @@ class Reaction:
         elif rtype == ReactionType.GAS_UMIST_CRPHOT:
             rate = f"{a} * pow(Tgas/300.0, {b}) * {c} / (1-omega)"
 
+        elif rtype in [
+            ReactionType.GRAIN_FREEZE,
+            ReactionType.GRAIN_DESORB_THERMAL,
+            ReactionType.GRAIN_DESORB_COSMICRAY,
+            ReactionType.GRAIN_DESORB_PHOTON,
+            ReactionType.GRAIN_DESORB_REACTIVE,
+            ReactionType.GRAIN_DESORB_H2,
+            ReactionType.GRAIN_RECOMINE,
+            ReactionType.GRAIN_ECAPTURE,
+            ReactionType.SURFACE_TWOBODY,
+        ]:
+            rate = dust.rateexpr(self)
+
         elif rtype == ReactionType.DUMMY:
             rate = "0.0"
 
