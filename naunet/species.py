@@ -1,11 +1,7 @@
 from __future__ import annotations
 import logging
 import re
-import csv
-import os
-from collections import namedtuple
-from pathlib import Path
-from . import chemistry
+from . import chemistrydata
 
 
 class Species:
@@ -83,9 +79,6 @@ class Species:
 
     _known_elements = []
     _known_pseudoelements = []
-    _periodic_table = []
-    _isotopes_table = []
-    _enthalpy_table = []
     _dust_species = []
 
     def __init__(self, name: str) -> None:
@@ -117,33 +110,6 @@ class Species:
 
             Species._known_elements.extend(Species.default_elements)
             Species._known_pseudoelements.extend(Species.default_pseudoelements)
-
-        chemistry_data_path = Path(chemistry.__file__).parent
-        # Create periodic table if not created
-        if not Species._periodic_table:
-            # Load the periodic table as a list of namedtuple
-            # Source: https://gist.github.com/GoodmanSciences/c2dd862cd38f21b0ad36b8f96b4bf1ee
-            with open(chemistry_data_path / "periodictable.csv", newline="") as infile:
-                # remove comment lines in case
-                reader = csv.reader(filter(lambda row: row[0] != "#", infile))
-                Element = namedtuple("Element", next(reader))
-                Species._periodic_table = list(map(Element._make, reader))
-
-        if not Species._isotopes_table:
-            # reference: http://moltensalt.org/references/static/downloads/pdf/stable-isotopes.pdf
-            with open(chemistry_data_path / "isotopestable.csv", newline="") as infile:
-                # remove comment lines in case
-                reader = csv.reader(filter(lambda row: row[0] != "#", infile))
-                Isotope = namedtuple("Isotope", next(reader))
-                Species._isotopes_table = list(map(Isotope._make, reader))
-
-        if not Species._enthalpy_table:
-            # reference: https://cccbdb.nist.gov/hf0k.asp
-            with open(chemistry_data_path / "enthalpytable.csv", newline="") as infile:
-                # remove comment lines in case
-                reader = csv.reader(filter(lambda row: row[0] != "#", infile))
-                Enthalpy = namedtuple("Enthalpy", next(reader))
-                Species._enthalpy_table = list(map(Enthalpy._make, reader))
 
         self._parse_molecule_name()
 
@@ -366,7 +332,7 @@ class Species:
             # e.g. CO could be replaced by Co if Co exists in the known element list
             replacement = {
                 e.Symbol.upper(): e.Symbol
-                for e in Species._periodic_table + Species._isotopes_table
+                for e in chemistrydata.periodic_table + chemistrydata.isotopes_table
                 if e.Symbol.upper() in self._known_elements
             }
             for key, value in replacement.items():
@@ -417,11 +383,9 @@ class Species:
         if not self.is_surface:
             logging.fatal(f"{self.name} is not ice species, has no binding energy")
 
-        self._binding_energy = (
-            chemistry.user_binding_energy.get(self.name)
-            if chemistry.user_binding_energy.get(self.name)
-            else chemistry.rate12_binding_energy.get(self.gasname)
-        )
+        self._binding_energy = chemistrydata.user_binding_energy.get(
+            self.name
+        ) or chemistrydata.rate12_binding_energy.get(self.gasname)
 
         if not self._binding_energy:
             raise RuntimeError(f"Cannot find the binding energy of {self.name}")
@@ -458,7 +422,7 @@ class Species:
         if self._enthalpy:
             return self._enthalpy
 
-        avails = {e.Species: float(e.Enthalpy) for e in Species._enthalpy_table}
+        avails = {e.Species: float(e.Enthalpy) for e in chemistrydata.enthalpy_table}
         self._enthalpy = avails.get(self.gasname, 0.0)
 
         return self._enthalpy
@@ -552,7 +516,7 @@ class Species:
             return self._mass
 
         self._mass = 0.0
-        for e in Species._periodic_table + Species._isotopes_table:
+        for e in chemistrydata.periodic_table + chemistrydata.isotopes_table:
             self._mass += self._allcaps_element_count.get(e.Symbol.upper(), 0) * float(
                 e.AtomicMass
             )
@@ -575,7 +539,7 @@ class Species:
             return self._massnumber
 
         self._massnumber = 0.0
-        for e in Species._periodic_table + Species._isotopes_table:
+        for e in chemistrydata.periodic_table + chemistrydata.isotopes_table:
             self._massnumber += self._allcaps_element_count.get(e.Symbol.upper(), 0) * (
                 float(e.NumberofNeutrons) + float(e.NumberofProtons)
             )
@@ -609,7 +573,7 @@ class Species:
         if not self.is_surface:
             logging.fatal(f"{self.name} is not ice species! No photodesorption yield")
 
-        self._photon_yield = chemistry.user_photon_yield.get(self.name, default)
+        self._photon_yield = chemistrydata.user_photon_yield.get(self.name, default)
 
         return self._photon_yield
 
