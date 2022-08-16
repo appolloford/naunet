@@ -35,7 +35,7 @@ int grid::IdentifyNaunetSpeciesFields({{ specnum | map('prefix', "int &") | join
     // Find Fields for the Naunet species
     {% set specnum = species.network | map(attribute="alias") | map("suffix", "Num") -%}
     {% for n, s in zip(specnum, species.network) -%}
-        {{ n }} = FindField({{ "Electron" if s.iselectron else s.alias }}Density, FieldType, NumberOfBaryonFields);
+        {{ n }} = FindField({{ "Electron" if s.is_electron else s.alias }}Density, FieldType, NumberOfBaryonFields);
     {% endfor -%}
 
     // check fields exist
@@ -52,7 +52,7 @@ int grid::IdentifyNaunetSpeciesFields(int *specnum)
 
     const field_type NauentFields[114] = {
         {% for s in species.network -%}
-        {{ "Electron" if s.iselectron else s.alias }}Density{{ ",\n        " if not loop.last else "\n" }}
+        {{ "Electron" if s.is_electron else s.alias }}Density{{ ",\n        " if not loop.last else "\n" }}
         {%- endfor %}
     };
 

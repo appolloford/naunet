@@ -106,7 +106,7 @@ class LEEDSReaction(Reaction):
         if dust:
             dust.sym_av = "Av"
             dust.sym_tgas = "Tgas"
-            dust.sym_tdust = "Tgas"
+            dust.sym_tdust = "Tdust"
             dust.sym_radfield = "G0"
             dust.sym_crrate = "zeta_cr/zism"
 

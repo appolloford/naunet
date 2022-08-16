@@ -14,7 +14,7 @@
 
 
 {% for s in network.species -%}
-#define A_{{ s.alias }} {{ 1.0 if s.iselectron else s.massnumber }}
+#define A_{{ s.alias }} {{ 1.0 if s.is_electron else s.massnumber }}
 {% endfor %}
 
 

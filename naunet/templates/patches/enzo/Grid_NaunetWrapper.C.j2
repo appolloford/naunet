@@ -157,7 +157,7 @@ int grid::NaunetWrapper()
 
         {% set specnum = species.network | map(attribute='alias') | map('suffix', "Num") -%}
         {% for s, n in zip(network.species, specnum) -%}
-          y[IDX_{{ s.alias }}] = max(BaryonField[{{ n }}][igrid], 1e-40) * NumberDensityUnits / {{ 1.0 if s.iselectron else s.A }};
+          y[IDX_{{ s.alias }}] = max(BaryonField[{{ n }}][igrid], 1e-40) * NumberDensityUnits / {{ 1.0 if s.is_electron else s.A }};
         {% endfor %}
 
         if (naunet.Solve(y, dt_chem * TimeUnits, &data) == NAUNET_FAIL) {    
@@ -167,7 +167,7 @@ int grid::NaunetWrapper()
 
         {% set specnum = species.network | map(attribute='alias') | map('suffix', "Num") -%}
         {% for s, n in zip(network.species, specnum) -%}
-          BaryonField[{{ n }}][igrid] = max(y[IDX_{{ s.alias }}] * {{ 1.0 if s.iselectron else s.A }} / NumberDensityUnits, 1e-40);
+          BaryonField[{{ n }}][igrid] = max(y[IDX_{{ s.alias }}] * {{ 1.0 if s.is_electron else s.A }} / NumberDensityUnits, 1e-40);
         {% endfor %}
 
       }

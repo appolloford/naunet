@@ -56,7 +56,7 @@ class RR07Dust(Dust):
 
         spec = reac.reactants[0]
         a = reac.alpha
-        if spec.iselectron:
+        if spec.is_electron:
             rate = " * ".join(
                 [
                     f"4.57e4 * {a} * gxsec * fr",

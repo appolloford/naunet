@@ -237,7 +237,7 @@ class EnzoPatch:
         species = self._network_info.species
 
         for s in species:
-            alias = "Electron" if s.iselectron else s.alias
+            alias = "Electron" if s.is_electron else s.alias
             derived_species_field.append(
                 "\n".join(
                     [
@@ -248,7 +248,7 @@ class EnzoPatch:
                         f"    if data.ds.parameters['MultiSpecies'] < 4:",
                         f"        return",
                         f"    dunit = data.ds.mass_unit/data.ds.length_unit**3",
-                        f"    num_unit = dunit / mh_cgs / {1.0 if s.iselectron else s.A}",
+                        f"    num_unit = dunit / mh_cgs / {1.0 if s.is_electron else s.A}",
                         f"    arr = (num_unit*data['{alias}_Density']).to_ndarray()",
                         f"    return arr",
                     ]
@@ -256,7 +256,7 @@ class EnzoPatch:
             )
 
         for ele in Species.known_elements():
-            specalias = ["Electron" if s.iselectron else s.alias for s in species]
+            specalias = ["Electron" if s.is_electron else s.alias for s in species]
             specnatom = [s.element_count.get(ele, 0) for s in species]
             eleabund = [
                 f"{natom}*data['{alias}_ndensity']"

@@ -185,6 +185,7 @@ class HH93Dust(Dust):
             )
 
         rate = " * ".join([rate, "cov", "cov"])
+        return rate
 
     def rate_surface_twobody(self, reac: Reaction) -> str:
 

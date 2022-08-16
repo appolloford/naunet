@@ -76,7 +76,7 @@ class Species:
         "m",
         "c-",
         "l-",
-        "*",
+        r"\*",
         "g",
     ]
     surface_prefix = "#"
@@ -108,6 +108,8 @@ class Species:
         self._massnumber = 0
         self._photon_yield = None
         self._surface_prefix = self.surface_prefix
+        self._is_surface = False
+        self._surface_group = None
 
         # Initialize known elements if not set when the fist species is instanciated
         if not Species._known_elements and not Species._known_pseudoelements:
@@ -155,7 +157,7 @@ class Species:
 
     def __eq__(self, o: object) -> bool:
         if isinstance(o, Species):
-            return (self.iselectron and o.iselectron) or self.name == o.name
+            return (self.is_electron and o.is_electron) or self.name == o.name
         return NotImplemented
 
     def __hash__(self) -> int:
@@ -182,13 +184,18 @@ class Species:
         """
         if element in Species._known_pseudoelements:
             return
-        if count < 0:
+        elif element == self._surface_prefix:
+            if self._surface_group is not None:
+                raise RuntimeError(f"Repeatedly found surface symbol.")
+            else:
+                self._is_surface = True
+                self._surface_group = count
+                return
+        elif count <= 0:
             logging.warning(
-                "The number added into {} count <= 0 in {}. Reset to 0".format(
-                    element, self.name
-                )
+                f"The number added into {element} count <= 0 in {self.name}. Reset to 1"
             )
-            count = 0
+            count = 1
         if element in self.element_count.keys():
             self.element_count[element] += count
         else:
@@ -214,38 +221,56 @@ class Species:
         Raises:
             RuntimeError: [description]
         """
-        element_sorted = sorted(
-            Species._known_elements + Species._known_pseudoelements,
-            key=len,
-            reverse=True,
-        )
-        element_len = list(map(lambda x: len(x), element_sorted))
 
-        # get the name without surface or charge symbol
-        specname = self.basename
+        parsename = self.name
+        # remove charge symbols
+        parsename = re.sub(r"\+*$", "", parsename)
+        parsename = re.sub(r"-*$", "", parsename)
 
-        lastelement = None
-        while len(specname) > 0:
-            # compare the head of the name with the element names
-            # remove it after count it
-            for ele, l in zip(element_sorted, element_len):
-                if specname[0:l] == ele:
-                    self._add_element_count(ele, 1)
-                    specname = specname[l:]
-                    lastelement = ele
-                    break
-            else:
-                # get the leading value and add the lost counts to the last found element
-                # without considering the cases like H_2^13CO
-                num = re.findall(r"^\d+", specname)
-                if len(num) > 0:
-                    num = int(num[0])
-                    self._add_element_count(lastelement, num - 1)
-                    specname = re.sub(r"^\d+", "", specname)
+        components = Species._known_elements + Species._known_pseudoelements
+        components.append(self._surface_prefix)
+
+        components = sorted(components, key=len, reverse=True)
+
+        firstparse = parsename
+        matches = []
+        for c in components:
+            for it in re.finditer(c, firstparse):
+                matches.append(it)
+                start, end = it.start(), it.end()
+                # remove the found items to avoid repeatance (e.g. S in Si)
+                firstparse = firstparse[:start] + " " * (end - start) + firstparse[end:]
+        matches = sorted(matches, key=lambda x: x.start())
+
+        # to check the number of elements, we need the end of last match and
+        # the start of the next one
+        starts = [m.start() for m in matches]
+        ends = [m.end() for m in matches]
+        # make the ends start from 0 and starts end at string length so that
+        # we can check the number of the last element. (e.g CO2)
+        starts.append(len(parsename))
+        ends.insert(0, 0)
+        # insert dummy name to match the length of starts and ends
+        matchnames = [m.group() for m in matches]
+        matchnames.insert(0, "")
+
+        if starts[0] != 0:
+            raise RuntimeError(f"{self.name} starts with something unrecognizable")
+
+        for s, e, n in zip(starts, ends, matchnames):
+            if e != s:
+                substring = parsename[e:s]
+                if substring.isdigit():
+                    self._add_element_count(n, int(parsename[e:s]))
                 else:
                     raise RuntimeError(
-                        'Unrecongnized name: "{}" in "{}"'.format(specname, self.name)
+                        f'Unrecongnized name: "{substring}" in "{self.name}"'
                     )
+            else:
+                if n == self._surface_prefix:
+                    self._add_element_count(n, 0)
+                elif n:
+                    self._add_element_count(n, 1)
 
     @classmethod
     def add_dust_species(cls, dustspecies: list[str]) -> list[str]:
@@ -364,7 +389,8 @@ class Species:
         basename = self.name
         # remove surface symbol
         if self.is_surface:
-            basename = basename.replace(self._surface_prefix, "")
+            prefix = f"{self._surface_prefix}{self._surface_group or ''}"
+            basename = basename.replace(prefix, "")
 
         # remove charge symbols
         if self.charge != 0:
@@ -410,7 +436,7 @@ class Species:
         """
         Total charge of the species. Calculate the number of "+" and "-" in the end
         """
-        if self.iselectron:
+        if self.is_electron:
             return -1
 
         pcharge = "".join(re.findall(r"\+*$", self.name)).count("+")
@@ -443,11 +469,8 @@ class Species:
         Return the name of its gas-phase species if this species is at ice-phase.
         Else return the current name.
         """
-        return (
-            self.name.replace(self._surface_prefix, "")
-            if self.is_surface
-            else self.name
-        )
+        prefix = f"{self._surface_prefix}{self._surface_group or ''}"
+        return self.name.replace(prefix, "") if self.is_surface else self.name
 
     @property
     def is_dust(self) -> bool:
@@ -460,7 +483,7 @@ class Species:
         return self.name in self._dust_species
 
     @property
-    def iselectron(self) -> bool:
+    def is_electron(self) -> bool:
         """
         A conveninent function to check whether the species is electron.
 
@@ -483,7 +506,7 @@ class Species:
             len(names) == 1
             and sum(counts) == 1
             and self.charge == 0
-            and not self.iselectron
+            and not self.is_electron
             # and not self.is_dust
             and not self.is_surface
         )
@@ -493,11 +516,11 @@ class Species:
         """
         Check whether the species is sticking on surface (a surface species)
         """
-        if self.is_dust:
-            return False
+        # if self.is_dust:
+        #     return False
         # if "GRAIN" in self.name.upper():
         #     return False
-        return self.name.startswith(self._surface_prefix)
+        return self._is_surface
 
     # TODO: python 3.9 support classmethod property
     @classmethod

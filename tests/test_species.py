@@ -94,6 +94,10 @@ def test_element_counting():
     assert Species("N2D+").element_count.get("N") == 2
     assert Species("N2D+").element_count.get("D") == 1
     assert Species("C10").element_count.get("C") == 10
+    assert Species("CO2").element_count.get("O") == 2
+    Species.add_known_elements(["13C"])
+    assert Species("H213CO").element_count.get("13C") == 1
+    assert Species("H213CO").element_count.get("H") == 2
     # special case
     assert Species("GRAIN0").element_count.get("GRAIN") == 1
     assert Species("GRAIN-").element_count.get("GRAIN") == 1

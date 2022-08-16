@@ -335,7 +335,7 @@ class TemplateLoader:
                 for ispec, spec in enumerate(species):
                     ci = spec.element_count.get(einame, 0)
                     cj = spec.element_count.get(ejname, 0)
-                    if not spec.iselectron and ci and cj:
+                    if not spec.is_electron and ci and cj:
                         terms.append(
                             f"{(ci * cj * elements[jele].A)} * ab[IDX_{spec.alias}] / {spec.A} / Hnuclei"
                         )
@@ -349,7 +349,7 @@ class TemplateLoader:
                 for c, ename, elem in zip(counts, elemnames, elements)
                 if c
             ]
-            renorm.append(1.0 if spec.iselectron else " + ".join(factor))
+            renorm.append(1.0 if spec.is_electron else " + ".join(factor))
 
         return self.RenormContent(renorm, matrix)
 

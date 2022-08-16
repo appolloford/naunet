@@ -99,7 +99,7 @@ class ExtendCommand(Command):
                     )
                     net.add_reaction(reaction)
                 # TODO: electron?
-                # elif spec.iselectron:
+                # elif spec.is_electron:
                 #     pass
 
         options = ["thermal", "photon", "cosmic-ray"]
