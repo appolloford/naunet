@@ -53,7 +53,6 @@ class RenderCommand(Command):
 
         dust = chemistry["dust"]
         dustmodel = dust["model"]
-        dustspecies = dust["species"]
 
         odesolver = content["ODEsolver"]
         solver = odesolver["solver"]
@@ -88,8 +87,7 @@ class RenderCommand(Command):
             fileformats=format,
             allowed_species=species + extra_species,
             required_species=extra_species,
-            dustmodel=dustmodel,
-            dustparams=dust,
+            grain_model=dustmodel,
             heating=heating,
             cooling=cooling,
             shielding=shielding,

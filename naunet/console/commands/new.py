@@ -145,7 +145,7 @@ class NewCommand(Command):
             heating=heating,
             cooling=cooling,
             shielding=shielding,
-            dustmodel=dustmodel,
+            grain_model=dustmodel,
             rate_modifier=rate_modifier,
             ode_modifier=ode_modifier,
             solver=solver,

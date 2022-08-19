@@ -7,7 +7,7 @@ from naunet.dusts.dust import Dust
 from naunet.reactions.reaction import Reaction
 from naunet.reactions.reactiontype import ReactionType
 from naunet.reactions.kidareaction import KIDAReaction
-from naunet.network import Network, define_dust, supported_dust_model
+from naunet.network import Network, define_dust, supported_grain_model
 
 GITHUB_ACTIONS = os.getenv("GITHUB_ACTIONS") == "true"
 
@@ -126,7 +126,7 @@ def test_define_dust():
     class TestDust(Dust):
         model = "test"
 
-    assert supported_dust_model.get("test") == TestDust
+    assert supported_grain_model.get("test") == TestDust
 
 
 def test_add_reaction(empty_network, example_reaction1):

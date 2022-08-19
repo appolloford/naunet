@@ -73,7 +73,7 @@ class Configuration:
         heating: list[str] = None,
         cooling: list[str] = None,
         shielding: dict[str, str] = None,
-        dustmodel: str = "none",
+        grain_model: str = "",
         rate_modifier: dict[int, str] = None,
         ode_modifier: list[str] = None,
         solver: str = "cvode",
@@ -97,7 +97,7 @@ class Configuration:
         self._heating = heating if heating else []
         self._cooling = cooling if cooling else []
         self._shielding = shielding if shielding else {}
-        self._dustmodel = dustmodel
+        self._grain_model = grain_model
         self._ratemodifier = rate_modifier if rate_modifier else {}
         self._odemodifier = ode_modifier if ode_modifier else []
         self._solver = solver
@@ -127,7 +127,7 @@ class Configuration:
         chemistry["heating"] = self._heating
         chemistry["cooling"] = self._cooling
         chemistry["shielding"] = self._shielding
-        chemistry["dust"]["model"] = self._dustmodel
+        chemistry["dust"]["model"] = self._grain_model
         chemistry["rate_modifier"] = self._ratemodifier
         chemistry["ode_modifier"] = self._odemodifier
 

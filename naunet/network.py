@@ -25,7 +25,7 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger()
 
 
-supported_dust_model = {cls.model: cls for cls in builtin_dust_model}
+supported_grain_model = {cls.model: cls for cls in builtin_dust_model}
 
 supported_reaction_class = {
     "naunet": Reaction,
@@ -37,15 +37,13 @@ supported_reaction_class = {
 }
 
 
-def _dust_factory(model: str, **kwargs) -> Dust:
+def _grain_factory(model: str, **kwargs) -> Dust:
 
-    dustmodel = supported_dust_model.get(model)
-    if model and not dustmodel:
-        raise ValueError(f"Unknown dust model: {model}")
-    elif dustmodel is None:
-        return dustmodel
-
-    return dustmodel(**kwargs)
+    modelcls = supported_grain_model.get(model)
+    if model and not modelcls:
+        raise ValueError(f"Unknown grain model: {model}")
+    else:
+        return None if modelcls is None else modelcls(**kwargs)
 
 
 def _reaction_factory(react_string: str, format: str) -> Reaction:
@@ -84,22 +82,22 @@ def define_reaction(name: str):
 
 def define_dust():
     """
-    Decorator for users to add customized dust model
+    Decorator for users to add customized grain model
     """
 
-    def insert_class(dustcls: Type[Dust]):
+    def insert_class(graincls: Type[Dust]):
 
-        if not isinstance(dustcls.model, str):
-            raise TypeError("Dust model name must be string")
+        if not isinstance(graincls.model, str):
+            raise TypeError("Grain model name must be string")
 
-        if not dustcls.model or dustcls.model in supported_dust_model.keys():
+        if not graincls.model or graincls.model in supported_grain_model.keys():
             raise RuntimeError(
                 "Model name is not set properly. Try to set"
-                "`model = '<name>'` in the given dust class"
+                "`model = '<name>'` in the given grain class"
             )
 
-        supported_dust_model.update({dustcls.model: dustcls})
-        return dustcls
+        supported_grain_model.update({graincls.model: graincls})
+        return graincls
 
     return insert_class
 
@@ -118,8 +116,7 @@ class Network:
         heating: list[str] = None,
         cooling: list[str] = None,
         shielding: dict[str, str] = None,
-        dustmodel: str = "",
-        dustparams: dict = None,
+        grain_model: str = "",
     ) -> None:
 
         self.format_list = set()
@@ -130,9 +127,6 @@ class Network:
         self._info = None
         self._templateloader = None
 
-        dustparams = dustparams if dustparams else {}
-        dustparams = {**dustparams, "model": dustmodel}
-        self._dust = _dust_factory(**dustparams)
         self._allowed_species = allowed_species.copy() if allowed_species else []
         self._required_species = required_species.copy() if required_species else []
         self._allowed_heating = None
@@ -140,6 +134,7 @@ class Network:
         self._shielding = shielding if shielding else {}
         self._heating_names = heating.copy() if heating else []
         self._cooling_names = cooling.copy() if cooling else []
+        self._grain_model = grain_model
 
         self._reactconsts = {}
         self._reactvaris = {}
@@ -252,9 +247,11 @@ class Network:
 
     def _consts(self) -> dict[str, str]:
 
-        # consts in dust
-        dust = self.dust
-        dconsts = {f"{c:<15}": f"{cv}" for c, cv in dust.consts.items()} if dust else {}
+        # consts in grain
+        grain = self.grain
+        dconsts = (
+            {f"{c:<15}": f"{cv}" for c, cv in grain.consts.items()} if grain else {}
+        )
 
         # consts in heating/cooling
         thermproc = []
@@ -273,8 +270,8 @@ class Network:
 
     def _locvars(self) -> dict[str, str]:
 
-        dust = self.dust
-        dlocvars = dust.locvars if dust else []
+        grain = self.grain
+        dlocvars = grain.locvars if grain else []
 
         thermproc = []
         thermproc.extend([self.allowed_heating.get(h) for h in self._heating_names])
@@ -286,9 +283,9 @@ class Network:
 
     def _varis(self) -> dict[str, str]:
 
-        # varis in dust
-        dust = self.dust
-        dvaris = {f"{var}": val for var, val in dust.varis.items()} if dust else {}
+        # varis in grain
+        grain = self.grain
+        dvaris = {f"{var}": val for var, val in grain.varis.items()} if grain else {}
 
         # varis in heating/cooling
         thermproc = []
@@ -434,21 +431,6 @@ class Network:
     def allowed_species(self, speclist: list):
         self._allowed_species = speclist.copy()
 
-    @property
-    def dust(self):
-        return self._dust
-
-    @dust.setter
-    def dust(self, dust: Dust) -> None:
-        if self._dust and self.reaction_list:
-            logger.warning(
-                """
-                Dust model existed. The existed reactions may 
-                not be consistent with newly added reactions
-                """
-            )
-        self._dust = dust
-
     def find_duplicate_reaction(self, mode: str = "") -> list[tuple[int, Reaction]]:
         """
         Find the duplicate reactions in the network. The default behaviour checks the
@@ -493,6 +475,41 @@ class Network:
         sink = self._products.difference(self._reactants)
 
         return source, sink
+
+    @property
+    def grain(self) -> Dust:
+        species = [Species(s) for s in self._required_species] + list(
+            self._reactants | self._products
+        )
+        gspec = [s for s in species if s.is_grain]
+        if not gspec:
+            return _grain_factory(self._grain_model)
+            # return [_grain_factory(self._grain_model)]
+
+        else:
+            # groupidxs = set([g.grain_group for g in gspec])
+            # grains = [
+            #     _grain_factory(
+            #         self._grain_model,
+            #         species=[g for g in gspec if g.grain_group == idx],
+            #         group=idx,
+            #     )
+            #     for idx in groupidxs
+            # ]
+            # return grains
+
+            if len(set([g.grain_group for g in gspec])):
+                raise NotImplementedError
+            else:
+                return _grain_factory(self._grain_model, gspec)
+
+    @property
+    def grain_model(self) -> str:
+        return self._grain_model
+
+    @grain_model.setter
+    def grain_model(self, model: str) -> None:
+        self._grain_model = model
 
     def where_reaction(self, reaction: Reaction, mode: str = "all") -> list[int]:
         """
@@ -623,7 +640,7 @@ class Network:
             heating=self._heating_names,
             cooling=self._cooling_names,
             shielding=self._shielding,
-            dustmodel=self.dust.model if self.dust else "",
+            grain_model=self._grain_model,
             rate_modifier=ratemodifier,
             ode_modifier=odemodifier,
             solver=solver,
@@ -686,7 +703,7 @@ class Network:
             self.reaction_list,
             heating=heating,
             cooling=cooling,
-            dust=self.dust,
+            dust=self.grain,
             shielding=self._shielding,
             consts=self._consts(),
             varis=self._varis(),
@@ -815,7 +832,7 @@ class Network:
                 outf.write(f"{reac:{format}}")
 
                 if format == "krome":
-                    self._rateconverter.read(reac.rateexpr(self.dust))
+                    self._rateconverter.read(reac.rateexpr(self.grain))
                     outf.write(f",{self._rateconverter:fortran}\n")
 
                 else:
