@@ -624,7 +624,6 @@ class Network:
             cooling=self._cooling_names,
             shielding=self._shielding,
             dustmodel=self.dust.model if self.dust else "",
-            dustspecies=self.dust.species if self.dust else [],
             rate_modifier=ratemodifier,
             ode_modifier=odemodifier,
             solver=solver,

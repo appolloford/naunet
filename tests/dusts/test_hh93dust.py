@@ -36,7 +36,7 @@ def example_thermal_desorption_reaction():
 
 @pytest.fixture
 def hh93dust():
-    return HH93Dust(["GRAIN0", "GRAIN-"])
+    return HH93Dust([Species("GRAIN0"), Species("GRAIN-")])
 
 
 def test_init_dust(hh93dust):

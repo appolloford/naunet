@@ -56,7 +56,6 @@ class Species:
         "Ca",
         "Fe",
         "Ni",
-        "GRAIN",
     ]
     default_pseudoelements = [
         "CR",
@@ -75,11 +74,11 @@ class Species:
         r"\*",
         "g",
     ]
+    grain_symbol = "GRAIN"
     surface_prefix = "#"
 
     _known_elements = []
     _known_pseudoelements = []
-    _dust_species = []
 
     def __init__(self, name: str) -> None:
         """
@@ -100,8 +99,11 @@ class Species:
         self._mass = 0.0
         self._massnumber = 0
         self._photon_yield = None
-        self._surface_prefix = self.surface_prefix
+        self._is_grain = False
+        self._grain_symbol = self.grain_symbol
+        self._grain_group = None
         self._is_surface = False
+        self._surface_prefix = self.surface_prefix
         self._surface_group = None
 
         # Initialize known elements if not set when the fist species is instanciated
@@ -111,7 +113,10 @@ class Species:
             Species._known_elements.extend(Species.default_elements)
             Species._known_pseudoelements.extend(Species.default_pseudoelements)
 
-        self._parse_molecule_name()
+        self._parse_molecule_name(
+            self._known_elements + self._known_pseudoelements,
+            [self._grain_symbol, self._surface_prefix],
+        )
 
         # create a element count dict in all caps to search in periodic table
         self._allcaps_element_count = {
@@ -148,8 +153,9 @@ class Species:
             element (str): The name of the elements
             count (int): the number to be added into count
         """
-        if element in Species._known_pseudoelements:
+        if element in self._known_pseudoelements:
             return
+
         elif element == self._surface_prefix:
             if self._surface_group is not None:
                 raise RuntimeError(f"Repeatedly found surface symbol.")
@@ -157,6 +163,17 @@ class Species:
                 self._is_surface = True
                 self._surface_group = count
                 return
+
+        elif element == self._grain_symbol:
+            if self._grain_group is not None:
+                raise RuntimeError(
+                    f"Repeatedly found grain symbol {self._grain_symbol} in {self.name}."
+                )
+            else:
+                self._is_grain = True
+                self._grain_group = count
+                count = 1
+
         elif count <= 0:
             logging.warning(
                 f"The number added into {element} count <= 0 in {self.name}. Reset to 1"
@@ -180,7 +197,7 @@ class Species:
                 f"Repeated definitions of {dup_element} in elements and pseudoelemts"
             )
 
-    def _parse_molecule_name(self):
+    def _parse_molecule_name(self, elements: list[str], symbols: list[str]) -> None:
         """
         Parse the name of the species to get the composition of elements.
 
@@ -193,10 +210,7 @@ class Species:
         parsename = re.sub(r"\+*$", "", parsename)
         parsename = re.sub(r"-*$", "", parsename)
 
-        components = Species._known_elements + Species._known_pseudoelements
-        components.append(self._surface_prefix)
-
-        components = sorted(components, key=len, reverse=True)
+        components = sorted(elements + symbols, key=len, reverse=True)
 
         firstparse = parsename
         matches = []
@@ -233,24 +247,10 @@ class Species:
                         f'Unrecongnized name: "{substring}" in "{self.name}"'
                     )
             else:
-                if n == self._surface_prefix:
+                if n in symbols:
                     self._add_element_count(n, 0)
                 elif n:
                     self._add_element_count(n, 1)
-
-    @classmethod
-    def add_dust_species(cls, dustspecies: list[str]) -> list[str]:
-        if not isinstance(dustspecies, list):
-            raise TypeError(f"{dustspecies} is not a list")
-
-        for dspec in dustspecies:
-            if dspec in cls._dust_species:
-                logging.warning(f"{dspec} exists in the list of dust species, skip!")
-
-            else:
-                cls._dust_species.append(dspec)
-
-        return cls._dust_species
 
     @classmethod
     def add_known_elements(cls, elements: list) -> list:
@@ -407,10 +407,6 @@ class Species:
         ncharge = "".join(re.findall(r"-*$", self.name)).count("-")
         return pcharge - ncharge
 
-    @classmethod
-    def dust_species(cls) -> list[str]:
-        return cls._dust_species
-
     @property
     def enthalpy(self) -> float:
         """
@@ -437,14 +433,8 @@ class Species:
         return self.name.replace(prefix, "") if self.is_surface else self.name
 
     @property
-    def is_dust(self) -> bool:
-        """
-        Check whether the species is one form of dust
-
-        Returns:
-            bool: True if the species is one dust form
-        """
-        return self.name in self._dust_species
+    def grain_group(self) -> int:
+        return self._grain_group
 
     @property
     def is_electron(self) -> bool:
@@ -471,19 +461,18 @@ class Species:
             and sum(counts) == 1
             and self.charge == 0
             and not self.is_electron
-            # and not self.is_dust
             and not self.is_surface
         )
+
+    @property
+    def is_grain(self) -> bool:
+        return self._is_grain
 
     @property
     def is_surface(self) -> bool:
         """
         Check whether the species is sticking on surface (a surface species)
         """
-        # if self.is_dust:
-        #     return False
-        # if "GRAIN" in self.name.upper():
-        #     return False
         return self._is_surface
 
     # TODO: python 3.9 support classmethod property
@@ -578,17 +567,6 @@ class Species:
         return self._photon_yield
 
     @classmethod
-    def remove_dust_species(cls, dustspecies: list[str]) -> list[str]:
-
-        if not isinstance(dustspecies, list):
-            raise TypeError(f"{dustspecies} is not a list")
-
-        for dspec in dustspecies:
-            cls._dust_species.remove(dspec)
-
-        return cls._dust_species
-
-    @classmethod
     def remove_known_elements(cls, elements: list) -> list:
         """
         Remove names of elements to the list of known elements
@@ -640,20 +618,7 @@ class Species:
         """
         cls._known_elements = []
         cls._known_pseudoelements = []
-        cls._dust_species = []
         cls.surface_prefix = "#"
-
-    @classmethod
-    def set_dust_species(cls, dustspecies: list[str]) -> None:
-        """Set the list of dust species
-
-        Args:
-            dustspecies (list[str]): the list of dust species
-        """
-        if not isinstance(dustspecies, list):
-            raise TypeError(f"{dustspecies} is not a list")
-
-        cls._dust_species = dustspecies.copy()
 
     @classmethod
     def set_known_elements(cls, elements: list) -> None:
@@ -696,6 +661,10 @@ class Species:
         cls._known_pseudoelements.clear()
         cls._known_pseudoelements.extend(pelements)
         cls._check_elements()
+
+    @property
+    def surface_group(self) -> int:
+        return self._surface_group
 
 
 def top_abundant_species(

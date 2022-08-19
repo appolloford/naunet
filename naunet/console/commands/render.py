@@ -68,7 +68,6 @@ class RenderCommand(Command):
 
         Species.set_known_elements(element)
         Species.set_known_pseudoelements(pseudo_element)
-        Species.set_dust_species(dustspecies)
 
         from naunet.network import Network, supported_reaction_class
         from naunet.chemistrydata import update_binding_energy, update_photon_yield

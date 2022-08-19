@@ -79,13 +79,13 @@ def test_charge():
 
 def test_atom():
     Species.reset()
-    Species.set_dust_species(["GRAIN0", "GRAIN-"])
     assert Species("H").is_atom
     assert Species("C").is_atom
     assert Species("GRAIN0").is_atom
     assert not Species("E").is_atom
     assert not Species("CO").is_atom
     assert not Species("#H").is_atom
+    assert not Species("GRAIN-").is_atom
 
 
 def test_element_counting():
@@ -142,7 +142,6 @@ def test_massnumber():
 
 def test_surface():
     Species.reset()
-    Species.set_dust_species(["GRAIN0", "GRAIN-"])
     assert Species("#H2").is_surface == True
     assert Species("H2").is_surface == False
     # test changing surface symbol

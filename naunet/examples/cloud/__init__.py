@@ -2,7 +2,6 @@ description = "Example: chemical network from uclchem v1.3"
 network = "reactions.ucl"
 format = "uclchem"
 dustmodel = "rr07x"
-dustspecies = []
 
 elements = [
     "E",

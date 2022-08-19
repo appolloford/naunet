@@ -2,7 +2,6 @@ description = "Example: primordial chemical network from KROME"
 network = "primordial.krome"
 format = "krome"
 dustmodel = ""
-dustspecies = []
 elements = ["e", "H", "D", "He"]
 pseudo_elements = ["Photon"]
 species = [

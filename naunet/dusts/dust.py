@@ -23,15 +23,7 @@ class Dust:
     varis = {}
     locvars = []
 
-    def __init__(self, species: list[str] | list[Species] = None) -> None:
-
-        # TODO: avoid the global variables, could cause problem if two dust instances exist in a intepreter lifetime.
-        # if dust species have been recorded in Species, use it if the species
-        # is not provided. Otherwise the input species overwrite the saved list
-        species = Species.dust_species() if species is None else species
-        species = [s if isinstance(s, Species) else Species(s) for s in species]
-        # sync the dust species list
-        Species.set_dust_species([s.name for s in species])
+    def __init__(self, species: list[Species] = None, group: int = 0) -> None:
 
         self.species = species.copy() if species else []
 

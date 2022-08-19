@@ -92,7 +92,6 @@ class ExampleCommand(Command):
         cooling = examplemod.cooling
         shielding = examplemod.shielding
         dustmodel = examplemod.dustmodel
-        dustspecies = examplemod.dustspecies
         binding = examplemod.binding_energy
         photon_yield = examplemod.photon_yield
         rate_modifier = examplemod.rate_modifier
@@ -123,7 +122,6 @@ class ExampleCommand(Command):
                 f"--cooling='{','.join(cooling)}'",
                 f"--shielding='{shieldingstr}'",
                 f"--dust-model='{dustmodel}'",
-                f"--dust-species='{','.join(dustspecies)}'",
                 f"--binding='{bindingstr}'",
                 f"--yield='{yieldstr}'",
                 f"--rate-modifier='{ratemodifierstr}'" if ratemodifierstr else "",

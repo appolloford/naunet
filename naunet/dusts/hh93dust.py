@@ -121,7 +121,7 @@ class HH93Dust(Dust):
 
         super().rate_recombination(reac)
 
-        [spec] = [s for s in reac.reactants if not s.is_dust]
+        [spec] = [s for s in reac.reactants if not s.is_grain]
         a = reac.alpha
 
         rate = " * ".join(

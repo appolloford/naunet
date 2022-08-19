@@ -74,7 +74,6 @@ class Configuration:
         cooling: list[str] = None,
         shielding: dict[str, str] = None,
         dustmodel: str = "none",
-        dustspecies: list[str] = None,
         rate_modifier: dict[int, str] = None,
         ode_modifier: list[str] = None,
         solver: str = "cvode",
@@ -99,7 +98,6 @@ class Configuration:
         self._cooling = cooling if cooling else []
         self._shielding = shielding if shielding else {}
         self._dustmodel = dustmodel
-        self._dustspecies = dustspecies if dustspecies else []
         self._ratemodifier = rate_modifier if rate_modifier else {}
         self._odemodifier = ode_modifier if ode_modifier else []
         self._solver = solver
@@ -130,7 +128,6 @@ class Configuration:
         chemistry["cooling"] = self._cooling
         chemistry["shielding"] = self._shielding
         chemistry["dust"]["model"] = self._dustmodel
-        chemistry["dust"]["species"] = self._dustspecies
         chemistry["rate_modifier"] = self._ratemodifier
         chemistry["ode_modifier"] = self._odemodifier
 

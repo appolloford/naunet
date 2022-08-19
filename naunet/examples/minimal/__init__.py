@@ -2,7 +2,6 @@ description = "Example: a fake chemical network"
 network = "minimal.kida"
 format = "kida"
 dustmodel = ""
-dustspecies = []
 elements = ["H", "C"]
 pseudo_elements = []
 species = ["H", "C2", "C", "CH"]
