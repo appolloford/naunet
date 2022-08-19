@@ -21,7 +21,6 @@ class NewCommand(Command):
         {--network= : Source of chemical network file}
         {--format= : The format of the chemical network}
         {--dust-model= : Type of dust model}
-        {--dust-species= : The species represent dust}
         {--heating= : List of heating processes}
         {--cooling= : List of cooling processes}
         {--binding= : List of binding energy of ice species}
@@ -89,9 +88,6 @@ class NewCommand(Command):
 
         dustmodel = self.option("dust-model")
         dustmodel = dustmodel if dustmodel else "none"
-
-        dustspecies = self.option("dust-species") or ""
-        dustspecies = [d.strip() for d in dustspecies.split(",") if d]
 
         heating = self.option("heating")
         heating = heating.split(",") if heating else []

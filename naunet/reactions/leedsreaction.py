@@ -1,7 +1,7 @@
 import logging
 from enum import IntEnum
 from ..species import Species
-from ..dusts.dust import Dust
+from ..grains.grain import Grain
 from .reaction import Reaction
 from .reactiontype import ReactionType as BasicType
 
@@ -94,7 +94,7 @@ class LEEDSReaction(Reaction):
     def finalize(cls) -> None:
         Species.surface_prefix = "#"
 
-    def rateexpr(self, dust: Dust = None) -> str:
+    def rateexpr(self, grain: Grain = None) -> str:
         a = self.alpha
         b = self.beta
         c = self.gamma
@@ -103,12 +103,12 @@ class LEEDSReaction(Reaction):
         re1 = self.reactants[0]
         re2 = self.reactants[1] if len(self.reactants) > 1 else None
 
-        if dust:
-            dust.sym_av = "Av"
-            dust.sym_tgas = "Tgas"
-            dust.sym_tdust = "Tdust"
-            dust.sym_radfield = "G0"
-            dust.sym_crrate = "zeta_cr/zism"
+        if grain:
+            grain.sym_av = "Av"
+            grain.sym_tgas = "Tgas"
+            grain.sym_tdust = "Tdust"
+            grain.sym_radfield = "G0"
+            grain.sym_crrate = "zeta_cr/zism"
 
         # two-body gas-phase reaction
         if rtype == 1:
@@ -144,23 +144,23 @@ class LEEDSReaction(Reaction):
 
         # cation-grain recombination
         elif rtype == 6:
-            rate = dust.rateexpr(self)
+            rate = grain.rateexpr(self)
 
         # accretion
         elif rtype == 7:
-            rate = dust.rateexpr(self)
+            rate = grain.rateexpr(self)
 
         # thermal desorption
         elif rtype == 8:
-            rate = dust.rateexpr(self)
+            rate = grain.rateexpr(self)
 
         # cosmic-ray-induced thermal desorption
         elif rtype == 9:
-            rate = dust.rateexpr(self)
+            rate = grain.rateexpr(self)
 
         # photodesorption
         elif rtype == 10:
-            rate = dust.rateexpr(self)
+            rate = grain.rateexpr(self)
 
         # grain-surface cosmic-ray-induced photoreaction
         elif rtype == 11:
@@ -178,11 +178,11 @@ class LEEDSReaction(Reaction):
 
         # two-body grain-surface reaction
         elif rtype == 13:
-            rate = dust.rateexpr(self)
+            rate = grain.rateexpr(self)
 
         # reactive desorption
         elif rtype == 14:
-            rate = dust.rateexpr(self)
+            rate = grain.rateexpr(self)
 
         # three-body association *
         # collisional dissociation *
@@ -194,7 +194,7 @@ class LEEDSReaction(Reaction):
 
         # grain electron capture rate
         elif rtype == 20:
-            rate = dust.rateexpr(self)
+            rate = grain.rateexpr(self)
 
         else:
             raise RuntimeError(

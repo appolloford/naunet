@@ -1,5 +1,5 @@
 from enum import IntEnum
-from ..dusts.dust import Dust
+from ..grains.grain import Grain
 from .reaction import Reaction
 from .reactiontype import ReactionType as BasicType
 
@@ -49,7 +49,7 @@ class UMISTReaction(Reaction):
     def __init__(self, react_string) -> None:
         super().__init__(format="umist", react_string=react_string)
 
-    def rateexpr(self, dust: Dust = None) -> str:
+    def rateexpr(self, grain: Grain = None) -> str:
         a = self.alpha
         b = self.beta
         c = self.gamma

@@ -7,7 +7,7 @@ if TYPE_CHECKING:
     from ..reactions.reaction import Reaction
 
 
-class Dust:
+class Grain:
     """
     Class of base dust grain model.
 
@@ -27,7 +27,7 @@ class Dust:
 
         self.species = species.copy() if species else []
 
-        gdens = " + ".join(f"y[IDX_{s.alias}]" for s in species)
+        gdens = " + ".join(f"y[IDX_{s.alias}]" for s in self.species)
         if gdens:
             self.locvars = [f"double gdens = {gdens}", *self.locvars]
         else:

@@ -25,7 +25,6 @@ class InitCommand(Command):
         {--network=? : Source of chemical network file}
         {--format=? : The format of the chemical network}
         {--dust-model=? : Type of dust model}
-        {--dust-species=? : The species represent dust}
         {--heating=? : List of heating processes}
         {--cooling=? : List of cooling processes}
         {--binding=? : List of binding energy of ice species}
@@ -98,11 +97,7 @@ class InitCommand(Command):
         format = [f.strip() for f in format.split(",") if f]
 
         dustmodel = self.option("dust-model")
-        dustmodel = self.validate(dustmodel, "Dust model", "")
-
-        dustspecies = self.option("dust-species")
-        dustspecies = self.validate(dustspecies, "Dust species", "")
-        dustspecies = [d.strip() for d in dustspecies.split(",") if d]
+        dustmodel = self.validate(dustmodel, "Grain model", "")
 
         heating = self.option("heating")
         heating = self.validate(heating, "Heating models", "")

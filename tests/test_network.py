@@ -3,11 +3,11 @@ import subprocess
 import pytest
 from pathlib import Path
 from naunet.species import Species
-from naunet.dusts.dust import Dust
+from naunet.grains.grain import Grain
 from naunet.reactions.reaction import Reaction
 from naunet.reactions.reactiontype import ReactionType
 from naunet.reactions.kidareaction import KIDAReaction
-from naunet.network import Network, define_dust, supported_grain_model
+from naunet.network import Network, define_grain, supported_grain_model
 
 GITHUB_ACTIONS = os.getenv("GITHUB_ACTIONS") == "true"
 
@@ -122,11 +122,11 @@ def test_init_network(empty_network):
 
 
 def test_define_dust():
-    @define_dust()
-    class TestDust(Dust):
+    @define_grain()
+    class TestGrain(Grain):
         model = "test"
 
-    assert supported_grain_model.get("test") == TestDust
+    assert supported_grain_model.get("test") == TestGrain
 
 
 def test_add_reaction(empty_network, example_reaction1):

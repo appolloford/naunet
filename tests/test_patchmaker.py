@@ -1,7 +1,7 @@
 from __future__ import annotations
 import pytest
 from naunet.species import Species
-from naunet.dusts.dust import Dust
+from naunet.grains.grain import Grain
 from naunet.reactions.reaction import Reaction
 from naunet.reactions.reactiontype import ReactionType
 from naunet.templateloader import NetworkInfo

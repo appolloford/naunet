@@ -1,6 +1,6 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
-from .dust import Dust
+from .grain import Grain
 from ..species import Species
 from ..reactions.reactiontype import ReactionType
 
@@ -8,13 +8,13 @@ if TYPE_CHECKING:
     from ..reactions.reaction import Reaction
 
 
-class RR07Dust(Dust):
+class RR07Grain(Grain):
     """
     The dust grain model from Roberts et al. (2007). Follow the implementation in
     UCLCHEMv1.3.
 
-    The class inherit class `Dust`. For the general description, please refer to the
-    page of `Dust`.
+    The class inherit class `Grain`. For the general description, please refer to the
+    page of `Grain`.
 
     Attributes:
         model (str): The name of the model = "rr07"
@@ -134,12 +134,12 @@ class RR07Dust(Dust):
         return rate
 
 
-class RR07DustX(RR07Dust):
+class RR07XGrain(RR07Grain):
 
     model = "rr07x"
 
     varis = {
-        **RR07Dust.varis,
+        **RR07Grain.varis,
         "opt_thd": 1.0,  # thermal desorption option
     }
 

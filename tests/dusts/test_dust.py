@@ -1,7 +1,7 @@
 import pytest
 from pathlib import Path
 from naunet.species import Species
-from naunet.dusts.dust import Dust
+from naunet.grains.grain import Grain
 from naunet.reactions.reaction import Reaction
 from naunet.reactions.reactiontype import ReactionType
 
@@ -35,24 +35,24 @@ def example_thermal_desorption_reaction():
 
 
 @pytest.fixture
-def dust():
-    return Dust([])
+def grain():
+    return Grain()
 
 
-def test_init_dust(dust):
-    assert "gdens" in dust.varis
-    # assert "gdens" in dust.locvars
+def test_init_dust(grain):
+    assert "gdens" in grain.varis
+    # assert "gdens" in grain.locvars
 
 
-def test_depletion_rate(dust, example_depletion_reaction):
-    dust.sym_tgas = "Tgas"
+def test_depletion_rate(grain, example_depletion_reaction):
+    grain.sym_tgas = "Tgas"
     assert (
-        example_depletion_reaction.rateexpr(dust=dust)
+        example_depletion_reaction.rateexpr(grain=grain)
         == "1.0 * pi * rG * rG * gdens * sqrt(8.0 * kerg * Tgas/ (pi*amu*12.0))"
     )
 
 
-def test_thermal_desorption_rate(dust, example_thermal_desorption_reaction):
-    dust.sym_tdust = "Tdust"
+def test_thermal_desorption_rate(grain, example_thermal_desorption_reaction):
+    grain.sym_tdust = "Tdust"
     with pytest.raises(NotImplementedError, match="not implemented in base"):
-        example_thermal_desorption_reaction.rateexpr(dust=dust)
+        example_thermal_desorption_reaction.rateexpr(grain=grain)

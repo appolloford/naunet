@@ -1,5 +1,5 @@
 from enum import IntEnum
-from ..dusts.dust import Dust
+from ..grains.grain import Grain
 from .reaction import Reaction
 from .reactiontype import ReactionType as BasicType
 
@@ -71,7 +71,7 @@ class UCLCHEMReaction(Reaction):
     def __init__(self, react_string) -> None:
         super().__init__(format="uclchem", react_string=react_string)
 
-    def rateexpr(self, dust: Dust = None) -> str:
+    def rateexpr(self, grain: Grain = None) -> str:
         a = self.alpha
         b = self.beta
         c = self.gamma
@@ -82,13 +82,13 @@ class UCLCHEMReaction(Reaction):
         re1 = self.reactants[0]
         # re2 = self.reactants[1] if len(self.reactants) > 1 else None
 
-        if dust:
-            dust.sym_av = "Av"
-            dust.sym_tgas = "Tgas"
-            dust.sym_tdust = "Tgas"
-            dust.sym_radfield = "G0"
-            dust.sym_crrate = f"{zeta}"
-            dust.sym_h2form = f"1.0e-17 * sqrt(Tgas) * y[IDX_HI] * nH"
+        if grain:
+            grain.sym_av = "Av"
+            grain.sym_tgas = "Tgas"
+            grain.sym_tdust = "Tgas"
+            grain.sym_radfield = "G0"
+            grain.sym_crrate = f"{zeta}"
+            grain.sym_h2form = f"1.0e-17 * sqrt(Tgas) * y[IDX_HI] * nH"
 
         # two-body gas-phase reaction
         if rtype == self.ReactionType.UCLCHEM_MA:
@@ -119,23 +119,23 @@ class UCLCHEMReaction(Reaction):
 
         # accretion
         elif rtype == self.ReactionType.UCLCHEM_FR:
-            rate = dust.rateexpr(self)
+            rate = grain.rateexpr(self)
 
         # thermal desorption
         elif rtype == self.ReactionType.UCLCHEM_TH:
-            rate = dust.rateexpr(self)
+            rate = grain.rateexpr(self)
 
         # cosmic-ray-induced thermal desorption
         elif rtype == self.ReactionType.UCLCHEM_CD:
-            rate = dust.rateexpr(self)
+            rate = grain.rateexpr(self)
 
         # photodesorption
         elif rtype == self.ReactionType.UCLCHEM_PD:
-            rate = dust.rateexpr(self)
+            rate = grain.rateexpr(self)
 
         # H2 formation induced desorption
         elif rtype == self.ReactionType.UCLCHEM_HD:
-            rate = dust.rateexpr(self)
+            rate = grain.rateexpr(self)
 
         else:
             raise ValueError(f"Unsupported type: {rtype}")

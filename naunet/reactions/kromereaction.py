@@ -1,5 +1,5 @@
 import re
-from ..dusts.dust import Dust
+from ..grains.grain import Grain
 from ..species import Species
 from .reaction import Reaction
 from .converter import ExpressionConverter
@@ -39,7 +39,7 @@ class KROMEReaction(Reaction):
         else:
             return line.strip()
 
-    def rateexpr(self, dust: Dust = None) -> str:
+    def rateexpr(self, grain: Grain = None) -> str:
 
         rate = re.sub(r"(\d\.?)d(\-?\d)", r"\1e\2", self.rate_string)
         rate = re.sub(r"(idx_.?)p", r"\1II", rate)

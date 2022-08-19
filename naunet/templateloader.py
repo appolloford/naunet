@@ -11,7 +11,7 @@ from .species import Species
 from .reactions.reaction import Reaction
 from .reactions.reactiontype import ReactionType
 from .thermalprocess import ThermalProcess
-from .dusts.dust import Dust
+from .grains.grain import Grain
 from .utilities import _prefix, _suffix, _stmwrap
 
 # class RelativeEnvironment(Environment):
@@ -29,7 +29,7 @@ class NetworkInfo:
     reactions: list[Reaction]
     heating: list[str]
     cooling: list[str]
-    dust: Dust
+    dust: Grain
     shielding: dict
     consts: dict[str, str]
     varis: dict[str, str]
@@ -131,7 +131,7 @@ class TemplateLoader:
         self,
         rate_sym: str,
         reactions: list[Reaction | ThermalProcess],
-        dust: Dust = None,
+        dust: Grain = None,
     ) -> list[str]:
 
         # check the temperature range exists

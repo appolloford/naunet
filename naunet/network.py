@@ -15,8 +15,8 @@ from .reactions.leedsreaction import LEEDSReaction
 from .reactions.uclchemreaction import UCLCHEMReaction
 from .reactions.umistreaction import UMISTReaction
 from .reactions.converter import ExpressionConverter
-from .dusts import builtin_dust_model
-from .dusts.dust import Dust
+from .grains import builtin_grain_model
+from .grains.grain import Grain
 from .thermalprocess import ThermalProcess, get_allowed_cooling, get_allowed_heating
 from .configuration import Configuration
 
@@ -25,7 +25,7 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger()
 
 
-supported_grain_model = {cls.model: cls for cls in builtin_dust_model}
+supported_grain_model = {cls.model: cls for cls in builtin_grain_model}
 
 supported_reaction_class = {
     "naunet": Reaction,
@@ -37,7 +37,7 @@ supported_reaction_class = {
 }
 
 
-def _grain_factory(model: str, **kwargs) -> Dust:
+def _grain_factory(model: str, **kwargs) -> Grain:
 
     modelcls = supported_grain_model.get(model)
     if model and not modelcls:
@@ -80,12 +80,12 @@ def define_reaction(name: str):
     return insert_class
 
 
-def define_dust():
+def define_grain():
     """
     Decorator for users to add customized grain model
     """
 
-    def insert_class(graincls: Type[Dust]):
+    def insert_class(graincls: Type[Grain]):
 
         if not isinstance(graincls.model, str):
             raise TypeError("Grain model name must be string")
@@ -477,7 +477,7 @@ class Network:
         return source, sink
 
     @property
-    def grain(self) -> Dust:
+    def grain(self) -> Grain:
         species = [Species(s) for s in self._required_species] + list(
             self._reactants | self._products
         )
@@ -497,11 +497,10 @@ class Network:
             #     for idx in groupidxs
             # ]
             # return grains
-
-            if len(set([g.grain_group for g in gspec])):
+            if len(set([g.grain_group for g in gspec])) > 1:
                 raise NotImplementedError
             else:
-                return _grain_factory(self._grain_model, gspec)
+                return _grain_factory(self._grain_model, species=gspec)
 
     @property
     def grain_model(self) -> str:

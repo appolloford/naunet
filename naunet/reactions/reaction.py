@@ -1,6 +1,6 @@
 from __future__ import annotations
 from collections import Counter
-from ..dusts.dust import Dust
+from ..grains.grain import Grain
 from ..species import Species
 from .reactiontype import ReactionType
 
@@ -309,11 +309,11 @@ class Reaction:
             self.products
         ) == Counter(o.products)
 
-    def rateexpr(self, dust: Dust = None) -> str:
+    def rateexpr(self, grain: Grain = None) -> str:
         """Returns the reaction rate expression in C language
 
         Args:
-            dust (Dust, optional): Dust model to be used. Defaults to None.
+            grain (Grain, optional): Grain model to be used. Defaults to None.
 
         Raises:
             RuntimeError: if the reaction type is unknown
@@ -365,7 +365,7 @@ class Reaction:
             ReactionType.GRAIN_ECAPTURE,
             ReactionType.SURFACE_TWOBODY,
         ]:
-            rate = dust.rateexpr(self)
+            rate = grain.rateexpr(self)
 
         elif rtype == ReactionType.DUMMY:
             rate = "0.0"

@@ -450,7 +450,7 @@ class Species:
     def is_atom(self) -> bool:
         """
         Check whether the species is the atomic form of an element, including
-        dust species (e.g. GRAIN0) if it is provided
+        grain species (e.g. GRAIN0) if it is provided
 
         Returns:
             bool: True if the species is an atom
@@ -614,7 +614,7 @@ class Species:
     def reset(cls) -> None:
         """Reset class attributes in Species
 
-        Reset known_elements, known_pseudoelements, dust_species, and surface_prefix.
+        Reset known_elements, known_pseudoelements, and surface_prefix.
         """
         cls._known_elements = []
         cls._known_pseudoelements = []

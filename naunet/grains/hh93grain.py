@@ -1,6 +1,6 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
-from .dust import Dust
+from .grain import Grain
 from ..species import Species
 from ..reactions.reactiontype import ReactionType
 
@@ -9,7 +9,7 @@ if TYPE_CHECKING:
     from ..reactions.reaction import Reaction
 
 
-class HH93Dust(Dust):
+class HH93Grain(Grain):
 
     model = "hh93"
 

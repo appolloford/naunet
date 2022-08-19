@@ -6,4 +6,4 @@ def test_init_leedsreaction_from_file(datadir):
         for line in react_file.readlines():
             reaction = LEEDSReaction(line)
             # check all reactions can produce a reaction rate
-            assert reaction.is_empty or reaction.rateexpr(dust=None)
+            assert reaction.is_empty or reaction.rateexpr(grain=None)
