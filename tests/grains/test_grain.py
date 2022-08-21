@@ -39,7 +39,7 @@ def grain():
     return Grain()
 
 
-def test_init_dust(grain):
+def test_init_grain(grain):
     assert "gdens" in grain.varis
     # assert "gdens" in grain.locvars
 

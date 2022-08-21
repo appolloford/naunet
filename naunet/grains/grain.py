@@ -35,9 +35,6 @@ class Grain:
 
     def rate_depletion(self, reac: Reaction) -> str:
 
-        # if not self.sym_tgas:
-        #     raise ValueError("Gas temperature symbol is not set properly")
-
         if reac.reaction_type != ReactionType.GRAIN_FREEZE:
             raise ValueError("The reaction type is not depletion")
 
@@ -58,9 +55,6 @@ class Grain:
 
     def rate_thermal_desorption(self, reac: Reaction) -> str:
 
-        # if not self.sym_tdust:
-        #     raise ValueError("Dust temperature symbol is not set properly")
-
         if reac.reaction_type != ReactionType.GRAIN_DESORB_THERMAL:
             raise ValueError("The reaction type is not thermal desorption")
 
@@ -70,9 +64,6 @@ class Grain:
         return NotImplemented
 
     def rate_photon_desorption(self, reac: Reaction) -> str:
-
-        # if not self.sym_radfield:
-        #     raise ValueError("Radiation field symbol is not set properly")
 
         if reac.reaction_type != ReactionType.GRAIN_DESORB_PHOTON:
             raise ValueError("The reaction type is not photon desorption")
@@ -84,9 +75,6 @@ class Grain:
 
     def rate_cosmicray_desorption(self, reac: Reaction) -> str:
 
-        # if not self.sym_crrate:
-        #     raise ValueError("Cosmic ray ionization rate symbol is not set properly")
-
         if reac.reaction_type != ReactionType.GRAIN_DESORB_COSMICRAY:
             raise ValueError("The reaction type is not cosmic-ray desorption")
 
@@ -97,9 +85,6 @@ class Grain:
 
     def rate_electron_capture(self, reac: Reaction) -> str:
 
-        # if not self.sym_tgas:
-        #     raise ValueError("Gas temperature symbol is not set properly")
-
         if reac.reaction_type != ReactionType.GRAIN_ECAPTURE:
             raise ValueError("The reaction type is not electron capture")
 
@@ -107,18 +92,12 @@ class Grain:
 
     def rate_recombination(self, reac: Reaction) -> str:
 
-        # if not self.sym_tgas:
-        #     raise ValueError("Gas temperature symbol is not set properly")
-
         if reac.reaction_type != ReactionType.GRAIN_RECOMINE:
             raise ValueError("The reaction type is not recombination")
 
         return NotImplemented
 
     def rate_surface_twobody(self, reac: Reaction) -> str:
-
-        # if not self.sym_tdust:
-        #     raise ValueError("Dust temperature symbol is not set properly")
 
         if reac.reaction_type != ReactionType.SURFACE_TWOBODY:
             raise ValueError("The reaction type is not surface two-body reaction")
@@ -132,9 +111,6 @@ class Grain:
 
     def rate_reactive_desorption(self, reac: Reaction) -> str:
 
-        # if not self.sym_tdust:
-        #     raise ValueError("Dust temperature symbol is not set properly")
-
         if reac.reaction_type != ReactionType.GRAIN_DESORB_REACTIVE:
             raise ValueError("The reaction type is not reactive desorption")
 
@@ -146,9 +122,6 @@ class Grain:
         return NotImplemented
 
     def rate_h2_desorption(self, reac: Reaction) -> str:
-
-        # if not self.sym_h2form:
-        #     raise ValueError("H2 formation rate symbol is not set properly")
 
         if reac.reaction_type != ReactionType.GRAIN_DESORB_H2:
             raise ValueError("The reaction type is not H2 desorption")

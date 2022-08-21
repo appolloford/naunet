@@ -44,7 +44,7 @@ def rr07xgrain():
     return RR07XGrain()
 
 
-def test_init_dust(rr07grain, rr07xgrain):
+def test_init_grain(rr07grain, rr07xgrain):
     assert "gdens" in rr07grain.varis
     assert "gdens" in rr07xgrain.varis
     assert "opt_thd" in rr07xgrain.varis
