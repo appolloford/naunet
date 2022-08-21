@@ -39,13 +39,6 @@ class UMISTReaction(Reaction):
         "RR": ReactionType.UMIST_RR,
     }
 
-    varis = {
-        "nH": None,
-        "Tgas": None,
-        "Av": 1.0,
-        "omega": 0.5,
-    }
-
     def __init__(self, react_string) -> None:
         super().__init__(format="umist", react_string=react_string)
 

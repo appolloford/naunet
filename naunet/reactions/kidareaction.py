@@ -24,13 +24,6 @@ class KIDAReaction(Reaction):
         6: ReactionType.KIDA_TB,
     }
 
-    varis = {
-        "nH": None,  # hydrogen nuclei number density
-        "Tgas": None,  # gas temperature
-        "zeta": 1.3e-17,  # cosmic rai ionization rate
-        "Av": 1.0,  # visual extinction
-    }
-
     def __init__(self, react_string) -> None:
         super().__init__(format="kida", react_string=react_string)
 

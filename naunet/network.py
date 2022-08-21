@@ -217,14 +217,16 @@ class Network:
             return NotImplemented
         return reac in self.reaction_list
 
-    def _add_reaction(self, reaction: Reaction | tuple[str, str]) -> list:
+    def _add_reaction(
+        self, reaction: Reaction | tuple[str, str]
+    ) -> tuple[set[Species], set[Species], Reaction]:
 
         if not isinstance(reaction, Reaction):
             reaction = _reaction_factory(*reaction)
 
         # return empty set for updating if it is a fake react_string
         if not reaction:
-            return set(), set()
+            return set(), set(), None
 
         if self._allowed_species:
             if not all(
@@ -243,7 +245,7 @@ class Network:
         self._products.update(new_products)
         # if len(self.reaction_list) % 100 == 0:
         #     print("Processing: {} reactions...".format(len(self.reaction_list)))
-        return new_reactants, new_products
+        return new_reactants, new_products, reaction
 
     def _consts(self) -> dict[str, str]:
 
@@ -321,18 +323,20 @@ class Network:
             else:
                 raise RuntimeError(f"Unknown format: {format}")
 
-        new_reactants, new_products = self._add_reaction(reaction)
+        new_reactants, new_products, reactinst = self._add_reaction(reaction)
         if new_reactants:
             logger.info(f"New reactants are added: {new_reactants}")
         if new_products:
             logger.info(f"New products are added: {new_products}")
 
         self._reactconsts.update(
-            {f"{c:<15}": f"{cv}" for c, cv in rclass.consts.items()}
+            {f"{c:<15}": f"{cv}" for c, cv in reactinst.constants.items()}
         )
-        self._reactvaris.update({f"{var}": val for var, val in rclass.varis.items()})
+        self._reactvaris.update(
+            {f"{var}": val for var, val in reactinst.params.items()}
+        )
         self._reactlocvars.extend(
-            [v for v in rclass.locvars if v not in self._reactlocvars]
+            f"double {key} = {value}" for key, value in reactinst.deriveds.items()
         )
 
         if not isinstance(reaction, Reaction):
@@ -367,19 +371,21 @@ class Network:
             for _, line in enumerate(
                 tqdm(networkfile.readlines(), desc="Reading File...")
             ):
-                reac, prod = self._add_reaction((line, format))
+                reac, prod, reactinst = self._add_reaction((line, format))
                 new_reactants.update(reac)
                 new_products.update(prod)
 
             # print("New species: \n{}".format("\n".join(str(x) for x in new_species)))
 
-        self._reactconsts.update(
-            {f"{c:<15}": f"{cv}" for c, cv in rclass.consts.items()}
-        )
-        self._reactvaris.update({f"{var}": val for var, val in rclass.varis.items()})
-        self._reactlocvars.extend(
-            [v for v in rclass.locvars if v not in self._reactlocvars]
-        )
+            self._reactconsts.update(
+                {f"{c:<15}": f"{cv}" for c, cv in reactinst.constants.items()}
+            )
+            self._reactvaris.update(
+                {f"{var}": val for var, val in reactinst.params.items()}
+            )
+            self._reactlocvars.extend(
+                f"double {key} = {value}" for key, value in reactinst.deriveds.items()
+            )
 
         rclass.finalize()
 

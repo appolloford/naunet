@@ -120,8 +120,9 @@ class TemplateLoader:
 
         reactions = netinfo.reactions
         if not reactions:
-            reactions.append(Reaction(reaction_type=ReactionType.DUMMY))
-            netinfo.varis.update({**Reaction.varis})
+            dummy = Reaction(reaction_type=ReactionType.DUMMY)
+            reactions.append(dummy)
+            netinfo.varis.update(dummy.params)
 
         self._general = self.GeneralInfo(method, device, version("naunet"))
         self._ode = self._prepare_ode_content(netinfo, rate_modifier, ode_modifier)

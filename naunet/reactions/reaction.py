@@ -1,22 +1,13 @@
 from __future__ import annotations
 from collections import Counter
+from ..component import Component, VariableType as vt
 from ..grains.grain import Grain
 from ..species import Species
 from .reactiontype import ReactionType
 
 
-class Reaction:
+class Reaction(Component):
     """Class of chemical reactions"""
-
-    consts = {}
-    varis = {
-        "nH": None,
-        "Tgas": None,
-        "zeta": 1.3e-17,
-        "Av": 1.0,
-        "omega": 0.5,
-    }
-    locvars = []
 
     def __init__(
         self,
@@ -32,6 +23,8 @@ class Reaction:
         idxfromfile: int = -1,
         react_string: str = None,
     ) -> None:
+
+        super().__init__()
 
         self.reactants = (
             [self._create_species(r) for r in reactants if self._create_species(r)]
@@ -55,6 +48,12 @@ class Reaction:
         self.react_string = react_string
         # if react_string:
         self._parse_string(react_string)
+
+        self.register("density", ("nH", None, vt.param))
+        self.register("tgas", ("Tgas", None, vt.param))
+        self.register("cosmic_ray_ionization_rate", ("zeta", 1.3e-17, vt.param))
+        self.register("visual_extinction", ("Av", 1.0, vt.param))
+        self.register("dust_grain_albedo", ("omega", 0.5, vt.param))
 
     def __contains__(self, spec: Species) -> bool:
         if not isinstance(spec, Species):

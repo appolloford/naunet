@@ -1,5 +1,6 @@
 import logging
 from enum import IntEnum
+from ..component import VariableType as vt
 from ..species import Species
 from ..grains.grain import Grain
 from .reaction import Reaction
@@ -63,28 +64,22 @@ class LEEDSReaction(Reaction):
         20: ReactionType.LEEDS_EC,
     }
 
-    consts = {
-        "gism": 1.6e-3,
-        "zism": 1.3e-17,
-    }
-    varis = {
-        "nH": None,  # hydorgen nuclei number densuty
-        "Tgas": None,  # gas temperature
-        "zeta_cr": 1.3e-17,  # cosmic ray ionization rate
-        "zeta_xr": 0.0,  # xray rate
-        "Tdust": 15.0,  # dust temperature
-        "Av": 1.0,  # visual extinction
-        "G0": 1.0,  # UV field in Habing
-        "omega": 0.5,  # dust grain albedo
-    }
-    locvars = [
-        "double h2col = 0.5*1.59e21*Av",
-        "double cocol = 1e-5 * h2col",
-        "double n2col = 1e-5 * h2col",
-    ]
-
     def __init__(self, react_string) -> None:
         super().__init__(format="leeds", react_string=react_string)
+
+        self.register("ism_radiation_field", ("gism", 1.6e-3, vt.constant))
+        self.register("ism_cosmic_ray_ionization_rate", ("zism", 1.3e-17, vt.constant))
+        self.register(
+            "cosmic_ray_ionization_rate",
+            ("zeta_cr", 1.3e-17, vt.param),
+            force_overwrite=True,
+        )
+        self.register("x_ray_ionization_rate", ("zeta_xr", 0.0, vt.param))
+        self.register("radiation_field", ("G0", 1.0, vt.param))
+        self.register("dust_temperature", ("Tdust", None, vt.param))
+        self.register("H2_column_density", ("h2col", "0.5*1.59e21*Av", vt.derived))
+        self.register("CO_column_density", ("cocol", "1e-5 * h2col", vt.derived))
+        self.register("N2_column_density", ("n2col", "1e-5 * h2col", vt.derived))
 
     @classmethod
     def initialize(cls) -> None:

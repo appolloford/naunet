@@ -1,4 +1,5 @@
 from enum import IntEnum
+from ..component import VariableType as vt
 from ..grains.grain import Grain
 from .reaction import Reaction
 from .reactiontype import ReactionType as BasicType
@@ -46,30 +47,39 @@ class UCLCHEMReaction(Reaction):
         "CHEMDES": ReactionType.UCLCHEM_RD,
     }
 
-    consts = {
-        "zism": 1.3e-17,
-    }
-
-    varis = {
-        "nH": None,  # hydrogen nuclei number density
-        "Tgas": None,  # gas temperature
-        "zeta": 1.3e-17,  # cosmic ray ionization rate
-        "Av": 1.0,  # visual extinction
-        "omega": 0.5,  # dust grain albedo
-        "G0": 1.0,  # UV field in Habing
-    }
-
-    locvars = [
-        "double h2col = 0.5*1.59e21*Av",
-        "double cocol = 1e-5 * h2col",
-        "double lamdabar = GetCharactWavelength(h2col, cocol)",
-        "double H2shielding = GetShieldingFactor(IDX_H2I, h2col, h2col, Tgas, 1)",
-        "double H2formation = 1.0e-17 * sqrt(Tgas) * nH",
-        "double H2dissociation = 5.1e-11 * G0 * GetGrainScattering(Av, 1000.0) * H2shielding",
-    ]
-
     def __init__(self, react_string) -> None:
         super().__init__(format="uclchem", react_string=react_string)
+
+        self.register("ism_cosmic_ray_ionization_rate", ("zism", 1.3e-17, vt.constant))
+        self.register("x_ray_ionization_rate", ("zeta_xr", 0.0, vt.param))
+        self.register("radiation_field", ("G0", 1.0, vt.param))
+        self.register("dust_temperature", ("Tgas", None, vt.param))
+        self.register("H2_column_density", ("h2col", "0.5*1.59e21*Av", vt.derived))
+        self.register("CO_column_density", ("cocol", "1e-5 * h2col", vt.derived))
+        self.register(
+            "character_wavelength",
+            ("lambdabar", "GetCharactWavelength(h2col, cocol)", vt.derived),
+        )
+        self.register(
+            "H2_shielding_factor",
+            (
+                "H2shielding",
+                "GetShieldingFactor(IDX_H2I, h2col, h2col, Tgas, 1)",
+                vt.derived,
+            ),
+        )
+        self.register(
+            "H2_formation_rate",
+            ("H2formation", "1.0e-17 * sqrt(Tgas) * nH", vt.derived),
+        )
+        self.register(
+            "H2_dissociation_rate",
+            (
+                "H2dissociation",
+                "5.1e-11 * G0 * GetGrainScattering(Av, 1000.0) * H2shielding",
+                vt.derived,
+            ),
+        )
 
     def rateexpr(self, grain: Grain = None) -> str:
         a = self.alpha
@@ -115,7 +125,7 @@ class UCLCHEMReaction(Reaction):
             rate = f"G0 * {a} * exp(-{c}*Av) / 1.7"  # convert habing to Draine
             if re1.name in ["CO"]:
                 shield = f"GetShieldingFactor(IDX_{re1.alias}, h2col, {re1.name.lower()}col, Tgas, 1)"
-                rate = f"(2.0e-10) * G0 * {shield} * GetGrainScattering(Av, lamdabar) / 1.7"
+                rate = f"(2.0e-10) * G0 * {shield} * GetGrainScattering(Av, lambdabar) / 1.7"
 
         # accretion
         elif rtype == self.ReactionType.UCLCHEM_FR:
