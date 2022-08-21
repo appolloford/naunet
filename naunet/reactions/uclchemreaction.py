@@ -53,7 +53,6 @@ class UCLCHEMReaction(Reaction):
         self.register("ism_cosmic_ray_ionization_rate", ("zism", 1.3e-17, vt.constant))
         self.register("x_ray_ionization_rate", ("zeta_xr", 0.0, vt.param))
         self.register("radiation_field", ("G0", 1.0, vt.param))
-        self.register("dust_temperature", ("Tgas", None, vt.param))
         self.register("H2_column_density", ("h2col", "0.5*1.59e21*Av", vt.derived))
         self.register("CO_column_density", ("cocol", "1e-5 * h2col", vt.derived))
         self.register(

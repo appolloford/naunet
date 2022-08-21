@@ -56,26 +56,28 @@ class RR07Grain(Grain):
 
         spec = reac.reactants[0]
         a = reac.alpha
+        tgas = reac.symbols.temperature.symbol
+
         if spec.is_electron:
             rate = " * ".join(
                 [
                     f"4.57e4 * {a} * gxsec * fr",
-                    f"( 1.0 + 16.71e-4/(rG * {self.sym_tgas}) )",
+                    f"( 1.0 + 16.71e-4/(rG * {tgas}) )",
                 ]
             )
         elif spec.charge == 0:
             rate = " * ".join(
                 [
                     f"4.57e4 * {a} * gxsec * fr",
-                    f"sqrt({self.sym_tgas} / {spec.massnumber})",
+                    f"sqrt({tgas} / {spec.massnumber})",
                 ]
             )
         else:
             rate = " * ".join(
                 [
                     f"4.57e4 * {a} * gxsec * fr",
-                    f"sqrt({self.sym_tgas} / {spec.massnumber})",
-                    f"( 1.0 + 16.71e-4/(rG * {self.sym_tgas}) )",
+                    f"sqrt({tgas} / {spec.massnumber})",
+                    f"( 1.0 + 16.71e-4/(rG * {tgas}) )",
                 ]
             )
 
@@ -85,13 +87,17 @@ class RR07Grain(Grain):
 
         super().rate_photon_desorption(reac)
 
+        crrate = reac.symbols.cosmic_ray_ionization_rate.symbol
+        radfield = reac.symbols.radiation_field
+        av = reac.symbols.visual_extinction
+
         if not self.sym_crrate or not self.sym_av:
             raise ValueError(
                 "Cosmic-ray ionization rate symbol or visual"
                 "extinction symbol is not set properly"
             )
 
-        sym_phot = f"({self.sym_crrate} + ({self.sym_radfield} / uvcreff) * exp(-1.8*{self.sym_av}) )"
+        sym_phot = f"({crrate} + ({radfield} / uvcreff) * exp(-1.8*{av}) )"
 
         spec = reac.reactants[0]
         rate = " * ".join(
@@ -109,11 +115,13 @@ class RR07Grain(Grain):
 
         super().rate_cosmicray_desorption(reac)
 
+        crrate = reac.symbols.cosmic_ray_ionization_rate.symbol
+
         spec = reac.reactants[0]
         rate = " * ".join(
             [
                 f"opt_crd * 4.0 * pi * crdeseff",
-                f"({self.sym_crrate})",
+                f"({crrate})",
                 f"1.64e-4 * gxsec / mant",
             ]
         )
@@ -126,8 +134,10 @@ class RR07Grain(Grain):
 
         super().rate_h2_desorption(reac)
 
+        h2form = reac.symbols.H2_formation_rate.symbol
+
         spec = reac.reactants[0]
-        rate = f"opt_h2d * h2deseff * {self.sym_h2form} / mant"
+        rate = f"opt_h2d * h2deseff * {h2form} / mant"
         rate = f"eb_h2d >= {spec.binding_energy} ? ({rate}) : 0.0"
         rate = f"mantabund > 1e-30 ? ({rate}) : 0.0"
 
@@ -147,13 +157,15 @@ class RR07XGrain(RR07Grain):
 
         super().rate_thermal_desorption(reac)
 
+        tdust = reac.symbols.dust_temperature.symbol
+
         spec = reac.reactants[0]
         rate = " * ".join(
             [
                 f"opt_thd",
                 f"sqrt(2.0*sites*kerg*eb_{spec.alias}/(pi*pi*amu*{spec.massnumber}))",
                 f"2.0 * densites",
-                f"exp(-eb_{spec.alias}/{self.sym_tdust})",
+                f"exp(-eb_{spec.alias}/{tdust})",
             ],
         )
         rate = f"mantabund > 1e-30 ? ({rate}) : 0.0"

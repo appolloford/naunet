@@ -54,11 +54,12 @@ class HH93Grain(Grain):
 
         spec = reac.reactants[0]
         a = reac.alpha
+        tgas = reac.symbols.temperature.symbol
 
         rate = " * ".join(
             [
                 f"opt_frz * {a} * pi * rG * rG * gdens",
-                f"sqrt(8.0 * kerg * {self.sym_tgas}/ (pi*amu*{spec.A}))",
+                f"sqrt(8.0 * kerg * {tgas}/ (pi*amu*{spec.A}))",
             ]
         )
         return rate
@@ -67,13 +68,15 @@ class HH93Grain(Grain):
 
         super().rate_thermal_desorption(reac)
 
+        tdust = reac.symbols.dust_temperature.symbol
+
         spec = reac.reactants[0]
         rate = " * ".join(
             [
                 f"opt_thd * cov",
                 f"nMono * densites",
                 f"sqrt(2.0*sites*kerg*eb_{spec.alias}/(pi*pi*amu*{spec.A}))",
-                f"exp(-eb_{spec.alias}/({self.sym_tdust}))",
+                f"exp(-eb_{spec.alias}/({tdust}))",
             ],
         )
         return rate
@@ -82,13 +85,17 @@ class HH93Grain(Grain):
 
         super().rate_photon_desorption(reac)
 
-        if not self.sym_crrate or not self.sym_av:
-            raise ValueError(
-                "Cosmic-ray ionization rate symbol or visual"
-                "extinction symbol is not set properly"
-            )
+        crrate = reac.symbols.cosmic_ray_ionization_rate.symbol
+        radfield = reac.symbols.radiation_field
+        av = reac.symbols.visual_extinction
 
-        sym_phot = f"{self.sym_radfield}*habing*exp(-{self.sym_av}*3.02) + crphot * ({self.sym_crrate})"
+        # if not self.sym_crrate or not self.sym_av:
+        #     raise ValueError(
+        #         "Cosmic-ray ionization rate symbol or visual"
+        #         "extinction symbol is not set properly"
+        #     )
+
+        sym_phot = f"{radfield}*habing*exp(-{av}*3.02) + crphot * ({crrate})"
 
         spec = reac.reactants[0]
         rate = f"opt_uvd * cov * ({sym_phot}) * {spec.photon_yield()} * nMono * garea"
@@ -98,12 +105,14 @@ class HH93Grain(Grain):
 
         super().rate_cosmicray_desorption(reac)
 
+        crrate = reac.symbols.cosmic_ray_ionization_rate.symbol
+
         spec = reac.reactants[0]
         rate = " * ".join(
             [
                 f"opt_crd * cov",
                 f"duty * nMono * densites",
-                f"({self.sym_crrate})",
+                f"({crrate})",
                 f"sqrt(2.0*sites*kerg*eb_{spec.alias}/(pi*pi*amu*{spec.A}))",
                 f"exp(-eb_{spec.alias}/Tcr)",
             ]
@@ -121,15 +130,17 @@ class HH93Grain(Grain):
 
         super().rate_recombination(reac)
 
+        tgas = reac.symbols.temperature.symbol
+
         [spec] = [s for s in reac.reactants if not s.is_grain]
         a = reac.alpha
 
         rate = " * ".join(
             [
                 f"{a} * pi * rG * rG * gdens",
-                f"sqrt(8.0*kerg*{self.sym_tgas}/(pi*amu*{spec.A}))",
-                f"(1.0 + pow(echarge, 2.0)/rG/kerg/{self.sym_tgas})",
-                f"(1.0 + sqrt(2.0*pow(echarge, 2.0)/(rG*kerg*{self.sym_tgas}+2.0*pow(echarge, 2.0))))",
+                f"sqrt(8.0*kerg*{tgas}/(pi*amu*{spec.A}))",
+                f"(1.0 + pow(echarge, 2.0)/rG/kerg/{tgas})",
+                f"(1.0 + sqrt(2.0*pow(echarge, 2.0)/(rG*kerg*{tgas}+2.0*pow(echarge, 2.0))))",
             ]
         )
         return rate
@@ -140,15 +151,17 @@ class HH93Grain(Grain):
         eb1, nmass1, eb2, nmass2 = re1.eb, re1.A, re2.eb, re2.A
         a = reac.alpha
 
+        tdust = reac.symbols.dust_temperature.symbol
+
         afreq = f"freq * sqrt({eb1}/{nmass1})"
-        adiff = f"{afreq} * exp(-{eb1}*hop/{self.sym_tdust})/unisites"
+        adiff = f"{afreq} * exp(-{eb1}*hop/{tdust})/unisites"
         aquan = f"{afreq} * exp(quan * sqrt(hop*{nmass1}*{eb1})) / unisites"
 
         bfreq = f"freq * sqrt({eb2}/{nmass2})"
-        bdiff = f"{bfreq} * exp(-{eb2}*hop/{self.sym_tdust})/unisites"
+        bdiff = f"{bfreq} * exp(-{eb2}*hop/{tdust})/unisites"
         bquan = f"{bfreq} * exp(quan * sqrt(hop*{nmass2}*{eb2})) / unisites"
 
-        kappa = f"exp(-{a}/{self.sym_tdust})"
+        kappa = f"exp(-{a}/{tdust})"
         kquan = f"exp(quan * sqrt((({nmass1}*{nmass2})/({nmass1}+{nmass2}))*{a}))"
 
         rate = ""

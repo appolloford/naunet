@@ -45,10 +45,6 @@ def test_init_dust(hh93grain):
 
 
 def test_depletion_rate(hh93grain, example_depletion_reaction):
-    with pytest.raises(ValueError, match="Gas temperature symbol is not set"):
-        example_depletion_reaction.rateexpr(grain=hh93grain)
-
-    hh93grain.sym_tgas = "Tgas"
     assert (
         example_depletion_reaction.rateexpr(grain=hh93grain)
         == "opt_frz * 1.0 * pi * rG * rG * gdens * sqrt(8.0 * kerg * Tgas/ (pi*amu*12.0))"
@@ -56,9 +52,8 @@ def test_depletion_rate(hh93grain, example_depletion_reaction):
 
 
 def test_thermal_desorption_rate(hh93grain, example_thermal_desorption_reaction):
-    hh93grain.sym_tdust = "Tdust"
     assert (
         example_thermal_desorption_reaction.rateexpr(grain=hh93grain)
         == "opt_thd * cov * nMono * densites * "
-        "sqrt(2.0*sites*kerg*eb_GCI/(pi*pi*amu*12.0)) * exp(-eb_GCI/(Tdust))"
+        "sqrt(2.0*sites*kerg*eb_GCI/(pi*pi*amu*12.0)) * exp(-eb_GCI/(Tgas))"
     )

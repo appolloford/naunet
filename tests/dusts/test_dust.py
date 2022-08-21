@@ -45,7 +45,6 @@ def test_init_dust(grain):
 
 
 def test_depletion_rate(grain, example_depletion_reaction):
-    grain.sym_tgas = "Tgas"
     assert (
         example_depletion_reaction.rateexpr(grain=grain)
         == "1.0 * pi * rG * rG * gdens * sqrt(8.0 * kerg * Tgas/ (pi*amu*12.0))"
@@ -53,6 +52,5 @@ def test_depletion_rate(grain, example_depletion_reaction):
 
 
 def test_thermal_desorption_rate(grain, example_thermal_desorption_reaction):
-    grain.sym_tdust = "Tdust"
     with pytest.raises(NotImplementedError, match="not implemented in base"):
         example_thermal_desorption_reaction.rateexpr(grain=grain)

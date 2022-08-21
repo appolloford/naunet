@@ -33,97 +33,10 @@ class Grain:
         else:
             self.varis = {**self.varis, "gdens": None}
 
-        self._sym_av = None
-        self._sym_tgas = None
-        self._sym_tdust = None
-        self._sym_radfield = None
-        self._sym_crrate = None
-        self._sym_h2form = None
-
-    @property
-    def sym_av(self) -> str:
-        return self._sym_av
-
-    @sym_av.setter
-    def sym_av(self, av: str) -> None:
-        if not isinstance(av, str):
-            raise TypeError("Visual extinction symbol must be string")
-
-        if not av:
-            raise ValueError("Visual extinction symbol must be non-empty string")
-        self._sym_av = av
-
-    @property
-    def sym_tgas(self) -> str:
-        return self._sym_tgas
-
-    @sym_tgas.setter
-    def sym_tgas(self, tgas: str) -> None:
-        if not isinstance(tgas, str):
-            raise TypeError("Gas temperature symbol must be string")
-
-        if not tgas:
-            raise ValueError("Gas temperature symbol must be non-empty string")
-        self._sym_tgas = tgas
-
-    @property
-    def sym_tdust(self) -> str:
-        return self._sym_tdust
-
-    @sym_tdust.setter
-    def sym_tdust(self, tdust: str) -> None:
-        if not isinstance(tdust, str):
-            raise TypeError("Dust temperature symbol must be string")
-
-        if not tdust:
-            raise ValueError("Dust temperature symbol must be non-empty string")
-        self._sym_tdust = tdust
-
-    @property
-    def sym_radfield(self) -> str:
-        return self._sym_radfield
-
-    @sym_radfield.setter
-    def sym_radfield(self, radfield: str) -> None:
-        if not isinstance(radfield, str):
-            raise TypeError("Radiation field symbol must be string")
-
-        if not radfield:
-            raise ValueError("Radiation field symbol must be non-empty string")
-        self._sym_radfield = radfield
-
-    @property
-    def sym_crrate(self) -> str:
-        return self._sym_crrate
-
-    @sym_crrate.setter
-    def sym_crrate(self, crrate: str) -> None:
-        if not isinstance(crrate, str):
-            raise TypeError("Cosmic-ray ionization rate symbol must be string")
-
-        if not crrate:
-            raise ValueError(
-                "Cosmic-ray ionization rate symbol must be non-empty string"
-            )
-        self._sym_crrate = crrate
-
-    @property
-    def sym_h2form(self) -> str:
-        return self._sym_h2form
-
-    @sym_h2form.setter
-    def sym_h2form(self, h2form: str) -> None:
-        if not isinstance(h2form, str):
-            raise TypeError("H2 formation rate symbol must be string")
-
-        if not h2form:
-            raise ValueError("H2 formation rate symbol must be non-empty string")
-        self._sym_h2form = h2form
-
     def rate_depletion(self, reac: Reaction) -> str:
 
-        if not self.sym_tgas:
-            raise ValueError("Gas temperature symbol is not set properly")
+        # if not self.sym_tgas:
+        #     raise ValueError("Gas temperature symbol is not set properly")
 
         if reac.reaction_type != ReactionType.GRAIN_FREEZE:
             raise ValueError("The reaction type is not depletion")
@@ -133,19 +46,20 @@ class Grain:
 
         spec = reac.reactants[0]
         a = reac.alpha
+        tgas = reac.symbols.temperature.symbol
 
         rate = " * ".join(
             [
                 f"{a} * pi * rG * rG * gdens",
-                f"sqrt(8.0 * kerg * {self.sym_tgas}/ (pi*amu*{spec.A}))",
+                f"sqrt(8.0 * kerg * {tgas}/ (pi*amu*{spec.A}))",
             ]
         )
         return rate
 
     def rate_thermal_desorption(self, reac: Reaction) -> str:
 
-        if not self.sym_tdust:
-            raise ValueError("Dust temperature symbol is not set properly")
+        # if not self.sym_tdust:
+        #     raise ValueError("Dust temperature symbol is not set properly")
 
         if reac.reaction_type != ReactionType.GRAIN_DESORB_THERMAL:
             raise ValueError("The reaction type is not thermal desorption")
@@ -157,8 +71,8 @@ class Grain:
 
     def rate_photon_desorption(self, reac: Reaction) -> str:
 
-        if not self.sym_radfield:
-            raise ValueError("Radiation field symbol is not set properly")
+        # if not self.sym_radfield:
+        #     raise ValueError("Radiation field symbol is not set properly")
 
         if reac.reaction_type != ReactionType.GRAIN_DESORB_PHOTON:
             raise ValueError("The reaction type is not photon desorption")
@@ -170,8 +84,8 @@ class Grain:
 
     def rate_cosmicray_desorption(self, reac: Reaction) -> str:
 
-        if not self.sym_crrate:
-            raise ValueError("Cosmic ray ionization rate symbol is not set properly")
+        # if not self.sym_crrate:
+        #     raise ValueError("Cosmic ray ionization rate symbol is not set properly")
 
         if reac.reaction_type != ReactionType.GRAIN_DESORB_COSMICRAY:
             raise ValueError("The reaction type is not cosmic-ray desorption")
@@ -183,8 +97,8 @@ class Grain:
 
     def rate_electron_capture(self, reac: Reaction) -> str:
 
-        if not self.sym_tgas:
-            raise ValueError("Gas temperature symbol is not set properly")
+        # if not self.sym_tgas:
+        #     raise ValueError("Gas temperature symbol is not set properly")
 
         if reac.reaction_type != ReactionType.GRAIN_ECAPTURE:
             raise ValueError("The reaction type is not electron capture")
@@ -193,8 +107,8 @@ class Grain:
 
     def rate_recombination(self, reac: Reaction) -> str:
 
-        if not self.sym_tgas:
-            raise ValueError("Gas temperature symbol is not set properly")
+        # if not self.sym_tgas:
+        #     raise ValueError("Gas temperature symbol is not set properly")
 
         if reac.reaction_type != ReactionType.GRAIN_RECOMINE:
             raise ValueError("The reaction type is not recombination")
@@ -203,8 +117,8 @@ class Grain:
 
     def rate_surface_twobody(self, reac: Reaction) -> str:
 
-        if not self.sym_tdust:
-            raise ValueError("Dust temperature symbol is not set properly")
+        # if not self.sym_tdust:
+        #     raise ValueError("Dust temperature symbol is not set properly")
 
         if reac.reaction_type != ReactionType.SURFACE_TWOBODY:
             raise ValueError("The reaction type is not surface two-body reaction")
@@ -218,8 +132,8 @@ class Grain:
 
     def rate_reactive_desorption(self, reac: Reaction) -> str:
 
-        if not self.sym_tdust:
-            raise ValueError("Dust temperature symbol is not set properly")
+        # if not self.sym_tdust:
+        #     raise ValueError("Dust temperature symbol is not set properly")
 
         if reac.reaction_type != ReactionType.GRAIN_DESORB_REACTIVE:
             raise ValueError("The reaction type is not reactive desorption")
@@ -233,8 +147,8 @@ class Grain:
 
     def rate_h2_desorption(self, reac: Reaction) -> str:
 
-        if not self.sym_h2form:
-            raise ValueError("H2 formation rate symbol is not set properly")
+        # if not self.sym_h2form:
+        #     raise ValueError("H2 formation rate symbol is not set properly")
 
         if reac.reaction_type != ReactionType.GRAIN_DESORB_H2:
             raise ValueError("The reaction type is not H2 desorption")

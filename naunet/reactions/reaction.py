@@ -50,7 +50,9 @@ class Reaction(Component):
         self._parse_string(react_string)
 
         self.register("density", ("nH", None, vt.param))
-        self.register("tgas", ("Tgas", None, vt.param))
+        self.register("temperature", ("Tgas", None, vt.param))
+        self.register("gas_temperature", ("Tgas", None, vt.param))
+        self.register("dust_temperature", ("Tgas", None, vt.param))
         self.register("cosmic_ray_ionization_rate", ("zeta", 1.3e-17, vt.param))
         self.register("visual_extinction", ("Av", 1.0, vt.param))
         self.register("dust_grain_albedo", ("omega", 0.5, vt.param))
@@ -82,6 +84,7 @@ class Reaction(Component):
         if not isinstance(o, Reaction):
             raise ValueError(f"{o} is not a reaction")
 
+        # ? TODO: include the comparison of symbols
         # ignore reaction_type if there is no this information e.g. krome
         return (
             self.rpeq(o)

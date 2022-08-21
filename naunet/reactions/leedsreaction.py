@@ -76,7 +76,9 @@ class LEEDSReaction(Reaction):
         )
         self.register("x_ray_ionization_rate", ("zeta_xr", 0.0, vt.param))
         self.register("radiation_field", ("G0", 1.0, vt.param))
-        self.register("dust_temperature", ("Tdust", None, vt.param))
+        self.register(
+            "dust_temperature", ("Tdust", None, vt.param), force_overwrite=True
+        )
         self.register("H2_column_density", ("h2col", "0.5*1.59e21*Av", vt.derived))
         self.register("CO_column_density", ("cocol", "1e-5 * h2col", vt.derived))
         self.register("N2_column_density", ("n2col", "1e-5 * h2col", vt.derived))
