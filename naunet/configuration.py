@@ -28,7 +28,6 @@ ode_modifier = []
 
 [chemistry.dust]
 model = ""
-species = []
 
 [chemistry.binding_energy]
 

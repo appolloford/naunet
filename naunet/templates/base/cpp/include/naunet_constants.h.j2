@@ -28,6 +28,9 @@ extern __constant__ double echarge;
 // Boltzmann constant (erg/K)
 extern __constant__ double kerg;
 
+// reduced Planck constant
+extern __constant__ double hbar;
+
 {% for c in network.consts.keys() %}
 extern __constant__ double {{ c }};
 {% endfor %}
@@ -87,6 +90,9 @@ extern const double echarge;
 
 // Boltzmann constant (erg/K)
 extern const double kerg;
+
+// reduced Planck constant
+extern const double hbar;
 
 {% for c in network.consts.keys() %}
 extern const double {{ c }};

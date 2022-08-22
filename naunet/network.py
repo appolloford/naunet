@@ -252,7 +252,7 @@ class Network:
         # consts in grain
         grain = self.grain
         dconsts = (
-            {f"{c:<15}": f"{cv}" for c, cv in grain.consts.items()} if grain else {}
+            {f"{c:<15}": f"{cv}" for c, cv in grain.constants.items()} if grain else {}
         )
 
         # consts in heating/cooling
@@ -273,7 +273,11 @@ class Network:
     def _locvars(self) -> dict[str, str]:
 
         grain = self.grain
-        dlocvars = grain.locvars if grain else []
+        dlocvars = (
+            [f"double {key} = {value}" for key, value in grain.deriveds.items()]
+            if grain
+            else []
+        )
 
         thermproc = []
         thermproc.extend([self.allowed_heating.get(h) for h in self._heating_names])
@@ -287,7 +291,7 @@ class Network:
 
         # varis in grain
         grain = self.grain
-        dvaris = {f"{var}": val for var, val in grain.varis.items()} if grain else {}
+        dvaris = {f"{var}": val for var, val in grain.params.items()} if grain else {}
 
         # varis in heating/cooling
         thermproc = []

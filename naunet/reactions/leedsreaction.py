@@ -100,13 +100,6 @@ class LEEDSReaction(Reaction):
         re1 = self.reactants[0]
         re2 = self.reactants[1] if len(self.reactants) > 1 else None
 
-        if grain:
-            grain.sym_av = "Av"
-            grain.sym_tgas = "Tgas"
-            grain.sym_tdust = "Tdust"
-            grain.sym_radfield = "G0"
-            grain.sym_crrate = "zeta_cr/zism"
-
         # two-body gas-phase reaction
         if rtype == 1:
             rate = " * ".join(

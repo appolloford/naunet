@@ -1,6 +1,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 from .grain import Grain
+from ..component import VariableType as vt
 from ..species import Species
 from ..reactions.reactiontype import ReactionType
 
@@ -24,31 +25,80 @@ class RR07Grain(Grain):
 
     model = "rr07"
 
-    varis = {
-        "rG": 1e-5,  # grain radius
-        "gdens": 7.6394373e-13,  # grain density
-        "sites": 1e15,  # surface sites
-        "fr": 1.0,  # freeze ratio
-        "opt_crd": 1.0,  # cosmic ray induced desorption option
-        "opt_h2d": 1.0,  # H2 formation induced desorption option
-        "opt_uvd": 1.0,  # UV desorption option
-        "eb_h2d": 1.21e3,  # maxmium binding energy which H2 desorption can desorb
-        "eb_crd": 1.21e3,  # maxmium binding energy which CR desorption can desorb
-        "eb_uvd": 1.0e4,  # maxmium binding energy which UV desorption can desorb
-        "crdeseff": 1e5,  # cosmic ray desorption efficiency
-        "h2deseff": 1.0e-2,  # H2 desorption efficiency
-        "uvcreff": 1.0e-3,  # UVCREFF is ratio of CR induced UV to ISRF UV
-    }
-    locvars = [
-        # "double mant = GetMantleDens(y) > 0.0 ? GetMantleDens(y) : 1e-40",
-        "double mant = GetMantleDens(y)",
-        "double mantabund = mant / nH",
-        "double gxsec = (pi*rG*rG) * gdens",  # total grain cross-section
-        "double garea = 4.0 * (pi*rG*rG) * gdens",
-        "double gxsec_per_H = gxsec / nH",
-        "double unisites = sites * (4*pi*rG*rG)",
-        "double densites = garea * sites",
-    ]
+    def __init__(self, species: list[Species] = None, group: int = 0) -> None:
+        super().__init__(species, group)
+
+        group = f"{group}" or ""
+        self.register(
+            "grain_density",
+            (f"gdens{group}", 7.6394373e-13, vt.param),
+            force_overwrite=True,
+        )
+        self.register(
+            "grain_surface_sites_density",
+            (f"sites{group}", 1.5e15, vt.param),
+        )
+        self.register("freeze_option", (f"fr{group}", 1.0, vt.param))
+        self.register(
+            "cosmic_ray_desorption_option",
+            (f"opt_crd{group}", 1.0, vt.param),
+        )
+        self.register("photon_desorption_option", (f"opt_uvd{group}", 1.0, vt.param))
+        self.register("H2_desorption_option", (f"opt_h2d{group}", 1.0, vt.param))
+        self.register(
+            "max_cosmic_ray_desorption_binding_energy",
+            (f"eb_crd{group}", 1.21e3, vt.param),
+        )
+        self.register(
+            "max_photon_desorption_binding_energy",
+            (f"eb_uvd{group}", 1.0e4, vt.param),
+        )
+        self.register(
+            "max_H2_desorption_binding_energy",
+            (f"eb_h2d{group}", 1.21e3, vt.param),
+        )
+        self.register(
+            "cosmic_ray_desorption_efficiency",
+            (f"crdeseff{group}", 1.0e5, vt.param),
+        )
+        self.register(
+            "cosmic_ray_induce_photon_efficiency",
+            (f"uvcreff{group}", 1.0e-3, vt.param),
+        )
+        self.register(
+            "H2_desorption_efficiency",
+            (f"h2deseff{group}", 1.0e-2, vt.param),
+        )
+
+        # TODO: get mantle density by group
+        self.register(
+            "mantle_number_density",
+            (f"mant{group}", "GetMantleDens(y)", vt.derived),
+        )
+        self.register(
+            "mantle_number_density_per_H",
+            (f"mantabund{group}", f"mant{group} / nH", vt.derived),
+        )
+        self.register(
+            "grain_cross_section",
+            (f"gxsec{group}", f"(pi*rG{group}*rG{group}) * gdens", vt.derived),
+        )
+        self.register(
+            "grain_surface_area",
+            (f"garea{group}", f"4.0 * gxsec{group}", vt.derived),
+        )
+        self.register(
+            "unit_surface_sites",
+            (
+                f"unisites{group}",
+                f"sites{group} * (4*pi*rG{group}*rG{group})",
+                vt.derived,
+            ),
+        )
+        self.register(
+            "surface_sites_density",
+            (f"densites{group}", f"garea{group} * sites{group}", vt.derived),
+        )
 
     def rate_depletion(self, reac: Reaction) -> str:
 
@@ -58,26 +108,30 @@ class RR07Grain(Grain):
         a = reac.alpha
         tgas = reac.symbols.temperature.symbol
 
+        r = self.symbols.grain_radius.symbol
+        gxsec = self.symbols.grain_cross_section.symbol
+        fr = self.symbols.freeze_option.symbol
+
         if spec.is_electron:
             rate = " * ".join(
                 [
-                    f"4.57e4 * {a} * gxsec * fr",
-                    f"( 1.0 + 16.71e-4/(rG * {tgas}) )",
+                    f"4.57e4 * {a} * {gxsec} * {fr}",
+                    f"( 1.0 + 16.71e-4/({r} * {tgas}) )",
                 ]
             )
         elif spec.charge == 0:
             rate = " * ".join(
                 [
-                    f"4.57e4 * {a} * gxsec * fr",
+                    f"4.57e4 * {a} * {gxsec} * {fr}",
                     f"sqrt({tgas} / {spec.massnumber})",
                 ]
             )
         else:
             rate = " * ".join(
                 [
-                    f"4.57e4 * {a} * gxsec * fr",
+                    f"4.57e4 * {a} * {gxsec} * {fr}",
                     f"sqrt({tgas} / {spec.massnumber})",
-                    f"( 1.0 + 16.71e-4/(rG * {tgas}) )",
+                    f"( 1.0 + 16.71e-4/({r} * {tgas}) )",
                 ]
             )
 
@@ -88,27 +142,29 @@ class RR07Grain(Grain):
         super().rate_photon_desorption(reac)
 
         crrate = reac.symbols.cosmic_ray_ionization_rate.symbol
+        zism = reac.symbols.ism_cosmic_ray_ionization_rate.symbol
         radfield = reac.symbols.radiation_field
         av = reac.symbols.visual_extinction
 
-        if not self.sym_crrate or not self.sym_av:
-            raise ValueError(
-                "Cosmic-ray ionization rate symbol or visual"
-                "extinction symbol is not set properly"
-            )
+        mant = self.symbols.mantle_number_density.symbol
+        mantabund = self.symbols.mantle_number_density_per_H.symbol
+        gxsec = self.symbols.grain_cross_section.symbol
+        opt_uvd = self.symbols.photon_desorption_option.symbol
+        eb_uvd = self.symbols.max_photon_desorption_binding_energy.symbool
+        uvcreff = self.symbols.cosmic_ray_induce_photon_efficiency.symbol
 
-        sym_phot = f"({crrate} + ({radfield} / uvcreff) * exp(-1.8*{av}) )"
+        sym_phot = f"(({crrate} / {zism}) + ({radfield} / {uvcreff}) * exp(-1.8*{av}) )"
 
         spec = reac.reactants[0]
         rate = " * ".join(
             [
-                f"opt_uvd * 4.875e3 * gxsec",
-                f"({sym_phot}) * {spec.photon_yield(default=0.1)} / mant",
+                f"{opt_uvd} * 4.875e3 * {gxsec}",
+                f"({sym_phot}) * {spec.photon_yield(default=0.1)} / {mant}",
             ]
         )
 
-        rate = f"eb_uvd >= {spec.binding_energy} ? ({rate}) : 0.0"
-        rate = f"mantabund > 1e-30 ? ({rate}) : 0.0"
+        rate = f"{eb_uvd} >= {spec.binding_energy} ? ({rate}) : 0.0"
+        rate = f"{mantabund} > 1e-30 ? ({rate}) : 0.0"
         return rate
 
     def rate_cosmicray_desorption(self, reac: Reaction) -> str:
@@ -116,18 +172,26 @@ class RR07Grain(Grain):
         super().rate_cosmicray_desorption(reac)
 
         crrate = reac.symbols.cosmic_ray_ionization_rate.symbol
+        zism = reac.symbols.ism_cosmic_ray_ionization_rate.symbol
+
+        mant = self.symbols.mantle_number_density.symbol
+        mantabund = self.symbols.mantle_number_density_per_H.symbol
+        gxsec = self.symbols.grain_cross_section.symbol
+        opt_crd = self.symbols.cosmic_ray_desorption_option.symbol
+        eb_crd = self.symbols.max_cosmic_ray_desorption_binding_energy.symbool
+        crdeseff = self.symbols.cosmic_ray_desorption_efficiency.symbol
 
         spec = reac.reactants[0]
         rate = " * ".join(
             [
-                f"opt_crd * 4.0 * pi * crdeseff",
+                f"({opt_crd} / {zism}) * 4.0 * pi * {crdeseff}",
                 f"({crrate})",
-                f"1.64e-4 * gxsec / mant",
+                f"1.64e-4 * {gxsec} / {mant}",
             ]
         )
 
-        rate = f"eb_crd >= {spec.binding_energy} ? ({rate}) : 0.0"
-        rate = f"mantabund > 1e-30 ? ({rate}) : 0.0"
+        rate = f"{eb_crd} >= {spec.binding_energy} ? ({rate}) : 0.0"
+        rate = f"{mantabund} > 1e-30 ? ({rate}) : 0.0"
         return rate
 
     def rate_h2_desorption(self, reac: Reaction) -> str:
@@ -136,10 +200,16 @@ class RR07Grain(Grain):
 
         h2form = reac.symbols.H2_formation_rate.symbol
 
+        mant = self.symbols.mantle_number_density.symbol
+        mantabund = self.symbols.mantle_number_density_per_H.symbol
+        opt_h2d = self.symbols.H2_desorption_option.symbol
+        eb_h2d = self.symbols.max_H2_desorption_binding_energy.symbool
+        h2deseff = self.symbols.H2_desorption_efficiency.symbol
+
         spec = reac.reactants[0]
-        rate = f"opt_h2d * h2deseff * {h2form} / mant"
-        rate = f"eb_h2d >= {spec.binding_energy} ? ({rate}) : 0.0"
-        rate = f"mantabund > 1e-30 ? ({rate}) : 0.0"
+        rate = f"{opt_h2d} * {h2deseff} * {h2form} / {mant}"
+        rate = f"{eb_h2d} >= {spec.binding_energy} ? ({rate}) : 0.0"
+        rate = f"{mantabund} > 1e-30 ? ({rate}) : 0.0"
 
         return rate
 
@@ -148,10 +218,10 @@ class RR07XGrain(RR07Grain):
 
     model = "rr07x"
 
-    varis = {
-        **RR07Grain.varis,
-        "opt_thd": 1.0,  # thermal desorption option
-    }
+    def __init__(self, species: list[Species] = None, group: int = 0) -> None:
+        super().__init__(species, group)
+
+        self.register("thermal_desorption_option", ("opt_thd", 1.0, vt.param))
 
     def rate_thermal_desorption(self, reac: Reaction) -> str:
 
@@ -159,14 +229,19 @@ class RR07XGrain(RR07Grain):
 
         tdust = reac.symbols.dust_temperature.symbol
 
+        mantabund = self.symbols.mantle_number_density_per_H.symbol
+        sites = self.symbols.grain_surface_sites_density.symbol
+        densites = self.symbol.surface_sites_density.symbol
+        opt_thd = self.symbols.thermal_desorption_option.symbol
+
         spec = reac.reactants[0]
         rate = " * ".join(
             [
-                f"opt_thd",
-                f"sqrt(2.0*sites*kerg*eb_{spec.alias}/(pi*pi*amu*{spec.massnumber}))",
-                f"2.0 * densites",
+                f"{opt_thd}",
+                f"sqrt(2.0*{sites}*kerg*eb_{spec.alias}/(pi*pi*amu*{spec.massnumber}))",
+                f"2.0 * {densites}",
                 f"exp(-eb_{spec.alias}/{tdust})",
             ],
         )
-        rate = f"mantabund > 1e-30 ? ({rate}) : 0.0"
+        rate = f"{mantabund} > 1e-30 ? ({rate}) : 0.0"
         return rate

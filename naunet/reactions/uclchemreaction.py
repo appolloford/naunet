@@ -91,14 +91,6 @@ class UCLCHEMReaction(Reaction):
         re1 = self.reactants[0]
         # re2 = self.reactants[1] if len(self.reactants) > 1 else None
 
-        if grain:
-            grain.sym_av = "Av"
-            grain.sym_tgas = "Tgas"
-            grain.sym_tdust = "Tgas"
-            grain.sym_radfield = "G0"
-            grain.sym_crrate = f"{zeta}"
-            grain.sym_h2form = f"1.0e-17 * sqrt(Tgas) * y[IDX_HI] * nH"
-
         # two-body gas-phase reaction
         if rtype == self.ReactionType.UCLCHEM_MA:
             rate = " * ".join(

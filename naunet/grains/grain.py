@@ -1,5 +1,6 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
+from ..component import Component, VariableType as vt
 from ..species import Species
 from ..reactions.reactiontype import ReactionType
 
@@ -7,7 +8,7 @@ if TYPE_CHECKING:
     from ..reactions.reaction import Reaction
 
 
-class Grain:
+class Grain(Component):
     """
     Class of base dust grain model.
 
@@ -19,19 +20,19 @@ class Grain:
 
     model = "base"
 
-    consts = {}
-    varis = {}
-    locvars = []
-
     def __init__(self, species: list[Species] = None, group: int = 0) -> None:
+
+        super().__init__()
 
         self.species = species.copy() if species else []
 
         gdens = " + ".join(f"y[IDX_{s.alias}]" for s in self.species)
         if gdens:
-            self.locvars = [f"double gdens = {gdens}", *self.locvars]
+            self.register("grain_density", (f"gdens{group or ''}", gdens, vt.derived))
         else:
-            self.varis = {**self.varis, "gdens": None}
+            self.register("grain_density", (f"gdens{group or ''}", None, vt.param))
+
+        self.register("grain_radius", (f"rG{group or ''}", 1e-5, vt.param))
 
     def rate_depletion(self, reac: Reaction) -> str:
 
@@ -45,9 +46,12 @@ class Grain:
         a = reac.alpha
         tgas = reac.symbols.temperature.symbol
 
+        r = self.symbols.grain_radius.symbol
+        gdens = self.symbols.grain_density.symbol
+
         rate = " * ".join(
             [
-                f"{a} * pi * rG * rG * gdens",
+                f"{a} * pi * {r} * {r} * {gdens}",
                 f"sqrt(8.0 * kerg * {tgas}/ (pi*amu*{spec.A}))",
             ]
         )

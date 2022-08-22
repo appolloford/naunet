@@ -1,6 +1,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 from .grain import Grain
+from ..component import VariableType as vt
 from ..species import Species
 from ..reactions.reactiontype import ReactionType
 
@@ -13,40 +14,91 @@ class HH93Grain(Grain):
 
     model = "hh93"
 
-    consts = {
-        "habing": 1e8,
-        "crphot": 1e4,
-        "hbar": 1.054571726e-27,
-    }
+    def __init__(self, species: list[Species] = None, group: int = 0) -> None:
+        super().__init__(species, group)
 
-    varis = {
-        "rG": 1.0e-5,  # grain radius
-        "barr": 1.5e-8,  # barrier
-        "sites": 1e15,  # surface sites
-        "hop": 0.3,  # hop ratio
-        "nMono": 2.0,  # number of monolayers
-        "duty": 3.16e-19,  # duty cycle
-        "Tcr": 70.0,  # cosmic ray induced desorption temperature
-        "branch": 1e-2,  # branch ratio
-        "opt_frz": 1.0,
-        "opt_thd": 1.0,
-        "opt_uvd": 1.0,
-        "opt_crd": 1.0,
-        "opt_rcd": 1.0,  # reactive desorption option
-    }
-    locvars = [
-        "double mant = GetMantleDens(y)",
-        "double garea = (4*pi*rG*rG) * gdens",
-        "double unisites = sites * (4*pi*rG*rG)",
-        "double densites = sites * (4*pi*rG*rG) * gdens",
-        "double freq = sqrt((2.0*sites*kerg)/((pi*pi)*amu))",
-        "double quan = -2.0*(barr/hbar) * sqrt(2.0*amu*kerg)",
-        "double layers = mant/(nMono*densites)",
-        "double cov = (mant == 0.0) ? 0.0 : fmin(layers/mant, 1.0/mant)",
-    ]
+        group = group or ""
+        self.register("habing_field_photon_number", ("habing", 1e8, vt.constant))
+        self.register("cosmic_ray_induced_photon_number", ("crphot", 1e4, vt.constant))
+        self.register(
+            "grain_surface_sites_density",
+            (f"sites{group}", 1.5e15, vt.param),
+        )
+        self.register("grain_sites_barrier_height", (f"barr{group}", 1.5e-8, vt.param))
+        self.register("surface_hopping_ratio", (f"hop{group}", 0.3, vt.param))
+        self.register("active_monolayer_number", (f"nMono{group}", 2.0, vt.param))
+        self.register("freeze_option", (f"opt_frz{group}", 1.0, vt.param))
+        self.register("thermal_desorption_option", (f"opt_thd{group}", 1.0, vt.param))
+        self.register(
+            "cosmic_ray_desorption_option",
+            (f"opt_crd{group}", 1.0, vt.param),
+        )
+        self.register(
+            "cosmic_ray_desorption_duty_cycle", (f"duty{group}", 3.16e-19, vt.param)
+        )
+        self.register(
+            "max_cosmic_ray_desorption_temperature", (f"Tcr{group}", 70.0, vt.param)
+        )
+        self.register("photon_desorption_option", (f"opt_uvd{group}", 1.0, vt.param))
+        self.register("reactive_desorption_option", (f"opt_rcd{group}", 1.0, vt.param))
+        self.register(
+            "reactive_desorption_branching_ratio",
+            (f"branch{group}", 1e-2, vt.param),
+        )
 
-    def __init__(self, species: list[str] | list[Species] = None) -> None:
-        super().__init__(species=species)
+        # TODO: get mantle density by group
+        self.register(
+            "mantle_number_density",
+            (f"mant{group}", "GetMantleDens(y)", vt.derived),
+        )
+        self.register(
+            "grain_surface_area",
+            (f"garea{group}", f"(4.0*pi*rG{group}*rG{group}) * gdens", vt.derived),
+        )
+        self.register(
+            "unit_surface_sites",
+            (
+                f"unisites{group}",
+                f"sites{group} * (4*pi*rG{group}*rG{group})",
+                vt.derived,
+            ),
+        )
+        self.register(
+            "surface_sites_density",
+            (f"densites{group}", f"garea{group} * sites{group}", vt.derived),
+        )
+        self.register(
+            "classical_diffusion_rate_factor",
+            (
+                f"freq{group}",
+                f"sqrt((2.0*sites{group}*kerg)/((pi*pi)*amu))",
+                vt.derived,
+            ),
+        )
+        self.register(
+            "quantum_diffusion_rate_factor",
+            (
+                f"quan{group}",
+                f"-2.0*(barr{group}/hbar) * sqrt(2.0*amu*kerg)",
+                vt.derived,
+            ),
+        )
+        self.register(
+            "monolayer_number",
+            (
+                f"layers{group}",
+                f"mant{group}/(nMono{group}*densites{group})",
+                vt.derived,
+            ),
+        )
+        self.register(
+            "coverage",
+            (
+                f"cov{group}",
+                f"(mant{group} == 0.0) ? 0.0 : fmin(layers{group}/mant{group}, 1.0/mant{group})",
+                vt.derived,
+            ),
+        )
 
     def rate_depletion(self, reac: Reaction) -> str:
 
@@ -56,9 +108,13 @@ class HH93Grain(Grain):
         a = reac.alpha
         tgas = reac.symbols.temperature.symbol
 
+        r = self.symbols.grain_radius.symbol
+        gdens = self.symbols.grain_density.symbol
+        opt_frz = self.symbols.freeze_option.symbol
+
         rate = " * ".join(
             [
-                f"opt_frz * {a} * pi * rG * rG * gdens",
+                f"{opt_frz} * {a} * pi * {r} * {r} * {gdens}",
                 f"sqrt(8.0 * kerg * {tgas}/ (pi*amu*{spec.A}))",
             ]
         )
@@ -70,12 +126,18 @@ class HH93Grain(Grain):
 
         tdust = reac.symbols.dust_temperature.symbol
 
+        opt_thd = self.symbols.thermal_desorption_option.symbol
+        cov = self.symbols.coverage.symbol
+        nMono = self.symbols.active_monolayer_number.symbol
+        sites = self.symbols.grain_surface_sites_density.symbol
+        densites = self.symbols.surface_sites_density.symbol
+
         spec = reac.reactants[0]
         rate = " * ".join(
             [
-                f"opt_thd * cov",
-                f"nMono * densites",
-                f"sqrt(2.0*sites*kerg*eb_{spec.alias}/(pi*pi*amu*{spec.A}))",
+                f"{opt_thd} * {cov}",
+                f"{nMono} * {densites}",
+                f"sqrt(2.0*{sites}*kerg*eb_{spec.alias}/(pi*pi*amu*{spec.A}))",
                 f"exp(-eb_{spec.alias}/({tdust}))",
             ],
         )
@@ -86,19 +148,21 @@ class HH93Grain(Grain):
         super().rate_photon_desorption(reac)
 
         crrate = reac.symbols.cosmic_ray_ionization_rate.symbol
-        radfield = reac.symbols.radiation_field
-        av = reac.symbols.visual_extinction
+        zism = reac.symbols.ism_cosmic_ray_ionization_rate.symbol
+        radfield = reac.symbols.radiation_field.symbol
+        av = reac.symbols.visual_extinction.symbol
 
-        # if not self.sym_crrate or not self.sym_av:
-        #     raise ValueError(
-        #         "Cosmic-ray ionization rate symbol or visual"
-        #         "extinction symbol is not set properly"
-        #     )
+        habing = self.symbols.habing_field_photon_number.symbol
+        crphot = self.symbols.cosmic_ray_induced_photon_number.symbol
+        opt_uvd = self.symbols.photon_desorption_option.symbol
+        cov = self.symbols.coverage.symbol
+        nMono = self.symbols.active_monolayer_number.symbol
+        garea = self.symbols.grain_surface_area.symbol
 
-        sym_phot = f"{radfield}*habing*exp(-{av}*3.02) + crphot * ({crrate})"
+        sym_phot = f"{radfield}*{habing}*exp(-{av}*3.02) + {crphot} * ({crrate}/{zism})"
 
         spec = reac.reactants[0]
-        rate = f"opt_uvd * cov * ({sym_phot}) * {spec.photon_yield()} * nMono * garea"
+        rate = f"{opt_uvd} * {cov} * ({sym_phot}) * {spec.photon_yield()} * {nMono} * {garea}"
         return rate
 
     def rate_cosmicray_desorption(self, reac: Reaction) -> str:
@@ -106,15 +170,24 @@ class HH93Grain(Grain):
         super().rate_cosmicray_desorption(reac)
 
         crrate = reac.symbols.cosmic_ray_ionization_rate.symbol
+        zism = reac.symbols.ism_cosmic_ray_ionization_rate.symbol
+
+        opt_crd = self.symbols.cosmic_ray_desorption_option.symbol
+        cov = self.symbols.coverage.symbol
+        nMono = self.symbols.active_monolayer_number.symbol
+        sites = self.symbols.grain_surface_sites_density.symbol
+        densites = self.symbols.surface_sites_density.symbol
+        duty = self.symbols.cosmic_ray_desorption_duty_cycle.symbol
+        Tcr = self.symbols.max_cosmic_ray_desorption_temperature.symbol
 
         spec = reac.reactants[0]
         rate = " * ".join(
             [
-                f"opt_crd * cov",
-                f"duty * nMono * densites",
-                f"({crrate})",
-                f"sqrt(2.0*sites*kerg*eb_{spec.alias}/(pi*pi*amu*{spec.A}))",
-                f"exp(-eb_{spec.alias}/Tcr)",
+                f"{opt_crd} * {cov}",
+                f"{duty} * {nMono} * {densites}",
+                f"({crrate}/{zism})",
+                f"sqrt(2.0*{sites}*kerg*eb_{spec.alias}/(pi*pi*amu*{spec.A}))",
+                f"exp(-eb_{spec.alias}/{Tcr})",
             ]
         )
         return rate
@@ -123,7 +196,11 @@ class HH93Grain(Grain):
 
         super().rate_electron_capture(reac)
 
-        rate = f"pi * rG * rG * sqrt(8.0*kerg*({self.sym_tgas})/pi/amu/meu)"
+        tgas = reac.symbols.temperature.symbol
+
+        r = self.symbols.grain_radius.symbol
+
+        rate = f"pi * {r} * {r} * sqrt(8.0*kerg*({tgas})/pi/amu/meu)"
         return rate
 
     def rate_recombination(self, reac: Reaction) -> str:
@@ -132,15 +209,18 @@ class HH93Grain(Grain):
 
         tgas = reac.symbols.temperature.symbol
 
+        r = self.symbols.grain_radius.symbol
+        gdens = self.symbols.grain_density.symbol
+
         [spec] = [s for s in reac.reactants if not s.is_grain]
         a = reac.alpha
 
         rate = " * ".join(
             [
-                f"{a} * pi * rG * rG * gdens",
+                f"{a} * pi * {r} * {r} * {gdens}",
                 f"sqrt(8.0*kerg*{tgas}/(pi*amu*{spec.A}))",
-                f"(1.0 + pow(echarge, 2.0)/rG/kerg/{tgas})",
-                f"(1.0 + sqrt(2.0*pow(echarge, 2.0)/(rG*kerg*{tgas}+2.0*pow(echarge, 2.0))))",
+                f"(1.0 + pow(echarge, 2.0)/{r}/kerg/{tgas})",
+                f"(1.0 + sqrt(2.0*pow(echarge, 2.0)/({r}*kerg*{tgas}+2.0*pow(echarge, 2.0))))",
             ]
         )
         return rate
@@ -153,16 +233,25 @@ class HH93Grain(Grain):
 
         tdust = reac.symbols.dust_temperature.symbol
 
-        afreq = f"freq * sqrt({eb1}/{nmass1})"
-        adiff = f"{afreq} * exp(-{eb1}*hop/{tdust})/unisites"
-        aquan = f"{afreq} * exp(quan * sqrt(hop*{nmass1}*{eb1})) / unisites"
+        gdens = self.symbols.grain_density.symbol
+        freq = self.symbols.classical_diffusion_rate_factor.symbol
+        quan = self.symbols.quantum_diffusion_rate_factor.symbol
+        hop = self.symbols.surface_hopping_ratio.symbol
+        cov = self.symbols.coverage.symbol
+        nMono = self.symbols.active_monolayer_number.symbol
+        unisites = self.symbols.unit_surface_sites.symbol
+        densites = self.symbols.surface_sites_density.symbol
 
-        bfreq = f"freq * sqrt({eb2}/{nmass2})"
-        bdiff = f"{bfreq} * exp(-{eb2}*hop/{tdust})/unisites"
-        bquan = f"{bfreq} * exp(quan * sqrt(hop*{nmass2}*{eb2})) / unisites"
+        afreq = f"{freq} * sqrt({eb1}/{nmass1})"
+        adiff = f"{afreq} * exp(-{eb1}*{hop}/{tdust})/{unisites}"
+        aquan = f"{afreq} * exp({quan} * sqrt({hop}*{nmass1}*{eb1})) / {unisites}"
+
+        bfreq = f"{freq} * sqrt({eb2}/{nmass2})"
+        bdiff = f"{bfreq} * exp(-{eb2}*{hop}/{tdust})/{unisites}"
+        bquan = f"{bfreq} * exp({quan} * sqrt({hop}*{nmass2}*{eb2})) / {unisites}"
 
         kappa = f"exp(-{a}/{tdust})"
-        kquan = f"exp(quan * sqrt((({nmass1}*{nmass2})/({nmass1}+{nmass2}))*{a}))"
+        kquan = f"exp({quan} * sqrt((({nmass1}*{nmass2})/({nmass1}+{nmass2}))*{a}))"
 
         rate = ""
         if re1.name in ["GH", "GH2"] and re2.name in ["GH", "GH2"]:
@@ -170,7 +259,7 @@ class HH93Grain(Grain):
                 [
                     f"fmax({kappa}, {kquan})",
                     f"(fmax({adiff}, {aquan})+fmax({bdiff}, {bquan}))",
-                    f"pow((nMono*densites), 2.0) / gdens",
+                    f"pow(({nMono}*{densites}), 2.0) / {gdens}",
                 ]
             )
         elif re1.name in ["GH", "GH2"]:
@@ -178,7 +267,7 @@ class HH93Grain(Grain):
                 [
                     f"fmax({kappa}, {kquan})",
                     f"(fmax({adiff}, {aquan})+{bdiff})",
-                    f"pow((nMono*densites), 2.0) / gdens",
+                    f"pow(({nMono}*{densites}), 2.0) / {gdens}",
                 ]
             )
         elif re2.name in ["GH", "GH2"]:
@@ -186,18 +275,18 @@ class HH93Grain(Grain):
                 [
                     f"fmax({kappa}, {kquan})",
                     f"({adiff}+fmax({bdiff}, {bquan}))",
-                    f"pow((nMono*densites), 2.0) / gdens",
+                    f"pow(({nMono}*{densites}), 2.0) / {gdens}",
                 ]
             )
         else:
             rate = " * ".join(
                 [
                     f"{kappa} * ({adiff}+{bdiff})",
-                    f"pow((nMono*densites), 2.0) / gdens",
+                    f"pow(({nMono}*{densites}), 2.0) / {gdens}",
                 ]
             )
 
-        rate = " * ".join([rate, "cov", "cov"])
+        rate = " * ".join([rate, f"{cov}", f"{cov}"])
         return rate
 
     def rate_surface_twobody(self, reac: Reaction) -> str:
