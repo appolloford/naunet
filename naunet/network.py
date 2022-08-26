@@ -259,7 +259,9 @@ class Network:
         thermproc = []
         thermproc.extend([self.allowed_heating.get(h) for h in self._heating_names])
         thermproc.extend([self.allowed_cooling.get(c) for c in self._cooling_names])
-        tconsts = {f"{c:<15}": f"{cv}" for p in thermproc for c, cv in p.consts.items()}
+        tconsts = {
+            f"{c:<15}": f"{cv}" for p in thermproc for c, cv in p.constants.items()
+        }
 
         # create consts of binding energies
         rqdsp = set([Species(s) for s in self._required_species])
@@ -282,7 +284,15 @@ class Network:
         thermproc = []
         thermproc.extend([self.allowed_heating.get(h) for h in self._heating_names])
         thermproc.extend([self.allowed_cooling.get(c) for c in self._cooling_names])
-        tlocvars = [v for p in thermproc for v in p.locvars]
+        tlocvars = (
+            [
+                f"double {key} = {value}"
+                for t in thermproc
+                for key, value in t.deriveds.items()
+            ]
+            if thermproc
+            else []
+        )
 
         locvars = [*self._reactlocvars, *dlocvars, *tlocvars]
         return locvars
@@ -297,7 +307,7 @@ class Network:
         thermproc = []
         thermproc.extend([self.allowed_heating.get(h) for h in self._heating_names])
         thermproc.extend([self.allowed_cooling.get(c) for c in self._cooling_names])
-        tvaris = {f"{var}": val for p in thermproc for var, val in p.varis.items()}
+        tvaris = {f"{var}": val for p in thermproc for var, val in p.params.items()}
 
         varis = {**self._reactvaris, **dvaris, **tvaris}
         return varis

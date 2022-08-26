@@ -4,6 +4,7 @@ from collections import OrderedDict
 from dataclasses import dataclass
 from enum import Enum
 from types import SimpleNamespace
+from .species import Species
 
 
 class VariableType(Enum):
@@ -22,6 +23,24 @@ class Variable:
 class Component:
     def __init__(self) -> None:
         self._symbols = OrderedDict()
+
+    def _create_species(self, species_name: Species | str) -> Species:
+        """
+        Create a Species instance if the name is not a pseudo element
+        (e.g. CR, CRPHOT), else return None
+
+        Args:
+            species_name (Species | str): name of species
+
+        Returns:
+            Species: Species instance of the input name
+        """
+
+        if isinstance(species_name, Species):
+            return species_name
+
+        if species_name and species_name not in Species.known_pseudoelements():
+            return Species(species_name)
 
     def register(
         self,

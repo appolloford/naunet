@@ -1,34 +1,31 @@
 from __future__ import annotations
+from .component import Component, VariableType as vt
 from .species import Species
 
 
-class ThermalProcess:
+class ThermalProcess(Component):
     def __init__(
         self,
-        reactants: list[str],
+        reactants: list[str | Species],
         rate: str,
-        consts: dict = None,
-        varis: dict = None,
-        locvars: list = None,
     ) -> None:
 
-        self._reactants = reactants.copy()
+        super().__init__()
+
+        self._reactants = [
+            self._create_species(r) for r in reactants if self._create_species(r)
+        ]
+
         self.temp_min = -1.0
         self.temp_max = -1.0
         self._rate = rate
-        self.consts = consts.copy() if consts else {}
-        self.varis = varis.copy() if varis else {}
-        self.locvars = locvars.copy() if locvars else []
 
-        self.varis.update({"mu": -1.0, "gamma": -1.0})
-
-    @property
-    def reactant_names(self):
-        return self._reactants
+        self.register("mean_molecular_weight", ("mu", -1.0, vt.param))
+        self.register("heat_capacity_ratio", ("gamma", -1.0, vt.param))
 
     @property
     def reactants(self):
-        return [Species(r) for r in self._reactants]
+        return self._reactants
 
     def rateexpr(self):
         return self._rate
@@ -137,12 +134,11 @@ def get_allowed_cooling(species: list[Species]) -> dict[str, ThermalProcess]:
                                    Dictionary of {name: <cooling process>}
     """
 
-    specnamelist = [s.name for s in species]
     allowed_cooling = {}
 
     for key, value in supported_cooling_process.items():
 
-        if all(r in specnamelist for r in value.reactant_names):
+        if all(r in species for r in value.reactants):
 
             allowed_cooling[key] = value
 

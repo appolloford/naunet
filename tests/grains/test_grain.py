@@ -40,8 +40,7 @@ def grain():
 
 
 def test_init_grain(grain):
-    assert "gdens" in grain.varis
-    # assert "gdens" in grain.locvars
+    assert "gdens" in grain.params.keys()
 
 
 def test_depletion_rate(grain, example_depletion_reaction):

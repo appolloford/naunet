@@ -45,9 +45,9 @@ def rr07xgrain():
 
 
 def test_init_grain(rr07grain, rr07xgrain):
-    assert "gdens" in rr07grain.varis
-    assert "gdens" in rr07xgrain.varis
-    assert "opt_thd" in rr07xgrain.varis
+    assert "gdens" in rr07grain.params.keys()
+    assert "gdens" in rr07xgrain.params.keys()
+    assert "opt_thd" in rr07xgrain.params.keys()
 
 
 def test_depletion_rate(rr07grain, example_depletion_reaction):

@@ -40,8 +40,9 @@ def hh93grain():
 
 
 def test_init_grain(hh93grain):
-    assert "gdens" not in hh93grain.varis
-    assert "double gdens = y[IDX_GRAIN0I] + y[IDX_GRAINM]" in hh93grain.locvars
+    assert "gdens" not in hh93grain.params.keys()
+    assert "gdens" in hh93grain.deriveds.keys()
+    assert "y[IDX_GRAIN0I] + y[IDX_GRAINM]" in hh93grain.deriveds.values()
 
 
 def test_depletion_rate(hh93grain, example_depletion_reaction):

@@ -28,7 +28,7 @@ class RR07Grain(Grain):
     def __init__(self, species: list[Species] = None, group: int = 0) -> None:
         super().__init__(species, group)
 
-        group = f"{group}" or ""
+        group = group or ""
         self.register(
             "grain_density",
             (f"gdens{group}", 7.6394373e-13, vt.param),
@@ -231,7 +231,7 @@ class RR07XGrain(RR07Grain):
 
         mantabund = self.symbols.mantle_number_density_per_H.symbol
         sites = self.symbols.grain_surface_sites_density.symbol
-        densites = self.symbol.surface_sites_density.symbol
+        densites = self.symbols.surface_sites_density.symbol
         opt_thd = self.symbols.thermal_desorption_option.symbol
 
         spec = reac.reactants[0]
