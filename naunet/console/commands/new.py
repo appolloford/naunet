@@ -20,7 +20,7 @@ class NewCommand(Command):
         {--extra-species= : List of extra required species}
         {--network= : Source of chemical network file}
         {--format= : The format of the chemical network}
-        {--dust-model= : Type of dust model}
+        {--grain-model= : Type of dust grain model}
         {--heating= : List of heating processes}
         {--cooling= : List of cooling processes}
         {--binding= : List of binding energy of ice species}
@@ -86,8 +86,8 @@ class NewCommand(Command):
         format = self.option("format") or ""
         format = [f.strip() for f in format.split(",") if f]
 
-        dustmodel = self.option("dust-model")
-        dustmodel = dustmodel if dustmodel else "none"
+        grain_model = self.option("grain-model")
+        grain_model = grain_model if grain_model else ""
 
         heating = self.option("heating")
         heating = heating.split(",") if heating else []
@@ -141,7 +141,7 @@ class NewCommand(Command):
             heating=heating,
             cooling=cooling,
             shielding=shielding,
-            grain_model=dustmodel,
+            grain_model=grain_model,
             rate_modifier=rate_modifier,
             ode_modifier=ode_modifier,
             solver=solver,

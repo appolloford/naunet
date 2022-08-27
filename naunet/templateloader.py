@@ -29,7 +29,7 @@ class NetworkInfo:
     reactions: list[Reaction]
     heating: list[str]
     cooling: list[str]
-    dust: Grain
+    grains: list[Grain]
     shielding: dict
     consts: dict[str, str]
     varis: dict[str, str]
@@ -132,7 +132,7 @@ class TemplateLoader:
         self,
         rate_sym: str,
         reactions: list[Reaction | ThermalProcess],
-        dust: Grain = None,
+        grains: list[Grain] = None,
     ) -> list[str]:
 
         # check the temperature range exists
@@ -143,9 +143,13 @@ class TemplateLoader:
             for lt, ut in zip(ltranges, utranges)
         ]
 
-        if dust:
+        grain_dict = {g.group: g for g in grains} if grains else {}
+
+        if grains:
             # chemical reations
-            rateexprs = [reac.rateexpr(dust) for reac in reactions]
+            rateexprs = [
+                reac.rateexpr(grain_dict.get(reac.grain_group)) for reac in reactions
+            ]
         else:
             # thermal process
             rateexprs = [reac.rateexpr() for reac in reactions]
@@ -177,7 +181,7 @@ class TemplateLoader:
 
         heating = netinfo.heating
         cooling = netinfo.cooling
-        dust = netinfo.dust
+        grains = netinfo.grains
 
         odemodifier = ode_modifier.copy() if ode_modifier else []
         ratemodifier = rate_modifier.copy() if rate_modifier else {}
@@ -193,7 +197,7 @@ class TemplateLoader:
         n_eqns = max(n_spec + has_thermal, 1)
 
         rate_sym = "k"
-        rateeqns = self._assign_rates(rate_sym, reactions, dust)
+        rateeqns = self._assign_rates(rate_sym, reactions, grains)
 
         y = [f"y[IDX_{x.alias}]" for x in species]
         if has_thermal:

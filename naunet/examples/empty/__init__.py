@@ -1,7 +1,7 @@
 description = "Example: empty network"
 network = ""
 format = ""
-dustmodel = ""
+grain_model = ""
 elements = []
 pseudo_elements = []
 species = []

@@ -26,7 +26,7 @@ heating = []
 cooling = []
 ode_modifier = []
 
-[chemistry.dust]
+[chemistry.grain]
 model = ""
 
 [chemistry.binding_energy]
@@ -44,15 +44,16 @@ method = ""
 
 [summary]
 num_of_species = -1
+num_of_grains = -1
 num_of_gas_species = -1
 num_of_ice_species = -1
-num_of_dust_species = -1
+num_of_grain_species = -1
 num_of_reactions = -1
 list_of_species = []
 list_of_species_alias = []
 list_of_gas_species = []
 list_of_ice_species = []
-list_of_dust_species = []
+list_of_grain_species = []
 """
 
 
@@ -126,7 +127,7 @@ class Configuration:
         chemistry["heating"] = self._heating
         chemistry["cooling"] = self._cooling
         chemistry["shielding"] = self._shielding
-        chemistry["dust"]["model"] = self._grain_model
+        chemistry["grain"]["model"] = self._grain_model
         chemistry["rate_modifier"] = self._ratemodifier
         chemistry["ode_modifier"] = self._odemodifier
 
@@ -138,19 +139,22 @@ class Configuration:
         summary = content["summary"]
         info = self._networkinfo
         if info:
-            dust = info.dust
+            grains = info.grains
             gas_species = [s.name for s in info.species if not s.is_surface]
             ice_species = [g.name for g in info.species if g.is_surface]
-            dust_species = [d.name for d in dust.species] if dust else []
+            grain_species = (
+                [s.name for g in grains for s in g.species] if grains else []
+            )
             summary["num_of_species"] = len(info.species)
+            summary["num_of_grains"] = len(info.grains)
             summary["num_of_gas_species"] = len(gas_species)
             summary["num_of_ice_species"] = len(ice_species)
-            summary["num_of_dust_species"] = len(dust_species)
+            summary["num_of_grain_species"] = len(grain_species)
             summary["num_of_reactions"] = len(info.reactions)
             summary["list_of_species"] = [x.name for x in info.species]
             summary["list_of_species_alias"] = [x.alias for x in info.species]
             summary["list_of_gas_species"] = gas_species
             summary["list_of_ice_species"] = ice_species
-            summary["list_of_dust_species"] = dust_species
+            summary["list_of_grain_species"] = grain_species
 
         return tomlkit.dumps(content)

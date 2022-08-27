@@ -25,6 +25,7 @@ class Grain(Component):
         super().__init__()
 
         self.species = species.copy() if species else []
+        self._group = group
 
         gdens = " + ".join(f"y[IDX_{s.alias}]" for s in self.species)
         if gdens:
@@ -33,6 +34,10 @@ class Grain(Component):
             self.register("grain_density", (f"gdens{group or ''}", None, vt.param))
 
         self.register("grain_radius", (f"rG{group or ''}", 1e-5, vt.param))
+
+    @property
+    def group(self) -> int:
+        return self._group
 
     def rate_depletion(self, reac: Reaction) -> str:
 

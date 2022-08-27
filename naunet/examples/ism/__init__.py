@@ -1,7 +1,7 @@
 description = "Example: chemical network used in Walsh et al. 2015"
 network = "rate12_complex.rates"
 format = "leeds"
-dustmodel = "hh93"
+grain_model = "hh93"
 
 elements = [
     "e",

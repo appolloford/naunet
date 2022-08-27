@@ -250,9 +250,11 @@ class Network:
     def _consts(self) -> dict[str, str]:
 
         # consts in grain
-        grain = self.grain
+        grains = self.grains
         dconsts = (
-            {f"{c:<15}": f"{cv}" for c, cv in grain.constants.items()} if grain else {}
+            {f"{c:<15}": f"{cv}" for g in grains for c, cv in g.constants.items()}
+            if grains
+            else {}
         )
 
         # consts in heating/cooling
@@ -274,10 +276,14 @@ class Network:
 
     def _locvars(self) -> dict[str, str]:
 
-        grain = self.grain
+        grains = self.grains
         dlocvars = (
-            [f"double {key} = {value}" for key, value in grain.deriveds.items()]
-            if grain
+            [
+                f"double {key} = {value}"
+                for g in grains
+                for key, value in g.deriveds.items()
+            ]
+            if grains
             else []
         )
 
@@ -300,8 +306,12 @@ class Network:
     def _varis(self) -> dict[str, str]:
 
         # varis in grain
-        grain = self.grain
-        dvaris = {f"{var}": val for var, val in grain.params.items()} if grain else {}
+        grains = self.grains
+        dvaris = (
+            {f"{var}": val for g in grains for var, val in g.params.items()}
+            if grains
+            else {}
+        )
 
         # varis in heating/cooling
         thermproc = []
@@ -497,30 +507,55 @@ class Network:
         return source, sink
 
     @property
-    def grain(self) -> Grain:
+    def grains(self) -> list[Grain]:
+        grain_groups = self.grain_groups
+
         species = [Species(s) for s in self._required_species] + list(
             self._reactants | self._products
         )
         gspec = [s for s in species if s.is_grain]
+
         if not gspec:
-            return _grain_factory(self._grain_model)
-            # return [_grain_factory(self._grain_model)]
+            grains = [
+                _grain_factory(
+                    self._grain_model,
+                    group=group,
+                )
+                for group in grain_groups
+            ]
 
         else:
-            # groupidxs = set([g.grain_group for g in gspec])
-            # grains = [
-            #     _grain_factory(
-            #         self._grain_model,
-            #         species=[g for g in gspec if g.grain_group == idx],
-            #         group=idx,
-            #     )
-            #     for idx in groupidxs
-            # ]
-            # return grains
-            if len(set([g.grain_group for g in gspec])) > 1:
-                raise NotImplementedError
-            else:
-                return _grain_factory(self._grain_model, species=gspec)
+            grains = [
+                _grain_factory(
+                    self._grain_model,
+                    species=[g for g in gspec if g.grain_group == group],
+                    group=group,
+                )
+                for group in grain_groups
+            ]
+        return grains
+
+    @property
+    def grain_groups(self) -> list[int]:
+        species = [Species(s) for s in self._required_species] + list(
+            self._reactants | self._products
+        )
+        grain_groups = set([s.grain_group for s in species if s.is_grain])
+        surface_groups = set([s.surface_group for s in species if s.is_surface])
+        if grain_groups == surface_groups:
+            return grain_groups
+        elif all(g in surface_groups for g in grain_groups):
+            logging.warning(
+                f"Not enough groups of grains {grain_groups} found to match "
+                f"with the surface species groups {surface_groups}."
+                f"Surface species groups ({len(surface_groups)}) will be used"
+            )
+            return surface_groups
+        else:
+            raise RuntimeError(
+                f"Grain groups {grain_groups} cannot match"
+                f"with surface groups {surface_groups}"
+            )
 
     @property
     def grain_model(self) -> str:
@@ -722,7 +757,7 @@ class Network:
             self.reaction_list,
             heating=heating,
             cooling=cooling,
-            dust=self.grain,
+            grains=self.grains,
             shielding=self._shielding,
             consts=self._consts(),
             varis=self._varis(),
@@ -851,7 +886,12 @@ class Network:
                 outf.write(f"{reac:{format}}")
 
                 if format == "krome":
-                    self._rateconverter.read(reac.rateexpr(self.grain))
+                    grain_dict = (
+                        {g.group: g for g in self.grains} if self.grains else {}
+                    )
+                    self._rateconverter.read(
+                        reac.rateexpr(grain_dict.get(reac.grain_group))
+                    )
                     outf.write(f",{self._rateconverter:fortran}\n")
 
                 else:

@@ -51,8 +51,8 @@ class RenderCommand(Command):
         rate_modifier = chemistry["rate_modifier"]
         ode_modifier = chemistry["ode_modifier"]
 
-        dust = chemistry["dust"]
-        dustmodel = dust["model"]
+        grain = chemistry["grain"]
+        grain_model = grain["model"]
 
         odesolver = content["ODEsolver"]
         solver = odesolver["solver"]
@@ -87,7 +87,7 @@ class RenderCommand(Command):
             fileformats=format,
             allowed_species=species + extra_species,
             required_species=extra_species,
-            grain_model=dustmodel,
+            grain_model=grain_model,
             heating=heating,
             cooling=cooling,
             shielding=shielding,
@@ -151,22 +151,23 @@ class RenderCommand(Command):
             tl.render_jac_pattern()
 
         summary = tomlkit.table()
-        dust = net.info.dust
+        grains = net.info.grains
         all_species = [x.name for x in net.info.species]
         all_alias = [x.alias for x in net.info.species]
         gas_species = [s.name for s in net.info.species if not s.is_surface]
         ice_species = [g.name for g in net.info.species if g.is_surface]
-        dust_species = [d.name for d in dust.species] if dust else []
+        grain_species = [s.name for g in grains for s in g.species] if grain else []
         summary["num_of_species"] = len(net.info.species)
+        summary["num_of_grains"] = len(net.info.grains)
         summary["num_of_gas_species"] = len(gas_species)
         summary["num_of_ice_species"] = len(ice_species)
-        summary["num_of_dust_species"] = len(dust_species)
+        summary["num_of_grain_species"] = len(grain_species)
         summary["num_of_reactions"] = len(net.info.reactions)
         summary["list_of_species"] = all_species
         summary["list_of_species_alias"] = all_alias
         summary["list_of_gas_species"] = gas_species
         summary["list_of_ice_species"] = ice_species
-        summary["list_of_dust_species"] = dust_species
+        summary["list_of_grain_species"] = grain_species
 
         content["summary"] = summary
 
@@ -180,7 +181,7 @@ class RenderCommand(Command):
                 outf.write(f"nspec = {len(all_species)}\n")
                 outf.write(f"ngas = {len(gas_species)}\n")
                 outf.write(f"nice = {len(ice_species)}\n")
-                outf.write(f"ndust = {len(dust_species)}\n")
+                outf.write(f"ngrain = {len(grain_species)}\n")
                 outf.write(f"nreac = {len(net.info.reactions)}\n")
                 outf.write("\n\n")
 
@@ -189,14 +190,14 @@ class RenderCommand(Command):
                     all_alias,
                     gas_species,
                     ice_species,
-                    dust_species,
+                    grain_species,
                 ]
                 namelist = [
                     "all_species",
                     "all_alias",
                     "gas_species",
                     "ice_species",
-                    "dust_species",
+                    "grain_species",
                 ]
 
                 for speclist, name in zip(speclistlist, namelist):

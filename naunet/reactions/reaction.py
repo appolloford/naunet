@@ -358,3 +358,21 @@ class Reaction(Component):
             raise RuntimeError(f"Unknown reaction type {self.reaction_type}")
 
         return rate
+
+    @property
+    def grain_group(self) -> int:
+        surface_groups = [
+            s.surface_group
+            for s in self.reactants + self.products
+            if s.surface_group is not None
+        ]
+        grain_groups = [
+            s.grain_group
+            for s in self.reactants + self.products
+            if s.grain_group is not None
+        ]
+        groups = set(surface_groups + grain_groups)
+        if len(groups) > 1:
+            raise RuntimeError(f"Involving more than one kind of grains: {groups}")
+        else:
+            return next(iter(groups)) if groups else None
