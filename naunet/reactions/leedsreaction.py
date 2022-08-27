@@ -64,8 +64,8 @@ class LEEDSReaction(Reaction):
         20: ReactionType.LEEDS_EC,
     }
 
-    def __init__(self, react_string) -> None:
-        super().__init__(format="leeds", react_string=react_string)
+    def __init__(self, react_string: str, format: str = "leeds") -> None:
+        super().__init__(react_string=react_string, format=format)
 
         self.register("ism_radiation_field", ("gism", 1.6e-3, vt.constant))
         self.register("ism_cosmic_ray_ionization_rate", ("zism", 1.3e-17, vt.constant))

@@ -138,7 +138,7 @@ class Network:
 
         self._reactconsts = {}
         self._reactvaris = {}
-        self._reactlocvars = []
+        self._reactlocvars = {}
 
         if allowed_species and required_species:
 
@@ -236,7 +236,7 @@ class Network:
                 ]
             ):
                 self._skipped_reactions.append(reaction)
-                return set()
+                return set(), set(), None
 
         self.reaction_list.append(reaction)
         new_reactants = set(reaction.reactants).difference(self._reactants)
@@ -276,6 +276,10 @@ class Network:
 
     def _locvars(self) -> dict[str, str]:
 
+        reactlocvars = [
+            f"double {key} = {value}" for key, value in self._reactlocvars.items()
+        ]
+
         grains = self.grains
         dlocvars = (
             [
@@ -300,7 +304,7 @@ class Network:
             else []
         )
 
-        locvars = [*self._reactlocvars, *dlocvars, *tlocvars]
+        locvars = [*reactlocvars, *dlocvars, *tlocvars]
         return locvars
 
     def _varis(self) -> dict[str, str]:
@@ -353,15 +357,17 @@ class Network:
         if new_products:
             logger.info(f"New products are added: {new_products}")
 
-        self._reactconsts.update(
-            {f"{c:<15}": f"{cv}" for c, cv in reactinst.constants.items()}
-        )
-        self._reactvaris.update(
-            {f"{var}": val for var, val in reactinst.params.items()}
-        )
-        self._reactlocvars.extend(
-            f"double {key} = {value}" for key, value in reactinst.deriveds.items()
-        )
+        if reactinst:
+
+            self._reactconsts.update(
+                {f"{c:<15}": f"{cv}" for c, cv in reactinst.constants.items()}
+            )
+            self._reactvaris.update(
+                {f"{var}": val for var, val in reactinst.params.items()}
+            )
+            self._reactlocvars.update(
+                {f"{key}": val for key, val in reactinst.deriveds.items()}
+            )
 
         if not isinstance(reaction, Reaction):
             rclass.finalize()
@@ -392,24 +398,28 @@ class Network:
             raise RuntimeError(f"Unknown format: {format}")
 
         with open(filename, "r") as networkfile:
-            for _, line in enumerate(
+            for ln, line in enumerate(
                 tqdm(networkfile.readlines(), desc="Reading File...")
             ):
-                reac, prod, reactinst = self._add_reaction((line, format))
-                new_reactants.update(reac)
-                new_products.update(prod)
+                try:
+                    reac, prod, reactinst = self._add_reaction((line, format))
+                    new_reactants.update(reac)
+                    new_products.update(prod)
+                except Exception as e:
+                    logger.error(f"Get error in line {ln}: {line}")
+                    raise e
 
-            # print("New species: \n{}".format("\n".join(str(x) for x in new_species)))
-
-            self._reactconsts.update(
-                {f"{c:<15}": f"{cv}" for c, cv in reactinst.constants.items()}
-            )
-            self._reactvaris.update(
-                {f"{var}": val for var, val in reactinst.params.items()}
-            )
-            self._reactlocvars.extend(
-                f"double {key} = {value}" for key, value in reactinst.deriveds.items()
-            )
+                if reactinst:
+                    # print("New species: \n{}".format("\n".join(str(x) for x in new_species)))
+                    self._reactconsts.update(
+                        {f"{c:<15}": f"{cv}" for c, cv in reactinst.constants.items()}
+                    )
+                    self._reactvaris.update(
+                        {f"{var}": val for var, val in reactinst.params.items()}
+                    )
+                    self._reactlocvars.update(
+                        {f"{key}": val for key, val in reactinst.deriveds.items()}
+                    )
 
         rclass.finalize()
 

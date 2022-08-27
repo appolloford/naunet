@@ -39,8 +39,8 @@ class UMISTReaction(Reaction):
         "RR": ReactionType.UMIST_RR,
     }
 
-    def __init__(self, react_string) -> None:
-        super().__init__(format="umist", react_string=react_string)
+    def __init__(self, react_string: str, format: str = "umist") -> None:
+        super().__init__(react_string=react_string, format=format)
 
     def rateexpr(self, grain: Grain = None) -> str:
         a = self.alpha

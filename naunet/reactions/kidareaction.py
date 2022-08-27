@@ -24,8 +24,8 @@ class KIDAReaction(Reaction):
         6: ReactionType.KIDA_TB,
     }
 
-    def __init__(self, react_string) -> None:
-        super().__init__(format="kida", react_string=react_string)
+    def __init__(self, react_string: str, format: str = "kida") -> None:
+        super().__init__(react_string=react_string, format=format)
 
     def rateexpr(self, grain: Grain = None) -> str:
         a = self.alpha

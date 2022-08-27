@@ -47,11 +47,10 @@ class UCLCHEMReaction(Reaction):
         "CHEMDES": ReactionType.UCLCHEM_RD,
     }
 
-    def __init__(self, react_string) -> None:
-        super().__init__(format="uclchem", react_string=react_string)
+    def __init__(self, react_string: str, format: str = "uclchem") -> None:
+        super().__init__(react_string=react_string, format=format)
 
         self.register("ism_cosmic_ray_ionization_rate", ("zism", 1.3e-17, vt.constant))
-        self.register("x_ray_ionization_rate", ("zeta_xr", 0.0, vt.param))
         self.register("radiation_field", ("G0", 1.0, vt.param))
         self.register("H2_column_density", ("h2col", "0.5*1.59e21*Av", vt.derived))
         self.register("CO_column_density", ("cocol", "1e-5 * h2col", vt.derived))
@@ -79,6 +78,15 @@ class UCLCHEMReaction(Reaction):
                 vt.derived,
             ),
         )
+
+    @property
+    def grain_group(self) -> int:
+        # For electron, if the grain/surface group is not assigned, return 0th group
+        if self.reaction_type == self.ReactionType.UCLCHEM_FR and all(
+            s.is_electron for s in self.reactants
+        ):
+            return super().grain_group or 0
+        return super().grain_group
 
     def rateexpr(self, grain: Grain = None) -> str:
         a = self.alpha

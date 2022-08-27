@@ -150,7 +150,7 @@ class RR07Grain(Grain):
         mantabund = self.symbols.mantle_number_density_per_H.symbol
         gxsec = self.symbols.grain_cross_section.symbol
         opt_uvd = self.symbols.photon_desorption_option.symbol
-        eb_uvd = self.symbols.max_photon_desorption_binding_energy.symbool
+        eb_uvd = self.symbols.max_photon_desorption_binding_energy.symbol
         uvcreff = self.symbols.cosmic_ray_induce_photon_efficiency.symbol
 
         sym_phot = f"(({crrate} / {zism}) + ({radfield} / {uvcreff}) * exp(-1.8*{av}) )"
@@ -178,14 +178,14 @@ class RR07Grain(Grain):
         mantabund = self.symbols.mantle_number_density_per_H.symbol
         gxsec = self.symbols.grain_cross_section.symbol
         opt_crd = self.symbols.cosmic_ray_desorption_option.symbol
-        eb_crd = self.symbols.max_cosmic_ray_desorption_binding_energy.symbool
+        eb_crd = self.symbols.max_cosmic_ray_desorption_binding_energy.symbol
         crdeseff = self.symbols.cosmic_ray_desorption_efficiency.symbol
 
         spec = reac.reactants[0]
         rate = " * ".join(
             [
-                f"({opt_crd} / {zism}) * 4.0 * pi * {crdeseff}",
-                f"({crrate})",
+                f"{opt_crd} * 4.0 * pi * {crdeseff}",
+                f"({crrate} / {zism})",
                 f"1.64e-4 * {gxsec} / {mant}",
             ]
         )
@@ -203,11 +203,11 @@ class RR07Grain(Grain):
         mant = self.symbols.mantle_number_density.symbol
         mantabund = self.symbols.mantle_number_density_per_H.symbol
         opt_h2d = self.symbols.H2_desorption_option.symbol
-        eb_h2d = self.symbols.max_H2_desorption_binding_energy.symbool
+        eb_h2d = self.symbols.max_H2_desorption_binding_energy.symbol
         h2deseff = self.symbols.H2_desorption_efficiency.symbol
 
         spec = reac.reactants[0]
-        rate = f"{opt_h2d} * {h2deseff} * {h2form} / {mant}"
+        rate = f"{opt_h2d} * {h2deseff} * {h2form} * y[IDX_HI] / {mant}"
         rate = f"{eb_h2d} >= {spec.binding_energy} ? ({rate}) : 0.0"
         rate = f"{mantabund} > 1e-30 ? ({rate}) : 0.0"
 
