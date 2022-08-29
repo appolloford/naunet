@@ -112,6 +112,7 @@ class ExampleCommand(Command):
             [
                 f"--name={name}",
                 f"--description='{description}'",
+                f"--loading=''",
                 f"--elements='{','.join(elements)}'",
                 f"--pseudo-elements='{','.join(pseudo_elements)}'",
                 f"--species='{','.join(species)}'",

@@ -14,6 +14,7 @@ NAUNET_CONFIG_DEFAULT = """\
 creation_time = ""
 name = ""
 description = ""
+loads = []
 
 [chemistry]
 elements = []
@@ -62,6 +63,7 @@ class Configuration:
         self,
         project: str,
         description: str = "",
+        load: list[str] = None,
         element: list[str] = None,
         pseudo_element: list[str] = None,
         allowed_species: list[str] = None,
@@ -84,6 +86,7 @@ class Configuration:
 
         self._name = project
         self._description = description
+        self._load = load or []
         self._element = element if element else Species.known_elements()
         self._pseudoelement = (
             pseudo_element if pseudo_element else Species.known_pseudoelements()
@@ -114,6 +117,7 @@ class Configuration:
         general["creation_time"] = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
         general["name"] = self._name
         general["description"] = self._description
+        general["loads"] = self._load
 
         chemistry = content["chemistry"]
         chemistry["elements"] = self._element

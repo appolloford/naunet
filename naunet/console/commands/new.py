@@ -14,6 +14,7 @@ class NewCommand(Command):
         {path : The path to create the project at}
         {--name= : Name of the project}
         {--description= : Description of the project}
+        {--loading= : Filename of python modules to be loaded}
         {--elements= : List of elements}
         {--pseudo-elements= : List of pseudo elements}
         {--species= : List of species}
@@ -63,6 +64,10 @@ class NewCommand(Command):
         description = self.option("description")
         if not self.option("description"):
             description = ""
+
+        loading = self.option("loading")
+        loading = loading.split(",") if loading else []
+        loading = [l.strip() for l in loading]
 
         element = self.option("elements")
         element = element.split(",") if element else Species.default_elements
@@ -130,6 +135,7 @@ class NewCommand(Command):
         config = Configuration(
             name,
             description=description,
+            load=loading,
             element=element,
             pseudo_element=pseudo_element,
             allowed_species=species,

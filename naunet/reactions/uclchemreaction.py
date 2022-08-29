@@ -10,6 +10,8 @@ class UCLCHEMReaction(Reaction):
     The reaction format of UCLCHEM Makerates output.
     """
 
+    format = "uclchem"
+
     class ReactionType(IntEnum):
         # two-body gas-phase reaction
         UCLCHEM_MA = BasicType.GAS_TWOBODY
@@ -47,8 +49,8 @@ class UCLCHEMReaction(Reaction):
         "CHEMDES": ReactionType.UCLCHEM_RD,
     }
 
-    def __init__(self, react_string: str, format: str = "uclchem") -> None:
-        super().__init__(react_string=react_string, format=format)
+    def __init__(self, react_string: str) -> None:
+        super().__init__(react_string=react_string)
 
         self.register("ism_cosmic_ray_ionization_rate", ("zism", 1.3e-17, vt.constant))
         self.register("radiation_field", ("G0", 1.0, vt.param))

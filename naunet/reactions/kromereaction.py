@@ -7,10 +7,12 @@ from .converter import ExpressionConverter
 
 class KROMEReaction(Reaction):
 
+    format = "krome"
+
     _kromerateconverter = ExpressionConverter("Fortran")
 
-    def __init__(self, react_string: str, format: str = "krome") -> None:
-        super().__init__(react_string=react_string, format=format)
+    def __init__(self, react_string: str) -> None:
+        super().__init__(react_string=react_string)
 
     @classmethod
     def initialize(cls) -> None:

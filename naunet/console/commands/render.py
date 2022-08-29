@@ -10,6 +10,8 @@ import shutil
 
 import tomlkit
 
+from pathlib import Path
+from importlib import util
 from tomlkit.toml_file import TOMLFile
 
 from .command import Command
@@ -35,6 +37,14 @@ class RenderCommand(Command):
         config = TOMLFile("naunet_config.toml")
 
         content = config.read()
+        general = content["general"]
+        loads = general["loads"]
+
+        if loads:
+            for l in loads:
+                spec = util.spec_from_file_location(l, Path.cwd() / l)
+                module = util.module_from_spec(spec)
+                spec.loader.exec_module(module)
 
         chemistry = content["chemistry"]
         network = chemistry["network"]
@@ -60,7 +70,6 @@ class RenderCommand(Command):
         device = odesolver["device"]
         # required = odesolver["required"]
 
-        from pathlib import Path
         import naunet
 
         from naunet.species import Species
@@ -73,14 +82,6 @@ class RenderCommand(Command):
 
         update_binding_energy(binding)
         update_photon_yield(yields)
-
-        for fmt in format:
-            if not supported_reaction_class.get(fmt):
-                from importlib import util
-
-                spec = util.spec_from_file_location(fmt, f"{fmt}.py")
-                module = util.module_from_spec(spec)
-                spec.loader.exec_module(module)
 
         net = Network(
             filelist=network,

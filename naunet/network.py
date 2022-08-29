@@ -8,12 +8,8 @@ from tqdm import tqdm
 from .patches import PatchFactory
 from .templateloader import NetworkInfo, TemplateLoader
 from .species import Species
+from .reactions import builtin_reaction_format
 from .reactions.reaction import Reaction
-from .reactions.kidareaction import KIDAReaction
-from .reactions.kromereaction import KROMEReaction
-from .reactions.leedsreaction import LEEDSReaction
-from .reactions.uclchemreaction import UCLCHEMReaction
-from .reactions.umistreaction import UMISTReaction
 from .reactions.converter import ExpressionConverter
 from .grains import builtin_grain_model
 from .grains.grain import Grain
@@ -27,14 +23,7 @@ logger = logging.getLogger()
 
 supported_grain_model = {cls.model: cls for cls in builtin_grain_model}
 
-supported_reaction_class = {
-    "naunet": Reaction,
-    "kida": KIDAReaction,
-    "umist": UMISTReaction,
-    "leeds": LEEDSReaction,
-    "krome": KROMEReaction,
-    "uclchem": UCLCHEMReaction,
-}
+supported_reaction_class = {cls.format: cls for cls in builtin_reaction_format}
 
 
 def _grain_factory(model: str, **kwargs) -> Grain:
@@ -74,6 +63,8 @@ def define_reaction(name: str):
     """
 
     def insert_class(reactcls: Type[Reaction]):
+
+        reactcls.format = name
         supported_reaction_class.update({name: reactcls})
         return reactcls
 

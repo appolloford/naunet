@@ -9,6 +9,8 @@ from .reactiontype import ReactionType
 class Reaction(Component):
     """Class of chemical reactions"""
 
+    format = "naunet"
+
     def __init__(
         self,
         reactants: list[Species] | list[str] = None,
@@ -19,7 +21,6 @@ class Reaction(Component):
         beta: float = 0.0,
         gamma: float = 0.0,
         reaction_type: ReactionType = ReactionType.UNKNOWN,
-        format: str = "naunet",
         idxfromfile: int = -1,
         react_string: str = None,
     ) -> None:
@@ -42,7 +43,6 @@ class Reaction(Component):
         self.beta = beta
         self.gamma = gamma
         self.reaction_type = reaction_type
-        self.format = format
         self.idxfromfile = idxfromfile
 
         self.react_string = react_string

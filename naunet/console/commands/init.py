@@ -18,6 +18,7 @@ class InitCommand(Command):
     init
         {--name= : Name of the project}
         {--description= : Description of the project}
+        {--loading=? : Filename of python modules to be loaded}
         {--elements=? : List of elements}
         {--pseudo-elements=? : List of pseudo elements}
         {--species=? : List of species}
@@ -59,6 +60,10 @@ class InitCommand(Command):
 
         description = self.option("description")
         description = self.validate(description, "Project description", "")
+
+        loading = self.option("loading")
+        loading = self.validate(loading, "Python modules to be loaded", "")
+        loading = [l.strip() for l in loading.split(",") if l]
 
         element = self.option("elements")
         element = self.validate(
@@ -155,6 +160,7 @@ class InitCommand(Command):
         config = Configuration(
             name,
             description=description,
+            load=loading,
             element=element,
             pseudo_element=pseudo_element,
             allowed_species=species,

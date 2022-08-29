@@ -5,6 +5,9 @@ from .reactiontype import ReactionType as BasicType
 
 
 class UMISTReaction(Reaction):
+
+    format = "umist"
+
     class ReactionType(IntEnum):
         # A representation for other sub categories
         UMIST_TWOBODY = BasicType.GAS_TWOBODY
@@ -39,8 +42,8 @@ class UMISTReaction(Reaction):
         "RR": ReactionType.UMIST_RR,
     }
 
-    def __init__(self, react_string: str, format: str = "umist") -> None:
-        super().__init__(react_string=react_string, format=format)
+    def __init__(self, react_string: str) -> None:
+        super().__init__(react_string=react_string)
 
     def rateexpr(self, grain: Grain = None) -> str:
         a = self.alpha

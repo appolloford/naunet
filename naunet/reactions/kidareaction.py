@@ -6,6 +6,9 @@ from .reactiontype import ReactionType as BasicType
 
 
 class KIDAReaction(Reaction):
+
+    format = "kida"
+
     class ReactionType(IntEnum):
         KIDA_MA = BasicType.GAS_TWOBODY  # Modified Arrhenius
         KIDA_CR = BasicType.GAS_COSMICRAY  # Cosmic-ray ionization
@@ -24,8 +27,8 @@ class KIDAReaction(Reaction):
         6: ReactionType.KIDA_TB,
     }
 
-    def __init__(self, react_string: str, format: str = "kida") -> None:
-        super().__init__(react_string=react_string, format=format)
+    def __init__(self, react_string: str) -> None:
+        super().__init__(react_string=react_string)
 
     def rateexpr(self, grain: Grain = None) -> str:
         a = self.alpha
