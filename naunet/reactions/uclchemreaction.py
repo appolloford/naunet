@@ -156,6 +156,8 @@ class UCLCHEMReaction(Reaction):
 
     def _parse_string(self, react_string) -> None:
 
+        self.source = "uclchem"
+
         kwlist = [
             "NAN",
             "FREEZE",

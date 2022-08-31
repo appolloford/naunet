@@ -44,6 +44,7 @@ class Reaction(Component):
         self.gamma = gamma
         self.reaction_type = reaction_type
         self.idxfromfile = idxfromfile
+        self.source = "unknown"
 
         self.react_string = react_string
         # if react_string:
@@ -65,13 +66,13 @@ class Reaction(Component):
     def __str__(self) -> str:
         verbose = (
             (
-                "{:16} -> {:32}, {:7.1f} < T < {:7.1f}, Type: {:25}, Format: {}, Index: {}".format(
+                "{:16} -> {:32}, {:7.1f} < T < {:7.1f}, Type: {:25}, Source: {}, Index: {}".format(
                     " + ".join(x.name for x in self.reactants),
                     " + ".join(x.name for x in self.products),
                     self.temp_min,
                     self.temp_max,
                     self.reaction_type.name,
-                    self.format,
+                    self.source,
                     self.idxfromfile,
                 )
             )
@@ -127,7 +128,7 @@ class Reaction(Component):
                     f"{self.temp_min:9.2f}",
                     f"{self.temp_max:9.2f}",
                     f"{self.reaction_type:>4}",
-                    f"{self.format:>8}",
+                    f"{self.source:>8}",
                 ]
             )
 
@@ -183,7 +184,6 @@ class Reaction(Component):
                 f"{self.beta}",
                 f"{self.gamma}",
                 f"ReactionType.{self.reaction_type.name}",
-                f"'{self.format}'",
                 f"{self.idxfromfile}",
             ]
         )
@@ -215,7 +215,7 @@ class Reaction(Component):
         if not react_string:
             return
 
-        idx, *rps, a, b, c, lt, ut, rtype, format = react_string.split(",")
+        idx, *rps, a, b, c, lt, ut, rtype, source = react_string.split(",")
         self.reactants = [
             self._create_species(r.strip())
             for r in rps[0:3]
@@ -234,7 +234,7 @@ class Reaction(Component):
         self.temp_max = float(ut)
         self.idxfromfile = int(idx)
         self.reaction_type = ReactionType(int(rtype))
-        self.format = format
+        self.source = source
 
     @classmethod
     def initialize(cls) -> None:

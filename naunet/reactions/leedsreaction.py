@@ -67,6 +67,9 @@ class LEEDSReaction(Reaction):
     }
 
     def __init__(self, react_string: str) -> None:
+        # Extra attributes in LEEDSReaction
+        self.rtype = None
+
         super().__init__(react_string=react_string)
 
         self.register("ism_radiation_field", ("gism", 1.6e-3, vt.constant))
@@ -198,8 +201,7 @@ class LEEDSReaction(Reaction):
 
     def _parse_string(self, react_string) -> None:
 
-        # Extra attributes in LEEDSReaction
-        self.rtype = None
+        self.source = "leeds"
 
         list_label = [
             "idx",

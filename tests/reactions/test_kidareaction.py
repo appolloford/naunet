@@ -26,7 +26,7 @@ def test_init_kidareaction():
     assert kidareac.beta == 0.0
     assert kidareac.gamma == 0.0
     assert kidareac.reaction_type == ReactionType.GAS_COSMICRAY
-    assert kidareac.format == "kida"
+    assert kidareac.source == "kida"
     assert kidareac.idxfromfile == 3
 
 
@@ -58,7 +58,6 @@ def test_eq_reaction_kidareaction():
         -9999.0,
         9999.0,
         reaction_type=ReactionType.GAS_COSMICRAY,
-        format="DUMMY",
         idxfromfile=999,
     )
     assert reac == kidareac
@@ -72,31 +71,6 @@ def test_eq_reaction_kidareaction():
         reaction_type=ReactionType.GAS_COSMICRAY,
     )
     assert reac != kidareac
-
-
-def test_reaction_str():
-    reac = Reaction(
-        ["He", "CR"],
-        ["He+", "e-"],
-        0.0,
-        9999.0,
-        reaction_type=ReactionType.GAS_COSMICRAY,
-    )
-
-    longstr = "".join(
-        [
-            "He               -> He+ + e-                        ",
-            ",     0.0 < T <  9999.0",
-            ", Type: GAS_COSMICRAY            ",
-            ", Format: naunet",
-            ", Index: -1",
-        ]
-    )
-
-    shortstr = "He -> He+ + e-"
-
-    assert str(reac) == longstr
-    assert f"{reac:short}" == shortstr
 
 
 @pytest.mark.slow

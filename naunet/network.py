@@ -110,7 +110,6 @@ class Network:
         grain_model: str = "",
     ) -> None:
 
-        self.format_list = set()
         self.reaction_list = []
         self._reactants = set()
         self._products = set()
@@ -331,7 +330,6 @@ class Network:
 
         format = reaction.format if isinstance(reaction, Reaction) else reaction[1]
 
-        self.format_list.update({format} if format else {})
         rclass = supported_reaction_class.get(format)
 
         if not isinstance(reaction, Reaction):
@@ -377,7 +375,6 @@ class Network:
             RuntimeError: if the format is unknown
         """
 
-        self.format_list.update({format})
         new_reactants = set()
         new_products = set()
 
@@ -534,6 +531,9 @@ class Network:
                 )
                 for group in grain_groups
             ]
+
+        grains = [g for g in grains if g is not None]
+
         return grains
 
     @property
@@ -544,6 +544,9 @@ class Network:
         grain_groups = set([s.grain_group for s in species if s.is_grain])
         surface_groups = set([s.surface_group for s in species if s.is_surface])
         if grain_groups == surface_groups:
+            return grain_groups
+        elif grain_groups and not surface_groups:
+            logging.warning(f"Found grains but no surface reaction is involved")
             return grain_groups
         elif all(g in surface_groups for g in grain_groups):
             logging.warning(
@@ -751,7 +754,6 @@ class Network:
         heating = [self.allowed_heating.get(h) for h in self._heating_names]
         cooling = [self.allowed_cooling.get(c) for c in self._cooling_names]
 
-        # rclasses = [supported_reaction_class.get(fmt) for fmt in self.format_list]
         self._info = NetworkInfo(
             elements,
             speclist,
@@ -836,6 +838,10 @@ class Network:
 
         else:
             raise TypeError
+
+    @property
+    def sources(self) -> list[str]:
+        return set([r.source for r in self.reaction_list])
 
     def templateloader(
         self,

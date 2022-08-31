@@ -43,6 +43,9 @@ class UMISTReaction(Reaction):
     }
 
     def __init__(self, react_string: str) -> None:
+        # Extra attributes in UMISTReaction
+        self.code = None
+
         super().__init__(react_string=react_string)
 
     def rateexpr(self, grain: Grain = None) -> str:
@@ -77,8 +80,7 @@ class UMISTReaction(Reaction):
 
     def _parse_string(self, react_string) -> None:
 
-        # Extra attributes in UMISTReaction
-        self.code = None
+        self.source = "umist"
 
         react_string = react_string.strip()
         if react_string != "":

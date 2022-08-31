@@ -88,7 +88,6 @@ def example_reaction_list():
             0.0,
             40200.0,
             ReactionType.GAS_TWOBODY,
-            format="kida",
         ),
         Reaction(
             ["H2", "e-"],
@@ -99,7 +98,6 @@ def example_reaction_list():
             0.35,
             102000.0,
             ReactionType.GAS_TWOBODY,
-            format="umist",
         ),
     ]
 
@@ -115,7 +113,7 @@ def example_network_from_reaction_list(example_reaction_list):
 
 
 def test_init_network(empty_network):
-    assert empty_network.format_list == set()
+    assert empty_network.sources == set()
     assert empty_network.reaction_list == []
     assert empty_network._reactants == set()
     assert empty_network._products == set()
@@ -132,7 +130,7 @@ def test_define_dust():
 def test_add_reaction(empty_network, example_reaction1):
     empty_network.add_reaction(example_reaction1)
 
-    assert empty_network.format_list == {"naunet"}
+    assert empty_network.sources == {"unknown"}
     assert empty_network.reaction_list == [example_reaction1]
     assert empty_network._reactants == {Species("He")}
     assert empty_network._products == {Species("He+"), Species("e-")}
@@ -140,7 +138,7 @@ def test_add_reaction(empty_network, example_reaction1):
 
 def test_add_reaction_string(empty_network, example_reaction_string1):
     empty_network.add_reaction((example_reaction_string1, "kida"))
-    assert empty_network.format_list == set(["kida"])
+    assert empty_network.sources == set(["kida"])
     assert empty_network.reaction_list == [KIDAReaction(example_reaction_string1)]
     assert empty_network._reactants == {Species("He")}
     assert empty_network._products == {Species("He+"), Species("e-")}
@@ -151,7 +149,6 @@ def test_init_network_from_reactions(
     example_reaction_list,
 ):
     network = example_network_from_reaction_list
-    assert network.format_list == set(["kida", "umist", "naunet"])
     assert network.reaction_list == example_reaction_list
     assert network._reactants == {
         Species("H"),

@@ -28,6 +28,10 @@ class KIDAReaction(Reaction):
     }
 
     def __init__(self, react_string: str) -> None:
+        # extra attributes in KIDAReaction
+        self.formula = -1
+        self.itype = -1
+
         super().__init__(react_string=react_string)
 
     def rateexpr(self, grain: Grain = None) -> str:
@@ -66,9 +70,7 @@ class KIDAReaction(Reaction):
 
     def _parse_string(self, react_string) -> None:
 
-        # extra attributes in KIDAReaction
-        self.formula = -1
-        self.itype = -1
+        self.source = "kida"
 
         react_string = react_string.strip()
         if react_string != "":

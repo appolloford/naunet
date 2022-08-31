@@ -1,4 +1,5 @@
 import re
+from ..component import VariableType as vt
 from ..grains.grain import Grain
 from ..species import Species
 from .reaction import Reaction
@@ -12,16 +13,27 @@ class KROMEReaction(Reaction):
     _kromerateconverter = ExpressionConverter("Fortran")
 
     def __init__(self, react_string: str) -> None:
+        # Extra attributes in KROMEReaction
+        self.kromeformat = self.reacformat.lower().strip()
+        self.rate_string = None
+
         super().__init__(react_string=react_string)
+
+        for c in self._user_commons:
+            self.register(c, (c, None, vt.param), force_overwrite=True)
+        for v in self._user_vars:
+            lhs, rhs = v.split("=")
+            self.register(
+                lhs.strip(),
+                (lhs.strip(), rhs.strip(), vt.derived),
+                force_overwrite=True,
+            )
 
     @classmethod
     def initialize(cls) -> None:
         cls.reacformat = "idx,r,r,r,p,p,p,p,tmin,tmax,rate"
-        cls.varis = {
-            "nH": None,
-            "Tgas": None,
-        }
-        cls.locvars = []
+        cls._user_commons = []
+        cls._user_vars = []
 
     @classmethod
     def preprocessing(cls, line: str) -> str:
@@ -32,11 +44,11 @@ class KROMEReaction(Reaction):
             return ""
         elif line.startswith("@var"):
             if "Hnuclei" not in line:
-                cls.locvars.append(line.replace("@var:", "").strip())
+                cls._user_vars.append(line.replace("@var:", "").strip())
             return ""
         elif line.startswith("@common:"):
             commonlist = line.replace("@common:", "").strip().split(",")
-            cls.varis.update(zip(commonlist, [None] * len(commonlist)))
+            cls._user_commons.extend(commonlist)
             return ""
         else:
             return line.strip()
@@ -54,9 +66,7 @@ class KROMEReaction(Reaction):
 
     def _parse_string(self, react_string) -> None:
 
-        # Extra attributes in KROMEReaction
-        self.kromeformat = self.reacformat.lower().strip()
-        self.rate_string = None
+        self.source = "krome"
 
         react_string = react_string.strip()
         if react_string != "" and react_string[0] != "#":

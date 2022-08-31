@@ -22,9 +22,9 @@ def reaction(request):
 
 
 @pytest.mark.parametrize(
-    "reaction, reacts, prods, tmin, tmax, a, b, c, rtype, form, idx",
+    "reaction, reacts, prods, tmin, tmax, a, b, c, rtype, idx",
     [
-        ((), [], [], -1.0, -1.0, 0.0, 0.0, 0.0, ReactionType.UNKNOWN, "naunet", -1),
+        ((), [], [], -1.0, -1.0, 0.0, 0.0, 0.0, ReactionType.UNKNOWN, -1),
         (
             (
                 ["He"],
@@ -35,7 +35,6 @@ def reaction(request):
                 0.0,
                 0.0,
                 ReactionType.GAS_COSMICRAY,
-                "kida",
                 3,
             ),
             [Species("He")],
@@ -46,7 +45,6 @@ def reaction(request):
             0.0,
             0.0,
             ReactionType.GAS_COSMICRAY,
-            "kida",
             3,
         ),
         (
@@ -59,7 +57,6 @@ def reaction(request):
                 0.0,
                 0.0,
                 ReactionType.GAS_COSMICRAY,
-                "kida",
                 3,
             ),
             [Species("He")],
@@ -70,13 +67,12 @@ def reaction(request):
             0.0,
             0.0,
             101,
-            "kida",
             3,
         ),
     ],
     indirect=["reaction"],
 )
-def test_init_reaction(reaction, reacts, prods, tmin, tmax, a, b, c, rtype, form, idx):
+def test_init_reaction(reaction, reacts, prods, tmin, tmax, a, b, c, rtype, idx):
     assert reaction.reactants == reacts
     assert reaction.products == prods
     assert reaction.temp_min == tmin
@@ -85,7 +81,6 @@ def test_init_reaction(reaction, reacts, prods, tmin, tmax, a, b, c, rtype, form
     assert reaction.beta == b
     assert reaction.gamma == c
     assert reaction.reaction_type == rtype
-    assert reaction.format == form
     assert reaction.idxfromfile == idx
 
 
@@ -172,3 +167,28 @@ def test_contains(reference):
     assert Species("He+") in reference
     assert Species("e") in reference
     assert Species("H") not in reference
+
+
+def test_reaction_str():
+    reac = Reaction(
+        ["He", "CR"],
+        ["He+", "e-"],
+        0.0,
+        9999.0,
+        reaction_type=ReactionType.GAS_COSMICRAY,
+    )
+
+    longstr = "".join(
+        [
+            "He               -> He+ + e-                        ",
+            ",     0.0 < T <  9999.0",
+            ", Type: GAS_COSMICRAY            ",
+            ", Source: unknown",
+            ", Index: -1",
+        ]
+    )
+
+    shortstr = "He -> He+ + e-"
+
+    assert str(reac) == longstr
+    assert f"{reac:short}" == shortstr
