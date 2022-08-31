@@ -5,7 +5,7 @@ from pathlib import Path
 from naunet.species import Species
 from naunet.grains.grain import Grain
 from naunet.reactions.reaction import Reaction
-from naunet.reactions.reactiontype import ReactionType
+from naunet.reactiontype import ReactionType
 from naunet.reactions.kidareaction import KIDAReaction
 from naunet.network import Network, define_grain, supported_grain_model
 

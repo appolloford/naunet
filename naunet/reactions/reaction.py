@@ -3,7 +3,7 @@ from collections import Counter
 from ..component import Component, VariableType as vt
 from ..grains.grain import Grain
 from ..species import Species
-from .reactiontype import ReactionType
+from ..reactiontype import ReactionType
 
 
 class Reaction(Component):

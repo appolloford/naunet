@@ -9,7 +9,7 @@ from jinja2 import Template, Environment, PackageLoader
 
 from .species import Species
 from .reactions.reaction import Reaction
-from .reactions.reactiontype import ReactionType
+from .reactiontype import ReactionType
 from .thermalprocess import ThermalProcess
 from .grains.grain import Grain
 from .utilities import _prefix, _suffix, _stmwrap

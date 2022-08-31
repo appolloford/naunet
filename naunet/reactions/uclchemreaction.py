@@ -2,7 +2,7 @@ from enum import IntEnum
 from ..component import VariableType as vt
 from ..grains.grain import Grain
 from .reaction import Reaction
-from .reactiontype import ReactionType as BasicType
+from ..reactiontype import ReactionType as BasicType
 
 
 class UCLCHEMReaction(Reaction):

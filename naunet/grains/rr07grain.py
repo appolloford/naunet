@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 from .grain import Grain
 from ..component import VariableType as vt
 from ..species import Species
-from ..reactions.reactiontype import ReactionType
+from ..reactiontype import ReactionType
 
 if TYPE_CHECKING:
     from ..reactions.reaction import Reaction

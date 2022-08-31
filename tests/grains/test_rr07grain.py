@@ -3,7 +3,7 @@ from pathlib import Path
 from naunet.species import Species
 from naunet.grains.rr07grain import RR07Grain, RR07XGrain
 from naunet.reactions.reaction import Reaction
-from naunet.reactions.reactiontype import ReactionType
+from naunet.reactiontype import ReactionType
 
 
 @pytest.fixture

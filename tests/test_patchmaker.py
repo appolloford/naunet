@@ -3,7 +3,7 @@ import pytest
 from naunet.species import Species
 from naunet.grains.grain import Grain
 from naunet.reactions.reaction import Reaction
-from naunet.reactions.reactiontype import ReactionType
+from naunet.reactiontype import ReactionType
 from naunet.templateloader import NetworkInfo
 from naunet.patches import EnzoPatch
 

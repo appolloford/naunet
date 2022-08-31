@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 from ..component import Component, VariableType as vt
 from ..species import Species
-from ..reactions.reactiontype import ReactionType
+from ..reactiontype import ReactionType
 
 if TYPE_CHECKING:
     from ..reactions.reaction import Reaction

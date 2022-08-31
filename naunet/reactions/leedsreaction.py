@@ -4,7 +4,7 @@ from ..component import VariableType as vt
 from ..species import Species
 from ..grains.grain import Grain
 from .reaction import Reaction
-from .reactiontype import ReactionType as BasicType
+from ..reactiontype import ReactionType as BasicType
 
 
 class LEEDSReaction(Reaction):

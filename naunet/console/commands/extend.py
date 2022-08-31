@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 from .command import Command
 from ...species import Species
 from ...reactions.reaction import Reaction
-from ...reactions.reactiontype import ReactionType
+from ...reactiontype import ReactionType
 
 
 class ExtendCommand(Command):

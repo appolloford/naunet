@@ -2,7 +2,7 @@ import logging
 from enum import IntEnum
 from ..grains.grain import Grain
 from .reaction import Reaction
-from .reactiontype import ReactionType as BasicType
+from ..reactiontype import ReactionType as BasicType
 
 
 class KIDAReaction(Reaction):
