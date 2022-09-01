@@ -143,8 +143,8 @@ class RR07Grain(Grain):
 
         crrate = reac.symbols.cosmic_ray_ionization_rate.symbol
         zism = reac.symbols.ism_cosmic_ray_ionization_rate.symbol
-        radfield = reac.symbols.radiation_field
-        av = reac.symbols.visual_extinction
+        radfield = reac.symbols.radiation_field.symbol
+        av = reac.symbols.visual_extinction.symbol
 
         mant = self.symbols.mantle_number_density.symbol
         mantabund = self.symbols.mantle_number_density_per_H.symbol
