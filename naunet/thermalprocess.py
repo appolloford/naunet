@@ -22,6 +22,10 @@ class ThermalProcess(Component):
 
         self.register("mean_molecular_weight", ("mu", -1.0, vt.param))
         self.register("heat_capacity_ratio", ("gamma", -1.0, vt.param))
+        self.register("thermalprocess_temperature", ("Temp", "y[IDX_TGAS]", vt.derived))
+        self.register("temperature_1e3", ("T3", "Temp/1e3", vt.derived))
+        self.register("temperature_1e5", ("T5", "Temp/1e5", vt.derived))
+        self.register("temperature_1e6", ("T6", "Temp/1e6", vt.derived))
 
     @property
     def reactants(self):
@@ -33,57 +37,54 @@ class ThermalProcess(Component):
 
 HICollisionalIonizationCooling = ThermalProcess(
     ["H", "e-"],
-    "1.27e-21 * sqrt(y[IDX_TGAS]) / (1.0 + sqrt(y[IDX_TGAS]/1e5)) * exp(-1.578091e5/y[IDX_TGAS])",
+    "1.27e-21 * sqrt(Temp) / (1.0 + sqrt(T5)) * exp(-1.578091e5/Temp)",
 )
 
 HeICollisionalIonizationCooling = ThermalProcess(
     ["He", "e-"],
-    "9.38e-22 * sqrt(y[IDX_TGAS]) / (1.0 + sqrt(y[IDX_TGAS]/1e5)) * exp(-2.853354e5/y[IDX_TGAS])",
+    "9.38e-22 * sqrt(Temp) / (1.0 + sqrt(T5)) * exp(-2.853354e5/Temp)",
 )
 
 HeIICollisionalIonizationCooling = ThermalProcess(
     ["He+", "e-"],
-    "4.95e-22 * sqrt(y[IDX_TGAS]) / (1.0 + sqrt(y[IDX_TGAS]/1e5)) * exp(-6.31515e5/y[IDX_TGAS])",
+    "4.95e-22 * sqrt(Temp) / (1.0 + sqrt(T5)) * exp(-6.31515e5/Temp)",
 )
 
 He_2SCollisionalIonizationCooling = ThermalProcess(
     ["He+", "e-", "e-"],
-    "5.01e-27 * pow(y[IDX_TGAS], -0.1687) / (1.0 + sqrt(y[IDX_TGAS]/1e5)) * exp(-5.5338e4/y[IDX_TGAS])",
+    "5.01e-27 * pow(Temp, -0.1687) / (1.0 + sqrt(T5)) * exp(-5.5338e4/Temp)",
 )
 
 HIIRecombinationCooling = ThermalProcess(
     ["H+", "e-"],
-    "8.7e-27 * sqrt(y[IDX_TGAS]) * pow(y[IDX_TGAS]/1e3, -0.2) / (1.0+pow(y[IDX_TGAS]/1e6, 0.7))",
+    "8.7e-27 * sqrt(Temp) * pow(T3, -0.2) / (1.0+pow(T6, 0.7))",
 )
 
 # Dielectronic recombination cooling
 HeIRecombinationCooling = ThermalProcess(
     ["He+", "e-"],
-    "1.24e-13 * pow(y[IDX_TGAS], -1.5) * exp(-4.7e5/y[IDX_TGAS]) * (1.0+0.3*exp(-9.4e4/y[IDX_TGAS]))",
+    "1.24e-13 * pow(Temp, -1.5) * exp(-4.7e5/Temp) * (1.0+0.3*exp(-9.4e4/Temp))",
 )
 
-HeIIRecombinationCooling = ThermalProcess(
-    ["He+", "e-"], "1.55e-26 * pow(y[IDX_TGAS], 0.3647)"
-)
+HeIIRecombinationCooling = ThermalProcess(["He+", "e-"], "1.55e-26 * pow(Temp, 0.3647)")
 
 HeIIIRecombinationCooling = ThermalProcess(
     ["He++", "e-"],
-    "3.48e-26 * sqrt(y[IDX_TGAS]) * pow(y[IDX_TGAS]/1e3, -0.2) / (1.0+pow(y[IDX_TGAS]/1e6, 0.7))",
+    "3.48e-26 * sqrt(Temp) * pow(T3, -0.2) / (1.0+pow(T6, 0.7))",
 )
 
 HICollisionalExcitationCooling = ThermalProcess(
-    ["H", "e-", "e-"],
-    "9.1e-27 * pow(y[IDX_TGAS], -0.1687) / (1.0+sqrt(y[IDX_TGAS]/1e5)) * exp(-1.3179e4/y[IDX_TGAS])",
+    ["H", "e-"], "7.5e-19 / (1.0+sqrt(T5)) * exp(-1.18348e5 / Temp)"
 )
 
 HeICollisionalExcitationCooling = ThermalProcess(
     ["He+", "e-"],
-    "5.54e-17 * pow(y[IDX_TGAS], -.0397) / (1.0+sqrt(y[IDX_TGAS]/1e5)) *exp(-4.73638e5/y[IDX_TGAS])",
+    "9.1e-27 * pow(Temp, -0.1687) / (1.0+sqrt(T5)) * exp(-1.3179e4/Temp)",
 )
 
 HeIICollisionalExcitationCooling = ThermalProcess(
     ["He+", "e-"],
-    "5.54e-17 * pow(y[IDX_TGAS], -.0397) / (1.0+sqrt(y[IDX_TGAS]/1e5)) *exp(-4.73638e5/y[IDX_TGAS])",
+    "5.54e-17 * pow(Temp, -0.397) / (1.0+sqrt(T5)) *exp(-4.73638e5/Temp)",
 )
 
 supported_heating_process = {}
