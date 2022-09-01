@@ -64,6 +64,12 @@ def define_reaction(name: str):
 
     def insert_class(reactcls: Type[Reaction]):
 
+        if not isinstance(name, str):
+            raise TypeError("Reaction format name must be string")
+
+        if name in supported_reaction_class.keys():
+            raise RuntimeError("Format name has existed, try another name")
+
         reactcls.format = name
         supported_reaction_class.update({name: reactcls})
         return reactcls
@@ -71,23 +77,21 @@ def define_reaction(name: str):
     return insert_class
 
 
-def define_grain():
+def define_grain(name: str):
     """
     Decorator for users to add customized grain model
     """
 
     def insert_class(graincls: Type[Grain]):
 
-        if not isinstance(graincls.model, str):
+        if not isinstance(name, str):
             raise TypeError("Grain model name must be string")
 
-        if not graincls.model or graincls.model in supported_grain_model.keys():
-            raise RuntimeError(
-                "Model name is not set properly. Try to set"
-                "`model = '<name>'` in the given grain class"
-            )
+        if name in supported_grain_model.keys():
+            raise RuntimeError("Model name has existed, try another name")
 
-        supported_grain_model.update({graincls.model: graincls})
+        graincls.model = name
+        supported_grain_model.update({name: graincls})
         return graincls
 
     return insert_class
@@ -285,14 +289,11 @@ class Network:
         thermproc.extend([self.allowed_heating.get(h) for h in self._heating_names])
         thermproc.extend([self.allowed_cooling.get(c) for c in self._cooling_names])
         tlocvars = (
-            [
-                f"double {key} = {value}"
-                for t in thermproc
-                for key, value in t.deriveds.items()
-            ]
+            {key: value for t in thermproc for key, value in t.deriveds.items()}
             if thermproc
-            else []
+            else {}
         )
+        tlocvars = [f"double {key} = {value}" for key, value in tlocvars.items()]
 
         locvars = [*reactlocvars, *dlocvars, *tlocvars]
         return locvars

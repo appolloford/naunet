@@ -1,3 +1,4 @@
+from __future__ import annotations
 import os
 import subprocess
 import pytest
@@ -120,9 +121,10 @@ def test_init_network(empty_network):
 
 
 def test_define_dust():
-    @define_grain()
+    @define_grain("test")
     class TestGrain(Grain):
-        model = "test"
+        def __init__(self, species: list[Species] = None, group: int = 0) -> None:
+            super().__init__(species, group)
 
     assert supported_grain_model.get("test") == TestGrain
 

@@ -48,6 +48,10 @@ int EvalHeatingRates(double *kh, double *y, NaunetData *u_data) {
     {% for v in network.varis.keys() -%}
         double {{ v }} = u_data->{{ v }};
     {% endfor %}
+
+    {% for v in network.locvars -%}
+        {{ v }};
+    {% endfor %}
     // clang-format on
 
     double Te      = Tgas * 8.617343e-5;            // Tgas in eV (eV)
@@ -72,6 +76,10 @@ int EvalCoolingRates(double *kc, double *y, NaunetData *u_data) {
     // clang-format off
     {% for v in network.varis.keys() -%}
         double {{ v }} = u_data->{{ v }};
+    {% endfor %}
+
+    {% for v in network.locvars -%}
+        {{ v }};
     {% endfor %}
     // clang-format on
 
