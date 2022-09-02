@@ -29,6 +29,13 @@ class KROMEReaction(Reaction):
                 force_overwrite=True,
             )
 
+        self.register("temperature_eV", ("Te", "Tgas * 8.617343e-5", vt.derived))
+        self.register("log_temperature_eV", ("lnTe", "log(Te)", vt.derived))
+        self.register("temperature_3e2", ("T32", "Tgas / 300.0", vt.derived))
+        self.register("inverse_temperature", ("invT", "1.0 / Tgas", vt.derived))
+        self.register("inverse_temperature_eV", ("invTe", "1.0 / Te", vt.derived))
+        self.register("sqrt_temperature", ("sqrTgas", "sqrt(Tgas)", vt.derived))
+
     @classmethod
     def initialize(cls) -> None:
         cls.reacformat = "idx,r,r,r,p,p,p,p,tmin,tmax,rate"

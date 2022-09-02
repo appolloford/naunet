@@ -30,14 +30,6 @@ int EvalRates(realtype *k, realtype *y, NaunetData *u_data) {
 
     // clang-format on
 
-    // Some variable definitions from krome
-    realtype Te      = Tgas * 8.617343e-5;            // Tgas in eV (eV)
-    realtype lnTe    = log(Te);                       // ln of Te (#)
-    realtype T32     = Tgas * 0.0033333333333333335;  // Tgas/(300 K) (#)
-    realtype invT    = 1.0 / Tgas;                    // inverse of T (1/K)
-    realtype invTe   = 1.0 / Te;                      // inverse of T (1/eV)
-    realtype sqrTgas = sqrt(Tgas);  // Tgas rootsquare (K**0.5)
-
     // reaaction rate (k) of each reaction
     // clang-format off
     {% for assign in ode.rateeqns -%}
@@ -67,14 +59,6 @@ int EvalHeatingRates(realtype *kh, realtype *y, NaunetData *u_data) {
 
     // clang-format on
 
-    // Some variable definitions from krome
-    realtype Te      = Tgas * 8.617343e-5;            // Tgas in eV (eV)
-    realtype lnTe    = log(Te);                       // ln of Te (#)
-    realtype T32     = Tgas * 0.0033333333333333335;  // Tgas/(300 K) (#)
-    realtype invT    = 1.0 / Tgas;                    // inverse of T (1/K)
-    realtype invTe   = 1.0 / Te;                      // inverse of T (1/eV)
-    realtype sqrTgas = sqrt(Tgas);  // Tgas rootsquare (K**0.5)
-
     // reaaction rate (k) of each reaction
     // clang-format off
     {% for assign in ode.hrateeqns -%}
@@ -100,14 +84,6 @@ int EvalCoolingRates(realtype *kc, realtype *y, NaunetData *u_data) {
     {% endfor %}
 
     // clang-format on
-
-    // Some variable definitions from krome
-    realtype Te      = Tgas * 8.617343e-5;            // Tgas in eV (eV)
-    realtype lnTe    = log(Te);                       // ln of Te (#)
-    realtype T32     = Tgas * 0.0033333333333333335;  // Tgas/(300 K) (#)
-    realtype invT    = 1.0 / Tgas;                    // inverse of T (1/K)
-    realtype invTe   = 1.0 / Te;                      // inverse of T (1/eV)
-    realtype sqrTgas = sqrt(Tgas);  // Tgas rootsquare (K**0.5)
 
     // reaaction rate (k) of each reaction
     // clang-format off

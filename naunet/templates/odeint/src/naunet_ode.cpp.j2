@@ -22,13 +22,6 @@ int EvalRates(double *k, double *y, NaunetData *u_data) {
 
     // clang-format on
 
-    double Te      = Tgas * 8.617343e-5;            // Tgas in eV (eV)
-    double lnTe    = log(Te);                       // ln of Te (#)
-    double T32     = Tgas * 0.0033333333333333335;  // Tgas/(300 K) (#)
-    double invT    = 1.0 / Tgas;                    // inverse of T (1/K)
-    double invTe   = 1.0 / Te;                      // inverse of T (1/eV)
-    double sqrTgas = sqrt(Tgas);                    // Tgas rootsquare (K**0.5)
-
     // clang-format off
     {% for assign in ode.rateeqns -%}
         {{ assign | stmwrap(80, 8) }}
@@ -52,16 +45,7 @@ int EvalHeatingRates(double *kh, double *y, NaunetData *u_data) {
     {% for v in network.locvars -%}
         {{ v }};
     {% endfor %}
-    // clang-format on
 
-    double Te      = Tgas * 8.617343e-5;            // Tgas in eV (eV)
-    double lnTe    = log(Te);                       // ln of Te (#)
-    double T32     = Tgas * 0.0033333333333333335;  // Tgas/(300 K) (#)
-    double invT    = 1.0 / Tgas;                    // inverse of T (1/K)
-    double invTe   = 1.0 / Te;                      // inverse of T (1/eV)
-    double sqrTgas = sqrt(Tgas);                    // Tgas rootsquare (K**0.5)
-
-    // clang-format off
     {% for assign in ode.hrateeqns -%}
         {{ assign | stmwrap(80, 8) }}
         {{ "" }}
@@ -81,16 +65,7 @@ int EvalCoolingRates(double *kc, double *y, NaunetData *u_data) {
     {% for v in network.locvars -%}
         {{ v }};
     {% endfor %}
-    // clang-format on
 
-    double Te      = Tgas * 8.617343e-5;            // Tgas in eV (eV)
-    double lnTe    = log(Te);                       // ln of Te (#)
-    double T32     = Tgas * 0.0033333333333333335;  // Tgas/(300 K) (#)
-    double invT    = 1.0 / Tgas;                    // inverse of T (1/K)
-    double invTe   = 1.0 / Te;                      // inverse of T (1/eV)
-    double sqrTgas = sqrt(Tgas);                    // Tgas rootsquare (K**0.5)
-
-    // clang-format off
     {% for assign in ode.crateeqns -%}
         {{ assign | stmwrap(80, 8) }}
         {{ "" }}
