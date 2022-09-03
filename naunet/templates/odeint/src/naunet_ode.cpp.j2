@@ -19,7 +19,7 @@ int EvalRates(double *k, double *y, NaunetData *u_data) {
 
     {% set components = network.reactions + network.grains -%}
     {% for key, value in components | collect_variable_items("deriveds") -%}
-        double {{ key }} = u_data->{{ value }};
+        double {{ key }} = {{ value }};
     {% endfor %}
 
     // clang-format on
@@ -47,7 +47,7 @@ int EvalHeatingRates(double *kh, double *y, NaunetData *u_data) {
 
     {% set components = network.heating -%}
     {% for key, value in components | collect_variable_items("deriveds") -%}
-        double {{ key }} = u_data->{{ value }};
+        double {{ key }} = {{ value }};
     {% endfor %}
 
     {% for assign in ode.hrateeqns -%}
@@ -69,7 +69,7 @@ int EvalCoolingRates(double *kc, double *y, NaunetData *u_data) {
 
     {% set components = network.cooling -%}
     {% for key, value in components | collect_variable_items("deriveds") -%}
-        double {{ key }} = u_data->{{ value }};
+        double {{ key }} = {{ value }};
     {% endfor %}
 
     {% for assign in ode.crateeqns -%}
