@@ -85,6 +85,10 @@ int Fex(realtype t, N_Vector u, N_Vector udot, void *user_data) {
         realtype {{ key }} = u_data->{{ key }};
     {% endfor %}
 
+    {% set components = network.reactions -%}
+    {% for key, value in components | collect_variable_items("deriveds") -%}
+        realtype {{ key }} = {{ value }};
+    {% endfor %}
 
 #if (NHEATPROCS || NCOOLPROCS)
     if (mu < 0) mu = GetMu(y);

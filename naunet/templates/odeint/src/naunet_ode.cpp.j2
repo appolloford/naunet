@@ -134,9 +134,9 @@ void Fex::operator()(const vector_type &abund, vector_type &ydot, double t) {
     if (gamma < 0) gamma = GetGamma(y);
 #endif
 
-    {% set components = network.reactions + network.grains + network.heating + network.cooling -%}
+    {% set components = network.reactions -%}
     {% for key, value in components | collect_variable_items("deriveds") -%}
-        double {{ key }} = u_data->{{ value }};
+        double {{ key }} = {{ value }};
     {% endfor %}
 
     // clang-format on

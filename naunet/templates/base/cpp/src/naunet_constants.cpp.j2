@@ -37,6 +37,10 @@ __constant__ double hbar            = 1.054571726e-27;
 __constant__ double {{ key }} = {{ value }};
 {% endfor %}
 
+{% for s in network.species | selectattr("is_surface") -%}
+__constant__ double eb_{{ s.alias }} = {{ s.eb }};
+{% endfor %}
+
 {% else %}
 const double pi              = 3.1415926;
 
@@ -70,6 +74,10 @@ const double hbar            = 1.054571726e-27;
 {% set components = network.reactions + network.grains + network.heating + network.cooling -%}
 {% for key, value in components | collect_variable_items("constants") -%}
 const double {{ key }} = {{ value }};
+{% endfor %}
+
+{% for s in network.species | selectattr("is_surface") -%}
+const double eb_{{ s.alias }} = {{ s.eb }};
 {% endfor %}
 
 {% endif %}

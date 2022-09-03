@@ -36,6 +36,10 @@ extern __constant__ double hbar;
 extern __constant__ double {{ key }};
 {% endfor %}
 
+{% for s in network.species | selectattr("is_surface") -%}
+extern __constant__ double eb_{{ s.alias }};
+{% endfor %}
+
 {% if network.shielding.get("H2") == "L96Table" %}
 // H2 column density
 extern __device__ double H2ShieldingTableX[105];
@@ -98,6 +102,10 @@ extern const double hbar;
 {% set components = network.reactions + network.grains + network.heating + network.cooling -%}
 {% for key, _ in components | collect_variable_items("constants") -%}
 extern const double {{ key }};
+{% endfor %}
+
+{% for s in network.species | selectattr("is_surface") -%}
+extern const double eb_{{ s.alias }};
 {% endfor %}
 
 {% if network.shielding.get("H2") == "L96Table" %}
