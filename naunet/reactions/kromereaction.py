@@ -19,6 +19,11 @@ class KROMEReaction(Reaction):
 
         super().__init__(react_string=react_string)
 
+        self.unregister("dust_temperature")
+        self.unregister("cosmic_ray_ionization_rate")
+        self.unregister("visual_extinction")
+        self.unregister("dust_grain_albedo")
+
         for c in self._user_commons:
             self.register(c, (c, None, vt.param), force_overwrite=True)
         for v in self._user_vars:

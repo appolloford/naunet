@@ -42,6 +42,9 @@ class Component:
         if species_name and species_name not in Species.known_pseudoelements():
             return Species(species_name)
 
+    def unregister(self, name: str) -> None:
+        del self._symbols[name]
+
     def register(
         self,
         name: str,

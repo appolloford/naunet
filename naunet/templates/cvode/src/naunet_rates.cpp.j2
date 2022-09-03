@@ -20,12 +20,12 @@
 {% if general.device == "gpu" -%} __device__ {% endif -%}
 int EvalRates(realtype *k, realtype *y, NaunetData *u_data) {
 
-    {% set components = network.reactions -%}
+    {% set components = network.reactions + network.grains -%}
     {% for key, _ in components | collect_variable_items("params") -%}
         realtype {{ key }} = u_data->{{ key }};
     {% endfor %}
 
-    {% set components = network.reactions -%}
+    {% set components = network.reactions + network.grains -%}
     {% for key, value in components | collect_variable_items("deriveds") -%}
         realtype {{ key }} = {{ value }};
     {% endfor %}

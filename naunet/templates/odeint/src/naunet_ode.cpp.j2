@@ -12,12 +12,12 @@ using namespace boost::numeric::odeint;
 
 int EvalRates(double *k, double *y, NaunetData *u_data) {
     // clang-format off
-    {% set components = network.reactions -%}
+    {% set components = network.reactions + network.grains -%}
     {% for key, _ in components | collect_variable_items("params") -%}
         double {{ key }} = u_data->{{ key }};
     {% endfor %}
 
-    {% set components = network.reactions -%}
+    {% set components = network.reactions + network.grains -%}
     {% for key, value in components | collect_variable_items("deriveds") -%}
         double {{ key }} = u_data->{{ value }};
     {% endfor %}

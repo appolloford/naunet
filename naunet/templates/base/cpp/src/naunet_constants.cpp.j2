@@ -33,7 +33,7 @@ __constant__ double kerg            = 1.380658e-16;
 __constant__ double hbar            = 1.054571726e-27;
 
 {% set components = network.reactions + network.grains + network.heating + network.cooling -%}
-{% for key, _ in components | collect_variable_items("constants") -%}
+{% for key, value in components | collect_variable_items("constants") -%}
 __constant__ double {{ key }} = {{ value }};
 {% endfor %}
 
@@ -68,7 +68,7 @@ const double kerg            = 1.380658e-16;
 const double hbar            = 1.054571726e-27;
 
 {% set components = network.reactions + network.grains + network.heating + network.cooling -%}
-{% for key, _ in components | collect_variable_items("constants") -%}
+{% for key, value in components | collect_variable_items("constants") -%}
 const double {{ key }} = {{ value }};
 {% endfor %}
 
