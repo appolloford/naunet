@@ -20,12 +20,14 @@
 {% if general.device == "gpu" -%} __device__ {% endif -%}
 int EvalRates(realtype *k, realtype *y, NaunetData *u_data) {
 
-    {% for v in network.varis.keys() -%}
-        realtype {{ v }} = u_data->{{ v }};
+    {% set components = network.reactions -%}
+    {% for key, _ in components | collect_variable_items("params") -%}
+        realtype {{ key }} = u_data->{{ key }};
     {% endfor %}
 
-    {% for v in network.locvars -%}
-        {{ v }};
+    {% set components = network.reactions -%}
+    {% for key, value in components | collect_variable_items("deriveds") -%}
+        realtype {{ key }} = {{ value }};
     {% endfor %}
 
     // clang-format on
@@ -49,12 +51,14 @@ int EvalRates(realtype *k, realtype *y, NaunetData *u_data) {
 {% if general.device == "gpu" -%} __device__ {% endif -%}
 int EvalHeatingRates(realtype *kh, realtype *y, NaunetData *u_data) {
 
-    {% for v in network.varis.keys() -%}
-        realtype {{ v }} = u_data->{{ v }};
+    {% set components = network.heating -%}
+    {% for key, _ in components | collect_variable_items("params") -%}
+        realtype {{ key }} = u_data->{{ key }};
     {% endfor %}
 
-    {% for v in network.locvars -%}
-        {{ v }};
+    {% set components = network.heating -%}
+    {% for key, value in components | collect_variable_items("deriveds") -%}
+        realtype {{ key }} = {{ value }};
     {% endfor %}
 
     // clang-format on
@@ -75,12 +79,14 @@ int EvalHeatingRates(realtype *kh, realtype *y, NaunetData *u_data) {
 {% if general.device == "gpu" -%} __device__ {% endif -%}
 int EvalCoolingRates(realtype *kc, realtype *y, NaunetData *u_data) {
 
-    {% for v in network.varis.keys() -%}
-        realtype {{ v }} = u_data->{{ v }};
+    {% set components = network.cooling -%}
+    {% for key, _ in components | collect_variable_items("params") -%}
+        realtype {{ key }} = u_data->{{ key }};
     {% endfor %}
 
-    {% for v in network.locvars -%}
-        {{ v }};
+    {% set components = network.cooling -%}
+    {% for key, value in components | collect_variable_items("deriveds") -%}
+        realtype {{ key }} = {{ value }};
     {% endfor %}
 
     // clang-format on

@@ -31,8 +31,9 @@ extern __constant__ double kerg;
 // reduced Planck constant
 extern __constant__ double hbar;
 
-{% for c in network.consts.keys() %}
-extern __constant__ double {{ c }};
+{% set components = network.reactions + network.grains + network.heating + network.cooling -%}
+{% for key, _ in components | collect_variable_items("constants") -%}
+extern __constant__ double {{ key }};
 {% endfor %}
 
 {% if network.shielding.get("H2") == "L96Table" %}
@@ -94,8 +95,9 @@ extern const double kerg;
 // reduced Planck constant
 extern const double hbar;
 
-{% for c in network.consts.keys() %}
-extern const double {{ c }};
+{% set components = network.reactions + network.grains + network.heating + network.cooling -%}
+{% for key, _ in components | collect_variable_items("constants") -%}
+extern const double {{ key }};
 {% endfor %}
 
 {% if network.shielding.get("H2") == "L96Table" %}

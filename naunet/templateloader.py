@@ -12,7 +12,7 @@ from .reactions.reaction import Reaction
 from .reactiontype import ReactionType
 from .thermalprocess import ThermalProcess
 from .grains.grain import Grain
-from .utilities import _prefix, _suffix, _stmwrap
+from .utilities import _collect_variable_items, _prefix, _suffix, _stmwrap
 
 # class RelativeEnvironment(Environment):
 #     """Override join_path() to enable relative template paths."""
@@ -31,9 +31,6 @@ class NetworkInfo:
     cooling: list[str]
     grains: list[Grain]
     shielding: dict
-    consts: dict[str, str]
-    varis: dict[str, str]
-    locvars: list[str]
 
 
 class TemplateLoader:
@@ -109,6 +106,7 @@ class TemplateLoader:
         # self._env = RelativeEnvironment(loader=loader)
         self._env = Environment(loader=loader)
         self._env.globals.update(zip=zip)
+        self._env.filters["collect_variable_items"] = _collect_variable_items
         self._env.filters["prefix"] = _prefix
         self._env.filters["suffix"] = _suffix
         self._env.filters["stmwrap"] = _stmwrap
@@ -122,7 +120,6 @@ class TemplateLoader:
         if not reactions:
             dummy = Reaction(reaction_type=ReactionType.DUMMY)
             reactions.append(dummy)
-            netinfo.varis.update(dummy.params)
 
         self._general = self.GeneralInfo(method, device, version("naunet"))
         self._ode = self._prepare_ode_content(netinfo, rate_modifier, ode_modifier)

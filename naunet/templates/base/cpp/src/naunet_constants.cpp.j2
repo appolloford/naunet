@@ -32,8 +32,9 @@ __constant__ double kerg            = 1.380658e-16;
 // reduced Planck constant
 __constant__ double hbar            = 1.054571726e-27;
 
-{% for c, cv in network.consts.items() %}
-__constant__ double {{ c }} = {{ cv }};
+{% set components = network.reactions + network.grains + network.heating + network.cooling -%}
+{% for key, _ in components | collect_variable_items("constants") -%}
+__constant__ double {{ key }} = {{ value }};
 {% endfor %}
 
 {% else %}
@@ -66,8 +67,9 @@ const double kerg            = 1.380658e-16;
 // reduced Planck constant
 const double hbar            = 1.054571726e-27;
 
-{% for c, cv in network.consts.items() %}
-const double {{ c }} = {{ cv }};
+{% set components = network.reactions + network.grains + network.heating + network.cooling -%}
+{% for key, _ in components | collect_variable_items("constants") -%}
+const double {{ key }} = {{ value }};
 {% endfor %}
 
 {% endif %}

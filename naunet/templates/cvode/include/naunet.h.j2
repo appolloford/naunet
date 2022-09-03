@@ -113,8 +113,9 @@ PYBIND11_MODULE(PYMODNAME, m) {
     // clang-format off
     py::class_<NaunetData>(m, "NaunetData")
         .def(py::init())
-        {% for v in network.varis.keys() -%}
-            .def_readwrite("{{ v }}", &NaunetData::{{ v }})
+        {% set components = network.reactions + network.grains + network.heating + network.cooling -%}
+        {% for key, _ in components | collect_variable_items("params") -%}
+            .def_readwrite("{{ key }}", &NaunetData::{{ key }})
         {% endfor -%}
         ;
     // clang-format on

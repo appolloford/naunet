@@ -649,9 +649,12 @@ int Naunet::Solve(realtype *ab, realtype dt, NaunetData *data) {
                 cvflag);
         fprintf(errfp_, "Initial condition: \n");
 
-        /* {% for v in network.varis.keys() -%} */
-        fprintf(errfp_, "    data.{{ v }} = %13.7e;\n", data->{{v}});
+        // clang-format off
+        /* {% set components = network.reactions + network.grains + network.heating + network.cooling -%} */
+        /* {% for key, _ in components | collect_variable_items("params") -%} */
+        fprintf(errfp_, "    data.{{ key }} = %13.7e;\n", data->{{key}});
         /* {% endfor %} */
+        // clang-format on
 
         fprintf(errfp_, "\n");
 

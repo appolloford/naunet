@@ -12,12 +12,14 @@ using namespace boost::numeric::odeint;
 
 int EvalRates(double *k, double *y, NaunetData *u_data) {
     // clang-format off
-    {% for v in network.varis.keys() -%}
-        double {{ v }} = u_data->{{ v }};
+    {% set components = network.reactions -%}
+    {% for key, _ in components | collect_variable_items("params") -%}
+        double {{ key }} = u_data->{{ key }};
     {% endfor %}
 
-    {% for v in network.locvars -%}
-        {{ v }};
+    {% set components = network.reactions -%}
+    {% for key, value in components | collect_variable_items("deriveds") -%}
+        double {{ key }} = u_data->{{ value }};
     {% endfor %}
 
     // clang-format on
@@ -38,12 +40,14 @@ int EvalRates(double *k, double *y, NaunetData *u_data) {
 
 int EvalHeatingRates(double *kh, double *y, NaunetData *u_data) {
     // clang-format off
-    {% for v in network.varis.keys() -%}
-        double {{ v }} = u_data->{{ v }};
+    {% set components = network.heating -%}
+    {% for key, _ in components | collect_variable_items("params") -%}
+        double {{ key }} = u_data->{{ key }};
     {% endfor %}
 
-    {% for v in network.locvars -%}
-        {{ v }};
+    {% set components = network.heating -%}
+    {% for key, value in components | collect_variable_items("deriveds") -%}
+        double {{ key }} = u_data->{{ value }};
     {% endfor %}
 
     {% for assign in ode.hrateeqns -%}
@@ -58,12 +62,14 @@ int EvalHeatingRates(double *kh, double *y, NaunetData *u_data) {
 
 int EvalCoolingRates(double *kc, double *y, NaunetData *u_data) {
     // clang-format off
-    {% for v in network.varis.keys() -%}
-        double {{ v }} = u_data->{{ v }};
+    {% set components = network.cooling -%}
+    {% for key, _ in components | collect_variable_items("params") -%}
+        double {{ key }} = u_data->{{ key }};
     {% endfor %}
 
-    {% for v in network.locvars -%}
-        {{ v }};
+    {% set components = network.cooling -%}
+    {% for key, value in components | collect_variable_items("deriveds") -%}
+        double {{ key }} = u_data->{{ value }};
     {% endfor %}
 
     {% for assign in ode.crateeqns -%}
@@ -118,8 +124,9 @@ void Fex::operator()(const vector_type &abund, vector_type &ydot, double t) {
         y[i] = abund[i];
     }
 
-    {% for v in network.varis.keys() -%}
-        double {{ v }} = u_data->{{ v }};
+    {% set components = network.reactions + network.grains + network.heating + network.cooling -%}
+    {% for key, _ in components | collect_variable_items("params") -%}
+        double {{ key }} = u_data->{{ key }};
     {% endfor %}
 
 #if (NHEATPROCS || NCOOLPROCS)
@@ -127,8 +134,9 @@ void Fex::operator()(const vector_type &abund, vector_type &ydot, double t) {
     if (gamma < 0) gamma = GetGamma(y);
 #endif
 
-    {% for v in network.locvars -%}
-        {{ v }};
+    {% set components = network.reactions + network.grains + network.heating + network.cooling -%}
+    {% for key, value in components | collect_variable_items("deriveds") -%}
+        double {{ key }} = u_data->{{ value }};
     {% endfor %}
 
     // clang-format on
@@ -182,8 +190,9 @@ void Jac::operator()(const vector_type &abund, matrix_type &j, const double &t,
         y[i] = abund[i];
     }
 
-    {% for v in network.varis.keys() -%}
-        double {{ v }} = u_data->{{ v }};
+    {% set components = network.reactions + network.grains + network.heating + network.cooling -%}
+    {% for key, _ in components | collect_variable_items("params") -%}
+        double {{ key }} = u_data->{{ key }};
     {% endfor %}
 
 #if (NHEATPROCS || NCOOLPROCS)

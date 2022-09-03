@@ -241,82 +241,6 @@ class Network:
         #     print("Processing: {} reactions...".format(len(self.reaction_list)))
         return new_reactants, new_products, reaction
 
-    def _consts(self) -> dict[str, str]:
-
-        # consts in grain
-        grains = self.grains
-        dconsts = (
-            {f"{c:<15}": f"{cv}" for g in grains for c, cv in g.constants.items()}
-            if grains
-            else {}
-        )
-
-        # consts in heating/cooling
-        thermproc = []
-        thermproc.extend([self.allowed_heating.get(h) for h in self._heating_names])
-        thermproc.extend([self.allowed_cooling.get(c) for c in self._cooling_names])
-        tconsts = {
-            f"{c:<15}": f"{cv}" for p in thermproc for c, cv in p.constants.items()
-        }
-
-        # create consts of binding energies
-        rqdsp = set([Species(s) for s in self._required_species])
-        speclist = sorted(self._reactants | self._products | rqdsp)
-        ebs = {f"eb_{s.alias:<12}": f"{s.eb}" for s in speclist if s.is_surface}
-
-        consts = {**self._reactconsts, **dconsts, **tconsts, **ebs}
-
-        return consts
-
-    def _locvars(self) -> dict[str, str]:
-
-        reactlocvars = [
-            f"double {key} = {value}" for key, value in self._reactlocvars.items()
-        ]
-
-        grains = self.grains
-        dlocvars = (
-            [
-                f"double {key} = {value}"
-                for g in grains
-                for key, value in g.deriveds.items()
-            ]
-            if grains
-            else []
-        )
-
-        thermproc = []
-        thermproc.extend([self.allowed_heating.get(h) for h in self._heating_names])
-        thermproc.extend([self.allowed_cooling.get(c) for c in self._cooling_names])
-        tlocvars = (
-            {key: value for t in thermproc for key, value in t.deriveds.items()}
-            if thermproc
-            else {}
-        )
-        tlocvars = [f"double {key} = {value}" for key, value in tlocvars.items()]
-
-        locvars = [*reactlocvars, *dlocvars, *tlocvars]
-        return locvars
-
-    def _varis(self) -> dict[str, str]:
-
-        # varis in grain
-        grains = self.grains
-        dvaris = (
-            {f"{var}": val for g in grains for var, val in g.params.items()}
-            if grains
-            else {}
-        )
-
-        # varis in heating/cooling
-        thermproc = []
-        thermproc.extend([self.allowed_heating.get(h) for h in self._heating_names])
-        thermproc.extend([self.allowed_cooling.get(c) for c in self._cooling_names])
-        tvaris = {f"{var}": val for p in thermproc for var, val in p.params.items()}
-
-        varis = {**self._reactvaris, **dvaris, **tvaris}
-        return varis
-
     def add_reaction(self, reaction: Reaction | tuple[str, str]) -> None:
         """Add a reaction into the network
 
@@ -763,9 +687,6 @@ class Network:
             cooling=cooling,
             grains=self.grains,
             shielding=self._shielding,
-            consts=self._consts(),
-            varis=self._varis(),
-            locvars=self._locvars(),
         )
 
         nspec = len(self._info.species)

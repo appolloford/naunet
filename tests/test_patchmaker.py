@@ -18,9 +18,6 @@ def networkinfo():
         [],
         None,
         {},
-        {},
-        {},
-        [],
     )
 
 
