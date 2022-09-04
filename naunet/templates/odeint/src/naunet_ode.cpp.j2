@@ -134,7 +134,7 @@ void Fex::operator()(const vector_type &abund, vector_type &ydot, double t) {
     if (gamma < 0) gamma = GetGamma(y);
 #endif
 
-    {% set components = network.reactions -%}
+    {% set components = network.reactions + network.heating + network.cooling -%}
     {% for key, value in components | collect_variable_items("deriveds") -%}
         double {{ key }} = {{ value }};
     {% endfor %}
@@ -195,6 +195,11 @@ void Jac::operator()(const vector_type &abund, matrix_type &j, const double &t,
         double {{ key }} = u_data->{{ key }};
     {% endfor %}
 
+    {% set components = network.heating + network.cooling -%}
+    {% for key, value in components | collect_variable_items("deriveds") -%}
+        double {{ key }} = {{ value }};
+    {% endfor %}
+
 #if (NHEATPROCS || NCOOLPROCS)
     if (mu < 0) mu = GetMu(y);
     if (gamma < 0) gamma = GetGamma(y);
@@ -222,7 +227,7 @@ void Jac::operator()(const vector_type &abund, matrix_type &j, const double &t,
     {% for r in ode.jac.rhs -%}
     {% set neqns = ode.jac.nrow -%}
     {% if r != "0.0" -%}
-    j({{ loop.index0/neqns | int }}, {{ loop.index0%neqns }}) = {{ r | stmwrap(80, 24)}};
+    j({{ (loop.index0/neqns) | int }}, {{ loop.index0%neqns }}) = {{ r | stmwrap(80, 24)}};
     {% endif -%}
     {% endfor %}
     // clang-format on

@@ -39,6 +39,10 @@ __global__ void FexKernel(realtype *y, realtype *ydot, NaunetData *d_udata,
             realtype {{ key }} = udata->{{ key }};
         {% endfor %}
 
+        {% set components = network.reactions + network.heating + network.cooling -%}
+        {% for key, value in components | collect_variable_items("deriveds") -%}
+            realtype {{ key }} = {{ value }};
+        {% endfor %}
         
 #if (NHEATPROCS || NCOOLPROCS)
         if (mu < 0) mu = GetMu(y_cur);
@@ -85,7 +89,7 @@ int Fex(realtype t, N_Vector u, N_Vector udot, void *user_data) {
         realtype {{ key }} = u_data->{{ key }};
     {% endfor %}
 
-    {% set components = network.reactions -%}
+    {% set components = network.reactions + network.heating + network.cooling -%}
     {% for key, value in components | collect_variable_items("deriveds") -%}
         realtype {{ key }} = {{ value }};
     {% endfor %}

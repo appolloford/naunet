@@ -279,18 +279,12 @@ class TemplateLoader:
         lhs = [f"ydot[IDX_{x.alias}]" for x in species]
         if has_thermal:
             lhs.append("ydot[IDX_TGAS]")
-            rhs[n_spec] = f"(gamma - 1.0) * ( {rhs[n_spec]} ) / kerg / GetNumDens(y)"
+            rhs[n_spec] = f"(gamma - 1.0) * ( {rhs[n_spec]} ) / kerg / npar"
             for si in range(n_spec):
                 jacrhs[n_spec * n_eqns + si] = (
                     "0.0"
                     if jacrhs[n_spec * n_eqns + si] == "0.0"
-                    else "".join(
-                        [
-                            "(gamma - 1.0) * (",
-                            jacrhs[n_spec * n_eqns + si],
-                            " ) / kerg / GetNumDens(y)",
-                        ]
-                    )
+                    else f"(gamma - 1.0) * ( {jacrhs[n_spec * n_eqns + si]} ) / kerg / npar"
                 )
 
         fex = [f"{l} = {r};" for l, r in zip(lhs, rhs)]

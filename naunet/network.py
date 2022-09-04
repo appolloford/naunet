@@ -130,10 +130,6 @@ class Network:
         self._cooling_names = cooling.copy() if cooling else []
         self._grain_model = grain_model
 
-        self._reactconsts = {}
-        self._reactvaris = {}
-        self._reactlocvars = {}
-
         if allowed_species and required_species:
 
             conflict = [sp for sp in required_species if sp not in allowed_species]
@@ -271,18 +267,6 @@ class Network:
         if new_products:
             logger.info(f"New products are added: {new_products}")
 
-        if reactinst:
-
-            self._reactconsts.update(
-                {f"{c:<15}": f"{cv}" for c, cv in reactinst.constants.items()}
-            )
-            self._reactvaris.update(
-                {f"{var}": val for var, val in reactinst.params.items()}
-            )
-            self._reactlocvars.update(
-                {f"{key}": val for key, val in reactinst.deriveds.items()}
-            )
-
         if not isinstance(reaction, Reaction):
             rclass.finalize()
 
@@ -321,18 +305,6 @@ class Network:
                 except Exception as e:
                     logger.error(f"Get error in line {ln}: {line}")
                     raise e
-
-                if reactinst:
-                    # print("New species: \n{}".format("\n".join(str(x) for x in new_species)))
-                    self._reactconsts.update(
-                        {f"{c:<15}": f"{cv}" for c, cv in reactinst.constants.items()}
-                    )
-                    self._reactvaris.update(
-                        {f"{var}": val for var, val in reactinst.params.items()}
-                    )
-                    self._reactlocvars.update(
-                        {f"{key}": val for key, val in reactinst.deriveds.items()}
-                    )
 
         rclass.finalize()
 

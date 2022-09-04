@@ -26,6 +26,7 @@ class ThermalProcess(Component):
         self.register("thermproc_temperature_1e3", ("Temp3", "Temp/1e3", vt.derived))
         self.register("thermproc_temperature_1e5", ("Temp5", "Temp/1e5", vt.derived))
         self.register("thermproc_temperature_1e6", ("Temp6", "Temp/1e6", vt.derived))
+        self.register("particle_number_density", ("npar", "GetNumDens(y)", vt.derived))
 
     @property
     def reactants(self):
