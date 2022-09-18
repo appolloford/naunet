@@ -44,12 +44,14 @@ device = ""
 method = ""
 
 [summary]
+num_of_elements = -1
 num_of_species = -1
 num_of_grains = -1
 num_of_gas_species = -1
 num_of_ice_species = -1
 num_of_grain_species = -1
 num_of_reactions = -1
+list_of_elements = []
 list_of_species = []
 list_of_species_alias = []
 list_of_gas_species = []
@@ -149,12 +151,14 @@ class Configuration:
             grain_species = (
                 [s.name for g in grains for s in g.species] if grains else []
             )
+            summary["num_of_elements"] = len(info.elements)
             summary["num_of_species"] = len(info.species)
             summary["num_of_grains"] = len(info.grains)
             summary["num_of_gas_species"] = len(gas_species)
             summary["num_of_ice_species"] = len(ice_species)
             summary["num_of_grain_species"] = len(grain_species)
             summary["num_of_reactions"] = len(info.reactions)
+            summary["list_of_elements"] = [x.name for x in info.elements]
             summary["list_of_species"] = [x.name for x in info.species]
             summary["list_of_species_alias"] = [x.alias for x in info.species]
             summary["list_of_gas_species"] = gas_species

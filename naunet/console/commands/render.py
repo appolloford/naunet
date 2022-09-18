@@ -153,17 +153,20 @@ class RenderCommand(Command):
 
         summary = tomlkit.table()
         grains = net.info.grains
+        all_elements = [e.name for e in net.info.elements]
         all_species = [x.name for x in net.info.species]
         all_alias = [x.alias for x in net.info.species]
         gas_species = [s.name for s in net.info.species if not s.is_surface]
         ice_species = [g.name for g in net.info.species if g.is_surface]
         grain_species = [s.name for g in grains for s in g.species] if grain else []
+        summary["num_of_elements"] = len(net.info.elements)
         summary["num_of_species"] = len(net.info.species)
         summary["num_of_grains"] = len(net.info.grains)
         summary["num_of_gas_species"] = len(gas_species)
         summary["num_of_ice_species"] = len(ice_species)
         summary["num_of_grain_species"] = len(grain_species)
         summary["num_of_reactions"] = len(net.info.reactions)
+        summary["list_of_elements"] = all_elements
         summary["list_of_species"] = all_species
         summary["list_of_species_alias"] = all_alias
         summary["list_of_gas_species"] = gas_species
@@ -179,6 +182,7 @@ class RenderCommand(Command):
         if self.option("with-summary-py"):
             with open("summary.py", "w") as outf:
 
+                outf.write(f"nelem = {len(all_elements)}\n")
                 outf.write(f"nspec = {len(all_species)}\n")
                 outf.write(f"ngas = {len(gas_species)}\n")
                 outf.write(f"nice = {len(ice_species)}\n")
@@ -187,6 +191,7 @@ class RenderCommand(Command):
                 outf.write("\n\n")
 
                 speclistlist = [
+                    all_elements,
                     all_species,
                     all_alias,
                     gas_species,
@@ -194,6 +199,7 @@ class RenderCommand(Command):
                     grain_species,
                 ]
                 namelist = [
+                    "all_elements",
                     "all_species",
                     "all_alias",
                     "gas_species",

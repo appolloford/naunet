@@ -556,9 +556,6 @@ class Species:
         Returns:
             float: photodesorption yield
         """
-        if self._photon_yield:
-            return self._photon_yield
-
         if not self.is_surface:
             logging.fatal(f"{self.name} is not ice species! No photodesorption yield")
 
