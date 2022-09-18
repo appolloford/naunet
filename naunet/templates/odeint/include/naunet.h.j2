@@ -37,6 +37,11 @@ class Naunet {
 #endif
     int Solve(double *abund, double dt, NaunetData *data);
 #ifdef PYMODULE
+#ifdef IDX_ELEM_H
+    py::array_t<realtype> PyWrapRenorm(py::array_t<realtype> arr);
+    py::array_t<realtype> PyWrapSetReferenceAbund(py::array_t<realtype> arr,
+                                                  int opt);
+#endif
     py::array_t<double> PyWrapSolve(py::array_t<double> arr, double dt,
                                     NaunetData *data);
 #endif
@@ -60,6 +65,16 @@ PYBIND11_MODULE(PYMODNAME, m) {
              py::arg("atol") = 1e-20, py::arg("rtol") = 1e-5,
              py::arg("mxsteps") = 500)
         .def("Finalize", &Naunet::Finalize)
+#ifdef IDX_ELEM_H
+        .def("Renorm", &Naunet::PyWrapRenorm)
+#endif
+        .def("Reset", &Naunet::Reset, py::arg("nsystem") = 1,
+             py::arg("atol") = 1e-20, py::arg("rtol") = 1e-5,
+             py::arg("mxsteps") = 500)
+#ifdef IDX_ELEM_H
+        .def("SetReferenceAbund", &Naunet::PyWrapSetReferenceAbund,
+             py::arg("ref"), py::arg("opt") = 0)
+#endif
         .def("Solve", &Naunet::PyWrapSolve);
 
     // clang-format off

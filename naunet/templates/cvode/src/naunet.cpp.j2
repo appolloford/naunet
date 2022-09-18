@@ -774,12 +774,40 @@ int Naunet::Solve(realtype *ab, realtype dt, NaunetData *data) {
 };
 
 #ifdef PYMODULE
+#ifdef IDX_ELEM_H
+py::array_t<realtype> Naunet::PyWrapRenorm(py::array_t<realtype> arr) {
+    py::buffer_info info = arr.request();
+    realtype *ab         = static_cast<realtype *>(info.ptr);
+
+    int flag             = Renorm(ab);
+    if (flag == NAUNET_FAIL) {
+        throw std::runtime_error("Fail to renormalization");
+    }
+
+    return py::array_t<realtype>(info.shape, ab);
+}
+py::array_t<realtype> Naunet::PyWrapSetReferenceAbund(py::array_t<realtype> arr,
+                                                      int opt) {
+    py::buffer_info info = arr.request();
+    realtype *ab         = static_cast<realtype *>(info.ptr);
+
+    int flag             = SetReferenceAbund(ab, opt);
+    if (flag == NAUNET_FAIL) {
+        throw std::runtime_error("Fail to set reference abundance");
+    }
+
+    return py::array_t<realtype>(info.shape, ab);
+}
+#endif
 py::array_t<realtype> Naunet::PyWrapSolve(py::array_t<realtype> arr,
                                           realtype dt, NaunetData *data) {
     py::buffer_info info = arr.request();
     realtype *ab         = static_cast<realtype *>(info.ptr);
 
-    Solve(ab, dt, data);
+    int flag             = Solve(ab, dt, data);
+    if (flag == NAUNET_FAIL) {
+        throw std::runtime_error("Something unrecoverable occurred");
+    }
 
     return py::array_t<realtype>(info.shape, ab);
 }

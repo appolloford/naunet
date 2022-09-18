@@ -1,0 +1,31 @@
+{% extends "base/cpp/tests/renorm.py.in.j2" %}
+{% block parameters %}
+Species.set_known_elements(elements + ["E"])
+nH = 2e4;
+{% endblock parameters %}
+{% block reference_abundance %}
+y = np.ones(len(species)+has_thermal) * 1e-40
+y[species.index("H2")] = 0.5 * nH
+y[species.index("H")]  = 5e-5 * nH
+y[species.index("HE")] = 9.75e-2 * nH
+y[species.index("N")]  = 7.5e-5 * nH
+y[species.index("O")]  = 1.8e-4 * nH
+y[species.index("CO")] = 1.4e-4 * nH
+y[species.index("S")]  = 8.0e-8 * nH
+y[species.index("SI")] = 8.0e-9 * nH
+y[species.index("MG")] = 7.0e-9 * nH
+y[species.index("CL")] = 4.0e-9 * nH
+{% endblock reference_abundance %}
+{% block updated_abundance %}
+y = np.ones(len(species)+has_thermal) * 1e-40
+y[species.index("H2")] = 0.4 * nH
+y[species.index("H")]  = 1e-3 * nH
+y[species.index("HE")] = 1.9e-1 * nH
+y[species.index("N")]  = 7.5e-5 * nH
+y[species.index("O")]  = 8.0e-5 * nH
+y[species.index("CO")] = 2.8e-4 * nH
+y[species.index("S")]  = 4.0e-8 * nH
+y[species.index("SI")] = 2.0e-9 * nH
+y[species.index("MG")] = 2.0e-9 * nH
+y[species.index("CL")] = 1.0e-9 * nH
+{% endblock updated_abundance %}

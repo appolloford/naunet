@@ -1,0 +1,65 @@
+import os
+import sys
+sys.path.append(os.getenv('PYNAUNET_PATH'))
+
+import numpy as np
+from tomlkit.toml_file import TOMLFile
+
+from naunet.species import Species
+from @PYMODNAME@ import Naunet, NaunetData
+
+def get_element_abund(species, abundance, target):
+    speclist = [Species(s) for s in species]
+    abund = np.sum([ab * s.element_count.get(target, 0) for s, ab in zip(speclist, abundance)])
+    return abund
+
+config_path = os.getenv('NAUNET_CONFIG_PATH')
+config = TOMLFile(os.path.join(config_path, "naunet_config.toml"))
+content = config.read()
+chemistry = content["chemistry"]
+heating = chemistry["heating"]
+cooling = chemistry["cooling"]
+has_thermal = True if heating or cooling else False
+summary = content["summary"]
+species = summary["list_of_species"]
+elements = summary["list_of_elements"]
+nspec = len(species)
+nelem = len(elements)
+
+naunet_solver = Naunet()
+
+{% block parameters %}
+nH = 2e4
+{% endblock parameters %}
+
+{% block reference_abundance %}
+y = np.ones(len(species)+has_thermal) * 1e-40
+# Set your initial abundance here
+# e.g. y[species.index("H2")] = 0.5 * nH
+raise RuntimeError("Abundance has not been assigned")
+{% endblock reference_abundance %}
+
+ref = np.array([get_element_abund(species, y, elem) for elem in elements])
+ref /= get_element_abund(species, y, "H")
+print(f"Reference: {ref}")
+
+naunet_solver.SetReferenceAbund(ref)
+naunet_solver.SetReferenceAbund(y, 1)
+
+{% block updated_abundance %}
+y = np.ones(len(species)+has_thermal) * 1e-40
+raise RuntimeError("Abundance has not been assigned")
+{% endblock updated_abundance %}
+
+upd = np.array([get_element_abund(species, y, elem) for elem in elements])
+upd /= get_element_abund(species, y, "H")
+print(f"Updated: {upd}")
+
+naunet_solver.Renorm(y)
+
+res = np.array([get_element_abund(species, y, elem) for elem in elements])
+res /= get_element_abund(species, y, "H")
+print(f"Updated: {res}")
+
+if any((res - ref) > 1e-3):
+    raise RuntimeError("Renorm test failed")
