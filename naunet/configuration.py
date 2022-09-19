@@ -25,7 +25,6 @@ network = []
 format = []
 heating = []
 cooling = []
-ode_modifier = []
 
 [chemistry.grain]
 model = ""
@@ -37,6 +36,8 @@ model = ""
 [chemistry.shielding]
 
 [chemistry.rate_modifier]
+
+[chemistry.ode_modifier]
 
 [ODEsolver]
 solver = ""

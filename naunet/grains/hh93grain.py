@@ -306,7 +306,7 @@ class HH93Grain(Grain):
         return rate
 
 
-class HH93IGrain(Grain):
+class HH93IGrain(HH93Grain):
 
     model = "hh93i"
 

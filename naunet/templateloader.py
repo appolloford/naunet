@@ -234,6 +234,8 @@ class TemplateLoader:
             #     if rhs[specidx] == "0.0":
             #         rhs[specidx] = "naunet_rate_tiny"
 
+        # add the modifying term to fex and jac
+        # the performance could be bad if fex mismatch with jac
         for sname, expr in ode_modifier.items():
             spec = Species(sname)
             sidx = species.index(spec)
