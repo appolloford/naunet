@@ -1,7 +1,7 @@
 description = "Example: chemical network used in Walsh et al. 2015"
 network = "rate12_complex.rates"
 format = "leeds"
-grain_model = "hh93"
+grain_model = "hh93i"
 
 elements = [
     "e",
@@ -767,10 +767,13 @@ photon_yield = {
 
 rate_modifier = {8274: 0.0}
 
-ode_modifier = [
-    "double stick1 = (1.0 / (1.0 + 4.2e-2*sqrt(Tgas+Tdust) + 2.3e-3*Tgas - 1.3e-7*Tgas*Tgas))",
-    "double stick2 = exp(-1741.0/Tgas) / (1.0 + 5e-2*sqrt(Tgas+Tdust) + 1e-14*pow(Tgas, 4.0))",
-    "double stick = stick1 + stick2",
-    "double hloss = stick * garea/4.0 * sqrt(8.0*kerg*Tgas/(pi*amu))",
-    "ydot[IDX_H2I] += 0.5*hloss*y[IDX_HI]; ydot[IDX_HI] -= hloss*y[IDX_HI]",
-]
+ode_modifier = {
+    "H2": {
+        "factors": ["0.5 * hloss"],
+        "reactants": [["H"]],
+    },
+    "H": {
+        "factors": ["-hloss"],
+        "reactants": [["H"]],
+    },
+}

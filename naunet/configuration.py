@@ -79,7 +79,7 @@ class Configuration:
         shielding: dict[str, str] = None,
         grain_model: str = "",
         rate_modifier: dict[int, str] = None,
-        ode_modifier: list[str] = None,
+        ode_modifier: dict[str, dict[str, list[str | list[str]]]] = None,
         solver: str = "cvode",
         device: str = "cpu",
         method: str = "dense",
@@ -104,7 +104,7 @@ class Configuration:
         self._shielding = shielding if shielding else {}
         self._grain_model = grain_model
         self._ratemodifier = rate_modifier if rate_modifier else {}
-        self._odemodifier = ode_modifier if ode_modifier else []
+        self._odemodifier = ode_modifier or {}
         self._solver = solver
         self._device = device
         self._method = method

@@ -38,4 +38,4 @@ shielding = {}
 binding_energy = {}
 photon_yield = {}
 rate_modifier = {}
-ode_modifier = []
+ode_modifier = {}

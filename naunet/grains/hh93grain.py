@@ -304,3 +304,22 @@ class HH93Grain(Grain):
         rate = f"opt_rcd * branch * {rate}"
 
         return rate
+
+
+class HH93IGrain(Grain):
+
+    model = "hh93i"
+
+    def __init__(self, species: list[Species] = None, group: int = 0) -> None:
+        super().__init__(species, group)
+
+        group = group or ""
+        # stick and Tgas are defined in LEEDSReaction
+        self.register(
+            "H_loss_rate",
+            (
+                f"hloss{group}",
+                f"stick * garea{group}/4.0 * sqrt(8.0*kerg*Tgas/(pi*amu))",
+                vt.derived,
+            ),
+        )

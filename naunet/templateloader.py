@@ -84,7 +84,6 @@ class TemplateLoader:
         crateeqns: list[str]
         fex: list[str]
         jac: TemplateLoader.Jacobian
-        odemodifier: list[str] = None
         ratemodifier: list[str] = None
 
     @dataclass
@@ -99,7 +98,7 @@ class TemplateLoader:
         method: str,
         device: str,
         rate_modifier: dict[int, str] = None,
-        ode_modifier: list[str] = None,
+        ode_modifier: dict[str, dict[str, list[str | list[str]]]] = None,
     ) -> None:
 
         loader = PackageLoader("naunet")
@@ -170,7 +169,7 @@ class TemplateLoader:
         self,
         netinfo: NetworkInfo,
         rate_modifier: dict[int, str] = None,
-        ode_modifier: list[str] = None,
+        ode_modifier: dict[str, dict[str, list[str | list[str]]]] = None,
     ) -> None:
 
         species = netinfo.species
@@ -180,7 +179,7 @@ class TemplateLoader:
         cooling = netinfo.cooling
         grains = netinfo.grains
 
-        odemodifier = ode_modifier.copy() if ode_modifier else []
+        ode_modifier = ode_modifier or {}
         ratemodifier = rate_modifier.copy() if rate_modifier else {}
         ratemodifier = [
             f"k[{idx}] = {value}"
@@ -234,6 +233,25 @@ class TemplateLoader:
             #     # make the diagonal terms nonzero to make sure the matrix reversible
             #     if rhs[specidx] == "0.0":
             #         rhs[specidx] = "naunet_rate_tiny"
+
+        for sname, expr in ode_modifier.items():
+            spec = Species(sname)
+            sidx = species.index(spec)
+            for fact, dep in zip(expr["factors"], expr["reactants"]):
+                depspec = [Species(d) for d in dep]
+                depsym = [f"y[IDX_{d.alias}]" for d in depspec]
+                depsym_mul = "*".join(depsym)
+
+                rhs[sidx] += f" + ({fact}) * {depsym_mul}"
+
+                for dspec in depspec:
+                    didx = species.index(dspec)
+                    depsymcopy = depsym.copy()
+                    depsymcopy.remove(y[didx])
+                    depsymcopy_mul = "*".join(depsymcopy)
+
+                    term = f" + {'*'.join([f'({fact})', *depsymcopy_mul])}"
+                    jacrhs[sidx * n_eqns + didx] += term
 
         # prepare heating rate expressions
         hrate_sym = "kh"
@@ -313,7 +331,6 @@ class TemplateLoader:
             crateeqns,
             fex,
             jac,
-            odemodifier=odemodifier,
             ratemodifier=ratemodifier,
         )
 

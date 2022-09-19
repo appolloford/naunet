@@ -106,6 +106,12 @@ class ExampleCommand(Command):
         ratemodifierstr = ",".join(f"{r}:{rv}" for r, rv in rate_modifier.items())
         odemodifierstr = ";".join(ode_modifier)
 
+        odemodifierstr = ""
+        for sname, expr in ode_modifier.items():
+            for fact, dep in zip(expr["factors"], expr["reactants"]):
+                depstr = ", ".join(f"'{d}'" for d in dep)
+                odemodifierstr += f"{sname}:{fact},[{depstr}];"
+
         overwrite = self.option("render-force")
 
         options = " ".join(

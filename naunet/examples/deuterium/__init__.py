@@ -155,4 +155,4 @@ photon_yield = {}
 
 rate_modifier = {}
 
-ode_modifier = []
+ode_modifier = {}

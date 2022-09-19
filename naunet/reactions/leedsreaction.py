@@ -88,6 +88,31 @@ class LEEDSReaction(Reaction):
         self.register("CO_column_density", ("cocol", "1e-5 * h2col", vt.derived))
         self.register("N2_column_density", ("n2col", "1e-5 * h2col", vt.derived))
 
+        self.register(
+            "sticking_coefficient1",
+            (
+                f"stick1",
+                f"(1.0 / (1.0 + 4.2e-2*sqrt(Tgas+Tdust) + 2.3e-3*Tgas - 1.3e-7*Tgas*Tgas))",
+                vt.derived,
+            ),
+        )
+        self.register(
+            "sticking_coefficient2",
+            (
+                f"stick2",
+                f"exp(-1741.0/Tgas) / (1.0 + 5e-2*sqrt(Tgas+Tdust) + 1e-14*pow(Tgas, 4.0))",
+                vt.derived,
+            ),
+        )
+        self.register(
+            "total_sticking_coefficient",
+            (
+                f"stick",
+                f"stick1 + stick2",
+                vt.derived,
+            ),
+        )
+
     @classmethod
     def initialize(cls) -> None:
         Species.surface_prefix = "G"

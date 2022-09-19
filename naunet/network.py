@@ -552,7 +552,7 @@ class Network:
         method: str = "dense",
         device: str = "cpu",
         ratemodifier: dict[int, str] = None,
-        odemodifier: list[str] = None,
+        odemodifier: dict[str, dict[str, list[str | list[str]]]] = None,
         prefix: str | Path = "network_export",
         overwrite: bool = False,
     ) -> None:
@@ -743,7 +743,7 @@ class Network:
         method: str,
         device: str,
         ratemodifier: dict[int, str] = None,
-        odemodifier: list[str] = None,
+        odemodifier: dict[str, dict[str, list[str | list[str]]]] = None,
     ) -> TemplateLoader:
 
         reactindices = [reac.idxfromfile for reac in self.reaction_list]
@@ -769,7 +769,7 @@ class Network:
         method: str = "dense",
         device: str = "cpu",
         ratemodifier: dict[int, str] = None,
-        odemodifier: list[str] = None,
+        odemodifier: dict[str, dict[str, list[str | list[str]]]] = None,
         prefix: str = "./",
     ):
 
