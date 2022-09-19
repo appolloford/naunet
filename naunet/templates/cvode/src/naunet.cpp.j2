@@ -204,13 +204,16 @@ int Naunet::HandleError(int cvflag, realtype *ab, realtype dt, realtype t0) {
             return NAUNET_FAIL;
         }
 
-        for (int step = 0; step < nsubsteps; step++) {
-            realtype tout = pow(
-                10.0, log10(dt) * (realtype)(step + 1) / (realtype)nsubsteps);
+        realtype logdt = log10(dt);
+        for (int step = 1; step < nsubsteps + 1; step++) {
+            realtype expo = logdt - (realtype)level;
+            expo += (realtype)level * (realtype)step / (realtype)nsubsteps;
+            realtype tout = pow(10.0, expo);
+
             // printf("tout: %13.7e, step: %d, level: %d\n", tout, step, level);
             // realtype tcur = 0.0;
             // cvflag = CVodeGetCurrentTime(cv_mem_, &tcur);
-            cvflag = CVode(cv_mem_, tout, cv_y_, &t0, CV_NORMAL);
+            cvflag        = CVode(cv_mem_, tout, cv_y_, &t0, CV_NORMAL);
             if (cvflag < 0) {
                 fprintf(errfp_,
                         "CVode failed in Naunet! Flag = %d in the %dth substep "
