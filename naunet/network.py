@@ -8,11 +8,10 @@ from tqdm import tqdm
 from .patches import PatchFactory
 from .templateloader import NetworkInfo, TemplateLoader
 from .species import Species
-from .reactions import builtin_reaction_format
-from .reactions.reaction import Reaction
+from .reactions import Reaction, builtin_reaction_format
 from .reactions.converter import ExpressionConverter
-from .grains import builtin_grain_model
-from .grains.grain import Grain
+from .reactiontype import ReactionType
+from .grains import Grain, builtin_grain_model
 from .thermalprocess import ThermalProcess, get_allowed_cooling, get_allowed_heating
 from .configuration import Configuration
 
@@ -349,12 +348,33 @@ class Network:
         return self._allowed_heating
 
     @property
-    def allowed_species(self):
+    def allowed_species(self) -> list[str]:
+        """
+        The names of allowed species, which are used to constraint system to
+        be solved.
+
+        Returns:
+            list[str]: _description_
+        """
         return self._allowed_species
 
     @allowed_species.setter
-    def allowed_species(self, speclist: list):
+    def allowed_species(self, speclist: list[str]):
         self._allowed_species = speclist.copy()
+
+    @property
+    def cooling(self) -> list[ThermalProcess]:
+        """
+        The included cooling processes
+
+        Returns:
+            list[ThermalProcess]: cooling processes to be used
+        """
+        return [self.allowed_cooling.get(c) for c in self._cooling_names]
+
+    @property
+    def elements(self) -> list[Species]:
+        return [spec for spec in self.species if spec.is_atom]
 
     def find_duplicate_reaction(self, mode: str = "") -> list[tuple[int, Reaction]]:
         """
@@ -465,6 +485,16 @@ class Network:
     @grain_model.setter
     def grain_model(self, model: str) -> None:
         self._grain_model = model
+
+    @property
+    def heating(self) -> list[ThermalProcess]:
+        """
+        The included heating processes
+
+        Returns:
+            list[ThermalProcess]: the heating processed to be used
+        """
+        return [self.allowed_heating.get(h) for h in self._heating_names]
 
     def where_reaction(self, reaction: Reaction, mode: str = "all") -> list[int]:
         """
@@ -680,11 +710,25 @@ class Network:
         self,
         target: str,
         device: str,
-        cap_species_name: bool = False,
+        species_in_capital: bool = False,
         source: str = None,
     ):
+        """
+        Create patch filed for hydrodynamics codes, e.g. ENZO.
 
-        return PatchFactory(self.info, target, device, cap_species_name, source)
+        Args:
+            target (str): the target hydro code, case insensitive.
+            device (str): the device where the naunet solver working on.
+            species_in_capital (bool, optional): True if all species names are in
+                capital. Defaults to False.
+            source (str, optional): The source directory of templates if provided,
+                otherwise use the built-in templates. Defaults to None.
+
+        Returns:
+            PatchFactory: The factory of patch files
+        """
+
+        return PatchFactory(self.info, target, device, species_in_capital, source)
 
     @property
     def products(self):
@@ -694,9 +738,22 @@ class Network:
     def reactants(self):
         return self._reactants
 
+    @property
+    def reactions(self):
+        """
+        The reactions in the network. Used for rendering codes. If no reaction
+        exists, a dummy reaction is auto-filled. To access the real reactions,
+        check the `reaction_list`.
+
+        Returns:
+            list[Reaction]: the list of reactions
+        """
+        return self.reaction_list or [Reaction(reaction_type=ReactionType.DUMMY)]
+
     def reindex(self) -> None:
         """
-        Reindex reactions in the network
+        Reindex reactions in the network. The index of reactions will be reset
+        to the order in the interior list.
         """
         for idx, reac in enumerate(self.reaction_list):
             reac.idxfromfile = idx
@@ -734,8 +791,35 @@ class Network:
             raise TypeError
 
     @property
+    def shielding(self) -> dict[str, str]:
+        return self._shielding
+
+    @property
     def sources(self) -> list[str]:
         return set([r.source for r in self.reaction_list])
+
+    @property
+    def species(self) -> list[Species]:
+        """
+        Species exists in the network, including the species found from
+        reactions and the required species.
+
+        Returns:
+            list[Species]: species in the network
+        """
+
+        required_species = set([Species(s) for s in self._required_species])
+        speclist = sorted(self._reactants | self._products | required_species)
+
+        connection = {sp: set() for sp in speclist}
+        for reac in self.reaction_list:
+            reacrp = reac.reactants + reac.products
+            for rp in reacrp:
+                connection[rp].update(reacrp)
+
+        speclist = sorted(speclist, key=lambda x: (len(connection[x]), x))
+
+        return speclist
 
     def templateloader(
         self,

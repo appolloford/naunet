@@ -167,28 +167,28 @@ int Naunet::Solve(double *abund, double dt, NaunetData *data) {
 
 #ifdef PYMODULE
 #ifdef IDX_ELEM_H
-py::array_t<realtype> Naunet::PyWrapRenorm(py::array_t<realtype> arr) {
+py::array_t<double> Naunet::PyWrapRenorm(py::array_t<double> arr) {
     py::buffer_info info = arr.request();
-    realtype *ab         = static_cast<realtype *>(info.ptr);
+    double *ab           = static_cast<double *>(info.ptr);
 
     int flag             = Renorm(ab);
     if (flag == NAUNET_FAIL) {
         throw std::runtime_error("Fail to renormalization");
     }
 
-    return py::array_t<realtype>(info.shape, ab);
+    return py::array_t<double>(info.shape, ab);
 }
-py::array_t<realtype> Naunet::PyWrapSetReferenceAbund(py::array_t<realtype> arr,
-                                                      int opt) {
+py::array_t<double> Naunet::PyWrapSetReferenceAbund(py::array_t<double> arr,
+                                                    int opt) {
     py::buffer_info info = arr.request();
-    realtype *ab         = static_cast<realtype *>(info.ptr);
+    double *ab           = static_cast<double *>(info.ptr);
 
     int flag             = SetReferenceAbund(ab, opt);
     if (flag == NAUNET_FAIL) {
         throw std::runtime_error("Fail to set reference abundance");
     }
 
-    return py::array_t<realtype>(info.shape, ab);
+    return py::array_t<double>(info.shape, ab);
 }
 #endif
 py::array_t<double> Naunet::PyWrapSolve(py::array_t<double> arr, double dt,

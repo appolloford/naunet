@@ -15,12 +15,12 @@ class PatchFactory:
         netinfo: NetworkInfo,
         target: str,
         device: str,
-        cap_species_name: bool = False,
+        species_in_capital: bool = False,
         source: str = None,
     ) -> None:
 
         if target.lower() == "enzo":
-            self.patch = EnzoPatch(netinfo, device, cap_species_name, source)
+            self.patch = EnzoPatch(netinfo, device, species_in_capital, source)
         else:
             raise ValueError("Not supported target!")
 
@@ -116,7 +116,7 @@ class EnzoPatch:
         self,
         netinfo: NetworkInfo,
         device: str,
-        cap_species_name: bool = False,
+        species_in_capital: bool = False,
         source: str = None,
     ) -> None:
 
@@ -134,11 +134,11 @@ class EnzoPatch:
         self.device = device
 
         enzo_species = [
-            Species(s.upper() if cap_species_name else s)
+            Species(s.upper() if species_in_capital else s)
             for s in EnzoPatch.enzo_defined_species_name
         ]
         grackle_species = [
-            Species(s.upper() if cap_species_name else s)
+            Species(s.upper() if species_in_capital else s)
             for s in EnzoPatch.grackle_species_name
         ]
         # duplicate the species in network and make them use the alias in enzo

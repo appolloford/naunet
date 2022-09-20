@@ -99,12 +99,12 @@ class RenderCommand(Command):
         print("\n".join([str(dup[1]) for dup in dupes]))
 
         # if elements are all capital, checking the repeat species in capital
-        cap_species_name = all([e == e.upper() for e in element])
+        species_in_capital = all([e == e.upper() for e in element])
         patchname = self.option("patch")
         source = self.option("patch-source")
-        # Don't change the include/src/test when rendering patches
+        # include/src/tests are not changed when rendering patches
         if patchname:
-            patch = net.patch(patchname, device, cap_species_name, source)
+            patch = net.patch(patchname, device, species_in_capital, source)
             patch.render(path=Path.cwd() / patchname)
             return
 

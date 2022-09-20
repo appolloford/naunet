@@ -38,9 +38,9 @@ class Naunet {
     int Solve(double *abund, double dt, NaunetData *data);
 #ifdef PYMODULE
 #ifdef IDX_ELEM_H
-    py::array_t<realtype> PyWrapRenorm(py::array_t<realtype> arr);
-    py::array_t<realtype> PyWrapSetReferenceAbund(py::array_t<realtype> arr,
-                                                  int opt);
+    py::array_t<double> PyWrapRenorm(py::array_t<double> arr);
+    py::array_t<double> PyWrapSetReferenceAbund(py::array_t<double> arr,
+                                                int opt);
 #endif
     py::array_t<double> PyWrapSolve(py::array_t<double> arr, double dt,
                                     NaunetData *data);
