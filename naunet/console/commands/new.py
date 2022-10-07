@@ -124,9 +124,23 @@ class NewCommand(Command):
             rate_modifier = [it.split(":") for it in rate_modifier]
             rate_modifier = {it[0].strip(): it[1].strip() for it in rate_modifier}
 
-        ode_modifier = self.option("ode-modifier")
-        if ode_modifier:
-            ode_modifier = [om.strip() for l in ode_modifier for om in l.split(";")]
+        ode_modifier_str = self.option("ode-modifier")
+        ode_modifier = {}
+        for l in ode_modifier_str:
+            for om in l.split(";"):
+                if not om:
+                    break
+                key, value = om.split(":")
+                fact, rdep = value.split(",")
+                rdep = rdep.replace("[", "").replace("]", "").strip().split()
+                if ode_modifier.get(key):
+                    ode_modifier[key]["factors"].append(fact)
+                    ode_modifier[key]["reactants"].append(rdep)
+                else:
+                    ode_modifier[key] = {
+                        "factors": [fact],
+                        "reactants": [rdep],
+                    }
 
         solver = self.option("solver")
         device = self.option("device")

@@ -376,206 +376,6 @@ class Network:
     def elements(self) -> list[Species]:
         return [spec for spec in self.species if spec.is_atom]
 
-    def find_duplicate_reaction(self, mode: str = "") -> list[tuple[int, Reaction]]:
-        """
-        Find the duplicate reactions in the network. The default behaviour checks the
-        reactants, products, temperature ranges, and reaction type. Only checking the
-        reactants and products if mode == "short".
-
-        Args:
-            mode (str, optional): the method of checking duplicates. Defaults to "".
-
-        Returns:
-            list[tuple[int, Reaction]]: the duplicate reactions and their indices
-        """
-
-        seen = {}
-        dupes = []
-
-        check_list = (
-            [f"{react:{mode}}" for react in self.reaction_list]
-            if mode
-            else self.reaction_list
-        )
-
-        for idx, chk in enumerate(check_list):
-            if chk not in seen:
-                seen[chk] = 1
-            else:
-                if seen[chk] >= 1:
-                    dupes.append((idx, chk))
-                seen[chk] += 1
-
-        return dupes
-
-    def find_source_sink(self) -> tuple[set[Species], set[Species]]:
-        """
-        Find the source/sink species in the network
-
-        Returns:
-            tuple[set[Species], set[Species]]: the tuple of (source, sink), source and
-                sink are set of Species
-        """
-        source = self._reactants.difference(self._products)
-        sink = self._products.difference(self._reactants)
-
-        return source, sink
-
-    @property
-    def grains(self) -> list[Grain]:
-        grain_groups = self.grain_groups
-
-        species = [Species(s) for s in self._required_species] + list(
-            self._reactants | self._products
-        )
-        gspec = [s for s in species if s.is_grain]
-
-        if not gspec:
-            grains = [
-                _grain_factory(
-                    self._grain_model,
-                    group=group,
-                )
-                for group in grain_groups
-            ]
-
-        else:
-            grains = [
-                _grain_factory(
-                    self._grain_model,
-                    species=[g for g in gspec if g.grain_group == group],
-                    group=group,
-                )
-                for group in grain_groups
-            ]
-
-        grains = [g for g in grains if g is not None]
-
-        return grains
-
-    @property
-    def grain_groups(self) -> list[int]:
-        species = [Species(s) for s in self._required_species] + list(
-            self._reactants | self._products
-        )
-        grain_groups = set([s.grain_group for s in species if s.is_grain])
-        surface_groups = set([s.surface_group for s in species if s.is_surface])
-        if grain_groups == surface_groups:
-            return grain_groups
-        elif grain_groups and not surface_groups:
-            logging.warning(f"Found grains but no surface reaction is involved")
-            return grain_groups
-        elif all(g in surface_groups for g in grain_groups):
-            logging.warning(
-                f"Not enough groups of grains {grain_groups} found to match "
-                f"with the surface species groups {surface_groups}."
-                f"Surface species groups ({len(surface_groups)}) will be used"
-            )
-            return surface_groups
-        else:
-            raise RuntimeError(
-                f"Grain groups {grain_groups} cannot match"
-                f"with surface groups {surface_groups}"
-            )
-
-    @property
-    def grain_model(self) -> str:
-        return self._grain_model
-
-    @grain_model.setter
-    def grain_model(self, model: str) -> None:
-        self._grain_model = model
-
-    @property
-    def heating(self) -> list[ThermalProcess]:
-        """
-        The included heating processes
-
-        Returns:
-            list[ThermalProcess]: the heating processed to be used
-        """
-        return [self.allowed_heating.get(h) for h in self._heating_names]
-
-    def where_reaction(self, reaction: Reaction, mode: str = "all") -> list[int]:
-        """
-        Find the index of a reaction
-
-        Args:
-            reaction (Reaction): target reaction
-            mode (str, optional): the way to compare the equality. Defaults to "all".
-
-        Raises:
-            RuntimeError: if mode is unkown
-
-        Returns:
-            list[int]: the index(es) of the reaction
-        """
-
-        indices = []
-
-        if mode == "all":
-            indices = [
-                idx for idx, reac in enumerate(self.reaction_list) if reac == reaction
-            ]
-
-        elif mode == "short":
-            indices = [
-                idx
-                for idx, reac in enumerate(self.reaction_list)
-                if f"{reac:short}" == f"{reaction:short}"
-            ]
-
-        else:
-            raise RuntimeError("Unknown mode: {mode}")
-
-        return indices
-
-    def where_species(self, species: Species | str, mode: str = "all") -> list[int]:
-        """
-        Find the index of reactions involving the species. Use `mode` to select find
-        in `reactants`, `products`, or `all`.
-
-        Args:
-            species (Species | str): target species or its name
-            mode (str, optional): where to find species. Defaults to "all".
-
-        Raises:
-            RuntimeError: if mode is unkown
-
-        Returns:
-            list[int]: the index(es) of the reactions
-        """
-
-        indices = []
-
-        species = species if isinstance(species, Species) else Species(species)
-
-        if mode == "reactant":
-            indices = [
-                idx
-                for idx, reac in enumerate(self.reaction_list)
-                if species in reac.reactants
-            ]
-
-        elif mode == "product":
-
-            indices = [
-                idx
-                for idx, reac in enumerate(self.reaction_list)
-                if species in reac.products
-            ]
-
-        elif mode == "all":
-
-            indices = [
-                idx for idx, reac in enumerate(self.reaction_list) if species in reac
-            ]
-
-        else:
-            raise RuntimeError("Unknown mode: {mode}")
-
-        return indices
-
     def export(
         self,
         solver: str = "cvode",
@@ -659,6 +459,123 @@ class Network:
         demo = prefix / "demo.ipynb"
         if not demo.exists():
             shutil.copyfile(pkgpath / "templates/base/demo.ipynb", demo)
+
+    def find_duplicate_reaction(self, mode: str = "") -> list[tuple[int, Reaction]]:
+        """
+        Find the duplicate reactions in the network. The default behaviour checks the
+        reactants, products, temperature ranges, and reaction type. Only checking the
+        reactants and products if mode == "short".
+
+        Args:
+            mode (str, optional): the method of checking duplicates. Defaults to "".
+
+        Returns:
+            list[tuple[int, Reaction]]: the duplicate reactions and their indices
+        """
+
+        seen = {}
+        dupes = []
+
+        check_list = (
+            [f"{react:{mode}}" for react in self.reaction_list]
+            if mode
+            else self.reaction_list
+        )
+
+        for idx, chk in enumerate(check_list):
+            if chk not in seen:
+                seen[chk] = 1
+            else:
+                if seen[chk] >= 1:
+                    dupes.append((idx, chk))
+                seen[chk] += 1
+
+        return dupes
+
+    def find_source_sink(self) -> tuple[set[Species], set[Species]]:
+        """
+        Find the source/sink species in the network
+
+        Returns:
+            tuple[set[Species], set[Species]]: the tuple of (source, sink), source and
+                sink are set of Species
+        """
+        source = self._reactants.difference(self._products)
+        sink = self._products.difference(self._reactants)
+
+        return source, sink
+
+    @property
+    def grains(self) -> list[Grain]:
+        grain_groups = self.grain_groups
+
+        gspec = [s for s in self.species if s.is_grain]
+
+        if not gspec:
+            grains = [
+                _grain_factory(
+                    self._grain_model,
+                    group=group,
+                )
+                for group in grain_groups
+            ]
+
+        else:
+            grains = [
+                _grain_factory(
+                    self._grain_model,
+                    species=[g for g in gspec if g.grain_group == group],
+                    group=group,
+                )
+                for group in grain_groups
+            ]
+
+        grains = [g for g in grains if g is not None]
+
+        return grains
+
+    @property
+    def grain_groups(self) -> list[int]:
+        species = [Species(s) for s in self._required_species] + list(
+            self._reactants | self._products
+        )
+        grain_groups = set([s.grain_group for s in species if s.is_grain])
+        surface_groups = set([s.surface_group for s in species if s.is_surface])
+        if grain_groups == surface_groups:
+            return grain_groups
+        elif grain_groups and not surface_groups:
+            logging.warning(f"Found grains but no surface reaction is involved")
+            return grain_groups
+        elif all(g in surface_groups for g in grain_groups):
+            logging.warning(
+                f"Not enough groups of grains {grain_groups} found to match "
+                f"with the surface species groups {surface_groups}."
+                f"Surface species groups ({len(surface_groups)}) will be used"
+            )
+            return surface_groups
+        else:
+            raise RuntimeError(
+                f"Grain groups {grain_groups} cannot match"
+                f"with surface groups {surface_groups}"
+            )
+
+    @property
+    def grain_model(self) -> str:
+        return self._grain_model
+
+    @grain_model.setter
+    def grain_model(self, model: str) -> None:
+        self._grain_model = model
+
+    @property
+    def heating(self) -> list[ThermalProcess]:
+        """
+        The included heating processes
+
+        Returns:
+            list[ThermalProcess]: the heating processed to be used
+        """
+        return [self.allowed_heating.get(h) for h in self._heating_names]
 
     @property
     def info(self):
@@ -859,6 +776,86 @@ class Network:
 
         tl = self.templateloader(solver, method, device, ratemodifier, odemodifier)
         tl.render(path=prefix, save=True)
+
+    def where_reaction(self, reaction: Reaction, mode: str = "all") -> list[int]:
+        """
+        Find the index of a reaction
+
+        Args:
+            reaction (Reaction): target reaction
+            mode (str, optional): the way to compare the equality. Defaults to "all".
+
+        Raises:
+            RuntimeError: if mode is unkown
+
+        Returns:
+            list[int]: the index(es) of the reaction
+        """
+
+        indices = []
+
+        if mode == "all":
+            indices = [
+                idx for idx, reac in enumerate(self.reaction_list) if reac == reaction
+            ]
+
+        elif mode == "short":
+            indices = [
+                idx
+                for idx, reac in enumerate(self.reaction_list)
+                if f"{reac:short}" == f"{reaction:short}"
+            ]
+
+        else:
+            raise RuntimeError("Unknown mode: {mode}")
+
+        return indices
+
+    def where_species(self, species: Species | str, mode: str = "all") -> list[int]:
+        """
+        Find the index of reactions involving the species. Use `mode` to select find
+        in `reactants`, `products`, or `all`.
+
+        Args:
+            species (Species | str): target species or its name
+            mode (str, optional): where to find species. Defaults to "all".
+
+        Raises:
+            RuntimeError: if mode is unkown
+
+        Returns:
+            list[int]: the index(es) of the reactions
+        """
+
+        indices = []
+
+        species = species if isinstance(species, Species) else Species(species)
+
+        if mode == "reactant":
+            indices = [
+                idx
+                for idx, reac in enumerate(self.reaction_list)
+                if species in reac.reactants
+            ]
+
+        elif mode == "product":
+
+            indices = [
+                idx
+                for idx, reac in enumerate(self.reaction_list)
+                if species in reac.products
+            ]
+
+        elif mode == "all":
+
+            indices = [
+                idx for idx, reac in enumerate(self.reaction_list) if species in reac
+            ]
+
+        else:
+            raise RuntimeError("Unknown mode: {mode}")
+
+        return indices
 
     def write(self, filename: str | Path, format: str = "") -> None:
 
