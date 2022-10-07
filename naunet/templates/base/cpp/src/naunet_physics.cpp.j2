@@ -165,30 +165,20 @@ double GetH2shieldingInt(double coldens) {
     double shielding = -1.0;
 
     /* {% if network.shielding.get("H2") == "L96Table" -%} */
-    if (coldens >= H2ShieldingTableX[104]) {
-        double x1 = H2ShieldingTableX[103];
-        double x2 = H2ShieldingTableX[104];
-        double y1 = H2ShieldingTable[103];
-        double y2 = H2ShieldingTable[104];
-        shielding =
-            log10(y1) + log10(y2 / y1) * log10(coldens / x1) / log10(x2 / x1);
-        shielding = pow(10.0, shielding);
-        return shielding;
-    }
-
-    for (int i = 0; i < 104; i++) {
-        if (coldens >= H2ShieldingTableX[i] &&
-            coldens < H2ShieldingTableX[i + 1]) {
-            double x1 = H2ShieldingTableX[i];
-            double x2 = H2ShieldingTableX[i + 1];
-            double y1 = H2ShieldingTable[i];
-            double y2 = H2ShieldingTable[i + 1];
-            shielding = log10(y1) +
-                        log10(y2 / y1) * log10(coldens / x1) / log10(x2 / x1);
-            shielding = pow(10.0, shielding);
-            return shielding;
+    int i;
+    for (i = 0; i < 103; i++) {
+        if (coldens < H2ShieldingTableX[i + 1]) {
+            break;
         }
     }
+    double x1 = H2ShieldingTableX[i];
+    double x2 = H2ShieldingTableX[i + 1];
+    double y1 = H2ShieldingTable[i];
+    double y2 = H2ShieldingTable[i + 1];
+    shielding =
+        log10(y1) + log10(y2 / y1) * log10(coldens / x1) / log10(x2 / x1);
+    shielding = pow(10.0, shielding);
+    return shielding;
 
     /* {% else -%} */
 
@@ -255,54 +245,32 @@ double GetCOshieldingInt(double tgas, double h2col, double coldens) {
     /* {% if network.shielding.get("CO") == "V09Table" -%} */
     double x1, x2, y1, y2, z1, z2;
     int i1, i2, j1, j2, k1, k2;
-    for (int i = 0; i < 4; i++) {
-        if (tgas >= COShieldingTableX[i] && tgas < COShieldingTableX[i + 1]) {
-            x1 = COShieldingTableX[i];
-            x2 = COShieldingTableX[i + 1];
-            i1 = i;
-            i2 = i + 1;
+    for (i1 = 0; i1 < 3; i1++) {
+        if (tgas < COShieldingTableX[i1 + 1]) {
+            break;
         }
     }
+    i2 = i1 + 1;
+    x1 = COShieldingTableX[i1];
+    x2 = COShieldingTableX[i2];
 
-    if (tgas >= COShieldingTableX[4]) {
-        x1 = COShieldingTableX[3];
-        x2 = COShieldingTableX[4];
-        i1 = 3;
-        i2 = 4;
-    }
-
-    for (int i = 0; i < 40; i++) {
-        if (h2col >= COShieldingTableY[i] && h2col < COShieldingTableY[i + 1]) {
-            y1 = COShieldingTableY[i];
-            y2 = COShieldingTableY[i + 1];
-            j1 = i;
-            j2 = i + 1;
+    for (j1 = 0; j1 < 39; j1++) {
+        if (h2col < COShieldingTableY[j1 + 1]) {
+            break;
         }
     }
+    j2 = j1 + 1;
+    y1 = COShieldingTableY[j1];
+    y2 = COShieldingTableY[j2];
 
-    if (h2col >= COShieldingTableY[40]) {
-        y1 = COShieldingTableY[39];
-        y2 = COShieldingTableY[40];
-        j1 = 39;
-        j2 = 40;
-    }
-
-    for (int i = 0; i < 45; i++) {
-        if (coldens >= COShieldingTableZ[i] &&
-            coldens < COShieldingTableZ[i + 1]) {
-            z1 = COShieldingTableZ[i];
-            z2 = COShieldingTableZ[i + 1];
-            k1 = i;
-            k2 = i + 1;
+    for (k1 = 0; k1 < 44; k1++) {
+        if (coldens < COShieldingTableZ[k1 + 1]) {
+            break;
         }
     }
-
-    if (coldens >= COShieldingTableZ[45]) {
-        z1 = COShieldingTableZ[44];
-        z2 = COShieldingTableZ[45];
-        k1 = 44;
-        k2 = 45;
-    }
+    k2        = k1 + 1;
+    z1        = COShieldingTableZ[k1];
+    z2        = COShieldingTableZ[k2];
 
     double mx = log10(tgas / x1) / log10(x2 / x1);
     double my = log10(h2col / y1) / log10(y2 / y1);
@@ -395,54 +363,33 @@ double GetN2shieldingInt(double tgas, double h2col, double coldens) {
     /* {% if network.shielding.get("N2") == "L13Table" -%} */
     double x1, x2, y1, y2, z1, z2;
     int i1, i2, j1, j2, k1, k2;
-    for (int i = 0; i < 4; i++) {
-        if (tgas >= N2ShieldingTableX[i] && tgas < N2ShieldingTableX[i + 1]) {
-            x1 = N2ShieldingTableX[i];
-            x2 = N2ShieldingTableX[i + 1];
-            i1 = i;
-            i2 = i + 1;
+    // find the index where tags falls in the range]
+    for (i1 = 0; i1 < 3; i1++) {
+        if (tgas < N2ShieldingTableX[i1 + 1]) {
+            break;
         }
     }
+    i2 = i1 + 1;
+    x1 = N2ShieldingTableX[i1];
+    x2 = N2ShieldingTableX[i2];
 
-    if (tgas >= N2ShieldingTableX[4]) {
-        x1 = N2ShieldingTableX[3];
-        x2 = N2ShieldingTableX[4];
-        i1 = 3;
-        i2 = 4;
-    }
-
-    for (int i = 0; i < 45; i++) {
-        if (h2col >= N2ShieldingTableY[i] && h2col < N2ShieldingTableY[i + 1]) {
-            y1 = N2ShieldingTableY[i];
-            y2 = N2ShieldingTableY[i + 1];
-            j1 = i;
-            j2 = i + 1;
+    for (j1 = 0; j1 < 44; j1++) {
+        if (h2col < N2ShieldingTableY[j1 + 1]) {
+            break;
         }
     }
+    j2 = j1 + 1;
+    y1 = N2ShieldingTableY[j1];
+    y2 = N2ShieldingTableY[j2];
 
-    if (h2col >= N2ShieldingTableY[45]) {
-        y1 = N2ShieldingTableY[44];
-        y2 = N2ShieldingTableY[45];
-        j1 = 44;
-        j2 = 45;
-    }
-
-    for (int i = 0; i < 45; i++) {
-        if (coldens >= N2ShieldingTableZ[i] &&
-            coldens < N2ShieldingTableZ[i + 1]) {
-            z1 = N2ShieldingTableZ[i];
-            z2 = N2ShieldingTableZ[i + 1];
-            k1 = i;
-            k2 = i + 1;
+    for (k1 = 0; k1 < 44; k1++) {
+        if (coldens < N2ShieldingTableZ[k1 + 1]) {
+            break;
         }
     }
-
-    if (coldens >= N2ShieldingTableZ[45]) {
-        z1 = N2ShieldingTableZ[44];
-        z2 = N2ShieldingTableZ[45];
-        k1 = 44;
-        k2 = 45;
-    }
+    k2        = k1 + 1;
+    z1        = N2ShieldingTableZ[k1];
+    z2        = N2ShieldingTableZ[k2];
 
     double mx = log10(tgas / x1) / log10(x2 / x1);
     double my = log10(h2col / y1) / log10(y2 / y1);

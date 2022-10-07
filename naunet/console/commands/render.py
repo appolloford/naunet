@@ -152,13 +152,12 @@ class RenderCommand(Command):
             tl.render_jac_pattern()
 
         summary = tomlkit.table()
-        grains = net.info.grains
         all_elements = [e.name for e in net.info.elements]
         all_species = [x.name for x in net.info.species]
         all_alias = [x.alias for x in net.info.species]
         gas_species = [s.name for s in net.info.species if not s.is_surface]
         ice_species = [g.name for g in net.info.species if g.is_surface]
-        grain_species = [s.name for g in grains for s in g.species] if grain else []
+        grain_species = [s.name for s in net.info.species if s.is_grain]
         summary["num_of_elements"] = len(net.info.elements)
         summary["num_of_species"] = len(net.info.species)
         summary["num_of_grains"] = len(net.info.grains)
