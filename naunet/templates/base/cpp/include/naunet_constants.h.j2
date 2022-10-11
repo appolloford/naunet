@@ -1,130 +1,64 @@
 
 // clang-format off
-
-{% if general.device == "gpu" %}
-extern __constant__ double pi;
+{% set spec = "__constant__" if general.device == "gpu" else "const" %}
+extern {{ spec }} double pi;
 
 // atomic mass unit (g)
-extern __constant__ double amu;
+extern {{ spec }} double amu;
 
 // mass of electron (g)
-extern __constant__ double me;
+extern {{ spec }} double me;
 
 // mass or electron (u)
-extern __constant__ double meu;
+extern {{ spec }} double meu;
 
 // mass of proton (g)
-extern __constant__ double mp;
+extern {{ spec }} double mp;
 
 // mass of neutron (g)
-extern __constant__ double mn;
+extern {{ spec }} double mn;
 
 // mass of hydrogen (g)
-extern __constant__ double mh;
+extern {{ spec }} double mh;
 
 // electron charge (esu)
-extern __constant__ double echarge;
+extern {{ spec }} double echarge;
 
 // Boltzmann constant (erg/K)
-extern __constant__ double kerg;
+extern {{ spec }} double kerg;
 
 // reduced Planck constant
-extern __constant__ double hbar;
+extern {{ spec }} double hbar;
 
 {% set components = network.reactions + network.grains + network.heating + network.cooling -%}
 {% for key, _ in components | collect_variable_items("constants") -%}
-extern __constant__ double {{ key }};
+extern {{ spec }} double {{ key }};
 {% endfor %}
 
 {% for s in network.species | selectattr("is_surface") -%}
-extern __constant__ double eb_{{ s.alias }};
+extern {{ spec }} double eb_{{ s.alias }};
 {% endfor %}
 
+{% set spec = "__device__" if general.device == "gpu" else "const" %}
 {% if network.shielding.get("H2") == "L96Table" %}
 // H2 column density
-extern __device__ double H2ShieldingTableX[105];
+extern {{ spec }} double H2ShieldingTableX[105];
 // H2 shielding factor
-extern __device__ double H2ShieldingTable[105];
+extern {{ spec }} double H2ShieldingTable[105];
 {% endif %}
 
 {% if network.shielding.get("CO") == "V09Table" %}
 // Excitation temperature
-extern __device__ double COShieldingTableX[5];
+extern {{ spec }} double COShieldingTableX[5];
 // H2 column density
-extern __device__ double COShieldingTableY[41];
+extern {{ spec }} double COShieldingTableY[41];
 // CO column density
-extern __device__ double COShieldingTableZ[46];
+extern {{ spec }} double COShieldingTableZ[46];
 // CO shielding factor
-extern __device__ double COShieldingTable[5][41][46];
+extern {{ spec }} double COShieldingTable[5][41][46];
 {% endif %}
 
-{% if network.shielding.get("N2") == "L13Table" %}
-// Excitation temperature
-extern __device__ double N2ShieldingTableX[5];
-// H2 column density
-extern __device__ double N2ShieldingTableY[46];
-// N2 column density
-extern __device__ double N2ShieldingTableZ[46];
-// N2 shielding factor
-extern __device__ double N2ShieldingTable[5][46][46];
-{% endif %}
-
-{% else %}
-extern const double pi;
-
-// atomic mass unit (g)
-extern const double amu;
-
-// mass of electron (g)
-extern const double me;
-
-// mass or electron (u)
-extern const double meu;
-
-// mass of proton (g)
-extern const double mp;
-
-// mass of neutron (g)
-extern const double mn;
-
-// mass of hydrogen (g)
-extern const double mh;
-
-// electron charge (esu)
-extern const double echarge;
-
-// Boltzmann constant (erg/K)
-extern const double kerg;
-
-// reduced Planck constant
-extern const double hbar;
-
-{% set components = network.reactions + network.grains + network.heating + network.cooling -%}
-{% for key, _ in components | collect_variable_items("constants") -%}
-extern const double {{ key }};
-{% endfor %}
-
-{% for s in network.species | selectattr("is_surface") -%}
-extern const double eb_{{ s.alias }};
-{% endfor %}
-
-{% if network.shielding.get("H2") == "L96Table" %}
-// H2 column density
-extern const double H2ShieldingTableX[105];
-// shielding factor (theta)
-extern const double H2ShieldingTable[105];
-{% endif %}
-
-{% if network.shielding.get("CO") == "V09Table" %}
-// Excitation temperature
-extern const double COShieldingTableX[5];
-// H2 column density
-extern const double COShieldingTableY[41];
-// CO column density
-extern const double COShieldingTableZ[46];
-// CO shielding factor
-extern const double COShieldingTable[5][41][46];
-{% elif network.shielding.get("CO") == "VB88Table" %}
+{% if network.shielding.get("CO") == "VB88Table" and general.device == "cpu" %}
 // van Dishoeck & Black (1988)
 // H2 column density
 extern const double COShieldingTableX[6];
@@ -138,13 +72,11 @@ extern const double COShieldingTable[6][7];
 
 {% if network.shielding.get("N2") == "L13Table" %}
 // Excitation temperature
-extern const double N2ShieldingTableX[5];
+extern {{ spec }} double N2ShieldingTableX[5];
 // H2 column density
-extern const double N2ShieldingTableY[46];
+extern {{ spec }} double N2ShieldingTableY[46];
 // N2 column density
-extern const double N2ShieldingTableZ[46];
+extern {{ spec }} double N2ShieldingTableZ[46];
 // N2 shielding factor
-extern const double N2ShieldingTable[5][46][46];
-{% endif %}
-
+extern {{ spec }} double N2ShieldingTable[5][46][46];
 {% endif %}

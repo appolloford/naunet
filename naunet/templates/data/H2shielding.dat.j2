@@ -1,11 +1,7 @@
+{% set spec = "__device__" if general.device == "gpu" else "const" %}
 // Table of H2 self-shielding factor (Walsh et al. 2015)
 // H2 column density
-{% if general.device == "gpu" %}
-__device__
-{% else %}
-const
-{% endif %}
-double H2ShieldingTableX[105] = 
+{{ spec }} double H2ShieldingTableX[105] = 
 {% raw -%}
 {0.000e+00, 3.690e+11, 3.715e+12, 3.948e+13, 1.233e+14, 
  2.536e+14, 4.342e+14, 6.653e+14, 6.689e+14, 9.075e+14, 
@@ -30,12 +26,7 @@ double H2ShieldingTableX[105] =
  4.644e+21, 5.127e+21, 5.945e+21, 8.205e+21, 1.015e+22};
 {% endraw %}
 
-{% if general.device == "gpu" %}
-__device__
-{% else %}
-const
-{% endif %}
-double H2ShieldingTable[105] =
+{{ spec }} double H2ShieldingTable[105] =
 {% raw -%}
 {1.000e+00, 9.983e-01, 9.853e-01, 8.761e-01, 7.199e-01, 
  5.728e-01, 4.455e-01, 3.431e-01, 3.418e-01, 2.732e-01, 

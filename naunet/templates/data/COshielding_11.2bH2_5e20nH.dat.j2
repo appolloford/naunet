@@ -1,22 +1,13 @@
+{% set spec = "__device__" if general.device == "gpu" else "const" %}
 // Table of CO self-shielding factor
 // Excitation temperature
-{% if general.device == "gpu" %}
-__device__
-{% else %}
-const
-{% endif %}
-double COShieldingTableX[5] = 
+{{ spec }} double COShieldingTableX[5] = 
 {% raw -%}
 {5.0, 20.0, 50.0, 100.0, 1000.0};
 {% endraw %}
 
 // H2 column density
-{% if general.device == "gpu" %}
-__device__
-{% else %}
-const
-{% endif %}
-double COShieldingTableY[41] = 
+{{ spec }} double COShieldingTableY[41] = 
 {% raw -%}
 {1.000e+15, 1.585e+15, 2.512e+15, 3.981e+15, 6.310e+15, 1.000e+16, 1.585e+16,
  2.512e+16, 3.981e+16, 6.310e+16, 1.000e+17, 1.585e+17, 2.512e+17, 3.981e+17,
@@ -27,12 +18,7 @@ double COShieldingTableY[41] =
 {% endraw %}
 
 // CO column density
-{% if general.device == "gpu" %}
-__device__
-{% else %}
-const
-{% endif %}
-double COShieldingTableZ[46] = 
+{{ spec }} double COShieldingTableZ[46] = 
 {% raw -%}
 {1.000e+10, 1.585e+10, 2.512e+10, 3.981e+10, 6.310e+10, 1.000e+11, 1.585e+11,
  2.512e+11, 3.981e+11, 6.310e+11, 1.000e+12, 1.585e+12, 2.512e+12, 3.981e+12,
@@ -43,12 +29,7 @@ double COShieldingTableZ[46] =
  2.512e+18, 3.981e+18, 6.310e+18, 1.000e+19};
 {% endraw %}
 
-{% if general.device == "gpu" %}
-__device__
-{% else %}
-const
-{% endif %}
-double COShieldingTable[5][41][46] = 
+{{ spec }} double COShieldingTable[5][41][46] = 
 {% raw -%}
 {{{8.524e-01, 8.524e-01, 8.523e-01, 8.523e-01, 8.522e-01, 8.521e-01,
    8.519e-01, 8.515e-01, 8.510e-01, 8.502e-01, 8.489e-01, 8.468e-01,

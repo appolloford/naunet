@@ -1,86 +1,44 @@
 
 // clang-format off
 #include "naunet_constants.h"
-
-{% if general.device == "gpu" %}
-__constant__ double pi              = 3.1415926;
+{% set spec = "__constant__" if general.device == "gpu" else "const" %}
+{{ spec }} double pi              = 3.1415926;
 
 // atomic mass unit (g)
-__constant__ double amu             = 1.6605402e-24;
+{{ spec }} double amu             = 1.6605402e-24;
 
 // mass of electron (g)
-__constant__ double me              = 9.1093897e-28;
+{{ spec }} double me              = 9.1093897e-28;
 
 // mass or electron (u)
-__constant__ double meu             = 5.48579909e-4;
+{{ spec }} double meu             = 5.48579909e-4;
 
 // mass of proton (g)
-__constant__ double mp              = 1.6726231e-24;
+{{ spec }} double mp              = 1.6726231e-24;
 
 // mass of neutron (g)
-__constant__ double mn              = 1.6749286e-24;
+{{ spec }} double mn              = 1.6749286e-24;
 
 // mass of hydrogen (g)
-__constant__ double mh              = 1.6733e-24;
+{{ spec }} double mh              = 1.6733e-24;
 
 // electron charge (esu)
-__constant__ double echarge         = 4.80320425e-10;
+{{ spec }} double echarge         = 4.80320425e-10;
 
 // Boltzmann constant (erg/K)
-__constant__ double kerg            = 1.380658e-16;
+{{ spec }} double kerg            = 1.380658e-16;
 
 // reduced Planck constant
-__constant__ double hbar            = 1.054571726e-27;
+{{ spec }} double hbar            = 1.054571726e-27;
 
 {% set components = network.reactions + network.grains + network.heating + network.cooling -%}
 {% for key, value in components | collect_variable_items("constants") -%}
-__constant__ double {{ key }} = {{ value }};
+{{ spec }} double {{ key }} = {{ value }};
 {% endfor %}
 
 {% for s in network.species | selectattr("is_surface") -%}
-__constant__ double eb_{{ s.alias }} = {{ s.eb }};
+{{ spec }} double eb_{{ s.alias }} = {{ s.eb }};
 {% endfor %}
-
-{% else %}
-const double pi              = 3.1415926;
-
-// atomic mass unit (g)
-const double amu             = 1.6605402e-24;
-
-// mass of electron (g)
-const double me              = 9.1093897e-28;
-
-// mass or electron (u)
-const double meu             = 5.48579909e-4;
-
-// mass of proton (g)
-const double mp              = 1.6726231e-24;
-
-// mass of neutron (g)
-const double mn              = 1.6749286e-24;
-
-// mass of hydrogen (g)
-const double mh              = 1.6733e-24;
-
-// electron charge (esu)
-const double echarge         = 4.80320425e-10;
-
-// Boltzmann constant (erg/K)
-const double kerg            = 1.380658e-16;
-
-// reduced Planck constant
-const double hbar            = 1.054571726e-27;
-
-{% set components = network.reactions + network.grains + network.heating + network.cooling -%}
-{% for key, value in components | collect_variable_items("constants") -%}
-const double {{ key }} = {{ value }};
-{% endfor %}
-
-{% for s in network.species | selectattr("is_surface") -%}
-const double eb_{{ s.alias }} = {{ s.eb }};
-{% endfor %}
-
-{% endif %}
 
 {% if network.shielding.get("H2") == "L96Table" %}
 {% include "data/H2shielding.dat.j2" %}
