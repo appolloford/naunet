@@ -14,6 +14,8 @@ from pathlib import Path
 from importlib import util
 from tomlkit.toml_file import TOMLFile
 
+from naunet.templateloader import TemplateLoader
+
 from .command import Command
 
 
@@ -83,6 +85,7 @@ class RenderCommand(Command):
         update_binding_energy(binding)
         update_photon_yield(yields)
 
+        rate_modifier = {int(key): value for key, value in rate_modifier.items()}
         net = Network(
             filelist=network,
             fileformats=format,
@@ -92,6 +95,8 @@ class RenderCommand(Command):
             heating=heating,
             cooling=cooling,
             shielding=shielding,
+            rate_modifier=rate_modifier,
+            ode_modifier=ode_modifier,
         )
 
         dupes = net.find_duplicate_reaction()
@@ -130,26 +135,15 @@ class RenderCommand(Command):
             else:
                 os.mkdir(prefix)
 
-        rate_modifier = {int(key): value for key, value in rate_modifier.items()}
-        tl = net.templateloader(
-            solver=solver,
-            method=method,
-            device=device,
-            ratemodifier=rate_modifier,
-            odemodifier=ode_modifier,
-        )
-
-        tl.render(path=Path.cwd())
+        pattern = self.option("with-pattern")
+        tl = TemplateLoader(solver=solver, method=method, device=device)
+        tl.render(net, path=Path.cwd(), jac_pattern=pattern)
 
         pkgpath = Path(naunet.__file__).parent
 
         demo = Path.cwd() / "demo.ipynb"
         if not demo.exists():
             shutil.copyfile(pkgpath / "templates/base/demo.ipynb", demo)
-
-        pattern = self.option("with-pattern")
-        if pattern:
-            tl.render_jac_pattern()
 
         summary = tomlkit.table()
         all_elements = [e.name for e in net.info.elements]

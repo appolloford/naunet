@@ -38,10 +38,6 @@ int EvalRates(realtype *k, realtype *y, NaunetData *u_data) {
         {{ assign | stmwrap(80, 8) }}
         {{ "" }}
     {% endfor %}
-
-    {% for m in ode.ratemodifier -%}
-        {{ m }};
-    {% endfor %}
     // clang-format on
 
     return NAUNET_SUCCESS;

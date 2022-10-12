@@ -111,6 +111,8 @@ class Network:
         cooling: list[str] = None,
         shielding: dict[str, str] = None,
         grain_model: str = "",
+        rate_modifier: dict[int, str] = None,
+        ode_modifier: dict[str, dict[str, list[str | list[str]]]] = None,
     ) -> None:
 
         self.reaction_list = []
@@ -128,6 +130,8 @@ class Network:
         self._heating_names = heating.copy() if heating else []
         self._cooling_names = cooling.copy() if cooling else []
         self._grain_model = grain_model
+        self._rate_modifier = rate_modifier.copy() if rate_modifier else {}
+        self._ode_modifier = ode_modifier.copy() if ode_modifier else {}
 
         if allowed_species and required_species:
 
@@ -386,7 +390,7 @@ class Network:
         prefix: str | Path = "network_export",
         overwrite: bool = False,
     ) -> None:
-        tl = self.templateloader(solver, method, device, ratemodifier, odemodifier)
+        tl = TemplateLoader(solver, method, device)
 
         prefix = Path.cwd() / Path(prefix)
         if not os.path.exists(prefix):
@@ -408,8 +412,8 @@ class Network:
             logger.warning("Config file exists! Stop exporting!")
             return
 
-        binding = {s.name: s.eb for s in self.info.species if s.is_surface}
-        yields = {s.name: s.photon_yield() for s in self.info.species if s.is_surface}
+        binding = {s.name: s.eb for s in self.species if s.is_surface}
+        yields = {s.name: s.photon_yield() for s in self.species if s.is_surface}
 
         config = Configuration(
             "network_export",
@@ -451,7 +455,7 @@ class Network:
             else:
                 os.mkdir(subprefix)
 
-        tl.render(path=prefix)
+        tl.render(self, path=prefix)
         tl.render_tests(path=prefix)
 
         pkgpath = Path(__file__).parent
@@ -623,6 +627,14 @@ class Network:
 
         return self._info
 
+    @property
+    def ode_modifier(self) -> dict[str, dict[str, list[str | list[str]]]]:
+        return self._ode_modifier
+
+    @ode_modifier.setter
+    def ode_modifier(self, omod: dict[str, dict[str, list[str | list[str]]]]) -> None:
+        self._ode_modifier = omod.copy()
+
     def patch(
         self,
         target: str,
@@ -650,6 +662,14 @@ class Network:
     @property
     def products(self):
         return self._products
+
+    @property
+    def rate_modifier(self) -> dict[int, str]:
+        return self._rate_modifier
+
+    @rate_modifier.setter
+    def rate_modifier(self, rmod: dict[int, str]) -> None:
+        self._rate_modifier = rmod.copy()
 
     @property
     def reactants(self):
@@ -738,44 +758,16 @@ class Network:
 
         return speclist
 
-    def templateloader(
-        self,
-        solver: str,
-        method: str,
-        device: str,
-        ratemodifier: dict[int, str] = None,
-        odemodifier: dict[str, dict[str, list[str | list[str]]]] = None,
-    ) -> TemplateLoader:
-
-        reactindices = [reac.idxfromfile for reac in self.reaction_list]
-        if all([idx == -1 for idx in reactindices]):
-            self.reindex()
-            logger.warning(
-                "Reactions have no index information, reindex with the joining order."
-            )
-        elif any([idx == -1 for idx in reactindices]) and ratemodifier:
-            logger.warning(
-                "Some reaction has not set index. The rate modifier will not work on them."
-            )
-        # TODO: repeat indices
-
-        self._templateloader = TemplateLoader(
-            self.info, solver, method, device, ratemodifier, odemodifier
-        )
-        return self._templateloader
-
     def to_code(
         self,
         solver: str = "cvode",
         method: str = "dense",
         device: str = "cpu",
-        ratemodifier: dict[int, str] = None,
-        odemodifier: dict[str, dict[str, list[str | list[str]]]] = None,
-        prefix: str = "./",
-    ):
+        path: str = "./",
+    ) -> None:
 
-        tl = self.templateloader(solver, method, device, ratemodifier, odemodifier)
-        tl.render(path=prefix, save=True)
+        tl = TemplateLoader(solver, method, device)
+        tl.render(self, path=path, save=True)
 
     def where_reaction(self, reaction: Reaction, mode: str = "all") -> list[int]:
         """

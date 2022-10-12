@@ -20,6 +20,6 @@ def networkinfo():
     )
 
 
-def test_init_templateloader(networkinfo):
-    tl = TemplateLoader(networkinfo, "cvode", "sparse", "cpu")
+def test_init_templateloader():
+    tl = TemplateLoader("cvode", "sparse", "cpu")
     print(tl.templates)

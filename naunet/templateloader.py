@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+import logging
 import os
 from dataclasses import dataclass
 from importlib.metadata import version
 from pathlib import Path
 from tqdm import tqdm
+from typing import TYPE_CHECKING
 from jinja2 import Template, Environment, PackageLoader
 
 from .species import Species
@@ -13,6 +15,9 @@ from .reactiontype import ReactionType
 from .thermalprocess import ThermalProcess
 from .grains.grain import Grain
 from .utilities import _collect_variable_items, _prefix, _suffix, _stmwrap
+
+if TYPE_CHECKING:
+    from .network import Network
 
 # class RelativeEnvironment(Environment):
 #     """Override join_path() to enable relative template paths."""
@@ -84,23 +89,16 @@ class TemplateLoader:
         crateeqns: list[str]
         fex: list[str]
         jac: TemplateLoader.Jacobian
-        ratemodifier: list[str] = None
 
     @dataclass
     class RenormContent:
         factor: list[str]
         matrix: list[str]
 
-    def __init__(
-        self,
-        netinfo: NetworkInfo,
-        solver: str,
-        method: str,
-        device: str,
-        rate_modifier: dict[int, str] = None,
-        ode_modifier: dict[str, dict[str, list[str | list[str]]]] = None,
-    ) -> None:
+    def __init__(self, solver: str, method: str, device: str, source: str = "") -> None:
 
+        # source = source or f"templates/{solver}"
+        # loader = PackageLoader("naunet", source)
         loader = PackageLoader("naunet")
         # self._env = RelativeEnvironment(loader=loader)
         self._env = Environment(loader=loader)
@@ -112,17 +110,8 @@ class TemplateLoader:
         self._env.trim_blocks = True
         self._env.rstrip_blocks = True
 
-        self._network_info = netinfo
         self._solver = solver
-
-        reactions = netinfo.reactions
-        if not reactions:
-            dummy = Reaction(reaction_type=ReactionType.DUMMY)
-            reactions.append(dummy)
-
         self._general = self.GeneralInfo(method, device, version("naunet"))
-        self._ode = self._prepare_ode_content(netinfo, rate_modifier, ode_modifier)
-        self._renorm = self._prepare_renorm_content(netinfo)
 
     def _assign_rates(
         self,
@@ -170,7 +159,7 @@ class TemplateLoader:
         netinfo: NetworkInfo,
         rate_modifier: dict[int, str] = None,
         ode_modifier: dict[str, dict[str, list[str | list[str]]]] = None,
-    ) -> None:
+    ) -> ODEContent:
 
         species = netinfo.species
         reactions = netinfo.reactions
@@ -179,21 +168,17 @@ class TemplateLoader:
         cooling = netinfo.cooling
         grains = netinfo.grains
 
-        ode_modifier = ode_modifier or {}
-        ratemodifier = rate_modifier.copy() if rate_modifier else {}
-        ratemodifier = [
-            f"k[{idx}] = {value}"
-            for idx, reac in enumerate(reactions)
-            for key, value in ratemodifier.items()
-            if key == reac.idxfromfile
-        ]
-
         has_thermal = True if netinfo.heating or netinfo.cooling else False
         n_spec = len(species)
         n_eqns = max(n_spec + has_thermal, 1)
 
         rate_sym = "k"
         rateeqns = self._assign_rates(rate_sym, reactions, grains)
+
+        for idx, reac in enumerate(reactions):
+            for key, value in rate_modifier.items():
+                if key == reac.idxfromfile:
+                    rateeqns[idx] = f"{rate_sym}[{idx}] = {value}"
 
         y = [f"y[IDX_{x.alias}]" for x in species]
         if has_thermal:
@@ -327,16 +312,9 @@ class TemplateLoader:
 
         jac = self.Jacobian(n_eqns, nnz, spjacrptr, spjaccval, spjacdata, jacrhs)
 
-        return self.ODEContent(
-            rateeqns,
-            hrateeqns,
-            crateeqns,
-            fex,
-            jac,
-            ratemodifier=ratemodifier,
-        )
+        return self.ODEContent(rateeqns, hrateeqns, crateeqns, fex, jac)
 
-    def _prepare_renorm_content(self, netinfo: NetworkInfo) -> None:
+    def _prepare_renorm_content(self, netinfo: NetworkInfo) -> RenormContent:
 
         # get the exact element string
         elements = netinfo.elements
@@ -371,15 +349,18 @@ class TemplateLoader:
     def _render(
         self,
         template: Template,
+        info: NetworkInfo = None,
+        ode: ODEContent = None,
+        renorm: RenormContent = None,
         save: bool = True,
         path: Path | str = None,
     ) -> None:
 
         result = template.render(
             general=self._general,
-            network=self._network_info,
-            ode=self._ode,
-            renorm=self._renorm,
+            network=info,
+            ode=ode,
+            renorm=renorm,
         )
         name = template.name.replace(".j2", "")
         name = name.replace(f"{self._solver}/", "")
@@ -406,51 +387,75 @@ class TemplateLoader:
 
     def render(
         self,
+        network: Network,
         templates: list[str] = None,
         save: bool = True,
         path: Path | str = None,
+        jac_pattern: bool = False,
     ) -> None:
 
         templates = templates or self.templates
         solver = self._solver
 
+        reactindices = [reac.idxfromfile for reac in network.reactions]
+        if all([idx == -1 for idx in reactindices]):
+            network.reindex()
+            logging.warning(
+                "Reactions have no index information, reindex with the joining order."
+            )
+        elif any([idx == -1 for idx in reactindices]) and network.rate_modifier:
+            logging.warning(
+                "Some reaction has not set index. The rate modifier will not work on them."
+            )
+
+        info = NetworkInfo(
+            network.elements,
+            network.species,
+            network.reactions or [Reaction(reaction_type=ReactionType.DUMMY)],
+            network.heating,
+            network.cooling,
+            network.grains,
+            network.shielding,
+        )
+        rate_modifier = network.rate_modifier
+        ode_modifier = network.ode_modifier
+        ode = self._prepare_ode_content(info, rate_modifier, ode_modifier)
+        renorm = self._prepare_renorm_content(info)
+
         for tmplname in templates:
             tmpl = self._env.get_template(f"{solver}/{tmplname}")
-            self._render(tmpl, save, path)
+            self._render(tmpl, info, ode, renorm, save, path)
+
+        if jac_pattern:
+            jacrhs = ode.jac.rhs
+            n_eqns = ode.jac.nrow
+
+            pattern = [0 if j == "0.0" else 1 for j in jacrhs]
+
+            rowpattern = []
+            for row in range(n_eqns):
+                rowdata = pattern[row * n_eqns : (row + 1) * n_eqns]
+                rowpattern.append(" ".join(str(e) for e in rowdata))
+
+            pattern = "\n".join(rowpattern)
+
+            with open(path / "jac_pattern.dat", "w") as outf:
+                outf.write(pattern)
 
     @property
-    def templates(self):
+    def templates(self) -> list[str]:
+        """
+        List of all available templates for current solver
+
+        Returns:
+            list[str]: list of templates
+        """
         solver = self._solver
         return [
             tmpl.replace(f"{solver}/", "")
             for tmpl in self._env.list_templates()
             if tmpl.startswith(solver)
         ]
-
-    def render_jac_pattern(self, path: Path | str = "./") -> None:
-        """
-        Render the pattern of jacobian matrix, saved in texts of 0 and 1
-
-        Args:
-            path (Path | str, optional): path to save file. Defaults to "./".
-        """
-
-        path = Path(path)
-
-        jacrhs = self._ode.jac.rhs
-        n_eqns = self._ode.jac.nrow
-
-        pattern = [0 if j == "0.0" else 1 for j in jacrhs]
-
-        rowpattern = []
-        for row in range(n_eqns):
-            rowdata = pattern[row * n_eqns : (row + 1) * n_eqns]
-            rowpattern.append(" ".join(str(e) for e in rowdata))
-
-        pattern = "\n".join(rowpattern)
-
-        with open(path / "jac_pattern.dat", "w") as outf:
-            outf.write(pattern)
 
     def render_tests(self, path: Path | str) -> None:
 
@@ -462,4 +467,4 @@ class TemplateLoader:
 
         for tmplname in tmplnamelist:
             tmpl = testenv.get_template(tmplname)
-            self._render(tmpl, True, path / "tests")
+            self._render(tmpl, save=True, path=path / "tests")

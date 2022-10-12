@@ -233,26 +233,26 @@ def test_check_duplicate(datadir, filename, mode, dupidx):
 def test_generate_cvode_code_from_kida(tmp_path, datadir):
     network = Network()
     network.add_reaction_from_file(datadir / "minimal.kida", "kida")
-    network.to_code(method="sparse", prefix=tmp_path / "cvode_kida")
+    network.to_code(method="sparse", path=tmp_path / "cvode_kida")
 
 
 def test_generate_cvode_code_from_leeds(tmp_path, datadir):
     network = Network()
     network.add_reaction_from_file(datadir / "rate12_HO.leeds", "leeds")
-    network.to_code(prefix=tmp_path / "cvode_leeds")
+    network.to_code(path=tmp_path / "cvode_leeds")
 
 
 def test_generate_cvode_code_from_krome(tmp_path, datadir):
     network = Network()
     network.add_reaction_from_file(datadir / "primordial.krome", "krome")
-    network.to_code(prefix=tmp_path / "cvode_krome")
+    network.to_code(path=tmp_path / "cvode_krome")
 
 
 def test_generate_odeint_code_from_krome(tmp_path, datadir):
     network = Network()
     network.add_reaction_from_file(datadir / "primordial.krome", "krome")
-    prefix = tmp_path / "odeint_krome"
-    network.to_code(solver="odeint", method="rosenbrock4", prefix=prefix)
+    path = tmp_path / "odeint_krome"
+    network.to_code(solver="odeint", method="rosenbrock4", path=path)
 
 
 def test_write_network(tmp_path, datadir):
