@@ -454,7 +454,7 @@ class Network:
             solver=solver,
             device=device,
             method=method,
-            networkinfo=self.info,
+            instance=self,
         )
 
         content = config.content

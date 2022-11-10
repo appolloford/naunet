@@ -3,9 +3,12 @@ from __future__ import annotations
 import tomlkit
 
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 from .species import Species
-from .templateloader import NetworkInfo
+
+if TYPE_CHECKING:
+    from .network import Network
 
 NAUNET_CONFIG_DEFAULT = """\
 # Naunet config document
@@ -84,7 +87,7 @@ class Configuration:
         solver: str = "cvode",
         device: str = "cpu",
         method: str = "dense",
-        networkinfo: NetworkInfo = None,
+        instance: Network = None,
     ) -> None:
 
         self._name = project
@@ -109,7 +112,7 @@ class Configuration:
         self._solver = solver
         self._device = device
         self._method = method
-        self._networkinfo = networkinfo
+        self._instance = instance
 
     @property
     def content(self) -> str:
@@ -144,24 +147,25 @@ class Configuration:
         odesolver["method"] = self._method
 
         summary = content["summary"]
-        info = self._networkinfo
-        if info:
-            grains = info.grains
-            gas_species = [s.name for s in info.species if not s.is_surface]
-            ice_species = [g.name for g in info.species if g.is_surface]
+
+        instance = self._instance
+        if instance:
+            grains = instance.grains
+            gas_species = [s.name for s in instance.species if not s.is_surface]
+            ice_species = [g.name for g in instance.species if g.is_surface]
             grain_species = (
                 [s.name for g in grains for s in g.species] if grains else []
             )
-            summary["num_of_elements"] = len(info.elements)
-            summary["num_of_species"] = len(info.species)
-            summary["num_of_grains"] = len(info.grains)
+            summary["num_of_elements"] = len(instance.elements)
+            summary["num_of_species"] = len(instance.species)
+            summary["num_of_grains"] = len(instance.grains)
             summary["num_of_gas_species"] = len(gas_species)
             summary["num_of_ice_species"] = len(ice_species)
             summary["num_of_grain_species"] = len(grain_species)
-            summary["num_of_reactions"] = len(info.reactions)
-            summary["list_of_elements"] = [x.name for x in info.elements]
-            summary["list_of_species"] = [x.name for x in info.species]
-            summary["list_of_species_alias"] = [x.alias for x in info.species]
+            summary["num_of_reactions"] = len(instance.reactions)
+            summary["list_of_elements"] = [x.name for x in instance.elements]
+            summary["list_of_species"] = [x.name for x in instance.species]
+            summary["list_of_species_alias"] = [x.alias for x in instance.species]
             summary["list_of_gas_species"] = gas_species
             summary["list_of_ice_species"] = ice_species
             summary["list_of_grain_species"] = grain_species

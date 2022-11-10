@@ -146,19 +146,19 @@ class RenderCommand(Command):
             shutil.copyfile(pkgpath / "templates/base/demo.ipynb", demo)
 
         summary = tomlkit.table()
-        all_elements = [e.name for e in net.info.elements]
-        all_species = [x.name for x in net.info.species]
-        all_alias = [x.alias for x in net.info.species]
-        gas_species = [s.name for s in net.info.species if not s.is_surface]
-        ice_species = [g.name for g in net.info.species if g.is_surface]
-        grain_species = [s.name for s in net.info.species if s.is_grain]
-        summary["num_of_elements"] = len(net.info.elements)
-        summary["num_of_species"] = len(net.info.species)
-        summary["num_of_grains"] = len(net.info.grains)
+        all_elements = [e.name for e in net.elements]
+        all_species = [x.name for x in net.species]
+        all_alias = [x.alias for x in net.species]
+        gas_species = [s.name for s in net.species if not s.is_surface]
+        ice_species = [g.name for g in net.species if g.is_surface]
+        grain_species = [s.name for s in net.species if s.is_grain]
+        summary["num_of_elements"] = len(net.elements)
+        summary["num_of_species"] = len(net.species)
+        summary["num_of_grains"] = len(net.grains)
         summary["num_of_gas_species"] = len(gas_species)
         summary["num_of_ice_species"] = len(ice_species)
         summary["num_of_grain_species"] = len(grain_species)
-        summary["num_of_reactions"] = len(net.info.reactions)
+        summary["num_of_reactions"] = len(net.reactions)
         summary["list_of_elements"] = all_elements
         summary["list_of_species"] = all_species
         summary["list_of_species_alias"] = all_alias
@@ -180,7 +180,7 @@ class RenderCommand(Command):
                 outf.write(f"ngas = {len(gas_species)}\n")
                 outf.write(f"nice = {len(ice_species)}\n")
                 outf.write(f"ngrain = {len(grain_species)}\n")
-                outf.write(f"nreac = {len(net.info.reactions)}\n")
+                outf.write(f"nreac = {len(net.reactions)}\n")
                 outf.write("\n\n")
 
                 speclistlist = [
@@ -208,7 +208,7 @@ class RenderCommand(Command):
                         outf.write("\n\n")
 
                 for ele in Species.known_elements():
-                    specnatom = [s.element_count.get(ele, 0) for s in net.info.species]
+                    specnatom = [s.element_count.get(ele, 0) for s in net.species]
                     eledictstr = f",\n    ".join(
                         f"'{s}': {natom}"
                         for s, natom in zip(all_species, specnatom)
