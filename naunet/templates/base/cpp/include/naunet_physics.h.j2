@@ -1,42 +1,20 @@
-
-/* {% if general.device == "gpu" %} */
-__device__ __host__ double GetElementAbund(double *y, int elemidx);
-__device__ __host__ double GetMantleDens(double *y);
-__device__ __host__ double GetHNuclei(double *y);
-__device__ __host__ double GetMu(double *y);
-__device__ __host__ double GetGamma(double *y);
-__device__ __host__ double GetNumDens(double *y);
-__device__ double GetShieldingFactor(int specidx, double h2coldens,
-                                     double spcoldens, double tgas, int method);
-__device__ double GetH2shielding(double coldens, int method);
-__device__ double GetCOshielding(double tgas, double h2col, double coldens,
-                                 int method);
-__device__ double GetN2shielding(double tgas, double h2col, double coldens,
-                                 int method);
-__device__ double GetH2shieldingInt(double coldens);
-__device__ double GetH2shieldingFGK(double coldens);
-__device__ double GetCOshieldingInt(double tgas, double h2col, double coldens);
-__device__ double GetCOshieldingInt1(double h2col, double coldens);
-__device__ double GetN2shieldingInt(double tgas, double h2col, double coldens);
-__device__ double GetGrainScattering(double av, double wavelength);
-__device__ double GetCharactWavelength(double h2col, double cocol);
-/* {% else %} */
-double GetElementAbund(double *y, int elemidx);
-double GetMantleDens(double *y);
-double GetHNuclei(double *y);
-double GetMu(double *y);
-double GetGamma(double *y);
-double GetNumDens(double *y);
-double GetShieldingFactor(int specidx, double h2coldens, double spcoldens,
-                          double tgas, int method);
-double GetH2shielding(double coldens, int method);
-double GetCOshielding(double tgas, double h2col, double coldens, int method);
-double GetN2shielding(double tgas, double h2col, double coldens, int method);
-double GetH2shieldingInt(double coldens);
-double GetH2shieldingFGK(double coldens);
-double GetCOshieldingInt(double tgas, double h2col, double coldens);
-double GetCOshieldingInt1(double h2col, double coldens);
-double GetN2shieldingInt(double tgas, double h2col, double coldens);
-double GetGrainScattering(double av, double wavelength);
-double GetCharactWavelength(double h2col, double cocol);
-/* {% endif %} */
+// clang-format off
+/* {% set spec = "__device__ __host__ " if general.device == "gpu" else "" %} */
+{{ spec }}double GetElementAbund(double *y, int elemidx);
+{{ spec }}double GetMantleDens(double *y);
+{{ spec }}double GetHNuclei(double *y);
+{{ spec }}double GetMu(double *y);
+{{ spec }}double GetGamma(double *y);
+{{ spec }}double GetNumDens(double *y);
+/* {% set spec = "__device__ " if general.device == "gpu" else "" %} */
+{{ spec }}double GetShieldingFactor(int specidx, double h2coldens, double spcoldens, double tgas, int method);
+{{ spec }}double GetH2shielding(double coldens, int method);
+{{ spec }}double GetCOshielding(double tgas, double h2col, double coldens, int method);
+{{ spec }}double GetN2shielding(double tgas, double h2col, double coldens, int method);
+{{ spec }}double GetH2shieldingInt(double coldens);
+{{ spec }}double GetH2shieldingFGK(double coldens);
+{{ spec }}double GetCOshieldingInt(double tgas, double h2col, double coldens);
+{{ spec }}double GetCOshieldingInt1(double h2col, double coldens);
+{{ spec }}double GetN2shieldingInt(double tgas, double h2col, double coldens);
+{{ spec }}double GetGrainScattering(double av, double wavelength);
+{{ spec }}double GetCharactWavelength(double h2col, double cocol);

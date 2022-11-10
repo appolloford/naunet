@@ -95,10 +95,8 @@ class TemplateLoader:
         factor: list[str]
         matrix: list[str]
 
-    def __init__(self, solver: str, method: str, device: str, source: str = "") -> None:
+    def __init__(self, solver: str, method: str, device: str) -> None:
 
-        # source = source or f"templates/{solver}"
-        # loader = PackageLoader("naunet", source)
         loader = PackageLoader("naunet")
         # self._env = RelativeEnvironment(loader=loader)
         self._env = Environment(loader=loader)
@@ -178,7 +176,7 @@ class TemplateLoader:
         for idx, reac in enumerate(reactions):
             for key, value in rate_modifier.items():
                 if key == reac.idxfromfile:
-                    rateeqns[idx] = f"{rate_sym}[{idx}] = {value}"
+                    rateeqns[idx] = f"{rate_sym}[{idx}] = {value};"
 
         y = [f"y[IDX_{x.alias}]" for x in species]
         if has_thermal:

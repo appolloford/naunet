@@ -9,10 +9,10 @@
 #include "naunet_physics.h"
 #include "naunet_utilities.h"
 
+/* {% set spec = "__device__ __host__ " if general.device == "gpu" else "" %} */
 // clang-format off
 {# {{ "{:<19}".format("\n") if not loop.last else ""}} #}
-{% if general.device == "gpu" -%} __device__ __host__ {% endif -%}
-double GetElementAbund(double *y, int elemidx) {
+{{ spec }}double GetElementAbund(double *y, int elemidx) {
     {% for elem in network.elements -%}
     {% set elemname = elem.element_count.keys() | first -%}
     if (elemidx == IDX_ELEM_{{ elem.element_count.keys() | first }}) {
@@ -32,15 +32,13 @@ double GetElementAbund(double *y, int elemidx) {
 
 }
 
-{% if general.device == "gpu" -%} __device__ __host__ {% endif -%}
-double GetMantleDens(double *y) {
+{{ spec }}double GetMantleDens(double *y) {
     {% set mantlenames = network.species | selectattr("is_surface") | map(attribute="alias") -%}
     {% set mantles = mantlenames | map("prefix", "y[IDX_") | map("suffix", "]") -%}
     return {{ mantles | join(" + ") | stmwrap(80, 8) }} + 0.0;
 }
 
-{% if general.device == "gpu" -%} __device__ __host__ {% endif -%}
-double GetHNuclei(double *y) {
+{{ spec }}double GetHNuclei(double *y) {
 #ifdef IDX_ELEM_H
     return GetElementAbund(y, IDX_ELEM_H);
 #else
@@ -48,8 +46,7 @@ double GetHNuclei(double *y) {
 #endif
 }
 
-{% if general.device == "gpu" -%} __device__ __host__ {% endif -%}
-double GetMu(double *y) {
+{{ spec }}double GetMu(double *y) {
     // TODO: exclude electron, grain?
     {% set specnames = network.species | map(attribute="alias") -%}
     {% set abunds = specnames | map("prefix", "y[IDX_") | map("suffix", "]") -%}
@@ -65,14 +62,12 @@ double GetMu(double *y) {
     return mass / num;
 }
 
-{% if general.device == "gpu" -%} __device__ __host__ {% endif -%}
-double GetGamma(double *y) {
+{{ spec }}double GetGamma(double *y) {
     // TODO: different ways to get adiabatic index
     return 5.0 / 3.0;
 }
 
-{% if general.device == "gpu" -%} __device__ __host__ {% endif -%}
-double GetNumDens(double *y) {
+{{ spec }}double GetNumDens(double *y) {
     double numdens = 0.0;
 
     for (int i = 0; i < NSPECIES; i++) numdens += y[i];
@@ -80,8 +75,9 @@ double GetNumDens(double *y) {
 }
 // clang-format on
 
+/* {% set spec = "__device__ " if general.device == "gpu" else "" %} */
 // clang-format off
-{% if general.device == "gpu" -%} __device__ {% endif -%}
+{{ spec }}
 double GetShieldingFactor(int specidx, double h2coldens, double spcoldens,
                           double tgas, int method) {
     // clang-format on
@@ -106,7 +102,7 @@ double GetShieldingFactor(int specidx, double h2coldens, double spcoldens,
 }
 
 // clang-format off
-{% if general.device == "gpu" -%} __device__ {% endif -%}
+{{ spec }}
 double GetH2shielding(double coldens, int method) {
     // clang-format on
     double shielding = -1.0;
@@ -124,8 +120,7 @@ double GetH2shielding(double coldens, int method) {
 }
 
 // clang-format off
-{% if general.device == "gpu" -%} __device__ {% endif -%}
-double GetCOshielding(double tgas, double h2col, double coldens, int method) {
+{{ spec }}double GetCOshielding(double tgas, double h2col, double coldens, int method) {
     // clang-format on
     double shielding = -1.0;
     switch (method) {
@@ -142,8 +137,7 @@ double GetCOshielding(double tgas, double h2col, double coldens, int method) {
 }
 
 // clang-format off
-{% if general.device == "gpu" -%} __device__ {% endif -%}
-double GetN2shielding(double tgas, double h2col, double coldens, int method) {
+{{ spec }}double GetN2shielding(double tgas, double h2col, double coldens, int method) {
     // clang-format on
     double shielding = -1.0;
     switch (method) {
@@ -158,8 +152,7 @@ double GetN2shielding(double tgas, double h2col, double coldens, int method) {
 
 // Interpolate/Extropolate from table (must be rendered in naunet constants)
 // clang-format off
-{% if general.device == "gpu" -%} __device__ {% endif -%}
-double GetH2shieldingInt(double coldens) {
+{{ spec }}double GetH2shieldingInt(double coldens) {
     // clang-format on
 
     double shielding = -1.0;
@@ -193,8 +186,7 @@ double GetH2shieldingInt(double coldens) {
 // Ref: Federman et al. apj vol.227 p.466.
 // Originally implemented in UCLCHEM
 // clang-format off
-{% if general.device == "gpu" -%} __device__ {% endif -%}
-double GetH2shieldingFGK(double coldens) {
+{{ spec }}double GetH2shieldingFGK(double coldens) {
     // clang-format on
 
     const double dopplerwidth       = 3.0e10;
@@ -237,8 +229,7 @@ double GetH2shieldingFGK(double coldens) {
 
 // Interpolate/Extropolate from table (must be rendered in naunet constants)
 // clang-format off
-{% if general.device == "gpu" -%} __device__ {% endif -%}
-double GetCOshieldingInt(double tgas, double h2col, double coldens) {
+{{ spec }}double GetCOshieldingInt(double tgas, double h2col, double coldens) {
     // clang-format on
     double shielding = -1.0;
 
@@ -299,8 +290,7 @@ double GetCOshieldingInt(double tgas, double h2col, double coldens) {
 }
 
 // clang-format off
-{% if general.device == "gpu" -%} __device__ {% endif -%}
-double GetCOshieldingInt1(double h2col, double coldens) {
+{{ spec }}double GetCOshieldingInt1(double h2col, double coldens) {
     // clang-format on
     double shielding = -1.0;
 
@@ -354,8 +344,7 @@ double GetCOshieldingInt1(double h2col, double coldens) {
 
 // Interpolate/Extropolate from table (must be rendered in naunet constants)
 // clang-format off
-{% if general.device == "gpu" -%} __device__ {% endif -%}
-double GetN2shieldingInt(double tgas, double h2col, double coldens) {
+{{ spec }}double GetN2shieldingInt(double tgas, double h2col, double coldens) {
     // clang-format on
 
     double shielding = -1.0;
@@ -422,8 +411,7 @@ double GetN2shieldingInt(double tgas, double h2col, double coldens) {
 // wavelength x (cf. b.d.savage and j.s.mathis, annual
 // review of astronomy and astrophysics vol.17(1979),p.84)
 // clang-format off
-{% if general.device == "gpu" -%} __device__ {% endif -%}
-double xlamda(double wavelength) {
+{{ spec }}double xlamda(double wavelength) {
     // clang-format on
     double x[29] = {910.0,  950.0,  1000.0,  1050.0,  1110.0, 1180.0,
                     1250.0, 1390.0, 1490.0,  1600.0,  1700.0, 1800.0,
@@ -457,8 +445,7 @@ double xlamda(double wavelength) {
 // Ref: Wagenblast & Hartquist, mnras237, 1019 (1989)
 // Adapted from UCLCHEM
 // clang-format off
-{% if general.device == "gpu" -%} __device__ {% endif -%}
-double GetGrainScattering(double av, double wavelength) {
+{{ spec }}double GetGrainScattering(double av, double wavelength) {
     // clang-format on
     double c[6] = {1.0e0, 2.006e0, -1.438e0, 7.364e-1, -5.076e-1, -5.920e-2};
     double k[6] = {7.514e-1, 8.490e-1, 1.013e0, 1.282e0, 2.005e0, 5.832e0};
@@ -489,8 +476,7 @@ double GetGrainScattering(double av, double wavelength) {
 // and black, apj 334, p771 (1988)
 // Adapted from UCLCHEM
 // clang-format off
-{% if general.device == "gpu" -%} __device__ {% endif -%}
-double GetCharactWavelength(double h2col, double cocol) {
+{{ spec }}double GetCharactWavelength(double h2col, double cocol) {
     // clang-format on
     double logco = log10(abs(cocol) + 1.0);
     double logh2 = log10(abs(h2col) + 1.0);

@@ -97,6 +97,25 @@ def define_grain(name: str):
 
 
 class Network:
+    """
+    Class of chemical network
+
+    This class generated network instances. The instance can be created from
+    text network files with a pre-defined reaction format or from a list of
+    reaction instances. It is also allowed to create an empty instance and
+    add reactions afterward.
+
+    Examples:
+        1. ```network = Network(filelist=<filename>, fileformats="kida")```
+        2. ```network = Network([Reaction(...)])```
+        3. ```network = Network()
+              network.add(Reaction(...))
+           ```
+
+    Attributes:
+        reaction_list (list[Reaction]): the reactions in the network
+
+    """
 
     _rateconverter = ExpressionConverter("C")
 
