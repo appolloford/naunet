@@ -5,8 +5,7 @@ import shutil
 from pathlib import Path
 from typing import Type
 from tqdm import tqdm
-from .patches import PatchFactory
-from .templateloader import NetworkInfo, TemplateLoader
+from .templateloader import TemplateLoader
 from .species import Species
 from .reactions import Reaction, builtin_reaction_format
 from .reactions.converter import ExpressionConverter
@@ -138,8 +137,6 @@ class Network:
         self._reactants = set()
         self._products = set()
         self._skipped_reactions = []
-        self._info = None
-        self._templateloader = None
 
         self._allowed_species = allowed_species.copy() if allowed_species else []
         self._required_species = required_species.copy() if required_species else []
@@ -292,9 +289,6 @@ class Network:
         if not isinstance(reaction, Reaction):
             rclass.finalize()
 
-        # reset network information if content is changed
-        self._info = None
-
     def add_reaction_from_file(self, filename: str | Path, format: str) -> None:
         """Add reactions into network from file
 
@@ -329,8 +323,6 @@ class Network:
                     raise e
 
         rclass.finalize()
-
-        self._info = None
 
     @property
     def allowed_cooling(self) -> dict[str, ThermalProcess]:
@@ -601,82 +593,12 @@ class Network:
         return [self.allowed_heating.get(h) for h in self._heating_names]
 
     @property
-    def info(self):
-        if self._info:
-            return self._info
-
-        rqdsp = set([Species(s) for s in self._required_species])
-        speclist = sorted(self._reactants | self._products | rqdsp)
-
-        connection = {sp: set() for sp in speclist}
-        for reac in self.reaction_list:
-            reacrp = reac.reactants + reac.products
-            for rp in reacrp:
-                connection[rp].update(reacrp)
-
-        speclist = sorted(speclist, key=lambda x: (len(connection[x]), x))
-
-        elements = [spec for spec in speclist if spec.is_atom]
-
-        heating = [self.allowed_heating.get(h) for h in self._heating_names]
-        cooling = [self.allowed_cooling.get(c) for c in self._cooling_names]
-
-        self._info = NetworkInfo(
-            elements,
-            speclist,
-            self.reaction_list,
-            heating=heating,
-            cooling=cooling,
-            grains=self.grains,
-            shielding=self._shielding,
-        )
-
-        nspec = len(self._info.species)
-        logger.info(
-            "{} species in the network: {}".format(
-                nspec, ", ".join([x.name for x in self._info.species])
-            )
-        )
-
-        logger.info(
-            "Skipped reactions: {}".format(
-                "\n".join([str(x) for x in self._skipped_reactions])
-            )
-        )
-
-        return self._info
-
-    @property
     def ode_modifier(self) -> dict[str, dict[str, list[str | list[str]]]]:
         return self._ode_modifier
 
     @ode_modifier.setter
     def ode_modifier(self, omod: dict[str, dict[str, list[str | list[str]]]]) -> None:
         self._ode_modifier = omod.copy()
-
-    def patch(
-        self,
-        target: str,
-        device: str,
-        species_in_capital: bool = False,
-        source: str = None,
-    ):
-        """
-        Create patch filed for hydrodynamics codes, e.g. ENZO.
-
-        Args:
-            target (str): the target hydro code, case insensitive.
-            device (str): the device where the naunet solver working on.
-            species_in_capital (bool, optional): True if all species names are in
-                capital. Defaults to False.
-            source (str, optional): The source directory of templates if provided,
-                otherwise use the built-in templates. Defaults to None.
-
-        Returns:
-            PatchFactory: The factory of patch files
-        """
-
-        return PatchFactory(self.info, target, device, species_in_capital, source)
 
     @property
     def products(self):

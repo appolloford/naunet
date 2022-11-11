@@ -15,6 +15,7 @@ from importlib import util
 from tomlkit.toml_file import TOMLFile
 
 from naunet.templateloader import TemplateLoader
+from naunet.patches import PatchFactory
 
 from .command import Command
 
@@ -109,8 +110,10 @@ class RenderCommand(Command):
         source = self.option("patch-source")
         # include/src/tests are not changed when rendering patches
         if patchname:
-            patch = net.patch(patchname, device, species_in_capital, source)
-            patch.render(path=Path.cwd() / patchname)
+            patch = PatchFactory(
+                patchname, device, source, species_in_capital=species_in_capital
+            )
+            patch.render(net, path=Path.cwd() / patchname)
             return
 
         # If not creating patch, check whether include and src folders exist

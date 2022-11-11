@@ -21,7 +21,7 @@ def networkinfo():
     )
 
 
-def test_init_enzopatch(networkinfo):
-    patch = EnzoPatch(networkinfo, "cpu")
+def test_init_enzopatch():
+    patch = EnzoPatch("cpu")
     print(patch.templates)
     # patch.render(["hydro_rk/Grid_CollapseMHD3DInitializeGrid.C.j2"], path="./")
