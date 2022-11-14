@@ -1,4 +1,5 @@
 from __future__ import annotations
+import logging
 from copy import copy
 from dataclasses import dataclass
 from jinja2 import Environment, PackageLoader, Template
@@ -45,7 +46,8 @@ class PatchFactory:
 
 class EnzoPatch:
 
-    # define both e- and E- to exclude electron
+    _enzo_required_elements = ["e", "H", "D", "He", "C", "O", "Si"]
+
     enzo_defined_species_name = [
         "e-",
         "H",
@@ -188,7 +190,16 @@ class EnzoPatch:
             network.shielding,
         )
 
-        # TODO: make sure all species in the list can be created
+        known_elements = Species.known_elements().copy()
+        for e in self._enzo_required_elements:
+            e = e.upper() if capital else e
+            if e not in known_elements:
+                Species.add_known_elements([e])
+                logging.info(
+                    f"Temporarily add Enzo required element {e} "
+                    "into known element list"
+                )
+
         enzo_species = [
             Species(s.upper() if capital else s)
             for s in EnzoPatch.enzo_defined_species_name
@@ -227,8 +238,9 @@ class EnzoPatch:
             network_diff_grackle_species,
         )
 
+        Species.set_known_elements(known_elements)
+
         templates = templates or self.templates
-        print(templates)
 
         for tmplname in templates:
             if tmplname == "derived_fields.py":

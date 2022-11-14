@@ -253,12 +253,12 @@ class Species:
                     self._add_element_count(n, 1)
 
     @classmethod
-    def add_known_elements(cls, elements: list) -> list:
+    def add_known_elements(cls, elements: list[str]) -> list:
         """
         Add names of elements to the list of known elements
 
         Args:
-            elements (list): names of elements
+            elements (list[str]): names of elements
 
         Raises:
             TypeError: If argument is not a list
@@ -284,12 +284,12 @@ class Species:
         return cls._known_elements
 
     @classmethod
-    def add_known_pseudoelements(cls, pelements: list) -> list:
+    def add_known_pseudoelements(cls, pelements: list[str]) -> list:
         """
         Add names of elements to the list of known pseudo elements
 
         Args:
-            pelements (list): names of pseudo elements
+            pelements (list[str]): names of pseudo elements
 
         Raises:
             TypeError: If argument is not a list
