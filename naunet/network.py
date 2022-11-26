@@ -123,6 +123,8 @@ class Network:
         reactions: list[Reaction] = None,
         filelist: str | list[str] | Path | list[Path] = None,
         fileformats: str | list[str] = None,
+        elements: list[str] = None,
+        pseudo_elements: list[str] = None,
         allowed_species: list[str] = None,
         required_species: list[str] = None,
         heating: list[str] = None,
@@ -138,8 +140,18 @@ class Network:
         self._products = set()
         self._skipped_reactions = []
 
-        self._allowed_species = allowed_species.copy() if allowed_species else []
-        self._required_species = required_species.copy() if required_species else []
+        self._elements = elements or []
+        self._pseudo_elements = pseudo_elements or []
+
+        if self._elements or self._pseudo_elements:
+            Species.set_known_elements(self._elements)
+            Species.set_known_pseudoelements(self._pseudo_elements)
+
+        allowed_species = allowed_species or []
+        required_species = required_species or []
+
+        self._allowed_species = [Species(s) for s in allowed_species]
+        self._required_species = [Species(s) for s in required_species]
         self._allowed_heating = None
         self._allowed_cooling = None
         self._shielding = shielding if shielding else {}
@@ -240,7 +252,7 @@ class Network:
         if self._allowed_species:
             if not all(
                 [
-                    rp.name in self._allowed_species
+                    rp in self._allowed_species
                     for rp in reaction.reactants + reaction.products
                 ]
             ):
@@ -267,6 +279,10 @@ class Network:
             RuntimeError: if the format is unknown when trying to create reaction
                 instance from reaction string.
         """
+
+        if self._elements or self._pseudo_elements:
+            Species.set_known_elements(self._elements)
+            Species.set_known_pseudoelements(self._pseudo_elements)
 
         format = reaction.format if isinstance(reaction, Reaction) else reaction[1]
 
@@ -299,6 +315,10 @@ class Network:
         Raises:
             RuntimeError: if the format is unknown
         """
+
+        if self._elements or self._pseudo_elements:
+            Species.set_known_elements(self._elements)
+            Species.set_known_pseudoelements(self._pseudo_elements)
 
         new_reactants = set()
         new_products = set()
@@ -337,8 +357,9 @@ class Network:
         if self._allowed_cooling:
             return self._allowed_cooling
 
-        rqdsp = set([Species(s) for s in self._required_species])
-        speclist = sorted(self._reactants | self._products | rqdsp)
+        speclist = sorted(
+            self._reactants | self._products | set(self._required_species)
+        )
 
         self._allowed_cooling = get_allowed_cooling(speclist)
         return self._allowed_cooling
@@ -356,8 +377,9 @@ class Network:
         if self._allowed_heating:
             return self._allowed_heating
 
-        rqdsp = set([Species(s) for s in self._required_species])
-        speclist = sorted(self._reactants | self._products | rqdsp)
+        speclist = sorted(
+            self._reactants | self._products | set(self._required_species)
+        )
 
         self._allowed_heating = get_allowed_heating(speclist)
         return self._allowed_heating
@@ -371,11 +393,30 @@ class Network:
         Returns:
             list[str]: _description_
         """
-        return self._allowed_species
+        return [s.name for s in self._allowed_species]
 
     @allowed_species.setter
     def allowed_species(self, speclist: list[str]):
-        self._allowed_species = speclist.copy()
+        if self._elements or self._pseudo_elements:
+            Species.set_known_elements(self._elements)
+            Species.set_known_pseudoelements(self._pseudo_elements)
+
+        self._allowed_species = [Species(s) for s in speclist]
+
+        # examine all reactions again
+        recorded_reactions = self.reaction_list + self._skipped_reactions
+        self.reaction_list = []
+        self._skipped_reactions = []
+        for reaction in recorded_reactions:
+            if not all(
+                [
+                    rp in self._allowed_species
+                    for rp in reaction.reactants + reaction.products
+                ]
+            ):
+                self._skipped_reactions.append(reaction)
+            else:
+                self.reaction_list.append(reaction)
 
     @property
     def cooling(self) -> list[ThermalProcess]:
@@ -429,10 +470,10 @@ class Network:
         config = Configuration(
             "network_export",
             description="Exported_network",
-            element=Species.known_elements(),
-            pseudo_element=Species.known_pseudoelements(),
-            allowed_species=self._allowed_species,
-            required_species=self._required_species,
+            element=self._elements,
+            pseudo_element=self._pseudo_elements,
+            allowed_species=self.allowed_species,
+            required_species=self.required_species,
             binding_energy=binding,
             photon_yield=yields,
             network=["reactions.naunet"],
@@ -551,9 +592,7 @@ class Network:
 
     @property
     def grain_groups(self) -> list[int]:
-        species = [Species(s) for s in self._required_species] + list(
-            self._reactants | self._products
-        )
+        species = self._required_species + list(self._reactants | self._products)
         grain_groups = set([s.grain_group for s in species if s.is_grain])
         surface_groups = set([s.surface_group for s in species if s.is_surface])
         if grain_groups == surface_groups:
@@ -669,6 +708,25 @@ class Network:
             raise TypeError
 
     @property
+    def required_species(self) -> list[str]:
+        """
+        The names of required species, which does not involve in reactions
+        but may be required by heating or cooling
+
+        Returns:
+            list[str]: required species
+        """
+        return [s.name for s in self._required_species]
+
+    @required_species.setter
+    def required_species(self, speclist: list[str]):
+        if self._elements or self._pseudo_elements:
+            Species.set_known_elements(self._elements)
+            Species.set_known_pseudoelements(self._pseudo_elements)
+
+        self._required_species = [Species(s) for s in speclist]
+
+    @property
     def shielding(self) -> dict[str, str]:
         return self._shielding
 
@@ -686,8 +744,9 @@ class Network:
             list[Species]: species in the network
         """
 
-        required_species = set([Species(s) for s in self._required_species])
-        speclist = sorted(self._reactants | self._products | required_species)
+        speclist = sorted(
+            self._reactants | self._products | set(self._required_species)
+        )
 
         connection = {sp: set() for sp in speclist}
         for reac in self.reaction_list:
@@ -761,6 +820,10 @@ class Network:
         """
 
         indices = []
+
+        if self._elements or self._pseudo_elements:
+            Species.set_known_elements(self._elements)
+            Species.set_known_pseudoelements(self._pseudo_elements)
 
         species = species if isinstance(species, Species) else Species(species)
 

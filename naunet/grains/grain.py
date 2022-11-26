@@ -14,8 +14,7 @@ class Grain(Component):
 
     Attributes:
         model (str): The name of the model
-        varis (dict): The parameters exist in the model
-        locvars (list): The local variables in the model
+        species (list[Species]): The associated species
     """
 
     model = "base"

@@ -4,14 +4,10 @@ from naunet.species import Species
 def test_known_elements_pseudoelements():
     Species.reset()
 
-    # list should be empty before any initialization
-    assert Species.known_elements() == []
-    assert Species.known_pseudoelements() == []
-
-    # Use default element list if class is used before set them
-    Species("H")
     assert Species.known_elements() == Species.default_elements
     assert Species.known_pseudoelements() == Species.default_pseudoelements
+
+    Species("H")
 
     # change the element list
     elements = ["H", "C", "O"]

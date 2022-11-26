@@ -19,8 +19,7 @@ class RR07Grain(Grain):
 
     Attributes:
         model (str): The name of the model = "rr07"
-        varis (dict): The parameters exist in the model
-        locvars (list): The local variables in the model
+        species (list[Species]): The associated species
     """
 
     model = "rr07"

@@ -74,12 +74,6 @@ class RenderCommand(Command):
         # required = odesolver["required"]
 
         import naunet
-
-        from naunet.species import Species
-
-        Species.set_known_elements(element)
-        Species.set_known_pseudoelements(pseudo_element)
-
         from naunet.network import Network, supported_reaction_class
         from naunet.chemistrydata import update_binding_energy, update_photon_yield
 
@@ -90,6 +84,8 @@ class RenderCommand(Command):
         net = Network(
             filelist=network,
             fileformats=format,
+            elements=element,
+            pseudo_elements=pseudo_element,
             allowed_species=species + extra_species,
             required_species=extra_species,
             grain_model=grain_model,

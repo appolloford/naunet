@@ -114,7 +114,7 @@ class Species:
             Species._known_pseudoelements.extend(Species.default_pseudoelements)
 
         self._parse_molecule_name(
-            self._known_elements + self._known_pseudoelements,
+            Species._known_elements + Species._known_pseudoelements,
             [self._grain_symbol, self._surface_prefix],
         )
 
@@ -484,7 +484,11 @@ class Species:
         Returns:
             list: the current list of known elements
         """
-        return cls._known_elements
+        # return the default element list if none of them initialized
+        if not cls._known_elements and not cls._known_pseudoelements:
+            return cls.default_elements
+        else:
+            return cls._known_elements
 
     @classmethod
     def known_pseudoelements(cls) -> list:
@@ -494,7 +498,11 @@ class Species:
         Returns:
             list: the current list of known pseudo elements
         """
-        return cls._known_pseudoelements
+        # return the default pseudo element list if none of them initialized
+        if not cls._known_elements and not cls._known_pseudoelements:
+            return cls.default_pseudoelements
+        else:
+            return cls._known_pseudoelements
 
     @property
     def mass(self) -> float:
@@ -556,6 +564,9 @@ class Species:
         Returns:
             float: photodesorption yield
         """
+        if self._photon_yield:
+            return self._photon_yield
+
         if not self.is_surface:
             logging.fatal(f"{self.name} is not ice species! No photodesorption yield")
 
@@ -615,6 +626,7 @@ class Species:
         """
         cls._known_elements = []
         cls._known_pseudoelements = []
+        cls.grain_symbol = "GRAIN"
         cls.surface_prefix = "#"
 
     @classmethod
