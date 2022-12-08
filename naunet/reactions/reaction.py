@@ -170,7 +170,7 @@ class Reaction(Component):
 
     def __hash__(self) -> int:
         return hash(
-            "_".join(str(x) for x in sorted(self.reactants) + sorted(self.products))
+            f"{hash(x)}" for x in sorted(self.reactants) + sorted(self.products)
         )
 
     def __repr__(self) -> str:

@@ -1,4 +1,18 @@
+import pytest
 from naunet.species import Species
+
+
+@pytest.fixture
+def Csurface1():
+    return Species("#C")
+
+
+@pytest.fixture
+def Csurface2():
+    Species.surface_prefix = "G"
+    s = Species("GC")
+    Species.surface_prefix = "#"
+    return s
 
 
 def test_known_elements_pseudoelements():
@@ -105,10 +119,18 @@ def test_enthalpy():
     assert Species("#CH").enthalpy == 592.5
 
 
-def test_eq():
+def test_eq(Csurface1, Csurface2):
     Species.reset()
     assert Species("E") == Species("e-")
     assert Species("E") in [Species("e-")]
+    assert set([Species("E")]) == set([Species("e-")])
+    # ref = Species("#C")
+    # Species.surface_prefix = "G"
+    # target = Species("GC")
+    # assert ref.is_surface == target.is_surface == True
+    # assert set([ref]) == set([target])
+    assert Csurface1.is_surface == Csurface2.is_surface == True
+    assert set([Csurface1]) == set([Csurface2])
 
 
 def test_format():

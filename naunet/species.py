@@ -95,7 +95,7 @@ class Species:
         self.element_count = dict()
         self._alias = None
         self._binding_energy = None
-        self._enthalpy = 0.0
+        self._enthalpy = None
         self._mass = 0.0
         self._massnumber = 0
         self._photon_yield = None
@@ -126,13 +126,41 @@ class Species:
     def __copy__(self) -> Species:
         return type(self)(self.name)
 
-    def __eq__(self, o: object) -> bool:
+    def __eq__(self, o: Species) -> bool:
         if isinstance(o, Species):
-            return (self.is_electron and o.is_electron) or self.name == o.name
+            return (
+                (self.is_electron and o.is_electron)
+                or (
+                    self.is_grain
+                    and o.is_grain
+                    and self.grain_group == o.grain_group
+                    and self.charge == o.charge
+                )
+                or (
+                    self.is_surface
+                    and o.is_surface
+                    and self.surface_group == o.surface_group
+                    and self.charge == o.charge
+                    and self.basename == o.basename
+                )
+                or self.name == o.name
+            )
+            # return (self.is_electron and o.is_electron) or self.name == o.name
         return NotImplemented
 
     def __hash__(self) -> int:
-        return hash(self.name)
+        return (
+            hash("Electron")
+            if self.is_electron
+            else hash(
+                f"{self.basename}"
+                f"{self.charge}"
+                f"{self.is_grain}"
+                f"{self.grain_group}"
+                f"{self.is_surface}"
+                f"{self.surface_group}"
+            )
+        )
 
     def __lt__(self, o) -> bool:
         if isinstance(o, Species):
@@ -368,7 +396,7 @@ class Species:
     @property
     def binding_energy(self) -> float:
         """
-        Binding energy of surface species.
+        Binding energy (K) of surface species.
 
         Return the binding energy if this species is at ice-phase. If the
         binding energy was not set before, it will be searched in the UMIST
@@ -377,20 +405,23 @@ class Species:
         Raises:
             RuntimeError: binding energy cannot be found
         """
-        if self._binding_energy:
-            return self._binding_energy
-
         if not self.is_surface:
             logging.fatal(f"{self.name} is not ice species, has no binding energy")
 
-        self._binding_energy = chemistrydata.user_binding_energy.get(
-            self.name
-        ) or chemistrydata.rate12_binding_energy.get(self.gasname)
+        eb = (
+            self._binding_energy
+            or chemistrydata.user_binding_energy.get(self.name)
+            or chemistrydata.rate12_binding_energy.get(self.gasname)
+        )
 
-        if not self._binding_energy:
+        if not eb:
             raise RuntimeError(f"Cannot find the binding energy of {self.name}")
 
-        return self._binding_energy
+        return eb
+
+    @binding_energy.setter
+    def binding_energy(self, eb: float) -> None:
+        self._binding_energy = eb
 
     # alias function
     eb = binding_energy
@@ -410,18 +441,18 @@ class Species:
     @property
     def enthalpy(self) -> float:
         """
-        The enthalpy (in kJ/mol) of formation at 0K (surface species only, from CCCBDB)
+        The enthalpy (kJ/mol) of formation at 0K (surface species only, from CCCBDB)
         """
         if not self.is_surface:
             return 0.0
 
-        if self._enthalpy:
-            return self._enthalpy
-
         avails = {e.Species: float(e.Enthalpy) for e in chemistrydata.enthalpy_table}
-        self._enthalpy = avails.get(self.gasname, 0.0)
 
-        return self._enthalpy
+        return self._enthalpy or avails.get(self.gasname, 0.0)
+
+    @enthalpy.setter
+    def enthalpy(self, val: float) -> None:
+        self._enthalpy = val
 
     @property
     def gasname(self) -> str:
@@ -552,27 +583,23 @@ class Species:
     # alias function of mass number
     A = massnumber
 
-    def photon_yield(self, default: float = 1e-3) -> float:
+    @property
+    def photon_yield(self) -> float:
         """
         The photodesorption yield of the species (only for ice-phase species).
-        Return default value if no value is found.
-
-        Args:
-            default (float, optional): default value of photodesorption yield.
-                Defaults to 1e-3.
+        Return 0.0 if no value is found.
 
         Returns:
             float: photodesorption yield
         """
-        if self._photon_yield:
-            return self._photon_yield
-
         if not self.is_surface:
             logging.fatal(f"{self.name} is not ice species! No photodesorption yield")
 
-        self._photon_yield = chemistrydata.user_photon_yield.get(self.name, default)
+        return self._photon_yield or chemistrydata.user_photon_yield.get(self.name, 0.0)
 
-        return self._photon_yield
+    @photon_yield.setter
+    def photon_yield(self, phyld: float) -> None:
+        self._photon_yield = phyld
 
     @classmethod
     def remove_known_elements(cls, elements: list) -> list:

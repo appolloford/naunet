@@ -158,7 +158,7 @@ class RR07Grain(Grain):
         rate = " * ".join(
             [
                 f"{opt_uvd} * 4.875e3 * {gxsec}",
-                f"({sym_phot}) * {spec.photon_yield(default=0.1)} / {mant}",
+                f"({sym_phot}) * {spec.photon_yield or 0.1} / {mant}",
             ]
         )
 

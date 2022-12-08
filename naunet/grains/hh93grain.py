@@ -162,7 +162,7 @@ class HH93Grain(Grain):
         sym_phot = f"{radfield}*{habing}*exp(-{av}*3.02) + {crphot} * ({crrate}/{zism})"
 
         spec = reac.reactants[0]
-        rate = f"{opt_uvd} * {cov} * ({sym_phot}) * {spec.photon_yield()} * {nMono} * {garea}"
+        rate = f"{opt_uvd} * {cov} * ({sym_phot}) * {spec.photon_yield or 1e-3} * {nMono} * {garea}"
         return rate
 
     def rate_cosmicray_desorption(self, reac: Reaction) -> str:

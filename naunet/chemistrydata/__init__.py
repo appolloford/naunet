@@ -38,10 +38,16 @@ user_binding_energy = {}
 
 user_photon_yield = {}
 
+user_enthalpy = {}
 
-def update_binding_energy(eb: dict):
+
+def update_binding_energy(eb: dict[str, float]):
     user_binding_energy.update(eb)
 
 
-def update_photon_yield(phyield: dict):
+def update_photon_yield(phyield: dict[str, float]):
     user_photon_yield.update(phyield)
+
+
+def update_enthalpy(enthalpy: dict[str, float]):
+    user_enthalpy.update(enthalpy)
