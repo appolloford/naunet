@@ -113,14 +113,6 @@ class LEEDSReaction(Reaction):
             ),
         )
 
-    @classmethod
-    def initialize(cls) -> None:
-        Species.surface_prefix = "G"
-
-    @classmethod
-    def finalize(cls) -> None:
-        Species.surface_prefix = "#"
-
     def rateexpr(self, grain: Grain = None) -> str:
         a = self.alpha
         b = self.beta
@@ -260,18 +252,24 @@ class LEEDSReaction(Reaction):
                 if label == "idx":
                     self.idxfromfile = int(clip)
                 elif label == "reac":
-                    self.reactants = [
-                        self._create_species(r.replace("YC", "CH2OHC"))
+                    reactants = [
+                        self._create_species(
+                            r.replace("YC", "CH2OHC"), surface_prefix="G"
+                        )
                         for r in clip.split()
-                        if self._create_species(r.replace("YC", "CH2OHC"))
                     ]
+                    # remove `None` values in the list
+                    self.reactants = [s for s in reactants if s]
 
                 elif label == "prod":
-                    self.products = [
-                        self._create_species(p.replace("YC", "CH2OHC"))
+                    products = [
+                        self._create_species(
+                            p.replace("YC", "CH2OHC"), surface_prefix="G"
+                        )
                         for p in clip.split()
-                        if self._create_species(p.replace("YC", "CH2OHC"))
                     ]
+                    # remove `None` values in the list
+                    self.products = [s for s in products if s]
 
                 elif label == "a":
                     self.alpha = float(clip)

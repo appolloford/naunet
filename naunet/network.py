@@ -126,7 +126,9 @@ class Network:
         elements: list[str] = None,
         pseudo_elements: list[str] = None,
         allowed_species: list[str] = None,
+        allowed_species_kwargs: dict[str, str] = None,
         required_species: list[str] = None,
+        required_species_kwargs: dict[str, str] = None,
         heating: list[str] = None,
         cooling: list[str] = None,
         shielding: dict[str, str] = None,
@@ -149,9 +151,16 @@ class Network:
 
         allowed_species = allowed_species or []
         required_species = required_species or []
-
-        self._allowed_species = [Species(s) for s in allowed_species]
-        self._required_species = [Species(s) for s in required_species]
+        allowed_species_kwargs = allowed_species_kwargs or {}
+        required_species_kwargs = required_species_kwargs or {}
+        self._allowed_species = [
+            Species(s, **allowed_species_kwargs) for s in allowed_species
+        ]
+        self._required_species = [
+            Species(s, **required_species_kwargs) for s in required_species
+        ]
+        self._allowed_species_kwargs = allowed_species_kwargs.copy()
+        self._required_species_kwargs = required_species_kwargs.copy()
         self._allowed_heating = None
         self._allowed_cooling = None
         self._shielding = shielding if shielding else {}
@@ -161,15 +170,17 @@ class Network:
         self._rate_modifier = rate_modifier.copy() if rate_modifier else {}
         self._ode_modifier = ode_modifier.copy() if ode_modifier else {}
 
-        if allowed_species and required_species:
+        if self._allowed_species and self._required_species:
 
-            conflict = [sp for sp in required_species if sp not in allowed_species]
+            conflict = [
+                sp for sp in self._required_species if sp not in self._allowed_species
+            ]
 
             if conflict:
 
                 raise RuntimeError(
-                    """All required species must exist in the allowed species list. 
-                    Otherwise leave one of them to be "None"."""
+                    "All required species must exist in the allowed species list."
+                    "Otherwise leave one of them to be 'None'."
                 )
 
         if reactions:
@@ -287,7 +298,6 @@ class Network:
         format = reaction.format if isinstance(reaction, Reaction) else reaction[1]
 
         rclass = supported_reaction_class.get(format)
-
         if not isinstance(reaction, Reaction):
             # create reaction instance from string
             # change some global settings or class attibutes if needed
@@ -391,7 +401,7 @@ class Network:
         be solved.
 
         Returns:
-            list[str]: _description_
+            list[str]: name of allowed species
         """
         return [s.name for s in self._allowed_species]
 
@@ -401,22 +411,19 @@ class Network:
             Species.set_known_elements(self._elements)
             Species.set_known_pseudoelements(self._pseudo_elements)
 
-        self._allowed_species = [Species(s) for s in speclist]
+        self._allowed_species = [
+            Species(s, **self._allowed_species_kwargs) for s in speclist
+        ]
 
         # examine all reactions again
         recorded_reactions = self.reaction_list + self._skipped_reactions
+        self._reactants.clear()
+        self._products.clear()
         self.reaction_list = []
         self._skipped_reactions = []
+
         for reaction in recorded_reactions:
-            if not all(
-                [
-                    rp in self._allowed_species
-                    for rp in reaction.reactants + reaction.products
-                ]
-            ):
-                self._skipped_reactions.append(reaction)
-            else:
-                self.reaction_list.append(reaction)
+            self.add_reaction(reaction)
 
     @property
     def cooling(self) -> list[ThermalProcess]:
@@ -724,7 +731,9 @@ class Network:
             Species.set_known_elements(self._elements)
             Species.set_known_pseudoelements(self._pseudo_elements)
 
-        self._required_species = [Species(s) for s in speclist]
+        self._required_species = [
+            Species(s, **self._required_species_kwargs) for s in speclist
+        ]
 
     @property
     def shielding(self) -> dict[str, str]:
@@ -825,7 +834,11 @@ class Network:
             Species.set_known_elements(self._elements)
             Species.set_known_pseudoelements(self._pseudo_elements)
 
-        species = species if isinstance(species, Species) else Species(species)
+        species = (
+            species
+            if isinstance(species, Species)
+            else Species(species, **self._allowed_species_kwargs)
+        )
 
         if mode == "reactant":
             indices = [

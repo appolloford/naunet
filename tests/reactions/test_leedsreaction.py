@@ -12,13 +12,11 @@ def reaction(request):
 
 @pytest.fixture
 def example_freeze_reaction():
-    LEEDSReaction.initialize()
     example = LEEDSReaction(
         "7070 C11                           "
         "GC11                                              "
         "1.00E+00     0.00     132.0    541000  7"
     )
-    LEEDSReaction.finalize()
     return example
 
 

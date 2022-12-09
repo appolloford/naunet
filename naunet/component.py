@@ -24,7 +24,7 @@ class Component:
     def __init__(self) -> None:
         self._symbols = OrderedDict()
 
-    def _create_species(self, species_name: Species | str) -> Species:
+    def _create_species(self, species_name: Species | str, **kwargs) -> Species:
         """
         Create a Species instance if the name is not a pseudo element
         (e.g. CR, CRPHOT), else return None
@@ -40,7 +40,9 @@ class Component:
             return species_name
 
         if species_name and species_name not in Species.known_pseudoelements():
-            return Species(species_name)
+            return Species(species_name, **kwargs)
+
+        return None
 
     def unregister(self, name: str) -> None:
         del self._symbols[name]

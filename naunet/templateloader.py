@@ -155,6 +155,7 @@ class TemplateLoader:
     def _prepare_ode_content(
         self,
         netinfo: NetworkInfo,
+        species_kwargs: dict[str, str] = None,
         rate_modifier: dict[int, str] = None,
         ode_modifier: dict[str, dict[str, list[str | list[str]]]] = None,
     ) -> ODEContent:
@@ -169,6 +170,8 @@ class TemplateLoader:
         has_thermal = True if netinfo.heating or netinfo.cooling else False
         n_spec = len(species)
         n_eqns = max(n_spec + has_thermal, 1)
+
+        species_kwargs = species_kwargs or {}
 
         rate_sym = "k"
         rateeqns = self._assign_rates(rate_sym, reactions, grains)
@@ -220,10 +223,10 @@ class TemplateLoader:
         # add the modifying term to fex and jac
         # the performance could be bad if fex mismatch with jac
         for sname, expr in ode_modifier.items():
-            spec = Species(sname)
+            spec = Species(sname, **species_kwargs)
             sidx = species.index(spec)
             for fact, dep in zip(expr["factors"], expr["reactants"]):
-                depspec = [Species(d) for d in dep]
+                depspec = [Species(d, **species_kwargs) for d in dep]
                 depsym = [f"y[IDX_{d.alias}]" for d in depspec]
                 depsym_mul = "*".join(depsym)
 
@@ -415,9 +418,11 @@ class TemplateLoader:
             network.grains,
             network.shielding,
         )
+
+        speckws = network._allowed_species_kwargs
         rate_modifier = network.rate_modifier
         ode_modifier = network.ode_modifier
-        ode = self._prepare_ode_content(info, rate_modifier, ode_modifier)
+        ode = self._prepare_ode_content(info, speckws, rate_modifier, ode_modifier)
         renorm = self._prepare_renorm_content(info)
 
         for tmplname in templates:

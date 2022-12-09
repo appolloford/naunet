@@ -18,9 +18,10 @@ class Species:
         1. Pseudo-element here is used to say the special symbols exist in
         species but not elements in periodic table, isotopes, charges. E.g.
         o(ortho-), p(para-), CR (cosmic-ray)
-        2. For surface species (species stick on grains), another special
-        symbol are defined in `surface_prefix`. Species starts with the
-        special symbol are denoted as surface species.
+        2. For species start with `grain_symbol` or `surface_prefix`. They
+        will be identified as grain and surface species (species stick
+        on grains).
+            - Species("GC", surface_prefix="G") is equivalent to Species("#C")
         3. Charges must be +/- symbol append in the end. E.g. He++, Si+++
 
     Attributes:
@@ -28,8 +29,6 @@ class Species:
             species names.
         default_pseudoelement (list): The default pseudo-element names
             used to parse species names.
-        surface_symbol (str): The symbol used to define surface species.
-            name (str): Name of the species
         element_count (dict[str, int]): The count of each element in the
             known species list.
 
@@ -74,13 +73,17 @@ class Species:
         r"\*",
         "g",
     ]
-    grain_symbol = "GRAIN"
-    surface_prefix = "#"
 
     _known_elements = []
     _known_pseudoelements = []
 
-    def __init__(self, name: str) -> None:
+    def __init__(
+        self,
+        name: str,
+        grain_symbol: str = "GRAIN",
+        surface_prefix: str = "#",
+        bulk_prefix: str = "@",
+    ) -> None:
         """
         Initializes Species with species name
 
@@ -100,11 +103,12 @@ class Species:
         self._massnumber = 0
         self._photon_yield = None
         self._is_grain = False
-        self._grain_symbol = self.grain_symbol
+        self._grain_symbol = grain_symbol
         self._grain_group = None
         self._is_surface = False
-        self._surface_prefix = self.surface_prefix
+        self._surface_prefix = surface_prefix
         self._surface_group = None
+        self._bulk_prefix = bulk_prefix
 
         # Initialize known elements if not set when the fist species is instanciated
         if not Species._known_elements and not Species._known_pseudoelements:
@@ -124,7 +128,12 @@ class Species:
         }
 
     def __copy__(self) -> Species:
-        return type(self)(self.name)
+        return type(self)(
+            self.name,
+            self._grain_symbol,
+            self._surface_prefix,
+            self._bulk_prefix,
+        )
 
     def __eq__(self, o: Species) -> bool:
         if isinstance(o, Species):
@@ -168,7 +177,12 @@ class Species:
         return NotImplemented
 
     def __repr__(self) -> str:
-        return f"Species('{self.name}')"
+        return (
+            f"Species('{self.name}', "
+            f"grain_symbol='{self._grain_symbol}', "
+            f"surface_prefix='{self._surface_prefix}', "
+            f"bulk_prefix='{self._bulk_prefix}')"
+        )
 
     def __format__(self, spec) -> str:
         return f"{self.name:{spec}}"
@@ -649,12 +663,10 @@ class Species:
     def reset(cls) -> None:
         """Reset class attributes in Species
 
-        Reset known_elements, known_pseudoelements, and surface_prefix.
+        Reset known_elements and known_pseudoelements
         """
         cls._known_elements = []
         cls._known_pseudoelements = []
-        cls.grain_symbol = "GRAIN"
-        cls.surface_prefix = "#"
 
     @classmethod
     def set_known_elements(cls, elements: list) -> None:

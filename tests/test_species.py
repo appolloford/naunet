@@ -9,10 +9,7 @@ def Csurface1():
 
 @pytest.fixture
 def Csurface2():
-    Species.surface_prefix = "G"
-    s = Species("GC")
-    Species.surface_prefix = "#"
-    return s
+    return Species("GC", surface_prefix="G")
 
 
 def test_known_elements_pseudoelements():
@@ -124,13 +121,9 @@ def test_eq(Csurface1, Csurface2):
     assert Species("E") == Species("e-")
     assert Species("E") in [Species("e-")]
     assert set([Species("E")]) == set([Species("e-")])
-    # ref = Species("#C")
-    # Species.surface_prefix = "G"
-    # target = Species("GC")
-    # assert ref.is_surface == target.is_surface == True
-    # assert set([ref]) == set([target])
     assert Csurface1.is_surface == Csurface2.is_surface == True
     assert set([Csurface1]) == set([Csurface2])
+    assert [Csurface1].index(Csurface2) == 0
 
 
 def test_format():
@@ -163,11 +156,9 @@ def test_surface():
     assert Species("#H2").is_surface == True
     assert Species("H2").is_surface == False
     # test changing surface symbol
-    Species.surface_prefix = "G"
-    assert Species("GH2").is_surface == True
+    assert Species("GH2", surface_prefix="G").is_surface == True
     # special case
     assert Species("GRAIN0").is_surface == False
-    Species.surface_prefix = "#"
 
 
 # clean internal data after species tests finish
