@@ -5,54 +5,20 @@ from naunet.reactiontype import ReactionType
 from naunet.reactions.kidareaction import KIDAReaction
 
 
-def test_init_kidareaction():
-
-    # initialize from reaction string
-    react_string = "".join(
-        [
-            "He         CR                     ",
-            "He+        e-                                            ",
-            "5.000e-01  0.000e+00  0.000e+00 ",
-            "2.00e+00 0.00e+00 ",
-            "logn  1  -9999   9999  1     3 1  1 ",
-        ]
-    )
-    kidareac = KIDAReaction(react_string)
-    assert kidareac.reactants == [Species("He")]
-    assert kidareac.products == [Species("He+"), Species("e-")]
-    assert kidareac.temp_min == -9999.0
-    assert kidareac.temp_max == 9999.0
-    assert kidareac.alpha == 0.5
-    assert kidareac.beta == 0.0
-    assert kidareac.gamma == 0.0
-    assert kidareac.reaction_type == ReactionType.GAS_COSMICRAY
-    assert kidareac.source == "kida"
-    assert kidareac.idxfromfile == 3
-
-
-def test_eq_reaction_kidareaction():
-
-    react_string = "".join(
-        [
-            "He         CR                     ",
-            "He+        e-                                            ",
-            "5.000e-01  0.000e+00  0.000e+00 ",
-            "2.00e+00 0.00e+00 ",
-            "logn  1  -9999   9999  1     3 1  1 ",
-        ]
-    )
-    kidareac = KIDAReaction(react_string)
-
-    reac = Reaction(
+@pytest.fixture
+def example_cr_reaction1():
+    return Reaction(
         ["He", "CR"],
         ["He+", "e-"],
         -9999.0,
         9999.0,
         reaction_type=ReactionType.GAS_COSMICRAY,
     )
-    assert reac == kidareac
 
-    reac = Reaction(
+
+@pytest.fixture
+def example_cr_reaction2():
+    return Reaction(
         ["He", "CR"],
         ["He+", "e-"],
         -9999.0,
@@ -60,17 +26,67 @@ def test_eq_reaction_kidareaction():
         reaction_type=ReactionType.GAS_COSMICRAY,
         idxfromfile=999,
     )
-    assert reac == kidareac
-    assert set([reac, kidareac]) == set([reac])
 
-    reac = Reaction(
+
+@pytest.fixture
+def example_cr_reaction3():
+    return Reaction(
         ["He", "CR"],
         ["He+", "e-"],
         0.0,
         9999.0,
         reaction_type=ReactionType.GAS_COSMICRAY,
     )
-    assert reac != kidareac
+
+
+@pytest.fixture
+def example_kida_cr_reaction():
+    rstr = "He         CR                     He+        e-                                            5.000e-01  0.000e+00  0.000e+00 2.00e+00 0.00e+00 logn  1  -9999   9999  1     3 1  1 "
+    return KIDAReaction(rstr)
+
+
+def test_init_kidareaction(example_kida_cr_reaction):
+
+    reaction = example_kida_cr_reaction
+    assert reaction.reactants == [Species("He")]
+    assert reaction.products == [Species("He+"), Species("e-")]
+    assert reaction.temp_min == -9999.0
+    assert reaction.temp_max == 9999.0
+    assert reaction.alpha == 0.5
+    assert reaction.beta == 0.0
+    assert reaction.gamma == 0.0
+    assert reaction.reaction_type == ReactionType.GAS_COSMICRAY
+    assert reaction.source == "kida"
+    assert reaction.idxfromfile == 3
+
+
+@pytest.mark.parametrize(
+    "ref_reaction, target_reaction, is_equal",
+    [
+        ("example_kida_cr_reaction", "example_cr_reaction1", True),
+        ("example_kida_cr_reaction", "example_cr_reaction2", True),
+        ("example_kida_cr_reaction", "example_cr_reaction3", False),
+    ],
+)
+def test_eq_reaction(ref_reaction, target_reaction, is_equal, request):
+
+    assert (
+        request.getfixturevalue(ref_reaction)
+        == request.getfixturevalue(target_reaction)
+    ) == is_equal
+    assert (
+        set([request.getfixturevalue(ref_reaction)])
+        == set([request.getfixturevalue(target_reaction)])
+    ) == is_equal
+    assert (
+        set(
+            [
+                request.getfixturevalue(ref_reaction),
+                request.getfixturevalue(target_reaction),
+            ]
+        )
+        == set([request.getfixturevalue(target_reaction)])
+    ) == is_equal
 
 
 @pytest.mark.slow

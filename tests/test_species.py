@@ -2,16 +2,6 @@ import pytest
 from naunet.species import Species
 
 
-@pytest.fixture
-def Csurface1():
-    return Species("#C")
-
-
-@pytest.fixture
-def Csurface2():
-    return Species("GC", surface_prefix="G")
-
-
 def test_known_elements_pseudoelements():
     Species.reset()
 
@@ -39,60 +29,86 @@ def test_known_elements_pseudoelements():
     assert Species.known_elements() == ["C", "O", "N"]
     Species.remove_known_pseudoelements(["CR"])
     assert Species.known_pseudoelements() == ["o", "p", "PHOTON"]
-
-
-def test_alias():
     Species.reset()
-    assert Species("H2").alias == "H2I"
-    assert Species("CO").alias == "COI"
-    assert Species("e-").alias == "eM"
-    assert Species("H-").alias == "HM"
-    assert Species("H+").alias == "HII"
-    assert Species("oH2D+").alias == "oH2DII"
-    assert Species("N2D+").alias == "N2DII"
-    assert Species("#CO").alias == "GCOI"
 
 
-def test_alias_setter():
-    Species.reset()
-    spec = Species("H2")
-    spec.alias = "HH"
-    assert spec.alias == "HH"
+@pytest.mark.parametrize(
+    "name, atom, surface, alias, basename, charge, custalias, eb, mass, mnum",
+    [
+        ("e-", False, False, "eM", "e", -1, "Electron", None, 0.0, 0.0),
+        ("E", False, False, "EM", "E", -1, "Electron", None, 0.0, 0.0),
+        ("H", True, False, "HI", "H", 0, "H", None, 1.007, 1.0),
+        ("H+", False, False, "HII", "H", 1, "Hj", None, 1.007, 1.0),
+        ("H-", False, False, "HM", "H", -1, "Hk", None, 1.007, 1.0),
+        ("H2", False, False, "H2I", "H2", 0, "HH", None, 2.014, 2),
+        ("D", True, False, "DI", "D", 0, "D", None, 2.014, 2.0),
+        ("oH2D+", False, False, "oH2DII", "oH2D", 1, "H2Dj_ortho", None, 4.028, 4.0),
+        ("He", True, False, "HeI", "He", 0, "He", None, 4.002, 4.0),
+        ("C", True, False, "CI", "C", 0, "C", None, 12.011, 12.0),
+        ("CO", False, False, "COI", "CO", 0, "CO", None, 28.01, 28.0),
+        ("N2D+", False, False, "N2DII", "N2D", 1, "N2Dj_ortho", None, 30.028, 30),
+        ("Si++++", False, False, "SiIIIII", "Si", 4, "Sijjjj", None, 28.086, 28.0),
+        ("#H", False, True, "GHI", "H", 0, "GH", 600.0, 1.007, 1.0),
+        ("#CO", False, True, "GCOI", "CO", 0, "GCO", 1150.0, 28.01, 28.0),
+        ("#CH4", False, True, "GCH4I", "CH4", 0, "GCH4", 1090.0, 16.039, 16.0),
+        # Grain is atom in case renorm number density is required
+        # It has no default mass or massnumber, usually they are not needed
+        ("GRAIN0", True, False, "GRAIN0I", "GRAIN0", 0, "grain", None, 0.0, 0.0),
+        ("GRAIN-", False, False, "GRAINM", "GRAIN", -1, "grain-", None, 0.0, 0.0),
+    ],
+)
+def test_properties_default(
+    name, atom, surface, alias, basename, charge, custalias, eb, mass, mnum
+):
+    species = Species(name)
+    assert species.alias == alias
+    species.alias = custalias
+    assert species.alias == custalias
+    assert species.basename == basename
+    assert species.charge == charge
+    if eb is None:
+        with pytest.raises(ValueError, match="not ice species"):
+            species.binding_energy
+    else:
+        assert species.binding_energy == eb
+        assert species.eb == eb  # test alias
+    assert f"{species.mass:.3f}" == f"{mass:.3f}"
+    assert species.massnumber == mnum
+    assert species.A == mnum  # test alias
+    assert species.is_atom == atom
+    assert species.is_surface == surface
+    assert f"{species:<12}" == f"{species.name:<12}"
 
 
-def test_basename():
-    Species.reset()
-    assert Species("H2").basename == "H2"
-    assert Species("CO").basename == "CO"
-    assert Species("H+").basename == "H"
-    assert Species("N2D+").basename == "N2D"
-
-
-def test_binding_energy():
-    Species.reset()
-    assert Species("#H").binding_energy == 600.0
-    assert Species("#CH4").binding_energy == 1090.0
-    assert Species("#CH4").eb == 1090.0  # test alias
-
-
-def test_charge():
-    Species.reset()
-    assert Species("H2").charge == 0
-    assert Species("H+").charge == 1
-    assert Species("H-").charge == -1
-    assert Species("Si++").charge == 2
-    assert Species("Si++++").charge == 4
-
-
-def test_atom():
-    Species.reset()
-    assert Species("H").is_atom
-    assert Species("C").is_atom
-    assert Species("GRAIN0").is_atom
-    assert not Species("E").is_atom
-    assert not Species("CO").is_atom
-    assert not Species("#H").is_atom
-    assert not Species("GRAIN-").is_atom
+@pytest.mark.parametrize(
+    "name, atom, surface, alias, basename, charge, custalias, eb, mass, mnum",
+    [
+        ("GH", False, True, "GHI", "H", 0, "GH", 600.0, 1.007, 1.0),
+        ("GCO", False, True, "GCOI", "CO", 0, "GCO", 1150.0, 28.01, 28.0),
+        ("GCH4", False, True, "GCH4I", "CH4", 0, "GCH4", 1090.0, 16.039, 16.0),
+    ],
+)
+def test_properties_surface_prefix_G(
+    name, atom, surface, alias, basename, charge, custalias, eb, mass, mnum
+):
+    species = Species(name, surface_prefix="G")
+    assert species.alias == alias
+    species.alias = custalias
+    assert species.alias == custalias
+    assert species.basename == basename
+    assert species.charge == charge
+    if eb is None:
+        with pytest.raises(ValueError, match="not ice species"):
+            species.binding_energy
+    else:
+        assert species.binding_energy == eb
+        assert species.eb == eb  # test alias
+    assert f"{species.mass:.3f}" == f"{mass:.3f}"
+    assert species.massnumber == mnum
+    assert species.A == mnum  # test alias
+    assert species.is_atom == atom
+    assert species.is_surface == surface
+    assert f"{species:<12}" == f"{species.name:<12}"
 
 
 def test_element_counting():
@@ -116,50 +132,21 @@ def test_enthalpy():
     assert Species("#CH").enthalpy == 592.5
 
 
-def test_eq(Csurface1, Csurface2):
+@pytest.mark.parametrize(
+    "name1, gsym1, surf1, buik1, name2, gsym2, surf2, buik2",
+    [
+        ("E", "GRAIN", "#", "@", "e-", "GRAIN", "#", "@"),
+        ("#C", "GRAIN", "#", "@", "GC", "GRAIN", "G", "@"),
+    ],
+)
+def test_eq(name1, gsym1, surf1, buik1, name2, gsym2, surf2, buik2):
+    spec1 = Species(name1, gsym1, surf1, buik1)
+    spec2 = Species(name2, gsym2, surf2, buik2)
+    assert spec1 == spec2
+    assert spec1 in [spec2]
+    assert set([spec1]) == set([spec2])
+    assert spec1.is_grain == spec2.is_grain
+    assert spec1.is_surface == spec2.is_surface
+    Species.add_known_elements(["Fake"])
+    assert [Species("Fake"), spec1].index(spec2) == 1
     Species.reset()
-    assert Species("E") == Species("e-")
-    assert Species("E") in [Species("e-")]
-    assert set([Species("E")]) == set([Species("e-")])
-    assert Csurface1.is_surface == Csurface2.is_surface == True
-    assert set([Csurface1]) == set([Csurface2])
-    assert [Csurface1].index(Csurface2) == 0
-
-
-def test_format():
-    Species.reset()
-    spec = Species("H")
-    assert f"{spec}" == f"{spec.name}"
-    assert f"{spec:<12}" == f"{spec.name:<12}"
-
-
-def test_mass():
-    Species.reset()
-    assert Species("H").mass == 1.007
-    assert Species("D").mass == 2.014
-    assert Species("H2").mass == 1.007 * 2
-    assert Species("He").mass == 4.002
-    assert Species("CO").mass == 12.011 + 15.999
-
-
-def test_massnumber():
-    Species.reset()
-    assert Species("D").massnumber == 2.0
-    assert Species("D").A == 2.0  # test alias
-    assert Species("H2").massnumber == 2.0
-    assert Species("He").massnumber == 4.0
-    assert Species("CO").massnumber == 28.0
-
-
-def test_surface():
-    Species.reset()
-    assert Species("#H2").is_surface == True
-    assert Species("H2").is_surface == False
-    # test changing surface symbol
-    assert Species("GH2", surface_prefix="G").is_surface == True
-    # special case
-    assert Species("GRAIN0").is_surface == False
-
-
-# clean internal data after species tests finish
-Species.reset()

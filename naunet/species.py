@@ -420,7 +420,7 @@ class Species:
             RuntimeError: binding energy cannot be found
         """
         if not self.is_surface:
-            logging.fatal(f"{self.name} is not ice species, has no binding energy")
+            raise ValueError(f"{self.name} is not ice species, has no binding energy")
 
         eb = (
             self._binding_energy

@@ -6,18 +6,23 @@ from naunet.reactions.leedsreaction import LEEDSReaction
 
 
 @pytest.fixture
-def reaction(request):
-    return Reaction(*request.param)
+def example_leeds_freeze_reaction():
+    rstr = "7070 C11                           GC11                                              1.00E+00     0.00     132.0    541000  7"
+    return LEEDSReaction(rstr)
 
 
 @pytest.fixture
 def example_freeze_reaction():
-    example = LEEDSReaction(
-        "7070 C11                           "
-        "GC11                                              "
-        "1.00E+00     0.00     132.0    541000  7"
+    return Reaction(
+        ["C11"],
+        ["#C11"],
+        5.0,
+        41000.0,
+        1.0,
+        0.0,
+        132.0,
+        ReactionType.GRAIN_FREEZE,
     )
-    return example
 
 
 def test_init_leedsreaction_from_file(datadir):
@@ -29,31 +34,15 @@ def test_init_leedsreaction_from_file(datadir):
 
 
 @pytest.mark.parametrize(
-    "reaction, is_equal",
-    [
-        (
-            (
-                ["C11"],
-                ["#C11"],
-                5.0,
-                41000.0,
-                1.0,
-                0.0,
-                132.0,
-                ReactionType.GRAIN_FREEZE,
-            ),
-            True,
-        ),
-    ],
-    indirect=["reaction"],
+    "ref_reaction, target_reaction, is_equal",
+    [("example_leeds_freeze_reaction", "example_freeze_reaction", True)],
 )
-def test_eq_reaction(example_freeze_reaction, reaction, is_equal):
-
-    assert example_freeze_reaction.reactants == reaction.reactants
-    assert example_freeze_reaction.products == reaction.products
-    assert ReactionType.GRAIN_FREEZE == LEEDSReaction.ReactionType.LEEDS_FR
-
-    assert (example_freeze_reaction == reaction) == is_equal
+def test_eq_reaction(ref_reaction, target_reaction, is_equal, request):
     assert (
-        set([example_freeze_reaction, reaction]) == set([example_freeze_reaction])
+        request.getfixturevalue(ref_reaction)
+        == request.getfixturevalue(target_reaction)
+    ) == is_equal
+    assert (
+        set([request.getfixturevalue(ref_reaction)])
+        == set([request.getfixturevalue(target_reaction)])
     ) == is_equal
