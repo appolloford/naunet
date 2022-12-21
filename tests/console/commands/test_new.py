@@ -25,7 +25,8 @@ def test_command_new(tmp_path):
 
         general = config["general"]
         chemistry = config["chemistry"]
+        chem_species = chemistry["species"]
         assert general["name"] == "new_project"
-        assert chemistry["elements"] == Species.default_elements
-        assert chemistry["pseudo_elements"] == Species.default_pseudoelements
-        assert chemistry["species"] == []
+        assert chem_species["elements"] == Species.default_elements
+        assert chem_species["pseudo_elements"] == Species.default_pseudoelements
+        assert chem_species["allowed_species"] == []

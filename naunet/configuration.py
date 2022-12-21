@@ -5,8 +5,6 @@ import tomlkit
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from .species import Species
-
 if TYPE_CHECKING:
     from .network import Network
 
@@ -20,21 +18,31 @@ description = ""
 loads = []
 
 [chemistry]
+[chemistry.species]
 elements = []
 pseudo_elements = []
-species = []
+allowed_species = []
 extra_species = []
-network = []
-format = []
-heating = []
-cooling = []
+
+[chemistry.species.symbol]
+surface = ""
+bulk = ""
+
+[chemistry.species.binding_energy]
+
+[chemistry.species.photon_yield]
 
 [chemistry.grain]
+symbol = ""
 model = ""
 
-[chemistry.binding_energy]
+[chemistry.network]
+files = []
+formats = []
 
-[chemistry.photon_yield]
+[chemistry.thermal]
+heating = []
+cooling = []
 
 [chemistry.shielding]
 
@@ -48,13 +56,13 @@ device = ""
 method = ""
 
 [summary]
-num_of_elements = -1
-num_of_species = -1
-num_of_grains = -1
-num_of_gas_species = -1
-num_of_ice_species = -1
-num_of_grain_species = -1
-num_of_reactions = -1
+num_of_elements = 0
+num_of_species = 0
+num_of_grains = 0
+num_of_gas_species = 0
+num_of_ice_species = 0
+num_of_grain_species = 0
+num_of_reactions = 0
 list_of_elements = []
 list_of_species = []
 list_of_species_alias = []
@@ -64,7 +72,7 @@ list_of_grain_species = []
 """
 
 
-class Configuration:
+class BaseConfiguration:
     def __init__(
         self,
         project: str,
@@ -74,10 +82,11 @@ class Configuration:
         pseudo_element: list[str] = None,
         allowed_species: list[str] = None,
         required_species: list[str] = None,
+        species_kwargs: dict[str, str] = None,
         binding_energy: dict[str, float] = None,
         photon_yield: dict[str, float] = None,
-        network: list[str] = None,
-        format: list[str] = None,
+        filenames: list[str] = None,
+        formats: list[str] = None,
         heating: list[str] = None,
         cooling: list[str] = None,
         shielding: dict[str, str] = None,
@@ -87,32 +96,38 @@ class Configuration:
         solver: str = "cvode",
         device: str = "cpu",
         method: str = "dense",
-        instance: Network = None,
     ) -> None:
 
         self._name = project
         self._description = description
         self._load = load or []
-        self._element = element if element else Species.known_elements()
-        self._pseudoelement = (
-            pseudo_element if pseudo_element else Species.known_pseudoelements()
-        )
-        self._species = allowed_species if allowed_species else []
-        self._extraspecies = required_species if required_species else []
-        self._bindingenergy = binding_energy if binding_energy else {}
-        self._photonyield = photon_yield if photon_yield else {}
-        self._network = network if network else []
-        self._format = format if format else []
-        self._heating = heating if heating else []
-        self._cooling = cooling if cooling else []
-        self._shielding = shielding if shielding else {}
+        self._element = element.copy() if element else []
+        self._pseudoelement = pseudo_element.copy() if pseudo_element else []
+        self._allowedspecies = allowed_species.copy() if allowed_species else []
+        self._extraspecies = required_species.copy() if required_species else []
+        self._species_kwargs = species_kwargs.copy() if species_kwargs else {}
+        self._bindingenergy = binding_energy.copy() if binding_energy else {}
+        self._photonyield = photon_yield.copy() if photon_yield else {}
+        self._filenames = filenames.copy() if filenames else []
+        self._formats = formats.copy() if formats else []
+        self._heating = heating.copy() if heating else []
+        self._cooling = cooling.copy() if cooling else []
+        self._shielding = shielding.copy() if shielding else {}
         self._grain_model = grain_model
-        self._ratemodifier = rate_modifier if rate_modifier else {}
-        self._odemodifier = ode_modifier or {}
+        self._ratemodifier = rate_modifier.copy() if rate_modifier else {}
+        self._odemodifier = ode_modifier.copy() if ode_modifier else {}
         self._solver = solver
         self._device = device
         self._method = method
-        self._instance = instance
+
+        self._num_of_reactions = 0
+        self._network_elements = []
+        self._network_species = []
+        self._network_alias = []
+        self._network_gas_species = []
+        self._network_ice_species = []
+        self._network_grain_species = []
+        self._network_grains = []
 
     @property
     def content(self) -> str:
@@ -126,18 +141,32 @@ class Configuration:
         general["loads"] = self._load
 
         chemistry = content["chemistry"]
-        chemistry["elements"] = self._element
-        chemistry["pseudo_elements"] = self._pseudoelement
-        chemistry["species"] = self._species
-        chemistry["extra_species"] = self._extraspecies
-        chemistry["binding_energy"] = self._bindingenergy
-        chemistry["photon_yield"] = self._photonyield
-        chemistry["network"] = self._network
-        chemistry["format"] = self._format
-        chemistry["heating"] = self._heating
-        chemistry["cooling"] = self._cooling
+
+        chem_species = chemistry["species"]
+        chem_species["elements"] = self._element
+        chem_species["pseudo_elements"] = self._pseudoelement
+        chem_species["allowed_species"] = self._allowedspecies
+        chem_species["extra_species"] = self._extraspecies
+        chem_species["symbol"]["surface"] = self._species_kwargs.get(
+            "surface_prefix", "#"
+        )
+        chem_species["symbol"]["bulk"] = self._species_kwargs.get("surface_prefix", "@")
+        chem_species["binding_energy"] = self._bindingenergy
+        chem_species["photon_yield"] = self._photonyield
+
+        chem_grain = chemistry["grain"]
+        chem_grain["symbol"] = self._species_kwargs.get("grain_symbol", "GRAIN")
+        chem_grain["model"] = self._grain_model
+
+        chem_network = chemistry["network"]
+        chem_network["files"] = self._filenames
+        chem_network["formats"] = self._formats
+
+        chem_thermal = chemistry["thermal"]
+        chem_thermal["heating"] = self._heating
+        chem_thermal["cooling"] = self._cooling
+
         chemistry["shielding"] = self._shielding
-        chemistry["grain"]["model"] = self._grain_model
         chemistry["rate_modifier"] = self._ratemodifier
         chemistry["ode_modifier"] = self._odemodifier
 
@@ -147,27 +176,65 @@ class Configuration:
         odesolver["method"] = self._method
 
         summary = content["summary"]
-
-        instance = self._instance
-        if instance:
-            grains = instance.grains
-            gas_species = [s.name for s in instance.species if not s.is_surface]
-            ice_species = [g.name for g in instance.species if g.is_surface]
-            grain_species = (
-                [s.name for g in grains for s in g.species] if grains else []
-            )
-            summary["num_of_elements"] = len(instance.elements)
-            summary["num_of_species"] = len(instance.species)
-            summary["num_of_grains"] = len(instance.grains)
-            summary["num_of_gas_species"] = len(gas_species)
-            summary["num_of_ice_species"] = len(ice_species)
-            summary["num_of_grain_species"] = len(grain_species)
-            summary["num_of_reactions"] = len(instance.reactions)
-            summary["list_of_elements"] = [x.name for x in instance.elements]
-            summary["list_of_species"] = [x.name for x in instance.species]
-            summary["list_of_species_alias"] = [x.alias for x in instance.species]
-            summary["list_of_gas_species"] = gas_species
-            summary["list_of_ice_species"] = ice_species
-            summary["list_of_grain_species"] = grain_species
+        summary["num_of_elements"] = len(self._network_elements)
+        summary["num_of_species"] = len(self._network_species)
+        summary["num_of_grains"] = len(self._network_grains)
+        summary["num_of_gas_species"] = len(self._network_gas_species)
+        summary["num_of_ice_species"] = len(self._network_ice_species)
+        summary["num_of_grain_species"] = len(self._network_grain_species)
+        summary["num_of_reactions"] = self._num_of_reactions
+        summary["list_of_elements"] = self._network_elements
+        summary["list_of_species"] = self._network_species
+        summary["list_of_species_alias"] = self._network_alias
+        summary["list_of_gas_species"] = self._network_gas_species
+        summary["list_of_ice_species"] = self._network_ice_species
+        summary["list_of_grain_species"] = self._network_grain_species
 
         return tomlkit.dumps(content)
+
+
+class NetworkConfiguration(BaseConfiguration):
+    def __init__(
+        self,
+        project: str,
+        network: Network,
+        description: str = "",
+        solver: str = "cvode",
+        device: str = "cpu",
+        method: str = "dense",
+    ) -> None:
+        super().__init__(
+            project,
+            description=description,
+            solver=solver,
+            device=device,
+            method=method,
+        )
+
+        binding = {s.name: s.eb for s in network.species if s.is_surface}
+        yields = {s.name: s.photon_yield for s in network.species if s.is_surface}
+
+        self._element = network._elements.copy()
+        self._pseudoelement = network._pseudo_elements.copy()
+        self._species = network.allowed_species.copy()
+        self._extraspecies = network.required_species.copy()
+        self._bindingenergy = binding
+        self._photonyield = yields
+        self._network = ["reactions.naunet"]
+        self._format = ["naunet"]
+        self._heating = network._heating_names.copy()
+        self._cooling = network._cooling_names.copy()
+        self._shielding = network.shielding.copy()
+        self._grain_model = network.grain_model
+        self._ratemodifier = network.rate_modifier.copy()
+        self._odemodifier = network.ode_modifier.copy()
+
+        species = network.species
+        grains = network.grains
+        self._num_of_reactions = len(network.reactions)
+        self._network_elements = [x.name for x in network.elements]
+        self._network_species = [x.name for x in species]
+        self._network_alias = [x.alias for x in species]
+        self._network_gas_species = [s.name for s in species if not s.is_surface]
+        self._network_ice_species = [s.name for s in species if s.is_surface]
+        self._network_grain_species = [s.name for g in grains for s in g.species]

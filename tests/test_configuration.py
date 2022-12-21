@@ -1,19 +1,25 @@
+import pytest
 import tomlkit
-from naunet.species import Species
-from naunet.configuration import Configuration
+from naunet.network import Network
+from naunet.configuration import BaseConfiguration, NetworkConfiguration
 
 
-def test_init_configuration():
-    config = Configuration("newproject")
+@pytest.fixture
+def example_base_config():
+    return BaseConfiguration("test_project")
 
 
-def test_content():
-    config = Configuration("newproject")
-    content = config.content
+@pytest.fixture
+def example_network_config():
+    return NetworkConfiguration("test_project", Network())
 
-    loaded = tomlkit.loads(content)
-    general = loaded["general"]
-    chemistry = loaded["chemistry"]
-    assert general["name"] == "newproject"
-    assert chemistry["elements"] == Species.known_elements()
-    assert chemistry["species"] == []
+
+def test_content(example_base_config):
+    content = tomlkit.loads(example_base_config.content)
+
+    general = content["general"]
+    chemistry = content["chemistry"]
+    chem_species = chemistry["species"]
+    assert general["name"] == "test_project"
+    assert chem_species["elements"] == []
+    assert chem_species["allowed_species"] == []

@@ -268,7 +268,7 @@ def test_write_network(tmp_path, datadir):
 @pytest.mark.skipif(GITHUB_ACTIONS, reason="on github")
 def test_export_empty_network(tmp_path):
     network = Network()
-    network.export(prefix=tmp_path / "empty_network", overwrite=True)
+    network.export(path=tmp_path / "empty_network", overwrite=True)
 
     os.chdir(tmp_path / "empty_network")
     process = subprocess.Popen(
@@ -305,7 +305,7 @@ def test_export_network(tmp_path, datadir):
     #     filelist=datadir / "primordial.krome",
     #     fileformats="krome",
     # )
-    network.export(prefix=tmp_path / "network_export", overwrite=True)
+    network.export(path=tmp_path / "network_export", overwrite=True)
 
     os.chdir(tmp_path / "network_export")
     process = subprocess.Popen(

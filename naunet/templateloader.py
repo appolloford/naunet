@@ -179,6 +179,7 @@ class TemplateLoader:
         for idx, reac in enumerate(reactions):
             for key, value in rate_modifier.items():
                 if key == reac.idxfromfile:
+                    logging.warning(f"Overwirte the rate of: `{reac}` with {value}")
                     rateeqns[idx] = f"{rate_sym}[{idx}] = {value};"
 
         y = [f"y[IDX_{x.alias}]" for x in species]

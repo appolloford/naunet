@@ -9,7 +9,7 @@ import urllib.parse
 
 from .command import Command
 from ...species import Species
-from ...configuration import Configuration
+from ...configuration import BaseConfiguration
 
 
 class InitCommand(Command):
@@ -173,7 +173,7 @@ class InitCommand(Command):
         elif method not in choices:
             raise ValueError(f"Not support {method} in {solver} on {device}")
 
-        config = Configuration(
+        config = BaseConfiguration(
             name,
             description=description,
             load=loading,
@@ -183,8 +183,8 @@ class InitCommand(Command):
             required_species=extra_species,
             binding_energy=binding,
             photon_yield=yields,
-            network=network,
-            format=format,
+            filenames=network,
+            formats=format,
             heating=heating,
             cooling=cooling,
             shielding=shielding,

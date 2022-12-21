@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 
 from .command import Command
 from ...species import Species
-from ...configuration import Configuration
+from ...configuration import BaseConfiguration
 
 
 class NewCommand(Command):
@@ -146,7 +146,7 @@ class NewCommand(Command):
         device = self.option("device")
         method = self.option("method")
 
-        config = Configuration(
+        config = BaseConfiguration(
             name,
             description=description,
             load=loading,
@@ -156,8 +156,8 @@ class NewCommand(Command):
             required_species=extra_species,
             binding_energy=binding,
             photon_yield=yields,
-            network=network,
-            format=format,
+            filenames=network,
+            formats=format,
             heating=heating,
             cooling=cooling,
             shielding=shielding,

@@ -12,7 +12,7 @@ from .reactions.converter import ExpressionConverter
 from .reactiontype import ReactionType
 from .grains import Grain, builtin_grain_model
 from .thermalprocess import ThermalProcess, get_allowed_cooling, get_allowed_heating
-from .configuration import Configuration
+from .configuration import NetworkConfiguration
 
 
 logging.basicConfig(level=logging.DEBUG)
@@ -142,6 +142,7 @@ class Network:
         self._products = set()
         self._skipped_reactions = []
 
+        # TODO: rename to known_elements and known_pseudoelements
         self._elements = elements or []
         self._pseudo_elements = pseudo_elements or []
 
@@ -437,6 +438,13 @@ class Network:
 
     @property
     def elements(self) -> list[Species]:
+        """
+        The elemental species existing in the network. Grain is also included
+        to have proper elemental renormalization function.
+
+        Returns:
+            list[Species]: list of elemental species
+        """
         return [spec for spec in self.species if spec.is_atom]
 
     def export(
@@ -444,57 +452,41 @@ class Network:
         solver: str = "cvode",
         method: str = "dense",
         device: str = "cpu",
-        ratemodifier: dict[int, str] = None,
-        odemodifier: dict[str, dict[str, list[str | list[str]]]] = None,
-        prefix: str | Path = "network_export",
+        path: str | Path = "network_export",
         overwrite: bool = False,
     ) -> None:
         tl = TemplateLoader(solver, method, device)
 
-        prefix = Path.cwd() / Path(prefix)
-        if not os.path.exists(prefix):
-            os.mkdir(prefix)
+        path = Path.cwd() / Path(path)
+        if not os.path.exists(path):
+            os.mkdir(path)
 
         elif not overwrite:
             logger.warning("Export directory exists! Stop exporting!")
             return
 
-        reaction_file = prefix / "reactions.naunet"
+        reaction_file = path / "reactions.naunet"
         if os.path.exists(reaction_file) and not overwrite:
             logger.warning("Reaction file exists! Stop exporting!")
             return
 
         self.write(reaction_file, "naunet")
 
-        config_file = prefix / "naunet_config.toml"
+        config_file = path / "naunet_config.toml"
         if os.path.exists(config_file) and not overwrite:
             logger.warning("Config file exists! Stop exporting!")
             return
 
-        binding = {s.name: s.eb for s in self.species if s.is_surface}
-        yields = {s.name: s.photon_yield() for s in self.species if s.is_surface}
+        # binding = {s.name: s.eb for s in self.species if s.is_surface}
+        # yields = {s.name: s.photon_yield() for s in self.species if s.is_surface}
 
-        config = Configuration(
-            "network_export",
-            description="Exported_network",
-            element=self._elements,
-            pseudo_element=self._pseudo_elements,
-            allowed_species=self.allowed_species,
-            required_species=self.required_species,
-            binding_energy=binding,
-            photon_yield=yields,
-            network=["reactions.naunet"],
-            format=["naunet"],
-            heating=self._heating_names,
-            cooling=self._cooling_names,
-            shielding=self._shielding,
-            grain_model=self._grain_model,
-            rate_modifier=ratemodifier,
-            ode_modifier=odemodifier,
+        config = NetworkConfiguration(
+            path.name,
+            self,
+            description="the exported network",
             solver=solver,
             device=device,
             method=method,
-            instance=self,
         )
 
         content = config.content
@@ -503,23 +495,23 @@ class Network:
             outf.write(content)
 
         for subdir in ["include", "src", "tests"]:
-            subprefix = prefix / subdir
+            subpath = path / subdir
 
-            if os.path.exists(subprefix):
+            if os.path.exists(subpath):
 
                 if not overwrite:
                     logger.warning("Files exist in export directory! Stop exporting!")
                     return
 
             else:
-                os.mkdir(subprefix)
+                os.mkdir(subpath)
 
-        tl.render(self, path=prefix)
-        tl.render_tests(path=prefix)
+        tl.render(self, path=path)
+        tl.render_tests(path=path)
 
         pkgpath = Path(__file__).parent
 
-        demo = prefix / "demo.ipynb"
+        demo = path / "demo.ipynb"
         if not demo.exists():
             shutil.copyfile(pkgpath / "templates/base/demo.ipynb", demo)
 
