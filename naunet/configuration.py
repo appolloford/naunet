@@ -214,13 +214,14 @@ class NetworkConfiguration(BaseConfiguration):
         binding = {s.name: s.eb for s in network.species if s.is_surface}
         yields = {s.name: s.photon_yield for s in network.species if s.is_surface}
 
-        self._element = network._elements.copy()
-        self._pseudoelement = network._pseudo_elements.copy()
-        self._species = network.allowed_species.copy()
+        self._element = network._known_elements.copy()
+        self._pseudoelement = network._known_pseudo_elements.copy()
+        self._allowedspecies = network.allowed_species.copy()
         self._extraspecies = network.required_species.copy()
+        self._species_kwargs = network._species_kwargs.copy()
         self._bindingenergy = binding
         self._photonyield = yields
-        self._network = ["reactions.naunet"]
+        self._filenames = ["reactions.naunet"]
         self._format = ["naunet"]
         self._heating = network._heating_names.copy()
         self._cooling = network._cooling_names.copy()

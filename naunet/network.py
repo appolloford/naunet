@@ -126,9 +126,8 @@ class Network:
         elements: list[str] = None,
         pseudo_elements: list[str] = None,
         allowed_species: list[str] = None,
-        allowed_species_kwargs: dict[str, str] = None,
         required_species: list[str] = None,
-        required_species_kwargs: dict[str, str] = None,
+        species_kwargs: dict[str, str] = None,
         heating: list[str] = None,
         cooling: list[str] = None,
         shielding: dict[str, str] = None,
@@ -143,25 +142,21 @@ class Network:
         self._skipped_reactions = []
 
         # TODO: rename to known_elements and known_pseudoelements
-        self._elements = elements or []
-        self._pseudo_elements = pseudo_elements or []
+        self._known_elements = elements or []
+        self._known_pseudo_elements = pseudo_elements or []
 
-        if self._elements or self._pseudo_elements:
-            Species.set_known_elements(self._elements)
-            Species.set_known_pseudoelements(self._pseudo_elements)
+        if self._known_elements or self._known_pseudo_elements:
+            Species.set_known_elements(self._known_elements)
+            Species.set_known_pseudoelements(self._known_pseudo_elements)
 
         allowed_species = allowed_species or []
         required_species = required_species or []
-        allowed_species_kwargs = allowed_species_kwargs or {}
-        required_species_kwargs = required_species_kwargs or {}
-        self._allowed_species = [
-            Species(s, **allowed_species_kwargs) for s in allowed_species
-        ]
+        species_kwargs = species_kwargs or {}
+        self._allowed_species = [Species(s, **species_kwargs) for s in allowed_species]
         self._required_species = [
-            Species(s, **required_species_kwargs) for s in required_species
+            Species(s, **species_kwargs) for s in required_species
         ]
-        self._allowed_species_kwargs = allowed_species_kwargs.copy()
-        self._required_species_kwargs = required_species_kwargs.copy()
+        self._species_kwargs = species_kwargs.copy()
         self._allowed_heating = None
         self._allowed_cooling = None
         self._shielding = shielding if shielding else {}
@@ -292,9 +287,9 @@ class Network:
                 instance from reaction string.
         """
 
-        if self._elements or self._pseudo_elements:
-            Species.set_known_elements(self._elements)
-            Species.set_known_pseudoelements(self._pseudo_elements)
+        if self._known_elements or self._known_pseudo_elements:
+            Species.set_known_elements(self._known_elements)
+            Species.set_known_pseudoelements(self._known_pseudo_elements)
 
         format = reaction.format if isinstance(reaction, Reaction) else reaction[1]
 
@@ -327,9 +322,9 @@ class Network:
             RuntimeError: if the format is unknown
         """
 
-        if self._elements or self._pseudo_elements:
-            Species.set_known_elements(self._elements)
-            Species.set_known_pseudoelements(self._pseudo_elements)
+        if self._known_elements or self._known_pseudo_elements:
+            Species.set_known_elements(self._known_elements)
+            Species.set_known_pseudoelements(self._known_pseudo_elements)
 
         new_reactants = set()
         new_products = set()
@@ -365,9 +360,6 @@ class Network:
             dict[str, ThermalProcess]: allowed cooling processes.
             Dictionary of {name: <cooling process>}
         """
-        if self._allowed_cooling:
-            return self._allowed_cooling
-
         speclist = sorted(
             self._reactants | self._products | set(self._required_species)
         )
@@ -385,9 +377,6 @@ class Network:
             dict[str, ThermalProcess]: allowed heating processes.
                                        Dictionary of {name: <heating process>}
         """
-        if self._allowed_heating:
-            return self._allowed_heating
-
         speclist = sorted(
             self._reactants | self._products | set(self._required_species)
         )
@@ -408,13 +397,11 @@ class Network:
 
     @allowed_species.setter
     def allowed_species(self, speclist: list[str]):
-        if self._elements or self._pseudo_elements:
-            Species.set_known_elements(self._elements)
-            Species.set_known_pseudoelements(self._pseudo_elements)
+        if self._known_elements or self._known_pseudo_elements:
+            Species.set_known_elements(self._known_elements)
+            Species.set_known_pseudoelements(self._known_pseudo_elements)
 
-        self._allowed_species = [
-            Species(s, **self._allowed_species_kwargs) for s in speclist
-        ]
+        self._allowed_species = [Species(s, **self._species_kwargs) for s in speclist]
 
         # examine all reactions again
         recorded_reactions = self.reaction_list + self._skipped_reactions
@@ -719,13 +706,11 @@ class Network:
 
     @required_species.setter
     def required_species(self, speclist: list[str]):
-        if self._elements or self._pseudo_elements:
-            Species.set_known_elements(self._elements)
-            Species.set_known_pseudoelements(self._pseudo_elements)
+        if self._known_elements or self._known_pseudo_elements:
+            Species.set_known_elements(self._known_elements)
+            Species.set_known_pseudoelements(self._known_pseudo_elements)
 
-        self._required_species = [
-            Species(s, **self._required_species_kwargs) for s in speclist
-        ]
+        self._required_species = [Species(s, **self._species_kwargs) for s in speclist]
 
     @property
     def shielding(self) -> dict[str, str]:
@@ -822,14 +807,14 @@ class Network:
 
         indices = []
 
-        if self._elements or self._pseudo_elements:
-            Species.set_known_elements(self._elements)
-            Species.set_known_pseudoelements(self._pseudo_elements)
+        if self._known_elements or self._known_pseudo_elements:
+            Species.set_known_elements(self._known_elements)
+            Species.set_known_pseudoelements(self._known_pseudo_elements)
 
         species = (
             species
             if isinstance(species, Species)
-            else Species(species, **self._allowed_species_kwargs)
+            else Species(species, **self._species_kwargs)
         )
 
         if mode == "reactant":

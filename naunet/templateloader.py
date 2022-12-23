@@ -420,7 +420,7 @@ class TemplateLoader:
             network.shielding,
         )
 
-        speckws = network._allowed_species_kwargs
+        speckws = network._species_kwargs
         rate_modifier = network.rate_modifier
         ode_modifier = network.ode_modifier
         ode = self._prepare_ode_content(info, speckws, rate_modifier, ode_modifier)
