@@ -108,10 +108,19 @@ class Reaction(Component):
         if not format:
             verbose = str(self)
 
-        elif format == "short":
+        elif format == "minimal":
             verbose = "{} -> {}".format(
                 " + ".join(x.name for x in sorted(self.reactants)),
                 " + ".join(x.name for x in sorted(self.products)),
+            )
+
+        elif format == "short":
+            verbose = "{} -> {}, {:7.1f} < T < {:7.1f}, Type: {:25}".format(
+                " + ".join(x.name for x in sorted(self.reactants)),
+                " + ".join(x.name for x in sorted(self.products)),
+                self.temp_min,
+                self.temp_max,
+                self.reaction_type.name,
             )
 
         elif format == "naunet":

@@ -1,7 +1,10 @@
 description = "Example: chemical network used in Walsh et al. 2015"
-network = "rate12_complex.rates"
-format = "leeds"
+files = "rate12_complex.rates"
+formats = "leeds"
 grain_model = "hh93i"
+grain_symbol = "GRAIN"
+surface_prefix = "G"
+bulk_prefix = "@"
 
 elements = [
     "e",
@@ -21,12 +24,11 @@ elements = [
     "Ar",
     "Ca",
     "Fe",
-    "GRAIN",
 ]
 
 pseudo_elements = ["CRP", "XRAY", "PHOTON", "CRPHOT"]
 
-species = [
+allowed_species = [
     "C",
     "C+",
     "C-",

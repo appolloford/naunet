@@ -82,18 +82,21 @@ class ExampleCommand(Command):
         examplemod = importlib.import_module(f"naunet.examples.{example}")
 
         description = examplemod.description
+        surface_prefix = examplemod.surface_prefix
+        bulk_prefix = examplemod.bulk_prefix
         elements = examplemod.elements
         pseudo_elements = examplemod.pseudo_elements
-        species = examplemod.species
+        allowed_species = examplemod.allowed_species
         extra_species = examplemod.extra_species
-        network = examplemod.network
-        format = examplemod.format
+        binding = examplemod.binding_energy
+        photon_yield = examplemod.photon_yield
+        files = examplemod.files
+        formats = examplemod.formats
         heating = examplemod.heating
         cooling = examplemod.cooling
         shielding = examplemod.shielding
+        grain_symbol = examplemod.grain_symbol
         grain_model = examplemod.grain_model
-        binding = examplemod.binding_energy
-        photon_yield = examplemod.photon_yield
         rate_modifier = examplemod.rate_modifier
         ode_modifier = examplemod.ode_modifier
         solver = "odeint" if "rosenbrock4" in case else "cvode"
@@ -119,18 +122,21 @@ class ExampleCommand(Command):
                 f"--name={name}",
                 f"--description='{description}'",
                 f"--loading=''",
+                f"--surface-prefix={surface_prefix}",
+                f"--bulk-prefix={bulk_prefix}",
                 f"--elements='{','.join(elements)}'",
                 f"--pseudo-elements='{','.join(pseudo_elements)}'",
-                f"--species='{','.join(species)}'",
+                f"--allowed-species='{','.join(allowed_species)}'",
                 f"--extra-species='{','.join(extra_species)}'",
-                f"--network='{network}'",
-                f"--format='{format}'",
+                f"--binding='{bindingstr}'",
+                f"--yield='{yieldstr}'",
+                f"--grain-symbol='{grain_symbol}'",
+                f"--grain-model='{grain_model}'",
+                f"--network-files='{files}'",
+                f"--file-formats='{formats}'",
                 f"--heating='{','.join(heating)}'",
                 f"--cooling='{','.join(cooling)}'",
                 f"--shielding='{shieldingstr}'",
-                f"--grain-model='{grain_model}'",
-                f"--binding='{bindingstr}'",
-                f"--yield='{yieldstr}'",
                 f"--rate-modifier='{ratemodifierstr}'" if ratemodifierstr else "",
                 f"--ode-modifier='{odemodifierstr}'" if odemodifierstr else "",
                 f"--solver={solver}",
@@ -146,9 +152,9 @@ class ExampleCommand(Command):
             return
 
         # copy network file
-        src = examplesrc / network
-        dest = path / network
-        if network and example != "ism":
+        src = examplesrc / files
+        dest = path / files
+        if files and example != "ism":
             shutil.copyfile(src, dest)
 
         # create project

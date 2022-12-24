@@ -50,22 +50,35 @@ class RenderCommand(Command):
                 spec.loader.exec_module(module)
 
         chemistry = content["chemistry"]
-        network = chemistry["network"]
-        format = chemistry["format"]
-        element = chemistry["elements"]
-        pseudo_element = chemistry["pseudo_elements"]
-        species = chemistry["species"]
-        extra_species = chemistry["extra_species"]
-        heating = chemistry["heating"]
-        cooling = chemistry["cooling"]
-        binding = chemistry["binding_energy"]
-        yields = chemistry["photon_yield"]
+
+        chem_species = chemistry["species"]
+        chem_network = chemistry["network"]
+        chem_grain = chemistry["grain"]
+        chem_thermal = chemistry["thermal"]
+
+        element = chem_species["elements"]
+        pseudo_element = chem_species["pseudo_elements"]
+        allowed_species = chem_species["allowed_species"]
+        extra_species = chem_species["extra_species"]
+        binding = chem_species["binding_energy"]
+        yields = chem_species["photon_yield"]
+        species_kwargs = {
+            "grain_symbol": chem_grain["symbol"],
+            "surface_prefix": chem_species["symbol"]["surface"],
+            "bulk_prefix": chem_species["symbol"]["bulk"],
+        }
+
+        files = chem_network["files"]
+        formats = chem_network["formats"]
+
+        heating = chem_thermal["heating"]
+        cooling = chem_thermal["cooling"]
+
         shielding = chemistry["shielding"]
         rate_modifier = chemistry["rate_modifier"]
         ode_modifier = chemistry["ode_modifier"]
 
-        grain = chemistry["grain"]
-        grain_model = grain["model"]
+        grain_model = chem_grain["model"]
 
         odesolver = content["ODEsolver"]
         solver = odesolver["solver"]
@@ -82,12 +95,13 @@ class RenderCommand(Command):
 
         rate_modifier = {int(key): value for key, value in rate_modifier.items()}
         net = Network(
-            filelist=network,
-            fileformats=format,
+            filelist=files,
+            fileformats=formats,
             elements=element,
             pseudo_elements=pseudo_element,
-            allowed_species=species + extra_species,
+            allowed_species=allowed_species,
             required_species=extra_species,
+            species_kwargs=species_kwargs,
             grain_model=grain_model,
             heating=heating,
             cooling=cooling,
@@ -96,7 +110,7 @@ class RenderCommand(Command):
             ode_modifier=ode_modifier,
         )
 
-        dupes = net.find_duplicate_reaction()
+        dupes = net.find_duplicate_reaction(mode="short")
         print(f"The following {len(dupes)} reactions are duplicate:\n")
         print("\n".join([str(dup[1]) for dup in dupes]))
 

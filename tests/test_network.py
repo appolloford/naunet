@@ -218,6 +218,7 @@ def test_init_network_from_kida(datadir):
     "filename, mode, dupidx",
     [
         ("duplicate.kida", "", [2, 3]),
+        ("duplicate.kida", "minimal", [2, 3]),
         ("duplicate.kida", "short", [2, 3]),
         ("multiduplicate.kida", "", [2, 3, 4, 5, 6, 7]),
     ],

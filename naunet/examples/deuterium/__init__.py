@@ -1,13 +1,16 @@
 description = "Example: deuterium network used in Hsu et al. 2021"
-network = "deuterium.krome"
-format = "krome"
+files = "deuterium.krome"
+formats = "krome"
 grain_model = ""
+grain_symbol = "GRAIN"
+surface_prefix = "#"
+bulk_prefix = "@"
 
-elements = ["e", "H", "D", "He", "C", "N", "O", "GRAIN"]
+elements = ["e", "H", "D", "He", "C", "N", "O"]
 
 pseudo_elements = ["o", "p", "m"]
 
-species = [
+allowed_species = [
     "C",
     "C+",
     "C-",

@@ -1,10 +1,13 @@
 description = "Example: primordial chemical network from KROME"
-network = "primordial.krome"
-format = "krome"
+files = "primordial.krome"
+formats = "krome"
 grain_model = ""
+grain_symbol = "GRAIN"
+surface_prefix = "#"
+bulk_prefix = "@"
 elements = ["e", "H", "D", "He"]
 pseudo_elements = ["Photon"]
-species = [
+allowed_species = [
     "e-",
     "H",
     "H+",

@@ -1,10 +1,13 @@
 description = "Example: a fake chemical network"
-network = "minimal.kida"
-format = "kida"
+files = "minimal.kida"
+formats = "kida"
 grain_model = ""
+grain_symbol = "GRAIN"
+surface_prefix = "#"
+bulk_prefix = "@"
 elements = ["H", "C"]
 pseudo_elements = []
-species = ["H", "C2", "C", "CH"]
+allowed_species = ["H", "C2", "C", "CH"]
 extra_species = []
 heating = []
 cooling = []

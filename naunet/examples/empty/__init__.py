@@ -1,10 +1,13 @@
 description = "Example: empty network"
-network = ""
-format = ""
+files = ""
+formats = ""
 grain_model = ""
+grain_symbol = "GRAIN"
+surface_prefix = "#"
+bulk_prefix = "@"
 elements = []
 pseudo_elements = []
-species = []
+allowed_species = []
 extra_species = []
 heating = []
 cooling = []

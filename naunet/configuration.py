@@ -150,7 +150,7 @@ class BaseConfiguration:
         chem_species["symbol"]["surface"] = self._species_kwargs.get(
             "surface_prefix", "#"
         )
-        chem_species["symbol"]["bulk"] = self._species_kwargs.get("surface_prefix", "@")
+        chem_species["symbol"]["bulk"] = self._species_kwargs.get("builk_prefix", "@")
         chem_species["binding_energy"] = self._bindingenergy
         chem_species["photon_yield"] = self._photonyield
 

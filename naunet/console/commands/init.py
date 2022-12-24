@@ -22,15 +22,18 @@ class InitCommand(Command):
         {--loading=? : Filename of python modules to be loaded}
         {--elements=? : List of elements}
         {--pseudo-elements=? : List of pseudo elements}
-        {--species=? : List of species}
+        {--surface-prefix= : The prefix of surface species}
+        {--bulk-prefix= : The prefix of bulk species}
+        {--allowed-species=? : List of species}
         {--extra-species=? : List of extra required species}
-        {--network=? : Source of chemical network file}
-        {--format=? : The format of the chemical network}
-        {--grain-model=? : Type of dust grain model}
-        {--heating=? : List of heating processes}
-        {--cooling=? : List of cooling processes}
         {--binding=? : List of binding energy of ice species}
         {--yield=? : List of photodesorption yields of ice species}
+        {--grain-symbol= : Symbol of dust grain}
+        {--grain-model=? : Type of dust grain model}
+        {--network-files=? : Source of chemical network file}
+        {--file-formats=? : The format of the chemical network}
+        {--heating=? : List of heating processes}
+        {--cooling=? : List of cooling processes}
         {--shielding=? : List of shielding functions}
         {--rate-modifier=* : List of reaction rates to be changed}
         {--ode-modifier=* : List of ODEs to be changed}
@@ -82,9 +85,17 @@ class InitCommand(Command):
         )
         pseudo_element = [p.strip() for p in pseudo_element.split(",") if p]
 
-        species = self.option("species")
-        species = self.validate(species, "Species incuded in the network", "")
-        species = [s.strip() for s in species.split(",") if s]
+        surface_prefix = self.option("surface-prefix")
+        surface_prefix = self.validate(surface_prefix, "Prefix of surface species", "#")
+
+        bulk_prefix = self.option("bulk-prefix")
+        bulk_prefix = self.validate(bulk_prefix, "Prefix of bulk species", "@")
+
+        allowed_species = self.option("allowed-species")
+        allowed_species = self.validate(
+            allowed_species, "Species to be included in the network", ""
+        )
+        allowed_species = [s.strip() for s in allowed_species.split(",") if s]
 
         extra_species = self.option("extra-species")
         extra_species = self.validate(
@@ -93,25 +104,6 @@ class InitCommand(Command):
             "",
         )
         extra_species = [e.strip() for e in extra_species.split(",") if e]
-
-        network = self.option("network")
-        network = self.validate(network, "Chemical network files", "")
-        network = [n.strip() for n in network.split(",") if n]
-
-        format = self.option("format")
-        format = self.validate(format, "Format of the chemical networks", "")
-        format = [f.strip() for f in format.split(",") if f]
-
-        grain_model = self.option("grain-model")
-        grain_model = self.validate(grain_model, "Grain model", "")
-
-        heating = self.option("heating")
-        heating = self.validate(heating, "Heating models", "")
-        heating = [h.strip() for h in heating.split(",") if h]
-
-        cooling = self.option("cooling")
-        cooling = self.validate(cooling, "Cooling models", "")
-        cooling = [c.strip() for c in cooling.split(",") if c]
 
         binding = self.option("binding")
         binding = self.validate(binding, "Binding energies", "")
@@ -122,6 +114,34 @@ class InitCommand(Command):
         yields = self.validate(yields, "Photon desorption yields", "")
         yields = yields.split(",")
         yields = {y.split("=")[0]: float(y.split("=")[1]) for y in yields if y}
+
+        grain_symbol = self.option("grain-symbol")
+        grain_symbol = self.validate(grain_symbol, "Grain symbol", "GRAIN")
+
+        species_kwargs = {
+            "grain_symbol": grain_symbol,
+            "surface_prefix": surface_prefix,
+            "bulk_prefix": bulk_prefix,
+        }
+
+        grain_model = self.option("grain-model")
+        grain_model = self.validate(grain_model, "Grain model", "")
+
+        network = self.option("network-files")
+        network = self.validate(network, "Chemical network files", "")
+        network = [n.strip() for n in network.split(",") if n]
+
+        formats = self.option("file-formats")
+        formats = self.validate(formats, "Format of the chemical networks", "")
+        formats = [f.strip() for f in formats.split(",") if f]
+
+        heating = self.option("heating")
+        heating = self.validate(heating, "Heating models", "")
+        heating = [h.strip() for h in heating.split(",") if h]
+
+        cooling = self.option("cooling")
+        cooling = self.validate(cooling, "Cooling models", "")
+        cooling = [c.strip() for c in cooling.split(",") if c]
 
         shielding = self.option("shielding")
         shielding = self.validate(shielding, "Self shielding models", "")
@@ -179,12 +199,13 @@ class InitCommand(Command):
             load=loading,
             element=element,
             pseudo_element=pseudo_element,
-            allowed_species=species,
+            allowed_species=allowed_species,
             required_species=extra_species,
+            species_kwargs=species_kwargs,
             binding_energy=binding,
             photon_yield=yields,
             filenames=network,
-            formats=format,
+            formats=formats,
             heating=heating,
             cooling=cooling,
             shielding=shielding,

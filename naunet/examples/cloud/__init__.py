@@ -1,7 +1,10 @@
 description = "Example: chemical network from uclchem v1.3"
-network = "reactions.ucl"
-format = "uclchem"
+files = "reactions.ucl"
+formats = "uclchem"
 grain_model = "rr07x"
+grain_symbol = "GRAIN"
+surface_prefix = "#"
+bulk_prefix = "@"
 
 elements = [
     "E",
@@ -19,7 +22,7 @@ elements = [
 
 pseudo_elements = ["CR", "CRP", "PHOTON", "CRPHOT"]
 
-species = [
+allowed_species = [
     "#C2",
     "#C2H",
     "#C2H2",

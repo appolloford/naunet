@@ -188,7 +188,7 @@ def test_reaction_str():
         ]
     )
 
-    shortstr = "He -> He+ + e-"
+    minimalstr = "He -> He+ + e-"
 
     assert str(reac) == longstr
-    assert f"{reac:short}" == shortstr
+    assert f"{reac:minimal}" == minimalstr

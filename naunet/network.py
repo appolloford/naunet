@@ -502,34 +502,43 @@ class Network:
         if not demo.exists():
             shutil.copyfile(pkgpath / "templates/base/demo.ipynb", demo)
 
-    def find_duplicate_reaction(self, mode: str = "") -> list[tuple[int, Reaction]]:
+    def find_duplicate_reaction(self, mode: str = None) -> list[tuple[int, Reaction]]:
         """
-        Find the duplicate reactions in the network. The default behaviour checks the
-        reactants, products, temperature ranges, and reaction type. Only checking the
-        reactants and products if mode == "short".
+        Find the duplicate reactions in the network. The default behaviour checks
+        equality of reaction instance, which means checking the reactants, products,
+        temperature ranges, and reaction type. If mode is "brief", only the reactants
+        and the products will be compared. Other provided mode value will be used as
+        the format of formatted string and the formatted reactions will be checked,
+        which should be faster and the result should be correct if all reactions
+        using the same symbols (grain, surface, bulk) convention.
 
         Args:
-            mode (str, optional): the method of checking duplicates. Defaults to "".
+            mode (str, optional): the method of checking duplicates. Defaults to None.
 
         Returns:
             list[tuple[int, Reaction]]: the duplicate reactions and their indices
         """
 
+        reactions = self.reaction_list
+
         seen = {}
         dupes = []
 
-        check_list = (
-            [f"{react:{mode}}" for react in self.reaction_list]
-            if mode
-            else self.reaction_list
-        )
+        check_list = reactions
 
-        for idx, chk in enumerate(check_list):
+        if mode == "brief":
+            check_list = [Reaction(re.reactants, re.products) for re in reactions]
+        elif mode is not None:
+            check_list = [f"{react:{mode}}" for react in reactions]
+
+        for idx, chk in enumerate(
+            tqdm(check_list, desc="Checking Repeated Reactions...")
+        ):
             if chk not in seen:
                 seen[chk] = 1
             else:
                 if seen[chk] >= 1:
-                    dupes.append((idx, chk))
+                    dupes.append((idx, reactions[idx]))
                 seen[chk] += 1
 
         return dupes
@@ -755,16 +764,13 @@ class Network:
         tl = TemplateLoader(solver, method, device)
         tl.render(self, path=path, save=True)
 
-    def where_reaction(self, reaction: Reaction, mode: str = "all") -> list[int]:
+    def where_reaction(self, reaction: Reaction, mode: str = None) -> list[int]:
         """
         Find the index of a reaction
 
         Args:
             reaction (Reaction): target reaction
-            mode (str, optional): the way to compare the equality. Defaults to "all".
-
-        Raises:
-            RuntimeError: if mode is unkown
+            mode (str, optional): the way to compare the equality. Defaults to None.
 
         Returns:
             list[int]: the index(es) of the reaction
@@ -772,20 +778,17 @@ class Network:
 
         indices = []
 
-        if mode == "all":
+        if mode is None:
             indices = [
                 idx for idx, reac in enumerate(self.reaction_list) if reac == reaction
             ]
 
-        elif mode == "short":
+        else:
             indices = [
                 idx
                 for idx, reac in enumerate(self.reaction_list)
-                if f"{reac:short}" == f"{reaction:short}"
+                if f"{reac:{mode}}" == f"{reaction:{mode}}"
             ]
-
-        else:
-            raise RuntimeError("Unknown mode: {mode}")
 
         return indices
 
