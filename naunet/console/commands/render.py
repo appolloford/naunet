@@ -110,9 +110,11 @@ class RenderCommand(Command):
             ode_modifier=ode_modifier,
         )
 
-        dupes = net.find_duplicate_reaction(mode="short")
-        print(f"The following {len(dupes)} reactions are duplicate:\n")
-        print("\n".join([str(dup[1]) for dup in dupes]))
+        dupes, dupidx, first = net.find_duplicate_reaction(mode="short")
+        print(f"The following {len(first)} reactions appear multiple times:\n")
+        print("".join([fst.react_string for fst in first]))
+        print(f"They repeatedly appear in the following {len(dupes)} reactions:\n")
+        print("".join([dup.react_string for dup in dupes]))
 
         # if elements are all capital, checking the repeat species in capital
         species_in_capital = all([e == e.upper() for e in element])

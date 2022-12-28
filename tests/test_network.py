@@ -215,20 +215,21 @@ def test_init_network_from_kida(datadir):
 
 
 @pytest.mark.parametrize(
-    "filename, mode, dupidx",
+    "filename, mode, didx, fidx",
     [
-        ("duplicate.kida", "", [2, 3]),
-        ("duplicate.kida", "minimal", [2, 3]),
-        ("duplicate.kida", "short", [2, 3]),
-        ("multiduplicate.kida", "", [2, 3, 4, 5, 6, 7]),
+        ("duplicate.kida", None, [2, 3], [0, 1]),
+        ("duplicate.kida", "", [2, 3], [0, 1]),
+        ("duplicate.kida", "minimal", [2, 3], [0, 1]),
+        ("duplicate.kida", "short", [2, 3], [0, 1]),
+        ("multiduplicate.kida", None, [2, 3, 4, 5, 6, 7], [0, 1]),
     ],
 )
-def test_check_duplicate(datadir, filename, mode, dupidx):
-    network = Network()
-    network.add_reaction_from_file(datadir / filename, "kida")
-    dupes = network.find_duplicate_reaction(mode=mode)
-    idx = [dup[0] for dup in dupes]
-    assert idx == dupidx
+def test_check_duplicate(datadir, filename, mode, didx, fidx):
+    network = Network(filelist=datadir / filename, fileformats="kida")
+    reactions = network.reactions
+    dupes, dupidx, first = network.find_duplicate_reaction(mode=mode)
+    assert dupidx == didx
+    assert first == [reactions[idx] for idx in fidx]
 
 
 def test_generate_cvode_code_from_kida(tmp_path, datadir):

@@ -523,6 +523,7 @@ class Network:
 
         seen = {}
         dupes = []
+        dupidx = []
 
         check_list = reactions
 
@@ -535,13 +536,20 @@ class Network:
             tqdm(check_list, desc="Checking Repeated Reactions...")
         ):
             if chk not in seen:
-                seen[chk] = 1
+                seen[chk] = [idx]
             else:
-                if seen[chk] >= 1:
-                    dupes.append((idx, reactions[idx]))
-                seen[chk] += 1
+                if len(seen[chk]) >= 1:
+                    dupes.append(reactions[idx])
+                    dupidx.append(idx)
+                seen[chk].append(idx)
 
-        return dupes
+        # TODO: BUG! tqdm makes the following line return KeyError in the default mode
+        # for key in seen.keys():
+        #     print(key)
+        #     print(seen[key])
+        first = [reactions[idxes[0]] for _, idxes in seen.items() if len(idxes) > 1]
+
+        return dupes, dupidx, first
 
     def find_source_sink(self) -> tuple[set[Species], set[Species]]:
         """

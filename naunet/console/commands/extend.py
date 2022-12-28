@@ -74,8 +74,8 @@ class ExtendCommand(Command):
             net.remove_reaction(list(remove_index))
 
         if self.option("remove-duplicate"):
-            dupes = net.find_duplicate_reaction()
-            net.remove_reaction([dup[0] for dup in dupes])
+            _, dupidx, _ = net.find_duplicate_reaction()
+            net.remove_reaction(dupidx)
 
         initializer = supported_reaction_class.get(informat, Reaction)
         kept_reactions = [reac.react_string for reac in net.reaction_list]
