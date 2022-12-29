@@ -19,7 +19,8 @@ def test_content(example_base_config):
 
     general = content["general"]
     chemistry = content["chemistry"]
+    chem_element = chemistry["element"]
     chem_species = chemistry["species"]
     assert general["name"] == "test_project"
-    assert chem_species["elements"] == []
-    assert chem_species["allowed_species"] == []
+    assert chem_element["elements"] == []
+    assert chem_species["allowed"] == []

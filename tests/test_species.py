@@ -32,6 +32,15 @@ def test_known_elements_pseudoelements():
     Species.reset()
 
 
+def test_replace_name():
+    Species.set_known_elements(["H", "HE", "E"])
+    Species._replacement = {"E": "e-", "HE": "He"}
+    assert Species("HE").name == "He"
+    assert Species("HEH").name == "HeH"
+    assert Species("E").name == "e-"
+    assert Species("HE").A == 4.0
+
+
 @pytest.mark.parametrize(
     "name, atom, surface, alias, basename, charge, custalias, eb, mass, mnum",
     [
@@ -60,6 +69,7 @@ def test_known_elements_pseudoelements():
 def test_properties_default(
     name, atom, surface, alias, basename, charge, custalias, eb, mass, mnum
 ):
+    Species.reset()
     species = Species(name)
     assert species.alias == alias
     species.alias = custalias

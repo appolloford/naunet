@@ -18,22 +18,31 @@ description = ""
 loads = []
 
 [chemistry]
-[chemistry.species]
-elements = []
-pseudo_elements = []
-allowed_species = []
-extra_species = []
-
-[chemistry.species.symbol]
+[chemistry.symbol]
+grain = ""
 surface = ""
 bulk = ""
+
+[chemistry.element]
+elements = []
+pseudo_elements = []
+
+[chemistry.element.replacement]
+# Naunet is case-sensitive. If you want to have the built-in functions work correctly, 
+# please listed the corresponding element names here. e.g. HE = "He"
+# The replacement will be applied to all the species appearing in this config file.
+
+[chemistry.species]
+# The allowed species will limit the allowed reactions in the network
+allowed = []
+# If some species is required for heating/cooling, but does not exist in the network.
+required = []
 
 [chemistry.species.binding_energy]
 
 [chemistry.species.photon_yield]
 
 [chemistry.grain]
-symbol = ""
 model = ""
 
 [chemistry.network]
@@ -80,6 +89,7 @@ class BaseConfiguration:
         load: list[str] = None,
         element: list[str] = None,
         pseudo_element: list[str] = None,
+        replacement: dict[str, str] = None,
         allowed_species: list[str] = None,
         required_species: list[str] = None,
         species_kwargs: dict[str, str] = None,
@@ -103,6 +113,7 @@ class BaseConfiguration:
         self._load = load or []
         self._element = element.copy() if element else []
         self._pseudoelement = pseudo_element.copy() if pseudo_element else []
+        self._replacement = replacement.copy() if replacement else {}
         self._allowedspecies = allowed_species.copy() if allowed_species else []
         self._extraspecies = required_species.copy() if required_species else []
         self._species_kwargs = species_kwargs.copy() if species_kwargs else {}
@@ -142,20 +153,24 @@ class BaseConfiguration:
 
         chemistry = content["chemistry"]
 
+        chemistry["symbol"] = {
+            "grain": self._species_kwargs.get("grain_symbol", "GRAIN"),
+            "surface": self._species_kwargs.get("surface_prefix", "#"),
+            "bulk": self._species_kwargs.get("builk_prefix", "@"),
+        }
+
+        chem_element = chemistry["element"]
+        chem_element["elements"] = self._element
+        chem_element["pseudo_elements"] = self._pseudoelement
+        chem_element["replacement"] = self._replacement
+
         chem_species = chemistry["species"]
-        chem_species["elements"] = self._element
-        chem_species["pseudo_elements"] = self._pseudoelement
-        chem_species["allowed_species"] = self._allowedspecies
-        chem_species["extra_species"] = self._extraspecies
-        chem_species["symbol"]["surface"] = self._species_kwargs.get(
-            "surface_prefix", "#"
-        )
-        chem_species["symbol"]["bulk"] = self._species_kwargs.get("builk_prefix", "@")
+        chem_species["allowed"] = self._allowedspecies
+        chem_species["required"] = self._extraspecies
         chem_species["binding_energy"] = self._bindingenergy
         chem_species["photon_yield"] = self._photonyield
 
         chem_grain = chemistry["grain"]
-        chem_grain["symbol"] = self._species_kwargs.get("grain_symbol", "GRAIN")
         chem_grain["model"] = self._grain_model
 
         chem_network = chemistry["network"]

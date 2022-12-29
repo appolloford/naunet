@@ -28,6 +28,8 @@ elements = [
 
 pseudo_elements = ["CRP", "XRAY", "PHOTON", "CRPHOT"]
 
+element_replacement = {}
+
 allowed_species = [
     "C",
     "C+",

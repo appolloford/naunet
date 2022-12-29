@@ -51,21 +51,24 @@ class RenderCommand(Command):
 
         chemistry = content["chemistry"]
 
+        chem_symbol = chemistry["symbol"]
+        chem_element = chemistry["element"]
         chem_species = chemistry["species"]
         chem_network = chemistry["network"]
         chem_grain = chemistry["grain"]
         chem_thermal = chemistry["thermal"]
 
-        element = chem_species["elements"]
-        pseudo_element = chem_species["pseudo_elements"]
-        allowed_species = chem_species["allowed_species"]
-        extra_species = chem_species["extra_species"]
+        element = chem_element["elements"]
+        pseudo_element = chem_element["pseudo_elements"]
+        replacement = chem_element["replacement"]
+        allowed_species = chem_species["allowed"]
+        extra_species = chem_species["required"]
         binding = chem_species["binding_energy"]
         yields = chem_species["photon_yield"]
         species_kwargs = {
-            "grain_symbol": chem_grain["symbol"],
-            "surface_prefix": chem_species["symbol"]["surface"],
-            "bulk_prefix": chem_species["symbol"]["bulk"],
+            "grain_symbol": chem_symbol["grain"],
+            "surface_prefix": chem_symbol["surface"],
+            "bulk_prefix": chem_symbol["bulk"],
         }
 
         files = chem_network["files"]
@@ -87,8 +90,19 @@ class RenderCommand(Command):
         # required = odesolver["required"]
 
         import naunet
+        from naunet.species import Species
         from naunet.network import Network, supported_reaction_class
         from naunet.chemistrydata import update_binding_energy, update_photon_yield
+
+        Species._replacement = replacement
+        Species.set_known_elements(element)
+        Species.set_known_pseudoelements(pseudo_element)
+        binding = {
+            Species(key, **species_kwargs).name: value for key, value in binding.items()
+        }
+        yields = {
+            Species(key, **species_kwargs).name: value for key, value in yields.items()
+        }
 
         update_binding_energy(binding)
         update_photon_yield(yields)

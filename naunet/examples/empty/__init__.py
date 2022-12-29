@@ -7,6 +7,7 @@ surface_prefix = "#"
 bulk_prefix = "@"
 elements = []
 pseudo_elements = []
+element_replacement = {}
 allowed_species = []
 extra_species = []
 heating = []

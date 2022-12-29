@@ -10,6 +10,8 @@ elements = ["e", "H", "D", "He", "C", "N", "O"]
 
 pseudo_elements = ["o", "p", "m"]
 
+element_replacement = {}
+
 allowed_species = [
     "C",
     "C+",

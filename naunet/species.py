@@ -76,6 +76,7 @@ class Species:
 
     _known_elements = []
     _known_pseudoelements = []
+    _replacement = {}
 
     def __init__(
         self,
@@ -121,11 +122,6 @@ class Species:
             Species._known_elements + Species._known_pseudoelements,
             [self._grain_symbol, self._surface_prefix],
         )
-
-        # create a element count dict in all caps to search in periodic table
-        self._allcaps_element_count = {
-            key.upper(): value for key, value in self.element_count.items()
-        }
 
     def __copy__(self) -> Species:
         return type(self)(
@@ -251,6 +247,7 @@ class Species:
         # remove charge symbols
         parsename = re.sub(r"\+*$", "", parsename)
         parsename = re.sub(r"-*$", "", parsename)
+        charge = self.name.replace(parsename, "")
 
         components = sorted(elements + symbols, key=len, reverse=True)
 
@@ -280,6 +277,8 @@ class Species:
             raise RuntimeError(f"{self.name} starts with something unrecognizable")
 
         for s, e, n in zip(starts, ends, matchnames):
+            # if there is replacement, save the element name with the new value
+            n = self._replacement.get(n, n)
             if e != s:
                 substring = parsename[e:s]
                 if substring.isdigit():
@@ -293,6 +292,14 @@ class Species:
                     self._add_element_count(n, 0)
                 elif n:
                     self._add_element_count(n, 1)
+
+        # replace the original species name if the element name is in the replace target
+        if self._replacement:
+            newname = ""
+            for s, e, n in zip(starts, ends, matchnames):
+                nr = self._replacement.get(n, n)
+                newname = f"{newname}{nr}{parsename[e:s]}"
+            self.name = f"{newname}{charge}"
 
     @classmethod
     def add_known_elements(cls, elements: list[str]) -> list:
@@ -559,9 +566,7 @@ class Species:
 
         self._mass = 0.0
         for e in chemistrydata.periodic_table + chemistrydata.isotopes_table:
-            self._mass += self._allcaps_element_count.get(e.Symbol.upper(), 0) * float(
-                e.AtomicMass
-            )
+            self._mass += self.element_count.get(e.Symbol, 0) * float(e.AtomicMass)
 
         # ? electron mass
         # self._mass -= 0.00054858 * self.charge
@@ -582,7 +587,7 @@ class Species:
 
         self._massnumber = 0.0
         for e in chemistrydata.periodic_table + chemistrydata.isotopes_table:
-            self._massnumber += self._allcaps_element_count.get(e.Symbol.upper(), 0) * (
+            self._massnumber += self.element_count.get(e.Symbol, 0) * (
                 float(e.NumberofNeutrons) + float(e.NumberofProtons)
             )
 
@@ -667,6 +672,7 @@ class Species:
         """
         cls._known_elements = []
         cls._known_pseudoelements = []
+        cls._replacement = {}
 
     @classmethod
     def set_known_elements(cls, elements: list) -> None:

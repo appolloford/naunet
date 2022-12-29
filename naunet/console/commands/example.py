@@ -86,6 +86,7 @@ class ExampleCommand(Command):
         bulk_prefix = examplemod.bulk_prefix
         elements = examplemod.elements
         pseudo_elements = examplemod.pseudo_elements
+        element_replacement = examplemod.element_replacement
         allowed_species = examplemod.allowed_species
         extra_species = examplemod.extra_species
         binding = examplemod.binding_energy
@@ -103,6 +104,7 @@ class ExampleCommand(Command):
         device = "gpu" if "cusparse" in case else "cpu"
         method = case.split("/")[-1]
 
+        replacestr = ",".join(f"{r}: {rv}" for r, rv in element_replacement.items())
         shieldingstr = ",".join(f"{key}: {val}" for key, val in shielding.items())
         bindingstr = ",".join(f"{s}={sv}" for s, sv in binding.items())
         yieldstr = ",".join(f"{s}={sv}" for s, sv in photon_yield.items())
@@ -126,6 +128,7 @@ class ExampleCommand(Command):
                 f"--bulk-prefix={bulk_prefix}",
                 f"--elements='{','.join(elements)}'",
                 f"--pseudo-elements='{','.join(pseudo_elements)}'",
+                f"--element-replacement='{replacestr}'",
                 f"--allowed-species='{','.join(allowed_species)}'",
                 f"--extra-species='{','.join(extra_species)}'",
                 f"--binding='{bindingstr}'",

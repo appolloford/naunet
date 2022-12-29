@@ -7,6 +7,7 @@ surface_prefix = "#"
 bulk_prefix = "@"
 elements = ["e", "H", "D", "He"]
 pseudo_elements = ["Photon"]
+element_replacement = {}
 allowed_species = [
     "e-",
     "H",

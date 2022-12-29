@@ -22,6 +22,7 @@ class InitCommand(Command):
         {--loading=? : Filename of python modules to be loaded}
         {--elements=? : List of elements}
         {--pseudo-elements=? : List of pseudo elements}
+        {--element-replacement=? : Table of elements to be replaced}
         {--surface-prefix= : The prefix of surface species}
         {--bulk-prefix= : The prefix of bulk species}
         {--allowed-species=? : List of species}
@@ -84,6 +85,12 @@ class InitCommand(Command):
             ", ".join(Species.default_pseudoelements),
         )
         pseudo_element = [p.strip() for p in pseudo_element.split(",") if p]
+
+        replacement = self.option("element-replacement")
+        replacement = self.validate(replacement, "Elements to be replaced", "")
+        replacement = replacement.split(",")
+        replacement = {r.split(":")[0]: r.split(":")[1] for r in replacement if r}
+        replacement = {r.strip(): rv.strip() for r, rv in replacement.items()}
 
         surface_prefix = self.option("surface-prefix")
         surface_prefix = self.validate(surface_prefix, "Prefix of surface species", "#")
@@ -199,6 +206,7 @@ class InitCommand(Command):
             load=loading,
             element=element,
             pseudo_element=pseudo_element,
+            replacement=replacement,
             allowed_species=allowed_species,
             required_species=extra_species,
             species_kwargs=species_kwargs,
