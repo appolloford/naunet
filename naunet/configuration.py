@@ -19,6 +19,9 @@ loads = []
 
 [chemistry]
 [chemistry.symbol]
+# Symbols here are applied to the chemistry.species table
+# The species appears in the network files are not controlled by these
+# The built-in reaction formats have defined the symbols used in the network
 grain = ""
 surface = ""
 bulk = ""

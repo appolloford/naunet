@@ -130,15 +130,11 @@ class RenderCommand(Command):
         print(f"They repeatedly appear in the following {len(dupes)} reactions:\n")
         print("".join([dup.react_string for dup in dupes]))
 
-        # if elements are all capital, checking the repeat species in capital
-        species_in_capital = all([e == e.upper() for e in element])
         patchname = self.option("patch")
         source = self.option("patch-source")
         # include/src/tests are not changed when rendering patches
         if patchname:
-            patch = PatchFactory(
-                patchname, device, source, species_in_capital=species_in_capital
-            )
+            patch = PatchFactory(patchname, device, source)
             patch.render(net, path=Path.cwd() / patchname)
             return
 

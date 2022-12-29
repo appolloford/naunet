@@ -120,12 +120,7 @@ class EnzoPatch:
         network_diff_enzo: list[Species]
         network_diff_grackle: list[Species]
 
-    def __init__(
-        self,
-        device: str,
-        source: str = None,
-        species_in_capital: bool = False,
-    ) -> None:
+    def __init__(self, device: str, source: str = None) -> None:
 
         source = source or "templates/patches/enzo"
         loader = PackageLoader("naunet", source)
@@ -138,7 +133,6 @@ class EnzoPatch:
         self._env.rstrip_blocks = True
 
         self._device = device
-        self._species_in_capital = species_in_capital
 
     def _render(
         self,
@@ -178,8 +172,6 @@ class EnzoPatch:
         path: Path | str = None,
     ) -> None:
 
-        capital = self._species_in_capital
-
         info = NetworkInfo(
             network.elements,
             network.species,
@@ -191,8 +183,8 @@ class EnzoPatch:
         )
 
         known_elements = Species.known_elements().copy()
+        Species.add_known_elements(list(Species._replacement.values()))
         for e in self._enzo_required_elements:
-            e = e.upper() if capital else e
             if e not in known_elements:
                 Species.add_known_elements([e])
                 logging.info(
@@ -200,42 +192,31 @@ class EnzoPatch:
                     "into known element list"
                 )
 
-        enzo_species = [
-            Species(s.upper() if capital else s)
-            for s in EnzoPatch.enzo_defined_species_name
-        ]
-        grackle_species = [
-            Species(s.upper() if capital else s) for s in EnzoPatch.grackle_species_name
-        ]
         # duplicate the species in network and make them use the alias in enzo
-        network_species = [copy(s) for s in network.species]
+        species_network = [copy(s) for s in network.species]
 
-        for s, alias in zip(grackle_species, self.grackle_defined_alias):
+        species_enzo = [Species(s) for s in EnzoPatch.enzo_defined_species_name]
+        species_grackle = [Species(s) for s in EnzoPatch.grackle_species_name]
+
+        for s, alias in zip(species_grackle, self.grackle_defined_alias):
             s.alias = alias
-            for s1 in network_species:
+            for s1 in species_network:
                 if s == s1:
                     s1.alias = alias
 
-        network_int_enzo_species = [s for s in network_species if s in enzo_species]
-        network_int_grackle_species = [
-            s for s in network_species if s in grackle_species
-        ]
-
-        network_diff_enzo_species = [
-            s for s in network_species if s not in enzo_species
-        ]
-        network_diff_grackle_species = [
-            s for s in network_species if s not in grackle_species
-        ]
+        species_intersect_enzo = [s for s in species_network if s in species_enzo]
+        species_intersect_grackle = [s for s in species_network if s in species_grackle]
+        species_diff_enzo = [s for s in species_network if s not in species_enzo]
+        species_diff_grackle = [s for s in species_network if s not in species_grackle]
 
         species_group = self.SpeciesGroups(
-            enzo_species,
-            grackle_species,
-            network_species,
-            network_int_enzo_species,
-            network_int_grackle_species,
-            network_diff_enzo_species,
-            network_diff_grackle_species,
+            species_enzo,
+            species_grackle,
+            species_network,
+            species_intersect_enzo,
+            species_intersect_grackle,
+            species_diff_enzo,
+            species_diff_grackle,
         )
 
         Species.set_known_elements(known_elements)
@@ -265,11 +246,13 @@ class EnzoPatch:
 
         """
 
+        derived_field_map = []
         derived_species_field = []
         species = info.species
 
         for s in species:
             alias = "Electron" if s.is_electron else s.alias
+            derived_field_map.append(f"    '{s.name}': '{alias}_ndensity',")
             derived_species_field.append(
                 "\n".join(
                     [
@@ -287,9 +270,9 @@ class EnzoPatch:
                 )
             )
 
-        for ele in Species.known_elements():
+        for ele in info.elements:
             specalias = ["Electron" if s.is_electron else s.alias for s in species]
-            specnatom = [s.element_count.get(ele, 0) for s in species]
+            specnatom = [s.element_count.get(ele.name, 0) for s in species]
             eleabund = [
                 f"{natom}*data['{alias}_ndensity']"
                 for natom, alias in zip(specnatom, specalias)
@@ -297,6 +280,7 @@ class EnzoPatch:
             ]
             eleabundstr = " + ".join(["0.0", *eleabund])
             eleabundstr = _stmwrap(eleabundstr, 70, 10)
+            derived_field_map.append(f"    'Elem{ele}': 'element_{ele}_ndensity',")
             derived_species_field.append(
                 "\n".join(
                     [
@@ -321,6 +305,9 @@ class EnzoPatch:
             ]
             iceeleabundstr = " + ".join(["0.0", *iceeleabund])
             iceeleabundstr = _stmwrap(iceeleabundstr, 70, 10)
+            derived_field_map.append(
+                f"    'IceElem{ele}': 'surface_element_{ele}_ndensity',"
+            )
             derived_species_field.append(
                 "\n".join(
                     [
@@ -336,8 +323,13 @@ class EnzoPatch:
                 )
             )
 
+        derived_field_map_str = "\n".join(
+            ["derived_field_map = {", *derived_field_map, "}"]
+        )
         with open(path / "derived_fields_of_network.py", "w") as outf:
             outf.write("import yt\n")
             outf.write("from yt import derived_field\n\n")
             outf.write("mh_cgs = float(yt.units.mh_cgs)\n\n")
+            outf.write(derived_field_map_str)
+            outf.write("\n\n")
             outf.write("\n\n".join(derived_species_field))
