@@ -16,113 +16,17 @@ if TYPE_CHECKING:
     from .network import Network
 
 
-class PatchFactory:
-    def __init__(
-        self,
-        target: str,
-        device: str,
-        source: str = None,
-        **kwargs,
-    ) -> None:
+def patch_factory(target: str, device: str, source: str = None):
 
-        if target.lower() == "enzo":
-            self.patch = EnzoPatch(device, source, **kwargs)
-        else:
-            raise ValueError("Not supported target!")
-
-    def render(
-        self,
-        network: Network,
-        templates: list[str] = None,
-        save: bool = True,
-        path: Path | str = "./",
-    ):
-        self.patch.render(network, templates, save, path)
-
-    @property
-    def templates(self):
-        return self.patch.templates
+    if target.lower() == "enzo":
+        return EnzoPatch(device, source)
+    else:
+        raise ValueError("Not supported target!")
 
 
-class EnzoPatch:
+class Patch:
+    def __init__(self, device: str, source: str) -> None:
 
-    _enzo_required_elements = ["e", "H", "D", "He", "C", "O", "Si"]
-
-    enzo_defined_species_name = [
-        "e-",
-        "H",
-        "H+",
-        "He",
-        "He+",
-        "He++",
-        "H-",
-        "H2",
-        "H2+",
-        "D",
-        "D+",
-        "HD",
-        "C",
-        "C+",
-        "O",
-        "O+",
-        "Si",
-        "Si+",
-        "Si++",
-        "CH",
-        "CH2",
-        "CH3+",
-        "C2",
-        "CO",
-        "HCO+",
-        "OH",
-        "H2O",
-        "O2",
-    ]
-
-    # repeated define e- and E- to exclude electron
-    grackle_species_name = [
-        "e-",
-        "H",
-        "H+",
-        "He",
-        "He+",
-        "He++",
-        "H-",
-        "H2",
-        "H2+",
-        "D",
-        "D+",
-        "HD",
-    ]
-
-    grackle_defined_alias = [
-        "De",
-        "HI",
-        "HII",
-        "HeI",
-        "HeII",
-        "HeIII",
-        "HM",
-        "H2I",
-        "H2II",
-        "DI",
-        "DII",
-        "HDI",
-    ]
-
-    @dataclass
-    class SpeciesGroups:
-        enzo: list[Species]
-        grackle: list[Species]
-        network: list[Species]
-        network_int_enzo: list[Species]
-        network_int_grackle: list[Species]
-        network_diff_enzo: list[Species]
-        network_diff_grackle: list[Species]
-
-    def __init__(self, device: str, source: str = None) -> None:
-
-        source = source or "templates/patches/enzo"
         loader = PackageLoader("naunet", source)
         self._env = Environment(loader=loader)
         self._env.filters["stmwrap"] = _stmwrap
@@ -133,102 +37,6 @@ class EnzoPatch:
         self._env.rstrip_blocks = True
 
         self._device = device
-
-    def _render(
-        self,
-        template: Template,
-        info: NetworkInfo = None,
-        species_group: SpeciesGroups = None,
-        save: bool = True,
-        path: Path | str = None,
-    ) -> None:
-
-        result = template.render(
-            network=info,
-            species=species_group,
-            device=self._device,
-        )
-        name = template.name.replace(".j2", "")
-
-        if save:
-            path = Path(path)
-            hydro_rk_path = path / "hydro_rk"
-
-            for p in [path, hydro_rk_path]:
-                if not p.exists():
-                    p.mkdir(parents=True)
-
-            print(path / name)
-            with open(path / name, "w") as outf:
-                outf.write(result)
-        else:
-            print(result)
-
-    def render(
-        self,
-        network: Network,
-        templates: list[str] = None,
-        save: bool = True,
-        path: Path | str = None,
-    ) -> None:
-
-        info = NetworkInfo(
-            network.elements,
-            network.species,
-            network.reactions or [Reaction(reaction_type=ReactionType.DUMMY)],
-            network.heating,
-            network.cooling,
-            network.grains,
-            network.shielding,
-        )
-
-        known_elements = Species.known_elements().copy()
-        Species.add_known_elements(list(Species._replacement.values()))
-        for e in self._enzo_required_elements:
-            if e not in known_elements:
-                Species.add_known_elements([e])
-                logging.info(
-                    f"Temporarily add Enzo required element {e} "
-                    "into known element list"
-                )
-
-        # duplicate the species in network and make them use the alias in enzo
-        species_network = [copy(s) for s in network.species]
-
-        species_enzo = [Species(s) for s in EnzoPatch.enzo_defined_species_name]
-        species_grackle = [Species(s) for s in EnzoPatch.grackle_species_name]
-
-        for s, alias in zip(species_grackle, self.grackle_defined_alias):
-            s.alias = alias
-            for s1 in species_network:
-                if s == s1:
-                    s1.alias = alias
-
-        species_intersect_enzo = [s for s in species_network if s in species_enzo]
-        species_intersect_grackle = [s for s in species_network if s in species_grackle]
-        species_diff_enzo = [s for s in species_network if s not in species_enzo]
-        species_diff_grackle = [s for s in species_network if s not in species_grackle]
-
-        species_group = self.SpeciesGroups(
-            species_enzo,
-            species_grackle,
-            species_network,
-            species_intersect_enzo,
-            species_intersect_grackle,
-            species_diff_enzo,
-            species_diff_grackle,
-        )
-
-        Species.set_known_elements(known_elements)
-
-        templates = templates or self.templates
-
-        for tmplname in templates:
-            if tmplname == "derived_fields.py":
-                self._render_derived_field(info, path)
-            else:
-                tmpl = self._env.get_template(tmplname)
-                self._render(tmpl, info, species_group, save, path)
 
     @property
     def templates(self):
@@ -333,3 +141,179 @@ class EnzoPatch:
             outf.write(derived_field_map_str)
             outf.write("\n\n")
             outf.write("\n\n".join(derived_species_field))
+
+
+class EnzoPatch(Patch):
+
+    _enzo_required_elements = ["e", "H", "D", "He", "C", "O", "Si"]
+
+    enzo_defined_species_name = [
+        "e-",
+        "H",
+        "H+",
+        "He",
+        "He+",
+        "He++",
+        "H-",
+        "H2",
+        "H2+",
+        "D",
+        "D+",
+        "HD",
+        "C",
+        "C+",
+        "O",
+        "O+",
+        "Si",
+        "Si+",
+        "Si++",
+        "CH",
+        "CH2",
+        "CH3+",
+        "C2",
+        "CO",
+        "HCO+",
+        "OH",
+        "H2O",
+        "O2",
+    ]
+
+    # repeated define e- and E- to exclude electron
+    grackle_species_name = [
+        "e-",
+        "H",
+        "H+",
+        "He",
+        "He+",
+        "He++",
+        "H-",
+        "H2",
+        "H2+",
+        "D",
+        "D+",
+        "HD",
+    ]
+
+    grackle_defined_alias = [
+        "De",
+        "HI",
+        "HII",
+        "HeI",
+        "HeII",
+        "HeIII",
+        "HM",
+        "H2I",
+        "H2II",
+        "DI",
+        "DII",
+        "HDI",
+    ]
+
+    @dataclass
+    class SpeciesGroups:
+        enzo: list[Species]
+        grackle: list[Species]
+        network: list[Species]
+        network_int_enzo: list[Species]
+        network_int_grackle: list[Species]
+        network_diff_enzo: list[Species]
+        network_diff_grackle: list[Species]
+
+    def __init__(self, device: str, source: str = None) -> None:
+        super().__init__(device, source or "templates/patches/enzo")
+
+    def _render(
+        self,
+        template: Template,
+        info: NetworkInfo = None,
+        species_group: SpeciesGroups = None,
+        save: bool = True,
+        path: Path | str = None,
+    ) -> None:
+
+        result = template.render(
+            network=info,
+            species=species_group,
+            device=self._device,
+        )
+        name = template.name.replace(".j2", "")
+
+        if save:
+            path = Path(path)
+            hydro_rk_path = path / "hydro_rk"
+
+            for p in [path, hydro_rk_path]:
+                if not p.exists():
+                    p.mkdir(parents=True)
+
+            print(path / name)
+            with open(path / name, "w") as outf:
+                outf.write(result)
+        else:
+            print(result)
+
+    def render(
+        self,
+        network: Network,
+        templates: list[str] = None,
+        save: bool = True,
+        path: Path | str = None,
+    ) -> None:
+
+        info = NetworkInfo(
+            network.elements,
+            network.species,
+            network.reactions or [Reaction(reaction_type=ReactionType.DUMMY)],
+            network.heating,
+            network.cooling,
+            network.grains,
+            network.shielding,
+        )
+
+        known_elements = Species.known_elements().copy()
+        Species.add_known_elements(list(Species._replacement.values()))
+        for e in self._enzo_required_elements:
+            if e not in known_elements:
+                Species.add_known_elements([e])
+                logging.info(
+                    f"Temporarily add Enzo required element {e} "
+                    "into known element list"
+                )
+
+        # duplicate the species in network and make them use the alias in enzo
+        species_network = [copy(s) for s in network.species]
+
+        species_enzo = [Species(s) for s in EnzoPatch.enzo_defined_species_name]
+        species_grackle = [Species(s) for s in EnzoPatch.grackle_species_name]
+
+        for s, alias in zip(species_grackle, self.grackle_defined_alias):
+            s.alias = alias
+            for s1 in species_network:
+                if s == s1:
+                    s1.alias = alias
+
+        species_intersect_enzo = [s for s in species_network if s in species_enzo]
+        species_intersect_grackle = [s for s in species_network if s in species_grackle]
+        species_diff_enzo = [s for s in species_network if s not in species_enzo]
+        species_diff_grackle = [s for s in species_network if s not in species_grackle]
+
+        species_group = self.SpeciesGroups(
+            species_enzo,
+            species_grackle,
+            species_network,
+            species_intersect_enzo,
+            species_intersect_grackle,
+            species_diff_enzo,
+            species_diff_grackle,
+        )
+
+        Species.set_known_elements(known_elements)
+
+        templates = templates or self.templates
+
+        for tmplname in templates:
+            if tmplname == "derived_fields.py":
+                self._render_derived_field(info, path)
+            else:
+                tmpl = self._env.get_template(tmplname)
+                self._render(tmpl, info, species_group, save, path)
