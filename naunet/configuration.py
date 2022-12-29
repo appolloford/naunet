@@ -222,7 +222,7 @@ class NetworkConfiguration(BaseConfiguration):
         self._bindingenergy = binding
         self._photonyield = yields
         self._filenames = ["reactions.naunet"]
-        self._format = ["naunet"]
+        self._formats = ["naunet"]
         self._heating = network._heating_names.copy()
         self._cooling = network._cooling_names.copy()
         self._shielding = network.shielding.copy()

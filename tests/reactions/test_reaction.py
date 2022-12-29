@@ -5,7 +5,12 @@ from naunet.reactiontype import ReactionType
 
 
 @pytest.fixture
-def reference():
+def example_empty_reaction():
+    return Reaction()
+
+
+@pytest.fixture
+def example_cr_reaction1():
     return Reaction(
         ["He", "CR"],
         ["He+", "e-"],
@@ -15,28 +20,65 @@ def reference():
     )
 
 
-# A fixture wrapper to create reaction instance
 @pytest.fixture
-def reaction(request):
-    return Reaction(*request.param)
+def example_cr_reaction2():
+    return Reaction(
+        ["He"],
+        ["He+", "e-"],
+        5.0,
+        20.0,
+        0.5,
+        0.0,
+        0.0,
+        ReactionType.GAS_COSMICRAY,
+        3,
+    )
+
+
+@pytest.fixture
+def example_cr_reaction3():
+    return Reaction(
+        [Species("He")],
+        [Species("He+"), Species("e-")],
+        5.0,
+        20.0,
+        0.5,
+        0.0,
+        0.0,
+        ReactionType.GAS_COSMICRAY,
+        3,
+    )
 
 
 @pytest.mark.parametrize(
-    "reaction, reacts, prods, tmin, tmax, a, b, c, rtype, idx",
+    "ref, reacts, prods, tmin, tmax, a, b, c, rtype, idx",
     [
-        ((), [], [], -1.0, -1.0, 0.0, 0.0, 0.0, ReactionType.UNKNOWN, -1),
         (
-            (
-                ["He"],
-                ["He+", "e-"],
-                5.0,
-                20.0,
-                0.5,
-                0.0,
-                0.0,
-                ReactionType.GAS_COSMICRAY,
-                3,
-            ),
+            "example_empty_reaction",
+            [],
+            [],
+            -1.0,
+            -1.0,
+            0.0,
+            0.0,
+            0.0,
+            ReactionType.UNKNOWN,
+            -1,
+        ),
+        (
+            "example_cr_reaction1",
+            [Species("He")],
+            [Species("He+"), Species("e-")],
+            -9999.0,
+            9999.0,
+            0.0,
+            0.0,
+            0.0,
+            ReactionType.GAS_COSMICRAY,
+            -1,
+        ),
+        (
+            "example_cr_reaction2",
             [Species("He")],
             [Species("He+"), Species("e-")],
             5.0,
@@ -48,17 +90,7 @@ def reaction(request):
             3,
         ),
         (
-            (
-                [Species("He")],
-                [Species("He+"), Species("e-")],
-                5.0,
-                20.0,
-                0.5,
-                0.0,
-                0.0,
-                ReactionType.GAS_COSMICRAY,
-                3,
-            ),
+            "example_cr_reaction3",
             [Species("He")],
             [Species("He+"), Species("e-")],
             5.0,
@@ -70,9 +102,9 @@ def reaction(request):
             3,
         ),
     ],
-    indirect=["reaction"],
 )
-def test_init_reaction(reaction, reacts, prods, tmin, tmax, a, b, c, rtype, idx):
+def test_init_reaction(ref, reacts, prods, tmin, tmax, a, b, c, rtype, idx, request):
+    reaction = request.getfixturevalue(ref)
     assert reaction.reactants == reacts
     assert reaction.products == prods
     assert reaction.temp_min == tmin
@@ -85,7 +117,7 @@ def test_init_reaction(reaction, reacts, prods, tmin, tmax, a, b, c, rtype, idx)
 
 
 @pytest.mark.parametrize(
-    "reaction, is_equal",
+    "reaction_args, is_equal",
     [
         (
             (
@@ -153,42 +185,59 @@ def test_init_reaction(reaction, reacts, prods, tmin, tmax, a, b, c, rtype, idx)
             False,  # different reaction type
         ),
     ],
-    indirect=["reaction"],
 )
-def test_eq_reaction(reference, reaction, is_equal):
+def test_eq_reaction(example_cr_reaction1, reaction_args, is_equal):
 
-    assert (reference == reaction) == is_equal
-    assert (set([reference, reaction]) == set([reference])) == is_equal
+    reaction = Reaction(*reaction_args)
 
-
-def test_contains(reference):
-
-    assert Species("He") in reference
-    assert Species("He+") in reference
-    assert Species("e") in reference
-    assert Species("H") not in reference
+    assert (example_cr_reaction1 == reaction) == is_equal
+    assert (
+        set([example_cr_reaction1, reaction]) == set([example_cr_reaction1])
+    ) == is_equal
 
 
-def test_reaction_str():
-    reac = Reaction(
-        ["He", "CR"],
-        ["He+", "e-"],
-        0.0,
-        9999.0,
-        reaction_type=ReactionType.GAS_COSMICRAY,
+def test_contains(example_cr_reaction1):
+
+    assert Species("He") in example_cr_reaction1
+    assert Species("He+") in example_cr_reaction1
+    assert Species("e") in example_cr_reaction1
+    assert Species("H") not in example_cr_reaction1
+
+
+def test_reaction_str_format(example_cr_reaction1):
+
+    longstr = (
+        "He               -> He+ + e-                        "
+        ", -9999.0 < T <  9999.0, Type: GAS_COSMICRAY            "
+        ", Source: unknown, Index: -1"
     )
-
-    longstr = "".join(
-        [
-            "He               -> He+ + e-                        ",
-            ",     0.0 < T <  9999.0",
-            ", Type: GAS_COSMICRAY            ",
-            ", Source: unknown",
-            ", Index: -1",
-        ]
-    )
-
     minimalstr = "He -> He+ + e-"
+    shortstr = "He -> He+ + e-, -9999.0 < T <  9999.0, Type: GAS_COSMICRAY"
+    naunetstr = (
+        "-1   ,          He,            ,            ,"
+        "         He+,          e-,            ,            ,            ,"
+        " 0.000e+00, 0.000e+00, 0.000e+00,"
+        " -9999.00,  9999.00, 101, unknown"
+    )
+    kidastr = (
+        "He                                "
+        "He+        e-                                            "
+        "0.000e+00  0.000e+00  0.000e+00 xxxxxxxx xxxxxxxx xxxx  x  "
+        "-9999   9999 xx    -1 x  x"
+    )
+    kromestr = "-1,He,,,He+        ,e-         ,,,,-9999.00,9999.00"
+    uclchemstr = "He,CRP,NAN,He+,e-,NAN,NAN,0.0e+00,0.0,0.0,-9999.0,9999.0"
 
-    assert str(reac) == longstr
-    assert f"{reac:minimal}" == minimalstr
+    assert str(example_cr_reaction1) == longstr
+    assert f"{example_cr_reaction1}" == longstr
+    assert f"{example_cr_reaction1:minimal}" == minimalstr
+    assert f"{example_cr_reaction1:short}" == shortstr
+    assert f"{example_cr_reaction1:naunet}" == naunetstr
+    assert f"{example_cr_reaction1:kida}" == kidastr
+    assert f"{example_cr_reaction1:krome}" == kromestr
+    assert f"{example_cr_reaction1:uclchem}" == uclchemstr
+
+
+def test_rateexpr(example_cr_reaction1):
+    rate = "0.0 * zeta"
+    assert example_cr_reaction1.rateexpr() == rate

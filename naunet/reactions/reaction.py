@@ -98,24 +98,24 @@ class Reaction(Component):
             )
         )
 
-    def __format__(self, format: str) -> str:
+    def __format__(self, form: str) -> str:
 
         verbose = None
 
-        def fill(orig: list, nitem: int, dummy) -> list:
+        def fill(orig: list, nitem: int, dummy: str) -> list:
             return orig + [dummy] * (nitem - len(orig))
 
-        if not format:
+        if not form:
             verbose = str(self)
 
-        elif format == "minimal":
+        elif form == "minimal":
             verbose = "{} -> {}".format(
                 " + ".join(x.name for x in sorted(self.reactants)),
                 " + ".join(x.name for x in sorted(self.products)),
             )
 
-        elif format == "short":
-            verbose = "{} -> {}, {:7.1f} < T < {:7.1f}, Type: {:25}".format(
+        elif form == "short":
+            verbose = "{} -> {}, {:7.1f} < T < {:7.1f}, Type: {}".format(
                 " + ".join(x.name for x in sorted(self.reactants)),
                 " + ".join(x.name for x in sorted(self.products)),
                 self.temp_min,
@@ -123,7 +123,7 @@ class Reaction(Component):
                 self.reaction_type.name,
             )
 
-        elif format == "naunet":
+        elif form == "naunet":
             rnames = fill([f"{x:>12}" for x in sorted(self.reactants)], 3, f"{'':>12}")
             pnames = fill([f"{x:>12}" for x in sorted(self.products)], 5, f"{'':>12}")
             verbose = ",".join(
@@ -141,7 +141,7 @@ class Reaction(Component):
                 ]
             )
 
-        elif format == "kida":
+        elif form == "kida":
             rnames = fill([f"{x:<11}" for x in sorted(self.reactants)], 3, f"{'':>11}")
             pnames = fill([f"{x:<11}" for x in sorted(self.products)], 5, f"{'':>11}")
             verbose = " ".join(
@@ -162,7 +162,7 @@ class Reaction(Component):
                 ]
             )
 
-        elif format == "krome":
+        elif form == "krome":
             rnames = fill([f"{x}" for x in sorted(self.reactants)], 3, "")
             pnames = fill([f"{x:<11}" for x in sorted(self.products)], 5, "")
             verbose = ",".join(
@@ -172,6 +172,34 @@ class Reaction(Component):
                     f",".join(pnames),
                     f"{self.temp_min:.2f}",
                     f"{self.temp_max:.2f}",
+                ]
+            )
+
+        elif form == "uclchem":
+            type2reactant = {
+                ReactionType.GAS_COSMICRAY: "CRP",
+                ReactionType.GAS_PHOTON: "PHOTON",
+                ReactionType.GAS_UMIST_CRPHOT: "CRPHOT",
+                ReactionType.GRAIN_FREEZE: "FREEZE",
+                ReactionType.GRAIN_DESORB_H2: "DESOH2",
+                ReactionType.GRAIN_DESORB_COSMICRAY: "DESCR",
+                ReactionType.GRAIN_DESORB_PHOTON: "DEUVCR",
+                ReactionType.GRAIN_DESORB_THERMAL: "THERM",
+                ReactionType.SURFACE_DIFFUSION: "DIFF",
+                ReactionType.GRAIN_DESORB_REACTIVE: "CHEMDES",
+            }
+            rnames = fill([f"{x}" for x in sorted(self.reactants)], 3, "NAN")
+            pnames = fill([f"{x}" for x in sorted(self.products)], 4, "NAN")
+            rnames[1] = type2reactant.get(self.reaction_type)
+            verbose = ",".join(
+                [
+                    *rnames,
+                    *pnames,
+                    f"{self.alpha:.1e}",
+                    f"{self.beta:.1f}",
+                    f"{self.gamma:.1f}",
+                    f"{self.temp_min}",
+                    f"{self.temp_max}",
                 ]
             )
 

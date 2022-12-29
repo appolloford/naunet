@@ -543,7 +543,7 @@ class Network:
                     dupidx.append(idx)
                 seen[chk].append(idx)
 
-        # TODO: BUG! tqdm makes the following line return KeyError in the default mode
+        #! BUG: tqdm makes the following line return KeyError in the default mode
         # for key in seen.keys():
         #     print(key)
         #     print(seen[key])

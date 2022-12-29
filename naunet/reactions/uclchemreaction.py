@@ -158,16 +158,7 @@ class UCLCHEMReaction(Reaction):
 
         self.source = "uclchem"
 
-        kwlist = [
-            "NAN",
-            "FREEZE",
-            "DESOH2",
-            "DESCR",
-            "DEUVCR",
-            "THERM",
-            "DIFF",
-            "CHEMDES",
-        ]
+        kwlist = self.reactant2type.keys()
 
         if react_string.strip() != "":
 
