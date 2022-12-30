@@ -8,30 +8,12 @@ from ...configuration import BaseConfiguration
 
 class NewCommand(Command):
     """
-    Create a new Naunet Project directory
+    Create a blank naunet project directory
 
     new
         {path : The path to create the project at}
         {--name= : Name of the project}
         {--description= : Description of the project}
-        {--loading= : Filename of python modules to be loaded}
-        {--elements= : List of elements}
-        {--pseudo-elements= : List of pseudo elements}
-        {--species= : List of species}
-        {--extra-species= : List of extra required species}
-        {--network= : Source of chemical network file}
-        {--format= : The format of the chemical network}
-        {--grain-model= : Type of dust grain model}
-        {--heating= : List of heating processes}
-        {--cooling= : List of cooling processes}
-        {--binding= : List of binding energy of ice species}
-        {--yield= : List of photodesorption yields of ice species}
-        {--shielding= : List of shielding functions}
-        {--rate-modifier=* : List of reaction rates to be changed}
-        {--ode-modifier=* : List of ODEs to be changed}
-        {--solver=cvode : ODE solver}
-        {--device=cpu : Device}
-        {--method=dense : Linear solver used in CVode or algorithm in ODEInt}
     """
 
     def __init__(self):
@@ -47,9 +29,7 @@ class NewCommand(Command):
             # for path.resolve(strict=False)
             path = Path.cwd().joinpath(path)
 
-        name = self.option("name")
-        if not name:
-            name = path.name
+        name = self.option("name") or path.name
 
         if path.exists() and list(path.glob("*")):
             # Directory is not empty. Aborting.
@@ -59,120 +39,12 @@ class NewCommand(Command):
 
         path.mkdir(parents=True)
 
-        config_file = path / "naunet_config.toml"
+        description = self.option("description") or ""
 
-        description = self.option("description")
-        if not self.option("description"):
-            description = ""
+        config = BaseConfiguration(name, description=description)
 
-        loading = self.option("loading")
-        loading = loading.split(",") if loading else []
-        loading = [l.strip() for l in loading]
-
-        element = self.option("elements")
-        element = element.split(",") if element else Species.default_elements
-
-        pseudo_element = self.option("pseudo-elements")
-        pseudo_element = (
-            pseudo_element.split(",")
-            if pseudo_element
-            else Species.default_pseudoelements
-        )
-
-        species = self.option("species")
-        species = species.split(",") if species else []
-
-        extra_species = self.option("extra-species")
-        extra_species = extra_species.split(",") if extra_species else []
-
-        network = self.option("network") or ""
-        network = [n.strip() for n in network.split(",") if n]
-
-        format = self.option("format") or ""
-        format = [f.strip() for f in format.split(",") if f]
-
-        grain_model = self.option("grain-model")
-        grain_model = grain_model if grain_model else ""
-
-        heating = self.option("heating")
-        heating = heating.split(",") if heating else []
-
-        cooling = self.option("cooling")
-        cooling = cooling.split(",") if cooling else []
-
-        binding = self.option("binding")
-        if binding:
-            binding = binding.split(",")
-            binding = {b.split("=")[0]: b.split("=")[1] for b in binding}
-            binding = {s: float(sv) for s, sv in binding.items()}
-
-        yields = self.option("yield")
-        if yields:
-            yields = yields.split(",")
-            yields = {y.split("=")[0]: y.split("=")[1] for y in yields}
-            yields = {s: float(sv) for s, sv in yields.items()}
-
-        shielding = self.option("shielding")
-        if shielding:
-            shielding = shielding.split(",")
-            shielding = [it.split(":") for it in shielding]
-            shielding = {it[0].strip(): it[1].strip() for it in shielding}
-
-        rate_modifier = self.option("rate-modifier")
-        if rate_modifier:
-            rate_modifier = [rm.strip() for l in rate_modifier for rm in l.split(",")]
-            rate_modifier = [it.split(":") for it in rate_modifier]
-            rate_modifier = {it[0].strip(): it[1].strip() for it in rate_modifier}
-
-        ode_modifier_str = self.option("ode-modifier")
-        ode_modifier = {}
-        for l in ode_modifier_str:
-            for om in l.split(";"):
-                if not om:
-                    break
-                key, value = om.split(":")
-                fact, rdep = value.split(",")
-                rdep = rdep.replace("[", "").replace("]", "").strip().split()
-                if ode_modifier.get(key):
-                    ode_modifier[key]["factors"].append(fact)
-                    ode_modifier[key]["reactants"].append(rdep)
-                else:
-                    ode_modifier[key] = {
-                        "factors": [fact],
-                        "reactants": [rdep],
-                    }
-
-        solver = self.option("solver")
-        device = self.option("device")
-        method = self.option("method")
-
-        config = BaseConfiguration(
-            name,
-            description=description,
-            load=loading,
-            element=element,
-            pseudo_element=pseudo_element,
-            allowed_species=species,
-            required_species=extra_species,
-            binding_energy=binding,
-            photon_yield=yields,
-            filenames=network,
-            formats=format,
-            heating=heating,
-            cooling=cooling,
-            shielding=shielding,
-            grain_model=grain_model,
-            rate_modifier=rate_modifier,
-            ode_modifier=ode_modifier,
-            solver=solver,
-            device=device,
-            method=method,
-        )
-
-        content = config.content
-
-        with open(config_file, "w", encoding="utf-8") as outf:
-            outf.write(content)
+        with open(path / "naunet_config.toml", "w", encoding="utf-8") as outf:
+            outf.write(config.content)
 
         self.line(
             f"Created project <info>{config._name}</> in"

@@ -1,5 +1,13 @@
 import pytest
 from pathlib import Path
+from cleo import Application
+from naunet.console.commands import (
+    ExampleCommand,
+    ExtendCommand,
+    InitCommand,
+    NewCommand,
+    RenderCommand,
+)
 
 
 def pytest_addoption(parser):
@@ -24,5 +32,17 @@ def pytest_collection_modifyitems(config, items):
 
 @pytest.fixture
 def datadir():
-    # return Path(__file__).absolute().parent / "data"
     return Path(__file__).absolute().parent / "data"
+
+
+@pytest.fixture
+def application():
+    app = Application()
+    app.add_commands(
+        ExampleCommand(),
+        ExtendCommand(),
+        InitCommand(),
+        NewCommand(),
+        RenderCommand(),
+    )
+    return app

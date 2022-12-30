@@ -7,9 +7,7 @@ from naunet.species import Species
 from naunet.console.commands.new import NewCommand
 
 
-def test_command_new(tmp_path):
-    application = Application()
-    application.add(NewCommand())
+def test_command_new(tmp_path, application):
 
     command = application.find("new")
     command_tester = CommandTester(command)
@@ -23,10 +21,11 @@ def test_command_new(tmp_path):
     with open(path / "naunet_config.toml") as inpf:
         config = tomlkit.loads(inpf.read())
 
-        general = config["general"]
-        chemistry = config["chemistry"]
-        chem_species = chemistry["species"]
-        assert general["name"] == "new_project"
-        assert chem_species["elements"] == Species.default_elements
-        assert chem_species["pseudo_elements"] == Species.default_pseudoelements
-        assert chem_species["allowed_species"] == []
+    general = config["general"]
+    chemistry = config["chemistry"]
+    chem_element = chemistry["element"]
+    chem_species = chemistry["species"]
+    assert general["name"] == "new_project"
+    assert chem_element["elements"] == []
+    assert chem_element["pseudo_elements"] == []
+    assert chem_species["allowed"] == []
