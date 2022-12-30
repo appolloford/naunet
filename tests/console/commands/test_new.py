@@ -1,10 +1,6 @@
-import shutil
 import tomlkit
 from pathlib import Path
-from cleo import Application
 from cleo import CommandTester
-from naunet.species import Species
-from naunet.console.commands.new import NewCommand
 
 
 def test_command_new(tmp_path, application):
