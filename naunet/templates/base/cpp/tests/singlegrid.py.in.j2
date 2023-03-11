@@ -3,16 +3,17 @@ import sys
 sys.path.append(os.getenv('PYNAUNET_PATH'))
 
 import numpy as np
+from pathlib import Path
 from tomlkit.toml_file import TOMLFile
 
 from @PYMODNAME@ import Naunet, NaunetData
 
-config_path = os.getenv('NAUNET_CONFIG_PATH')
-config = TOMLFile(os.path.join(config_path, "naunet_config.toml"))
+config_path = Path(os.getenv('NAUNET_CONFIG_PATH'))
+config = TOMLFile(config_path / "naunet_config.toml")
 content = config.read()
 chemistry = content["chemistry"]
-heating = chemistry["heating"]
-cooling = chemistry["cooling"]
+heating = chemistry["thermal"]["heating"]
+cooling = chemistry["thermal"]["cooling"]
 has_thermal = True if heating or cooling else False
 summary = content["summary"]
 species = summary["list_of_species"]

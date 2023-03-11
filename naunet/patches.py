@@ -132,7 +132,7 @@ class Patch:
             )
 
         derived_field_map_str = "\n".join(
-            ["derived_field_map = {", *derived_field_map, "}"]
+            ["derived_fields_map = {", *derived_field_map, "}"]
         )
         with open(path / "derived_fields_of_network.py", "w") as outf:
             outf.write("import yt\n")
