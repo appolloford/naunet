@@ -64,15 +64,15 @@ class Patch:
             derived_species_field.append(
                 "\n".join(
                     [
-                        f"@derived_field(name='{alias}_ndensity', sampling_type='cell')",
+                        f"@derived_field(name='{alias}_ndensity', sampling_type='cell', units='1/cm**3', dimensions=yt.units.dimensions.number_density)",
                         f"def {alias}_ndensity(field, data):",
                         f"    if 'enzo' not in data.ds.dataset_type:",
                         f"        return",
                         f"    if data.ds.parameters['MultiSpecies'] < 4:",
                         f"        return",
                         f"    dunit = data.ds.mass_unit/data.ds.length_unit**3",
-                        f"    num_unit = dunit / mh_cgs / {1.0 if s.is_electron else s.A}",
-                        f"    arr = (num_unit*data['{alias}_Density']).to_ndarray()",
+                        f"    num_unit = dunit / ({1.0 if s.is_electron else s.A}*yt.units.mh_cgs)",
+                        f"    arr = num_unit*data['{alias}_Density']",
                         f"    return arr",
                     ]
                 )
@@ -86,13 +86,15 @@ class Patch:
                 for natom, alias in zip(specnatom, specalias)
                 if natom
             ]
-            eleabundstr = " + ".join(["0.0", *eleabund])
+            eleabundstr = " + ".join(
+                ["yt.YTArray(np.zeros(data.shape), '1/cm**3')", *eleabund]
+            )
             eleabundstr = _stmwrap(eleabundstr, 70, 10)
             derived_field_map.append(f"    'Elem{ele}': 'element_{ele}_ndensity',")
             derived_species_field.append(
                 "\n".join(
                     [
-                        f"@derived_field(name='element_{ele}_ndensity', sampling_type='cell')",
+                        f"@derived_field(name='element_{ele}_ndensity', sampling_type='cell', units='1/cm**3', dimensions=yt.units.dimensions.number_density)",
                         f"def element_{ele}_ndensity(field, data):",
                         f"    if 'enzo' not in data.ds.dataset_type:",
                         f"        return",
@@ -111,7 +113,9 @@ class Patch:
                 for natom, surf, alias in zip(specnatom, speconsurface, specalias)
                 if natom and surf
             ]
-            iceeleabundstr = " + ".join(["0.0", *iceeleabund])
+            iceeleabundstr = " + ".join(
+                ["yt.YTArray(np.zeros(data.shape), '1/cm**3')", *iceeleabund]
+            )
             iceeleabundstr = _stmwrap(iceeleabundstr, 70, 10)
             derived_field_map.append(
                 f"    'IceElem{ele}': 'surface_element_{ele}_ndensity',"
@@ -119,7 +123,7 @@ class Patch:
             derived_species_field.append(
                 "\n".join(
                     [
-                        f"@derived_field(name='surface_element_{ele}_ndensity', sampling_type='cell')",
+                        f"@derived_field(name='surface_element_{ele}_ndensity', sampling_type='cell', units='1/cm**3', dimensions=yt.units.dimensions.number_density)",
                         f"def surface_element_{ele}_ndensity(field, data):",
                         f"    if 'enzo' not in data.ds.dataset_type:",
                         f"        return",
@@ -137,7 +141,7 @@ class Patch:
         with open(path / "derived_fields_of_network.py", "w") as outf:
             outf.write("import yt\n")
             outf.write("from yt import derived_field\n\n")
-            outf.write("mh_cgs = float(yt.units.mh_cgs)\n\n")
+            # outf.write("mh_cgs = float(yt.units.mh_cgs)\n\n")
             outf.write(derived_field_map_str)
             outf.write("\n\n")
             outf.write("\n\n".join(derived_species_field))
