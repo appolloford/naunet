@@ -5,7 +5,7 @@ project(NAUNET VERSION {{ general.version }} LANGUAGES {{ lang }})
 
 include(CMakePrintHelpers)
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -23,7 +23,7 @@ message(STATUS "CMAKE_CXX_COMPILER_VERSION = ${CMAKE_CXX_COMPILER_VERSION}")
 message(STATUS "CMAKE_COMPILER_IS_GNUCXX   = ${CMAKE_COMPILER_IS_GNUCXX}"  )
 message(STATUS "CMAKE_BUILD_TYPE           = ${CMAKE_BUILD_TYPE}"          )
 
-set(SUNDIALS_MIN_VERSION "5.6.1")
+set(SUNDIALS_MIN_VERSION "6.0.0")
 set(SUNDIALS_DIR "" CACHE PATH "Path to SUNDIALSConfig.cmake")
 {% if general.method == "dense" %}
 find_package(SUNDIALS ${SUNDIALS_MIN_VERSION} CONFIG)

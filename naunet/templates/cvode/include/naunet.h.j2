@@ -68,6 +68,7 @@ class Naunet {
     SUNMatrix cv_a_[NSTREAMS];
     void *cv_mem_[NSTREAMS];
     SUNLinearSolver cv_ls_[NSTREAMS];
+    SUNContext cv_sunctx_[NSTREAMS];
 
     cusparseHandle_t cusp_handle_[NSTREAMS];
     cusolverSpHandle_t cusol_handle_[NSTREAMS];
@@ -85,6 +86,7 @@ class Naunet {
     SUNMatrix cv_a_;
     void *cv_mem_;
     SUNLinearSolver cv_ls_;
+    SUNContext cv_sunctx_;
 
     realtype ab_init_[NEQUATIONS];
     realtype ab_tmp_[NEQUATIONS];  // Temporary state for error handling

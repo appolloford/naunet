@@ -81,6 +81,7 @@ int Naunet::Finalize() {
     // N_VFreeEmpty(cv_y_);
     SUNMatDestroy(cv_a_);
     SUNLinSolFree(cv_ls_);
+    SUNContext_Free(&cv_sunctx_);
     // delete m_data;
 
     /* {% elif general.method == "cusparse" -%} */
@@ -90,6 +91,7 @@ int Naunet::Finalize() {
         SUNMatDestroy(cv_a_[i]);
         // CVodeFree(&cv_mem_[i]);
         SUNLinSolFree(cv_ls_[i]);
+        SUNContext_Free(&cv_sunctx_[i]);
 
         cusparseDestroy(cusp_handle_[i]);
         cusolverSpDestroy(cusol_handle_[i]);
@@ -257,15 +259,21 @@ int Naunet::Init(int nsystem, double atol, double rtol, int mxsteps) {
     rtol_     = rtol;
     errfp_    = fopen("naunet_error_record.txt", "a");
 
+    int flag;
+
     /* {% if general.method == "dense" -%} */
     if (nsystem != 1) {
         printf("This solver doesn't support nsystem > 1!");
         return NAUNET_FAIL;
     }
 
-    cv_y_  = N_VNewEmpty_Serial((sunindextype)NEQUATIONS);
-    cv_a_  = SUNDenseMatrix(NEQUATIONS, NEQUATIONS);
-    cv_ls_ = SUNLinSol_Dense(cv_y_, cv_a_);
+    flag   = SUNContext_Create(NULL, &cv_sunctx_);
+    if (CheckFlag(&flag, "SUNContext_Create", 1, errfp_) == NAUNET_FAIL) {
+        return NAUNET_FAIL;
+    }
+    cv_y_  = N_VNewEmpty_Serial((sunindextype)NEQUATIONS, cv_sunctx_);
+    cv_a_  = SUNDenseMatrix(NEQUATIONS, NEQUATIONS, cv_sunctx_);
+    cv_ls_ = SUNLinSol_Dense(cv_y_, cv_a_, cv_sunctx_);
 
     /* {% elif general.method == "sparse" -%} */
     if (nsystem != 1) {
@@ -273,9 +281,13 @@ int Naunet::Init(int nsystem, double atol, double rtol, int mxsteps) {
         return NAUNET_FAIL;
     }
 
-    cv_y_  = N_VNewEmpty_Serial((sunindextype)NEQUATIONS);
-    cv_a_  = SUNSparseMatrix(NEQUATIONS, NEQUATIONS, NNZ, CSR_MAT);
-    cv_ls_ = SUNLinSol_KLU(cv_y_, cv_a_);
+    flag   = SUNContext_Create(NULL, &cv_sunctx_);
+    if (CheckFlag(&flag, "SUNContext_Create", 1, errfp_) == NAUNET_FAIL) {
+        return NAUNET_FAIL;
+    }
+    cv_y_  = N_VNewEmpty_Serial((sunindextype)NEQUATIONS, cv_sunctx_);
+    cv_a_  = SUNSparseMatrix(NEQUATIONS, NEQUATIONS, NNZ, CSR_MAT, cv_sunctx_);
+    cv_ls_ = SUNLinSol_KLU(cv_y_, cv_a_, cv_sunctx_);
 
     /* {% elif general.method == "cusparse" -%} */
 
@@ -292,7 +304,6 @@ int Naunet::Init(int nsystem, double atol, double rtol, int mxsteps) {
     int n_thread_per_stream = std::min(BLOCKSIZE, n_system_per_stream);
 
     cudaError_t cuerr;
-    int flag;
 
     for (int i = 0; i < n_stream_in_use_; i++) {
         cuerr                  = cudaStreamCreate(&custream_[i]);
@@ -308,8 +319,12 @@ int Naunet::Init(int nsystem, double atol, double rtol, int mxsteps) {
         cusparseSetStream(cusp_handle_[i], custream_[i]);
         cusolverSpCreate(&cusol_handle_[i]);
         cusolverSpSetStream(cusol_handle_[i], custream_[i]);
-        cv_y_[i] = N_VNew_Cuda(NEQUATIONS * n_system_per_stream);
-        // cv_y_[i]  = N_VNewEmpty_Cuda();
+        flag = SUNContext_Create(NULL, &cv_sunctx_[i]);
+        if (CheckFlag(&flag, "SUNContext_Create", 1, errfp_) == NAUNET_FAIL) {
+            return NAUNET_FAIL;
+        }
+        cv_y_[i] = N_VNew_Cuda(NEQUATIONS * n_system_per_stream, cv_sunctx_[i]);
+        // cv_y_[i]  = N_VNewEmpty_Cuda(cv_sunctx_[i]);
         flag     = N_VSetKernelExecPolicy_Cuda(cv_y_[i], stream_exec_policy_[i],
                                                reduce_exec_policy_[i]);
         if (CheckFlag(&flag, "N_VSetKernelExecPolicy_Cuda", 1, errfp_) ==
@@ -317,17 +332,17 @@ int Naunet::Init(int nsystem, double atol, double rtol, int mxsteps) {
             return NAUNET_FAIL;
         }
         cv_a_[i] = SUNMatrix_cuSparse_NewBlockCSR(
-            n_system_per_stream, NEQUATIONS, NEQUATIONS, NNZ, cusp_handle_[i]);
+            n_system_per_stream, NEQUATIONS, NEQUATIONS, NNZ, cusp_handle_[i], cv_sunctx_[i]);
         cv_ls_[i] =
-            SUNLinSol_cuSolverSp_batchQR(cv_y_[i], cv_a_[i], cusol_handle_[i]);
-        // abstol = N_VNew_Cuda(neq);
+            SUNLinSol_cuSolverSp_batchQR(cv_y_[i], cv_a_[i], cusol_handle_[i], cv_sunctx_[i]);
+        // abstol = N_VNew_Cuda(neq, cv_sunctx_[i]);
         SUNMatrix_cuSparse_SetFixedPattern(cv_a_[i], 1);
         InitJac(cv_a_[i]);
     }
 
     /* {% elif general.method == "spgmr" -%} */
     // TODO: Try GMRES solvers
-    // cv_ls_ = SUNLinSol_SPGMR(cv_y_, 0, 0);
+    // cv_ls_ = SUNLinSol_SPGMR(cv_y_, 0, 0, cv_sunctx_);
     // if (CheckFlag((void *)cv_ls_, "SUNLinSol_SPGMR", 0, errfp_) ==
     // NAUNET_FAIL) {
     //     return NAUNET_FAIL;
@@ -348,12 +363,12 @@ int Naunet::Init(int nsystem, double atol, double rtol, int mxsteps) {
     /* {% if general.method == "dense" or general.method == "sparse" -%} */
 
     // N_VDestroy(cv_y_);
-    // cv_y_ = N_VNewEmpty_Serial((sunindextype)NEQUATIONS);
+    // cv_y_ = N_VNewEmpty_Serial((sunindextype)NEQUATIONS, cv_sunctx_);
 
     /* {% elif general.method == "cusparse" -%} */
 
     // N_VDestroy(cv_y_);
-    // cv_y_ = N_VNewEmpty_Cuda();
+    // cv_y_ = N_VNewEmpty_Cuda(cv_sunctx_);
 
     /* {% endif -%} */
 
@@ -438,17 +453,24 @@ int Naunet::PrintDebugInfo() {
 
 #ifdef IDX_ELEM_H
 int Naunet::Renorm(realtype *ab) {
-    N_Vector b  = N_VMake_Serial(NELEMENTS, ab_ref_);
-    N_Vector r  = N_VNew_Serial(NELEMENTS);
-    SUNMatrix A = SUNDenseMatrix(NELEMENTS, NELEMENTS);
+
+    SUNContext sunctx;
+    int flag;
+    flag = SUNContext_Create(NULL, &sunctx);
+    if (CheckFlag(&flag, "SUNContext_Create", 1, errfp_) == NAUNET_FAIL) {
+        return NAUNET_FAIL;
+    }
+
+    N_Vector b  = N_VMake_Serial(NELEMENTS, ab_ref_, sunctx);
+    N_Vector r  = N_VNew_Serial(NELEMENTS, sunctx);
+    SUNMatrix A = SUNDenseMatrix(NELEMENTS, NELEMENTS, sunctx);
 
     N_VConst(0.0, r);
 
     InitRenorm(ab, A);
 
-    SUNLinearSolver LS = SUNLinSol_Dense(r, A);
+    SUNLinearSolver LS = SUNLinSol_Dense(r, A, sunctx);
 
-    int flag;
     flag = SUNLinSolSetup(LS, A);
     if (CheckFlag(&flag, "SUNLinSolSetup", 1, errfp_) == NAUNET_FAIL) {
         return NAUNET_FAIL;
@@ -466,6 +488,7 @@ int Naunet::Renorm(realtype *ab) {
     N_VDestroy(r);
     SUNMatDestroy(A);
     SUNLinSolFree(LS);
+    SUNContext_Free(&sunctx);
 
     return NAUNET_SUCCESS;
 };
@@ -489,9 +512,9 @@ int Naunet::Reset(int nsystem, double atol, double rtol, int mxsteps) {
     SUNMatDestroy(cv_a_);
     SUNLinSolFree(cv_ls_);
 
-    cv_y_  = N_VNewEmpty_Serial((sunindextype)NEQUATIONS);
-    cv_a_  = SUNDenseMatrix(NEQUATIONS, NEQUATIONS);
-    cv_ls_ = SUNLinSol_Dense(cv_y_, cv_a_);
+    cv_y_  = N_VNewEmpty_Serial((sunindextype)NEQUATIONS, cv_sunctx_);
+    cv_a_  = SUNDenseMatrix(NEQUATIONS, NEQUATIONS, cv_sunctx_);
+    cv_ls_ = SUNLinSol_Dense(cv_y_, cv_a_, cv_sunctx_);
 
     /* {% elif general.method == "sparse" -%} */
     if (nsystem != 1) {
@@ -504,9 +527,9 @@ int Naunet::Reset(int nsystem, double atol, double rtol, int mxsteps) {
     SUNMatDestroy(cv_a_);
     SUNLinSolFree(cv_ls_);
 
-    cv_y_            = N_VNewEmpty_Serial((sunindextype)NEQUATIONS);
-    cv_a_            = SUNSparseMatrix(NEQUATIONS, NEQUATIONS, NNZ, CSR_MAT);
-    cv_ls_           = SUNLinSol_KLU(cv_y_, cv_a_);
+    cv_y_            = N_VNewEmpty_Serial((sunindextype)NEQUATIONS, cv_sunctx_);
+    cv_a_            = SUNSparseMatrix(NEQUATIONS, NEQUATIONS, NNZ, CSR_MAT, cv_sunctx_);
+    cv_ls_           = SUNLinSol_KLU(cv_y_, cv_a_, cv_sunctx_);
 
     /* {% elif general.method == "cusparse" %} */
 
@@ -544,8 +567,8 @@ int Naunet::Reset(int nsystem, double atol, double rtol, int mxsteps) {
         reduce_exec_policy_[i] = new SUNCudaBlockReduceExecPolicy(
             n_thread_per_stream, 0, custream_[i]);
 
-        cv_y_[i] = N_VNew_Cuda(NEQUATIONS * n_system_per_stream);
-        // cv_y_[i] = N_VNewEmpty_Cuda();
+        cv_y_[i] = N_VNew_Cuda(NEQUATIONS * n_system_per_stream, cv_sunctx_[i]);
+        // cv_y_[i] = N_VNewEmpty_Cuda(cv_sunctx_[i]);
         flag     = N_VSetKernelExecPolicy_Cuda(cv_y_[i], stream_exec_policy_[i],
                                                reduce_exec_policy_[i]);
         if (CheckFlag(&flag, "N_VSetKernelExecPolicy_Cuda", 1, errfp_) ==
@@ -553,15 +576,15 @@ int Naunet::Reset(int nsystem, double atol, double rtol, int mxsteps) {
             return NAUNET_FAIL;
         }
         cv_a_[i] = SUNMatrix_cuSparse_NewBlockCSR(
-            n_system_per_stream, NEQUATIONS, NEQUATIONS, NNZ, cusp_handle_[i]);
+            n_system_per_stream, NEQUATIONS, NEQUATIONS, NNZ, cusp_handle_[i], cv_sunctx_[i]);
         cv_ls_[i] =
-            SUNLinSol_cuSolverSp_batchQR(cv_y_[i], cv_a_[i], cusol_handle_[i]);
+            SUNLinSol_cuSolverSp_batchQR(cv_y_[i], cv_a_[i], cusol_handle_[i], cv_sunctx_[i]);
         SUNMatrix_cuSparse_SetFixedPattern(cv_a_[i], 1);
         InitJac(cv_a_[i]);
 
         // reset the n_vector to empty, maybe not necessary
         // N_VDestroy(cv_y_);
-        // cv_y_ = N_VNewEmpty_Cuda();
+        // cv_y_ = N_VNewEmpty_Cuda(cv_sunctx_[i]);
     }
 
     /* {% endif %} */
@@ -604,7 +627,7 @@ int Naunet::Solve(realtype *ab, realtype dt, NaunetData *data) {
     // }
     N_VSetArrayPointer(ab, cv_y_);
 
-    cv_mem_ = CVodeCreate(CV_BDF);
+    cv_mem_ = CVodeCreate(CV_BDF, cv_sunctx_);
 
     cvflag  = CVodeSetErrFile(cv_mem_, errfp_);
     if (CheckFlag(&cvflag, "CVodeSetErrFile", 1, errfp_) == NAUNET_FAIL) {
@@ -714,7 +737,7 @@ int Naunet::Solve(realtype *ab, realtype dt, NaunetData *data) {
         // printf("NVector space: real-%d, int-%d\n", lrw, liw);
 #endif
 
-        cv_mem_[i] = CVodeCreate(CV_BDF);
+        cv_mem_[i] = CVodeCreate(CV_BDF, cv_sunctx_[i]);
 
         cvflag     = CVodeSetErrFile(cv_mem_[i], errfp_);
         if (CheckFlag(&cvflag, "CVodeSetErrFile", 1, errfp_) == NAUNET_FAIL) {
