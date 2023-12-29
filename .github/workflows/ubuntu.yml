@@ -40,13 +40,13 @@ jobs:
 
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: Install BLAS & LAPACK
         run: sudo apt-get install libblas-dev liblapack-dev
 
       - name: Cache boost
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         id: boost
         with:
           path: ~/boost
@@ -71,7 +71,7 @@ jobs:
         run: sudo apt-get install libgmp3-dev libmpc-dev
 
       - name: Cache SuiteSparse
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         id: suitesparse
         with:
           path: ~/suitesparse
@@ -88,7 +88,7 @@ jobs:
           fi
 
       - name: Install CUDA
-        uses: Jimver/cuda-toolkit@v0.2.5
+        uses: Jimver/cuda-toolkit@v0.2.11
         id: cuda-toolkit
         with:
           cuda: ${{ matrix.cuda }}
@@ -99,7 +99,7 @@ jobs:
           nvcc -V
 
       - name: Cache SUNDIALS
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         id: sundials
         with:
           path: ~/sundials
@@ -116,14 +116,14 @@ jobs:
           fi
 
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}
 
       - name: Set up poetry
-        uses: Gr1N/setup-poetry@v7
+        uses: Gr1N/setup-poetry@v8
 
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         with:
           path: ~/.cache/pypoetry/virtualenvs
           key: ${{ matrix.os }}-python${{ matrix.python }}-poetry-${{ hashFiles('poetry.lock') }}
