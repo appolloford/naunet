@@ -21,18 +21,18 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, ubuntu-18.04]
-        cuda: ["10.2.89", "11.0.3"]
+        os: [ubuntu-20.04, ubuntu-latest]
+        cuda: ["11.0.3", "12.1.0"]
         python: [3.8, 3.9]
-        boost: [1.65, 1.71]
+        boost: [1.71, 1.74]
 
         exclude:
           - os: ubuntu-latest
-            cuda: "10.2.89" # need gcc < 9
-          - os: ubuntu-latest
-            boost: 1.65
-          - os: ubuntu-18.04
             boost: 1.71
+          - os: ubuntu-20.04
+            boost: 1.74
+          - os: ubuntu-20.04
+            cuda: "12.1.0"
 
     env:
       build_dir: "build"

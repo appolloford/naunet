@@ -18,7 +18,7 @@ jobs:
   package_install_and_test:
     strategy:
       matrix:
-        os: [macos-latest]
+        os: [macos-11, macos-latest]
         python: ["3.8", "3.9", "3.10"]
 
     runs-on: ${{ matrix.os }}
@@ -52,11 +52,13 @@ jobs:
 
   example_build_and_test:
     needs: package_install_and_test
-    
-    runs-on: macos-latest
-    
+
     strategy:
       fail-fast: false
+      matrix:
+        os: [macos-11, macos-latest]
+
+    runs-on: ${{ matrix.os }}
 
     env:
       build_dir: "build"
@@ -84,10 +86,10 @@ jobs:
 
       - name: Install SUNDIALS
         run: |
-          wget https://github.com/LLNL/sundials/releases/download/v5.7.0/sundials-5.7.0.tar.gz
-          tar -zxvf sundials-5.7.0.tar.gz
+          wget https://github.com/LLNL/sundials/releases/download/v6.7.0/sundials-6.7.0.tar.gz
+          tar -zxvf sundials-6.7.0.tar.gz
           mkdir build-sundials && cd build-sundials
-          cmake ../sundials-5.7.0 -DCMAKE_INSTALL_PREFIX=/usr/local/sundials \
+          cmake ../sundials-6.7.0 -DCMAKE_INSTALL_PREFIX=/usr/local/sundials \
               -DSUNDIALS_INDEX_SIZE=32 -DENABLE_KLU=ON \
               -DKLU_INCLUDE_DIR=$(brew --prefix suite-sparse)/include \
               -DKLU_LIBRARY_DIR=$(brew --prefix suite-sparse)/lib \
@@ -131,10 +133,13 @@ jobs:
 
   external_project_test:
     needs: package_install_and_test
-    runs-on: macos-latest
     
     strategy:
       fail-fast: false
+      matrix:
+        os: [macos-11, macos-latest]
+
+    runs-on: ${{ matrix.os }}
 
     env:
       build_dir: "build"

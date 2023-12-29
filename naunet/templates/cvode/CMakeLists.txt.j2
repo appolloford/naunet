@@ -39,7 +39,7 @@ if (NOT SUNDIALS_FOUND)
     include(GNUInstallDirs)
     ExternalProject_Add(
         sundials_project
-        URL https://github.com/LLNL/sundials/releases/download/v5.8.0/sundials-5.8.0.tar.gz
+        URL https://github.com/LLNL/sundials/releases/download/v6.7.0/sundials-6.7.0.tar.gz
         PREFIX ${PROJECT_SOURCE_DIR}/external/sundials
         CMAKE_ARGS "-DSUNDIALS_INDEX_SIZE=32"
                    "-DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS}"

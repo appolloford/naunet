@@ -1,7 +1,7 @@
-wget https://github.com/LLNL/sundials/releases/download/v5.7.0/sundials-5.7.0.tar.gz
-tar -zxvf sundials-5.7.0.tar.gz
+wget https://github.com/LLNL/sundials/releases/download/v6.7.0/sundials-6.7.0.tar.gz
+tar -zxvf sundials-6.7.0.tar.gz
 mkdir build-sundials && cd build-sundials
-cmake ../sundials-5.7.0 -DCMAKE_INSTALL_PREFIX=/usr/local/sundials \
+cmake ../sundials-6.7.0 -DCMAKE_INSTALL_PREFIX=/usr/local/sundials \
     -DENABLE_CUDA=ON -DCMAKE_CUDA_COMPILER=nvcc \
     -DCMAKE_CUDA_ARCHITECTURES=61 -DSUNDIALS_INDEX_SIZE=32 \
     -DENABLE_KLU=ON -DKLU_INCLUDE_DIR=/usr/local/suitesparse/include \
