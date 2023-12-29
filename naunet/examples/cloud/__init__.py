@@ -22,7 +22,7 @@ elements = [
 
 pseudo_elements = ["CR", "CRP", "PHOTON", "CRPHOT"]
 
-element_replacement = {"E": "e-", "HE": "He", "MG": "Mg", "SI": "Si", "CL": "Cl"}
+element_replacement = {"E": "e", "HE": "He", "MG": "Mg", "SI": "Si", "CL": "Cl"}
 
 allowed_species = [
     "#C2",
