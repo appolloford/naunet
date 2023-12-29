@@ -72,14 +72,14 @@ jobs:
         run: brew install openblas lapack
           
       - name: Install boost
-        # boost 1.76 us "mp" as a namspace and conflict with the proton mass constant
+        run: brew install boost
+        # boost 1.76 use "mp" as a namspace and conflict with the proton mass constant
         # download boost 1.75 instead
-        # run: brew install boost
-        run: |
-          wget https://boostorg.jfrog.io/artifactory/main/release/1.75.0/source/boost_1_75_0.tar.gz
-          tar -zxf boost_1_75_0.tar.gz && cd boost_1_75_0
-          ./bootstrap.sh
-          sudo ./b2 install
+        # run: |
+        #   wget https://boostorg.jfrog.io/artifactory/main/release/1.75.0/source/boost_1_75_0.tar.gz
+        #   tar -zxf boost_1_75_0.tar.gz && cd boost_1_75_0
+        #   ./bootstrap.sh
+        #   sudo ./b2 install
 
       - name: Install SuiteSparse
         run: brew install suite-sparse
