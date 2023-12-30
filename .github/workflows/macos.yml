@@ -113,7 +113,7 @@ jobs:
 
       - name: Install
         run: |
-          poetry --version 
+          poetry --version
           poetry install
 
       - name: Create naunet examples
@@ -179,4 +179,4 @@ jobs:
           cd $HOME/naunet_ext_example4
           cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release -DMAKE_PYTHON=ON
           cmake --build build -j4
-          cd build && ctest
+          cd build && ctest -V --output-on-failure
