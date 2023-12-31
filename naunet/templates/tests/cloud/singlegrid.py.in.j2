@@ -46,12 +46,12 @@ naunet_data.uvcreff = uvcreff
 y = np.ones(len(species)+has_thermal) * 1e-40
 y[species.index("H2")] = 0.5 * nH
 y[species.index("H")] = 5.0e-5 * nH
-y[species.index("HE")] = 9.75e-2 * nH
+y[species.index("He")] = 9.75e-2 * nH
 y[species.index("N")] = 7.5e-5 * nH
 y[species.index("O")] = 1.8e-4 * nH
 y[species.index("CO")] = 1.4e-4 * nH
 y[species.index("S")] = 8.0e-8 * nH
-y[species.index("SI")] = 8.0e-9 * nH
-y[species.index("MG")] = 7.0e-9 * nH
-y[species.index("CL")] = 4.0e-9 * nH
+y[species.index("Si")] = 8.0e-9 * nH
+y[species.index("Mg")] = 7.0e-9 * nH
+y[species.index("Cl")] = 4.0e-9 * nH
 {% endblock initial_abundance %}
