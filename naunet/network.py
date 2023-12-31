@@ -861,13 +861,12 @@ class Network:
             if format == "krome":
                 outf.write("@format:idx,r,r,r,p,p,p,p,p,tmin,tmax,rate\n")
 
-            for reac in self.reaction_list:
+                grain_dict = {g.group: g for g in self.grains} if self.grains else {}
+
+            for reac in tqdm(self.reaction_list, desc="Writing reactions"):
                 outf.write(f"{reac:{format}}")
 
                 if format == "krome":
-                    grain_dict = (
-                        {g.group: g for g in self.grains} if self.grains else {}
-                    )
                     self._rateconverter.read(
                         reac.rateexpr(grain_dict.get(reac.grain_group))
                     )

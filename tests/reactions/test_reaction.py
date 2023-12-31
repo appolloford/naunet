@@ -225,7 +225,7 @@ def test_reaction_str_format(example_cr_reaction1):
         "0.000e+00  0.000e+00  0.000e+00 xxxxxxxx xxxxxxxx xxxx  x  "
         "-9999   9999 xx    -1 x  x"
     )
-    kromestr = "-1,He,,,He+        ,e-         ,,,,-9999.00,9999.00"
+    kromestr = "-1,He,,,He+,e-,,,,-9999.00,9999.00"
     uclchemstr = "He,CRP,NAN,He+,e-,NAN,NAN,0.0e+00,0.0,0.0,-9999.0,9999.0"
 
     assert str(example_cr_reaction1) == longstr

@@ -164,7 +164,7 @@ class Reaction(Component):
 
         elif form == "krome":
             rnames = fill([f"{x}" for x in sorted(self.reactants)], 3, "")
-            pnames = fill([f"{x:<11}" for x in sorted(self.products)], 5, "")
+            pnames = fill([f"{x}" for x in sorted(self.products)], 5, "")
             verbose = ",".join(
                 [
                     f"{self.idxfromfile}",
