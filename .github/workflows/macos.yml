@@ -118,18 +118,15 @@ jobs:
 
       - name: Create naunet examples
         run: |
-          source $(poetry env info --path)/bin/activate
-          source ./scripts/actions/create_examples.sh
+          poetry run bash ./scripts/actions/create_examples.sh
 
       - name: Build naunet examples
         run: |
-          source $(poetry env info --path)/bin/activate
-          source ./scripts/actions/build_examples.sh
+          poetry run bash ./scripts/actions/build_examples.sh
 
       - name: Test naunet examples
         run: |
-          source $(poetry env info --path)/bin/activate
-          source ./scripts/actions/test_examples.sh
+          poetry run bash ./scripts/actions/test_examples.sh
 
   external_project_test:
     needs: package_install_and_test
@@ -176,7 +173,8 @@ jobs:
       - name: Build and test naunet examples
         run: |
           source $(poetry env info --path)/bin/activate
+          unset Python_ROOT_DIR Python2_ROOT_DIR Python3_ROOT_DIR  # set by actions/setup-python
           cd $HOME/naunet_ext_example4
-          cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release -DMAKE_PYTHON=ON
+          cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release -DMAKE_PYTHON=ON -DPython_ROOT_DIR=$(poetry env info --path)/bin
           cmake --build build -j4
-          cd build && ctest -V --output-on-failure
+          ctest -V --output-on-failure --test-dir build

@@ -1,3 +1,4 @@
+unset Python_ROOT_DIR Python2_ROOT_DIR Python3_ROOT_DIR  # set by actions/setup-python
 for idx in 0 1 4 5 8 9 12 13 16 17
 do
   cd $HOME/naunet_example$idx

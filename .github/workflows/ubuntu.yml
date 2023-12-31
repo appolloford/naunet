@@ -139,20 +139,16 @@ jobs:
 
       - name: Pytest
         run: |
-          source $(poetry env info --path)/bin/activate
-          pytest -rs -o log_cli=true -o log_cli_level=DEBUG --runslow tests
+          poetry run pytest -rs -o log_cli=true -o log_cli_level=DEBUG --runslow tests
 
       - name: Create naunet examples
         run: |
-          source $(poetry env info --path)/bin/activate
-          source ./scripts/actions/create_examples.sh
+          poetry run bash ./scripts/actions/create_examples.sh
 
       - name: Build naunet examples
         run: |
-          source $(poetry env info --path)/bin/activate
-          source ./scripts/actions/build_examples.sh
+          poetry run bash ./scripts/actions/build_examples.sh
 
       - name: Test naunet examples
         run: |
-          source $(poetry env info --path)/bin/activate
-          source ./scripts/actions/test_examples.sh
+          poetry run bash ./scripts/actions/test_examples.sh
