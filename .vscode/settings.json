@@ -9,5 +9,7 @@
         "Make.*": "makefile",
     },
     "editor.formatOnSave": true,
-    "python.formatting.provider": "black"
+    "python.formatting.provider": "black",
+    "notebook.formatOnSave.enabled": true,
+    "python.testing.pytestEnabled": true
 }
