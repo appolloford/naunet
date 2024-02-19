@@ -4,6 +4,7 @@ from ..component import Component, VariableType as vt
 from ..grains.grain import Grain
 from ..species import Species
 from ..reactiontype import ReactionType
+from ..utilities import _fill_list
 
 
 class Reaction(Component):
@@ -102,35 +103,36 @@ class Reaction(Component):
 
         verbose = None
 
-        def fill(orig: list, nitem: int, dummy: str) -> list:
-            return orig + [dummy] * (nitem - len(orig))
+        rnames = [x.name for x in sorted(self.reactants)]
+        pnames = [x.name for x in sorted(self.products)]
 
         if not form:
             verbose = str(self)
 
         elif form == "minimal":
             verbose = "{} -> {}".format(
-                " + ".join(x.name for x in sorted(self.reactants)),
-                " + ".join(x.name for x in sorted(self.products)),
+                " + ".join(rnames),
+                " + ".join(pnames),
             )
 
         elif form == "short":
             verbose = "{} -> {}, {:7.1f} < T < {:7.1f}, Type: {}".format(
-                " + ".join(x.name for x in sorted(self.reactants)),
-                " + ".join(x.name for x in sorted(self.products)),
+                " + ".join(rnames),
+                " + ".join(pnames),
                 self.temp_min,
                 self.temp_max,
                 self.reaction_type.name,
             )
 
         elif form == "naunet":
-            rnames = fill([f"{x:>12}" for x in sorted(self.reactants)], 3, f"{'':>12}")
-            pnames = fill([f"{x:>12}" for x in sorted(self.products)], 5, f"{'':>12}")
+            dummy = f"{'':>12}"
+            rnames = _fill_list([f"{x:>12}" for x in rnames], 3, dummy)
+            pnames = _fill_list([f"{x:>12}" for x in pnames], 5, dummy)
             verbose = ",".join(
                 [
                     f"{self.idxfromfile:<5}",
-                    f",".join(rnames),
-                    f",".join(pnames),
+                    *rnames,
+                    *pnames,
                     f"{self.alpha:10.3e}",
                     f"{self.beta:10.3e}",
                     f"{self.gamma:10.3e}",
@@ -142,8 +144,9 @@ class Reaction(Component):
             )
 
         elif form == "kida":
-            rnames = fill([f"{x:<11}" for x in sorted(self.reactants)], 3, f"{'':>11}")
-            pnames = fill([f"{x:<11}" for x in sorted(self.products)], 5, f"{'':>11}")
+            dummy = f"{'':<11}"
+            rnames = _fill_list([f"{x:<11}" for x in rnames], 3, dummy)
+            pnames = _fill_list([f"{x:<11}" for x in pnames], 5, dummy)
             verbose = " ".join(
                 [
                     f"".join(rnames),
@@ -163,13 +166,13 @@ class Reaction(Component):
             )
 
         elif form == "krome":
-            rnames = fill([f"{x}" for x in sorted(self.reactants)], 3, "")
-            pnames = fill([f"{x}" for x in sorted(self.products)], 5, "")
+            rnames = _fill_list([f"{x}" for x in rnames], 3, "")
+            pnames = _fill_list([f"{x}" for x in pnames], 5, "")
             verbose = ",".join(
                 [
                     f"{self.idxfromfile}",
-                    f",".join(rnames),
-                    f",".join(pnames),
+                    *rnames,
+                    *pnames,
                     f"{self.temp_min:.2f}",
                     f"{self.temp_max:.2f}",
                 ]
@@ -188,8 +191,8 @@ class Reaction(Component):
                 ReactionType.SURFACE_DIFFUSION: "DIFF",
                 ReactionType.GRAIN_DESORB_REACTIVE: "CHEMDES",
             }
-            rnames = fill([f"{x}" for x in sorted(self.reactants)], 3, "NAN")
-            pnames = fill([f"{x}" for x in sorted(self.products)], 4, "NAN")
+            rnames = _fill_list([f"{x}" for x in rnames], 3, "NAN")
+            pnames = _fill_list([f"{x}" for x in pnames], 4, "NAN")
             rnames[1] = type2reactant.get(self.reaction_type)
             verbose = ",".join(
                 [
@@ -202,6 +205,8 @@ class Reaction(Component):
                     f"{self.temp_max}",
                 ]
             )
+        else:
+            raise ValueError(f"Unknown format: {form}")
 
         return verbose
 

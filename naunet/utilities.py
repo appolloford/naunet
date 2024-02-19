@@ -14,6 +14,8 @@ def _collect_variable_items(
             variables[key] = value
     return variables.items()
 
+def _fill_list(orig: list, nitem: int, dummy: str) -> list:
+    return [*orig, *(dummy for _ in range(nitem-len(orig)))]
 
 def _prefix(text: str, pre: str) -> str:
     return "".join([pre, text])
