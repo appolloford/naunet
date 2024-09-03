@@ -42,32 +42,32 @@ def test_replace_name():
 
 
 @pytest.mark.parametrize(
-    "name, atom, surface, alias, basename, charge, custalias, eb, mass, mnum",
+    "name, atom, surface, alias, basename, charge, custalias, eb, mass, mnum, natoms",
     [
-        ("e-", False, False, "eM", "e", -1, "Electron", None, 0.0, 0.0),
-        ("E", False, False, "EM", "E", -1, "Electron", None, 0.0, 0.0),
-        ("H", True, False, "HI", "H", 0, "H", None, 1.007, 1.0),
-        ("H+", False, False, "HII", "H", 1, "Hj", None, 1.007, 1.0),
-        ("H-", False, False, "HM", "H", -1, "Hk", None, 1.007, 1.0),
-        ("H2", False, False, "H2I", "H2", 0, "HH", None, 2.014, 2),
-        ("D", True, False, "DI", "D", 0, "D", None, 2.014, 2.0),
-        ("oH2D+", False, False, "oH2DII", "oH2D", 1, "H2Dj_ortho", None, 4.028, 4.0),
-        ("He", True, False, "HeI", "He", 0, "He", None, 4.002, 4.0),
-        ("C", True, False, "CI", "C", 0, "C", None, 12.011, 12.0),
-        ("CO", False, False, "COI", "CO", 0, "CO", None, 28.01, 28.0),
-        ("N2D+", False, False, "N2DII", "N2D", 1, "N2Dj_ortho", None, 30.028, 30),
-        ("Si++++", False, False, "SiIIIII", "Si", 4, "Sijjjj", None, 28.086, 28.0),
-        ("#H", False, True, "GHI", "H", 0, "GH", 600.0, 1.007, 1.0),
-        ("#CO", False, True, "GCOI", "CO", 0, "GCO", 1150.0, 28.01, 28.0),
-        ("#CH4", False, True, "GCH4I", "CH4", 0, "GCH4", 1090.0, 16.039, 16.0),
+        ("e-", False, False, "eM", "e", -1, "Electron", None, 0.0, 0.0, 0),
+        ("E", False, False, "EM", "E", -1, "Electron", None, 0.0, 0.0, 0),
+        ("H", True, False, "HI", "H", 0, "H", None, 1.007, 1.0, 1),
+        ("H+", False, False, "HII", "H", 1, "Hj", None, 1.007, 1.0, 1),
+        ("H-", False, False, "HM", "H", -1, "Hk", None, 1.007, 1.0, 1),
+        ("H2", False, False, "H2I", "H2", 0, "HH", None, 2.014, 2, 2),
+        ("D", True, False, "DI", "D", 0, "D", None, 2.014, 2.0, 1),
+        ("oH2D+", False, False, "oH2DII", "oH2D", 1, "H2Dj_ortho", None, 4.028, 4.0, 3),
+        ("He", True, False, "HeI", "He", 0, "He", None, 4.002, 4.0, 1),
+        ("C", True, False, "CI", "C", 0, "C", None, 12.011, 12.0, 1),
+        ("CO", False, False, "COI", "CO", 0, "CO", None, 28.01, 28.0, 2),
+        ("N2D+", False, False, "N2DII", "N2D", 1, "N2Dj_ortho", None, 30.028, 30, 3),
+        ("Si++++", False, False, "SiIIIII", "Si", 4, "Sijjjj", None, 28.086, 28.0, 1),
+        ("#H", False, True, "GHI", "H", 0, "GH", 600.0, 1.007, 1.0, 1),
+        ("#CO", False, True, "GCOI", "CO", 0, "GCO", 1150.0, 28.01, 28.0, 2),
+        ("#CH4", False, True, "GCH4I", "CH4", 0, "GCH4", 1090.0, 16.039, 16.0, 5),
         # Grain is atom in case renorm number density is required
         # It has no default mass or massnumber, usually they are not needed
-        ("GRAIN0", True, False, "GRAIN0I", "GRAIN0", 0, "grain", None, 0.0, 0.0),
-        ("GRAIN-", False, False, "GRAINM", "GRAIN", -1, "grain-", None, 0.0, 0.0),
+        ("GRAIN0", True, False, "GRAIN0I", "GRAIN0", 0, "grain", None, 0.0, 0.0, 1),
+        ("GRAIN-", False, False, "GRAINM", "GRAIN", -1, "grain-", None, 0.0, 0.0, 1),
     ],
 )
 def test_properties_default(
-    name, atom, surface, alias, basename, charge, custalias, eb, mass, mnum
+    name, atom, surface, alias, basename, charge, custalias, eb, mass, mnum, natoms
 ):
     Species.reset()
     species = Species(name)
@@ -85,6 +85,7 @@ def test_properties_default(
     assert f"{species.mass:.3f}" == f"{mass:.3f}"
     assert species.massnumber == mnum
     assert species.A == mnum  # test alias
+    assert species.n_atoms == natoms
     assert species.is_atom == atom
     assert species.is_surface == surface
     assert f"{species:<12}" == f"{species.name:<12}"

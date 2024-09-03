@@ -209,6 +209,7 @@ def test_reaction_str_format(example_cr_reaction1):
     longstr = (
         "He               -> He+ + e-                        "
         ", -9999.0 < T <  9999.0, Type: GAS_COSMICRAY            "
+        ", Rate: 0.0 * zeta                                                  "
         ", Source: unknown, Index: -1"
     )
     minimalstr = "He -> He+ + e-"

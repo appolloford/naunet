@@ -603,6 +603,16 @@ class Species:
     A = massnumber
 
     @property
+    def n_atoms(self) -> int:
+        """
+        The number of atoms in the species. 0 for electron and 1 for grain.
+        """
+        if self.is_electron:
+            return 0
+        names, counts = self.element_count.keys(), self.element_count.values()
+        return sum(counts)
+
+    @property
     def photon_yield(self) -> float:
         """
         The photodesorption yield of the species (only for ice-phase species).
