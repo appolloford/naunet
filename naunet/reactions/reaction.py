@@ -25,7 +25,6 @@ class Reaction(Component):
         idxfromfile: int = -1,
         react_string: str = None,
     ) -> None:
-
         super().__init__()
 
         self.reactants = (
@@ -65,22 +64,7 @@ class Reaction(Component):
         return spec in self.reactants or spec in self.products
 
     def __str__(self) -> str:
-        verbose = (
-            (
-                "{:16} -> {:32}, {:7.1f} < T < {:7.1f}, Type: {:25}, Source: {}, Index: {}".format(
-                    " + ".join(x.name for x in self.reactants),
-                    " + ".join(x.name for x in self.products),
-                    self.temp_min,
-                    self.temp_max,
-                    self.reaction_type.name,
-                    self.source,
-                    self.idxfromfile,
-                )
-            )
-            if len(self.reactants + self.products) > 0
-            else " -> "
-        )
-        return verbose
+        return self.to_string()
 
     def __eq__(self, o: object) -> bool:
         if not isinstance(o, Reaction):
@@ -100,7 +84,6 @@ class Reaction(Component):
         )
 
     def __format__(self, form: str) -> str:
-
         verbose = None
 
         rnames = [x.name for x in sorted(self.reactants)]
@@ -253,7 +236,6 @@ class Reaction(Component):
         return rate
 
     def _parse_string(self, react_string: str) -> None:
-
         if not react_string:
             return
 
@@ -418,3 +400,27 @@ class Reaction(Component):
             raise RuntimeError(f"Unknown reaction type {self.reaction_type}")
 
         return rate
+
+    def to_string(self, grain: Grain = None) -> str:
+        if len(self.reactants + self.products) == 0:
+            return " -> "
+
+        grain_dep_rtypes = [
+            rt.value for rt in ReactionType if rt.name.startswith(("GRAIN", "SURFACE"))
+        ]
+        if grain is None and self.reaction_type in grain_dep_rtypes:
+            rate = "Grain Dependent"
+        else:
+            rate = self.rateexpr(grain)
+
+        rstring = "{:16} -> {:32}, {:7.1f} < T < {:7.1f}, Type: {:25}, Rate: {:60}, Source: {}, Index: {}".format(
+            " + ".join(x.name for x in self.reactants),
+            " + ".join(x.name for x in self.products),
+            self.temp_min,
+            self.temp_max,
+            self.reaction_type.name,
+            rate,
+            self.source,
+            self.idxfromfile,
+        )
+        return rstring
