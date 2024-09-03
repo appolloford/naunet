@@ -13,7 +13,7 @@ Jinja2 = "^3.0.0"
 tqdm = "^4.58.0"
 lark = "^1.0.0"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 black = "^23.12.1"
 pytest = "^7.4.4"
 coverage = "^7.4.0"
@@ -26,5 +26,5 @@ pre-commit = "^2.18.1"
 naunet = "naunet.console:main"
 
 [build-system]
-requires = ["poetry-core>=1.0.0"]
+requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
