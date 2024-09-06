@@ -155,13 +155,11 @@ class UCLCHEMReaction(Reaction):
         return rate
 
     def _parse_string(self, react_string) -> None:
-
         self.source = "uclchem"
 
         kwlist = [*self.reactant2type.keys(), "NAN"]
 
         if react_string.strip() != "":
-
             *rpspec, a, b, c, lt, ut = react_string.split(",")
 
             self.reaction_type = self.reactant2type.get(

@@ -187,7 +187,6 @@ def test_init_reaction(ref, reacts, prods, tmin, tmax, a, b, c, rtype, idx, requ
     ],
 )
 def test_eq_reaction(example_cr_reaction1, reaction_args, is_equal):
-
     reaction = Reaction(*reaction_args)
 
     assert (example_cr_reaction1 == reaction) == is_equal
@@ -197,7 +196,6 @@ def test_eq_reaction(example_cr_reaction1, reaction_args, is_equal):
 
 
 def test_contains(example_cr_reaction1):
-
     assert Species("He") in example_cr_reaction1
     assert Species("He+") in example_cr_reaction1
     assert Species("e") in example_cr_reaction1
@@ -205,7 +203,6 @@ def test_contains(example_cr_reaction1):
 
 
 def test_reaction_str_format(example_cr_reaction1):
-
     longstr = (
         "He               -> He+ + e-                        "
         ", -9999.0 < T <  9999.0, Type: GAS_COSMICRAY            "

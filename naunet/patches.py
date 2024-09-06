@@ -17,7 +17,6 @@ if TYPE_CHECKING:
 
 
 def patch_factory(target: str, device: str, source: str = None):
-
     if target.lower() == "enzo":
         return EnzoPatch(device, source)
     else:
@@ -26,7 +25,6 @@ def patch_factory(target: str, device: str, source: str = None):
 
 class Patch:
     def __init__(self, device: str, source: str) -> None:
-
         loader = PackageLoader("naunet", source)
         self._env = Environment(loader=loader)
         self._env.filters["stmwrap"] = _stmwrap
@@ -148,7 +146,6 @@ class Patch:
 
 
 class EnzoPatch(Patch):
-
     _enzo_required_elements = ["e", "H", "D", "He", "C", "O", "Si"]
 
     enzo_defined_species_name = [
@@ -234,7 +231,6 @@ class EnzoPatch(Patch):
         save: bool = True,
         path: Path | str = None,
     ) -> None:
-
         result = template.render(
             network=info,
             species=species_group,
@@ -263,7 +259,6 @@ class EnzoPatch(Patch):
         save: bool = True,
         path: Path | str = None,
     ) -> None:
-
         info = NetworkInfo(
             network.elements,
             network.species,

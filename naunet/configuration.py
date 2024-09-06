@@ -110,7 +110,6 @@ class BaseConfiguration:
         device: str = "cpu",
         method: str = "dense",
     ) -> None:
-
         self._name = project
         self._description = description
         self._load = load or []

@@ -53,7 +53,6 @@ class Component:
         variable: tuple[str, str | float | None, VariableType],
         force_overwrite=False,
     ) -> None:
-
         if self._symbols.get(name) is None or force_overwrite:
             self._symbols[name] = Variable(*variable)
 

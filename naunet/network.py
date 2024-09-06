@@ -25,7 +25,6 @@ supported_reaction_class = {cls.format: cls for cls in builtin_reaction_format}
 
 
 def _grain_factory(model: str, **kwargs) -> Grain:
-
     modelcls = supported_grain_model.get(model)
     if model and not modelcls:
         raise ValueError(f"Unknown grain model: {model}")
@@ -61,7 +60,6 @@ def define_reaction(name: str):
     """
 
     def insert_class(reactcls: Type[Reaction]):
-
         if not isinstance(name, str):
             raise TypeError("Reaction format name must be string")
 
@@ -81,7 +79,6 @@ def define_grain(name: str):
     """
 
     def insert_class(graincls: Type[Grain]):
-
         if not isinstance(name, str):
             raise TypeError("Grain model name must be string")
 
@@ -135,7 +132,6 @@ class Network:
         rate_modifier: dict[int, str] = None,
         ode_modifier: dict[str, dict[str, list[str | list[str]]]] = None,
     ) -> None:
-
         self.reaction_list = []
         self._reactants = set()
         self._products = set()
@@ -167,20 +163,17 @@ class Network:
         self._ode_modifier = ode_modifier.copy() if ode_modifier else {}
 
         if self._allowed_species and self._required_species:
-
             conflict = [
                 sp for sp in self._required_species if sp not in self._allowed_species
             ]
 
             if conflict:
-
                 raise RuntimeError(
                     "All required species must exist in the allowed species list."
                     "Otherwise leave one of them to be 'None'."
                 )
 
         if reactions:
-
             if filelist or fileformats:
                 logger.warning("Initialize from reactions. Files are skipped!")
 
@@ -190,11 +183,9 @@ class Network:
         # check the lists of files and formats are matching
         # and add them into the network if possible
         elif isinstance(filelist, list):
-
             filelist = [str(f) for f in filelist]
 
             if isinstance(fileformats, list):
-
                 if len(filelist) != len(fileformats):
                     raise RuntimeError(
                         "Sizes of input files and sources are mismatching."
@@ -205,7 +196,6 @@ class Network:
                             self.add_reaction_from_file(fname, fmt)
 
             elif isinstance(fileformats, str):
-
                 for fname in filelist:
                     if fname and fileformats:
                         self.add_reaction_from_file(fname, fileformats)
@@ -214,7 +204,6 @@ class Network:
                 raise RuntimeError(f"Unknown format: {fileformats}")
 
         elif isinstance(filelist, str) or isinstance(filelist, Path):
-
             fname = str(filelist)
 
             if isinstance(fileformats, list):
@@ -248,7 +237,6 @@ class Network:
     def _add_reaction(
         self, reaction: Reaction | tuple[str, str]
     ) -> tuple[set[Species], set[Species], Reaction]:
-
         if not isinstance(reaction, Reaction):
             reaction = _reaction_factory(*reaction)
 
@@ -485,7 +473,6 @@ class Network:
             subpath = path / subdir
 
             if os.path.exists(subpath):
-
                 if not overwrite:
                     logger.warning("Files exist in export directory! Stop exporting!")
                     return
@@ -768,7 +755,6 @@ class Network:
         device: str = "cpu",
         path: str = "./",
     ) -> None:
-
         tl = TemplateLoader(solver, method, device)
         tl.render(self, path=path, save=True)
 
@@ -836,7 +822,6 @@ class Network:
             ]
 
         elif mode == "product":
-
             indices = [
                 idx
                 for idx, reac in enumerate(self.reaction_list)
@@ -844,7 +829,6 @@ class Network:
             ]
 
         elif mode == "all":
-
             indices = [
                 idx for idx, reac in enumerate(self.reaction_list) if species in reac
             ]
@@ -855,9 +839,7 @@ class Network:
         return indices
 
     def write(self, filename: str | Path, format: str = "") -> None:
-
         with open(filename, "w") as outf:
-
             if format == "krome":
                 outf.write("@format:idx,r,r,r,p,p,p,p,p,tmin,tmax,rate\n")
 

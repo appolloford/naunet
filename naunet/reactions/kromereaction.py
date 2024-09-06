@@ -7,7 +7,6 @@ from .converter import ExpressionConverter
 
 
 class KROMEReaction(Reaction):
-
     format = "krome"
 
     _kromerateconverter = ExpressionConverter("Fortran")
@@ -66,7 +65,6 @@ class KROMEReaction(Reaction):
             return line.strip()
 
     def rateexpr(self, grain: Grain = None) -> str:
-
         rate = re.sub(r"(\d\.?)d(\-?\d)", r"\1e\2", self.rate_string)
         rate = re.sub(r"(idx_.?)p", r"\1II", rate)
         rate = re.sub(r"(idx_.?)m", r"\1M", rate)
@@ -77,7 +75,6 @@ class KROMEReaction(Reaction):
         return rate
 
     def _parse_string(self, react_string) -> None:
-
         self.source = "krome"
 
         react_string = react_string.strip()

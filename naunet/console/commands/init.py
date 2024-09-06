@@ -49,7 +49,6 @@ class InitCommand(Command):
         super(InitCommand, self).__init__()
 
     def handle(self):
-
         from pathlib import Path
 
         config_file = Path.cwd() / "naunet_config.toml"
@@ -237,7 +236,6 @@ class InitCommand(Command):
             self.call("render", "--force" if overwrite else "")
 
     def option(self, key=None):
-
         value = super().option(key)
         if isinstance(value, str):
             value = value.replace("null", "")
@@ -245,9 +243,7 @@ class InitCommand(Command):
         return value
 
     def validate(self, value, question, default):
-
         if value is None:
-
             value = default
             question = self.create_question(
                 f"{question} [<comment>{default}</comment>]:",

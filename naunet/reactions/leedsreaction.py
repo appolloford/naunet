@@ -217,7 +217,6 @@ class LEEDSReaction(Reaction):
         return rate
 
     def _parse_string(self, react_string) -> None:
-
         self.source = "leeds"
 
         list_label = [
@@ -244,10 +243,8 @@ class LEEDSReaction(Reaction):
         ]
         # react_string = react_string.strip()
         if react_string.strip() != "":
-
             stidx = 0
             for label, len in zip(list_label, list_strlen):
-
                 clip = react_string[stidx : stidx + len]
                 if label == "idx":
                     self.idxfromfile = int(clip)

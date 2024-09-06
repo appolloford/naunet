@@ -27,7 +27,6 @@ class ExampleCommand(Command):
         super(ExampleCommand, self).__init__()
 
     def handle(self):
-
         from pathlib import Path
         import naunet
 

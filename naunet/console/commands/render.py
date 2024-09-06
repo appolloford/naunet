@@ -36,7 +36,6 @@ class RenderCommand(Command):
         super(RenderCommand, self).__init__()
 
     def handle(self):
-
         config = TOMLFile("naunet_config.toml")
 
         content = config.read()
@@ -142,7 +141,6 @@ class RenderCommand(Command):
         header_prefix = Path.cwd() / "include"
         source_prefix = Path.cwd() / "src"
         for prefix in [header_prefix, source_prefix]:
-
             if prefix.exists():
                 if not os.path.isdir(prefix):
                     raise FileNotFoundError(
@@ -199,7 +197,6 @@ class RenderCommand(Command):
 
         if self.option("with-summary-py"):
             with open("summary.py", "w") as outf:
-
                 outf.write(f"nelem = {len(all_elements)}\n")
                 outf.write(f"nspec = {len(all_species)}\n")
                 outf.write(f"ngas = {len(gas_species)}\n")
@@ -226,7 +223,6 @@ class RenderCommand(Command):
                 ]
 
                 for speclist, name in zip(speclistlist, namelist):
-
                     specstr = ",\n    ".join(f"'{x}'" for x in speclist)
                     if specstr:
                         outf.write("".join([f"{name} = [\n    ", specstr, ",\n]"]))

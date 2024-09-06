@@ -200,7 +200,6 @@ def test_find_reaction(example_network_from_reaction_list, example_reaction_list
 
 
 def test_find_species(example_network_from_reaction_list):
-
     network = example_network_from_reaction_list
     assert network.where_species(species="H2", mode="reactant") == [1, 2]
     assert network.where_species(species="e-", mode="product") == [0, 2]

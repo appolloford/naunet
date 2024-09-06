@@ -14,8 +14,10 @@ def _collect_variable_items(
             variables[key] = value
     return variables.items()
 
+
 def _fill_list(orig: list, nitem: int, dummy: str) -> list:
-    return [*orig, *(dummy for _ in range(nitem-len(orig)))]
+    return [*orig, *(dummy for _ in range(nitem - len(orig)))]
+
 
 def _prefix(text: str, pre: str) -> str:
     return "".join([pre, text])
@@ -26,7 +28,6 @@ def _suffix(text: str, suf: str) -> str:
 
 
 def _stmwrap(text: str, width: int = 80, indent: int = 4):
-
     longindent = " " * indent
     shortindent = " " * (indent - 4)
     wrappedlist = wrap(text, width - indent, break_long_words=False)

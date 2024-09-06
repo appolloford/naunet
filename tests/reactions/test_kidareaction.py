@@ -46,7 +46,6 @@ def example_kida_cr_reaction():
 
 
 def test_init_kidareaction(example_kida_cr_reaction):
-
     reaction = example_kida_cr_reaction
     assert reaction.reactants == [Species("He")]
     assert reaction.products == [Species("He+"), Species("e-")]
@@ -69,7 +68,6 @@ def test_init_kidareaction(example_kida_cr_reaction):
     ],
 )
 def test_eq_reaction(ref_reaction, target_reaction, is_equal, request):
-
     assert (
         request.getfixturevalue(ref_reaction)
         == request.getfixturevalue(target_reaction)

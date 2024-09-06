@@ -20,7 +20,6 @@ class Grain(Component):
     model = "base"
 
     def __init__(self, species: list[Species] = None, group: int = 0) -> None:
-
         super().__init__()
 
         self.species = species.copy() if species else []
@@ -39,7 +38,6 @@ class Grain(Component):
         return self._group
 
     def rate_depletion(self, reac: Reaction) -> str:
-
         if reac.reaction_type != ReactionType.GRAIN_FREEZE:
             raise ValueError("The reaction type is not depletion")
 
@@ -62,7 +60,6 @@ class Grain(Component):
         return rate
 
     def rate_thermal_desorption(self, reac: Reaction) -> str:
-
         if reac.reaction_type != ReactionType.GRAIN_DESORB_THERMAL:
             raise ValueError("The reaction type is not thermal desorption")
 
@@ -72,7 +69,6 @@ class Grain(Component):
         return NotImplemented
 
     def rate_photon_desorption(self, reac: Reaction) -> str:
-
         if reac.reaction_type != ReactionType.GRAIN_DESORB_PHOTON:
             raise ValueError("The reaction type is not photon desorption")
 
@@ -82,7 +78,6 @@ class Grain(Component):
         return NotImplemented
 
     def rate_cosmicray_desorption(self, reac: Reaction) -> str:
-
         if reac.reaction_type != ReactionType.GRAIN_DESORB_COSMICRAY:
             raise ValueError("The reaction type is not cosmic-ray desorption")
 
@@ -92,21 +87,18 @@ class Grain(Component):
         return NotImplemented
 
     def rate_electron_capture(self, reac: Reaction) -> str:
-
         if reac.reaction_type != ReactionType.GRAIN_ECAPTURE:
             raise ValueError("The reaction type is not electron capture")
 
         return NotImplemented
 
     def rate_recombination(self, reac: Reaction) -> str:
-
         if reac.reaction_type != ReactionType.GRAIN_RECOMINE:
             raise ValueError("The reaction type is not recombination")
 
         return NotImplemented
 
     def rate_surface_twobody(self, reac: Reaction) -> str:
-
         if reac.reaction_type != ReactionType.SURFACE_TWOBODY:
             raise ValueError("The reaction type is not surface two-body reaction")
 
@@ -118,7 +110,6 @@ class Grain(Component):
         return NotImplemented
 
     def rate_reactive_desorption(self, reac: Reaction) -> str:
-
         if reac.reaction_type != ReactionType.GRAIN_DESORB_REACTIVE:
             raise ValueError("The reaction type is not reactive desorption")
 
@@ -130,7 +121,6 @@ class Grain(Component):
         return NotImplemented
 
     def rate_h2_desorption(self, reac: Reaction) -> str:
-
         if reac.reaction_type != ReactionType.GRAIN_DESORB_H2:
             raise ValueError("The reaction type is not H2 desorption")
 
@@ -140,7 +130,6 @@ class Grain(Component):
         return NotImplemented
 
     def rateexpr(self, reac: Reaction) -> str:
-
         rtype = reac.reaction_type
 
         if rtype == ReactionType.GRAIN_RECOMINE:

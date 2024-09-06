@@ -26,6 +26,7 @@ if TYPE_CHECKING:
 #         return os.path.join(parent, template)
 #         # return os.path.join(os.path.dirname(parent), template)
 
+
 # define in this file to avoid circular import
 @dataclass
 class NetworkInfo:
@@ -96,7 +97,6 @@ class TemplateLoader:
         matrix: list[str]
 
     def __init__(self, solver: str, method: str, device: str) -> None:
-
         loader = PackageLoader("naunet")
         # self._env = RelativeEnvironment(loader=loader)
         self._env = Environment(loader=loader)
@@ -117,7 +117,6 @@ class TemplateLoader:
         reactions: list[Reaction | ThermalProcess],
         grains: list[Grain] = None,
     ) -> list[str]:
-
         # check the temperature range exists
         ltranges = [f"Tgas>={r.temp_min}" if r.temp_min > 0 else "" for r in reactions]
         utranges = [f"Tgas<{r.temp_max}" if r.temp_max > 0 else "" for r in reactions]
@@ -159,7 +158,6 @@ class TemplateLoader:
         rate_modifier: dict[int, str] = None,
         ode_modifier: dict[str, dict[str, list[str | list[str]]]] = None,
     ) -> ODEContent:
-
         species = netinfo.species
         reactions = netinfo.reactions
 
@@ -188,7 +186,6 @@ class TemplateLoader:
         rhs = ["0.0"] * n_eqns
         jacrhs = ["0.0"] * n_eqns * n_eqns
         for rl, react in enumerate(tqdm(reactions, desc="Preparing ODE...")):
-
             rspecidx = [species.index(r) for r in react.reactants]
             pspecidx = [species.index(p) for p in react.products]
 
@@ -248,7 +245,6 @@ class TemplateLoader:
 
         # fex/jac of thermal process
         for hidx, h in enumerate(heating):
-
             rspecidx = [species.index(r) for r in h.reactants]
             rsym = [y[idx] for idx in rspecidx]
             rsym_mul = "*".join(rsym)
@@ -268,7 +264,6 @@ class TemplateLoader:
         crateeqns = self._assign_rates(crate_sym, cooling)
 
         for cidx, c in enumerate(cooling):
-
             rspecidx = [species.index(r) for r in c.reactants]
             rsym = [y[idx] for idx in rspecidx]
             rsym_mul = "*".join(rsym)
@@ -317,7 +312,6 @@ class TemplateLoader:
         return self.ODEContent(rateeqns, hrateeqns, crateeqns, fex, jac)
 
     def _prepare_renorm_content(self, netinfo: NetworkInfo) -> RenormContent:
-
         # get the exact element string
         elements = netinfo.elements
         species = netinfo.species
@@ -357,7 +351,6 @@ class TemplateLoader:
         save: bool = True,
         path: Path | str = None,
     ) -> None:
-
         result = template.render(
             general=self._general,
             network=info,
@@ -395,7 +388,6 @@ class TemplateLoader:
         path: Path | str = None,
         jac_pattern: bool = False,
     ) -> None:
-
         templates = templates or self.templates
         solver = self._solver
 
@@ -462,7 +454,6 @@ class TemplateLoader:
         ]
 
     def render_tests(self, path: Path | str) -> None:
-
         path = Path(path)
 
         testpkgpath = f"templates/base/cpp/tests"

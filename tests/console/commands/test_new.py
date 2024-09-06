@@ -4,7 +4,6 @@ from cleo import CommandTester
 
 
 def test_command_new(tmp_path, application):
-
     command = application.find("new")
     command_tester = CommandTester(command)
 

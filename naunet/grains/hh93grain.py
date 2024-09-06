@@ -11,7 +11,6 @@ if TYPE_CHECKING:
 
 
 class HH93Grain(Grain):
-
     model = "hh93"
 
     def __init__(self, species: list[Species] = None, group: int = 0) -> None:
@@ -101,7 +100,6 @@ class HH93Grain(Grain):
         )
 
     def rate_depletion(self, reac: Reaction) -> str:
-
         super().rate_depletion(reac)
 
         spec = reac.reactants[0]
@@ -121,7 +119,6 @@ class HH93Grain(Grain):
         return rate
 
     def rate_thermal_desorption(self, reac: Reaction) -> str:
-
         super().rate_thermal_desorption(reac)
 
         tdust = reac.symbols.dust_temperature.symbol
@@ -144,7 +141,6 @@ class HH93Grain(Grain):
         return rate
 
     def rate_photon_desorption(self, reac: Reaction) -> str:
-
         super().rate_photon_desorption(reac)
 
         crrate = reac.symbols.cosmic_ray_ionization_rate.symbol
@@ -166,7 +162,6 @@ class HH93Grain(Grain):
         return rate
 
     def rate_cosmicray_desorption(self, reac: Reaction) -> str:
-
         super().rate_cosmicray_desorption(reac)
 
         crrate = reac.symbols.cosmic_ray_ionization_rate.symbol
@@ -193,7 +188,6 @@ class HH93Grain(Grain):
         return rate
 
     def rate_electron_capture(self, reac: Reaction) -> str:
-
         super().rate_electron_capture(reac)
 
         tgas = reac.symbols.temperature.symbol
@@ -204,7 +198,6 @@ class HH93Grain(Grain):
         return rate
 
     def rate_recombination(self, reac: Reaction) -> str:
-
         super().rate_recombination(reac)
 
         tgas = reac.symbols.temperature.symbol
@@ -226,7 +219,6 @@ class HH93Grain(Grain):
         return rate
 
     def _rate_surface(self, reac: Reaction) -> str:
-
         re1, re2 = reac.reactants
         eb1, nmass1, eb2, nmass2 = re1.eb, re1.A, re2.eb, re2.A
         a = reac.alpha
@@ -290,14 +282,12 @@ class HH93Grain(Grain):
         return rate
 
     def rate_surface_twobody(self, reac: Reaction) -> str:
-
         super().rate_surface_twobody(reac)
 
         rate = self._rate_surface(reac)
         return rate
 
     def rate_reactive_desorption(self, reac: Reaction) -> str:
-
         super().rate_reactive_desorption(reac)
 
         rate = self._rate_surface(reac)
@@ -307,7 +297,6 @@ class HH93Grain(Grain):
 
 
 class HH93IGrain(HH93Grain):
-
     model = "hh93i"
 
     def __init__(self, species: list[Species] = None, group: int = 0) -> None:

@@ -30,7 +30,6 @@ class ExtendCommand(Command):
         super(ExtendCommand, self).__init__()
 
     def handle(self):
-
         inp = self.argument("input")
         out = self.argument("output")
         informat = self.option("input-format")

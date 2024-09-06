@@ -7,9 +7,9 @@ from cleo import CommandTester
 
 GITHUB_ACTIONS = os.getenv("GITHUB_ACTIONS") == "true"
 
+
 @pytest.mark.skipif(GITHUB_ACTIONS, reason="on github")
 def test_command_example(tmp_path, application):
-
     command = application.find("example")
     command_tester = CommandTester(command)
 

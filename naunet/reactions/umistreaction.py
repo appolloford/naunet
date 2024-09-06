@@ -5,7 +5,6 @@ from ..reactiontype import ReactionType as BasicType
 
 
 class UMISTReaction(Reaction):
-
     format = "umist"
 
     class ReactionType(IntEnum):
@@ -79,12 +78,10 @@ class UMISTReaction(Reaction):
         return rate
 
     def _parse_string(self, react_string) -> None:
-
         self.source = "umist"
 
         react_string = react_string.strip()
         if react_string != "":
-
             idx, code, *rps, _, a, b, c, lt, ut = react_string.split(":")[:14]
             # print(id, rps)
             self.reactants = [

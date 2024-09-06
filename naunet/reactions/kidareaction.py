@@ -6,7 +6,6 @@ from ..reactiontype import ReactionType as BasicType
 
 
 class KIDAReaction(Reaction):
-
     format = "kida"
 
     class ReactionType(IntEnum):
@@ -69,7 +68,6 @@ class KIDAReaction(Reaction):
         return rate
 
     def _parse_string(self, react_string) -> None:
-
         self.source = "kida"
 
         react_string = react_string.strip()

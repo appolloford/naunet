@@ -9,7 +9,6 @@ class ThermalProcess(Component):
         reactants: list[str | Species],
         rate: str,
     ) -> None:
-
         super().__init__()
 
         self._reactants = [
@@ -139,9 +138,7 @@ def get_allowed_cooling(species: list[Species]) -> dict[str, ThermalProcess]:
     allowed_cooling = {}
 
     for key, value in supported_cooling_process.items():
-
         if all(r in species for r in value.reactants):
-
             allowed_cooling[key] = value
 
     return allowed_cooling

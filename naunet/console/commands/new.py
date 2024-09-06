@@ -20,7 +20,6 @@ class NewCommand(Command):
         super(NewCommand, self).__init__()
 
     def handle(self):
-
         from pathlib import Path
 
         path = Path(self.argument("path"))

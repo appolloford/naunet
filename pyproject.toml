@@ -20,7 +20,7 @@ coverage = "^7.4.0"
 numpy = "^1.20.3"
 mkdocstrings-python = "^1.7.5"
 mkdocs-material = "^9.5.3"
-pre-commit = "^2.18.1"
+pre-commit = "*"
 
 [tool.poetry.scripts]
 naunet = "naunet.console:main"

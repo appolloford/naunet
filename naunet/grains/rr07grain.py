@@ -100,7 +100,6 @@ class RR07Grain(Grain):
         )
 
     def rate_depletion(self, reac: Reaction) -> str:
-
         super().rate_depletion(reac)
 
         spec = reac.reactants[0]
@@ -137,7 +136,6 @@ class RR07Grain(Grain):
         return rate
 
     def rate_photon_desorption(self, reac: Reaction) -> str:
-
         super().rate_photon_desorption(reac)
 
         crrate = reac.symbols.cosmic_ray_ionization_rate.symbol
@@ -167,7 +165,6 @@ class RR07Grain(Grain):
         return rate
 
     def rate_cosmicray_desorption(self, reac: Reaction) -> str:
-
         super().rate_cosmicray_desorption(reac)
 
         crrate = reac.symbols.cosmic_ray_ionization_rate.symbol
@@ -194,7 +191,6 @@ class RR07Grain(Grain):
         return rate
 
     def rate_h2_desorption(self, reac: Reaction) -> str:
-
         super().rate_h2_desorption(reac)
 
         h2form = reac.symbols.H2_formation_rate.symbol
@@ -214,7 +210,6 @@ class RR07Grain(Grain):
 
 
 class RR07XGrain(RR07Grain):
-
     model = "rr07x"
 
     def __init__(self, species: list[Species] = None, group: int = 0) -> None:
@@ -223,7 +218,6 @@ class RR07XGrain(RR07Grain):
         self.register("thermal_desorption_option", ("opt_thd", 1.0, vt.param))
 
     def rate_thermal_desorption(self, reac: Reaction) -> str:
-
         super().rate_thermal_desorption(reac)
 
         tdust = reac.symbols.dust_temperature.symbol

@@ -1,5 +1,6 @@
 from enum import IntEnum
 
+
 # If the reaction types have the same formalism, they share the same value in the enum class
 class ReactionType(IntEnum):
     """
