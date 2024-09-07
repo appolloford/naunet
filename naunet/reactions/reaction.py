@@ -194,9 +194,7 @@ class Reaction(Component):
         return verbose
 
     def __hash__(self) -> int:
-        return hash(
-            f"{hash(x)}" for x in sorted(self.reactants) + sorted(self.products)
-        )
+        return hash(tuple([*sorted(self.reactants), *sorted(self.products)]))
 
     def __repr__(self) -> str:
         params = ", ".join(

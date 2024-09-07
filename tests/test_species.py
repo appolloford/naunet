@@ -156,6 +156,7 @@ def test_eq(name1, gsym1, surf1, buik1, name2, gsym2, surf2, buik2):
     assert spec1 == spec2
     assert spec1 in [spec2]
     assert set([spec1]) == set([spec2])
+    assert set([spec1, spec2]) == set([spec1])
     assert spec1.is_grain == spec2.is_grain
     assert spec1.is_surface == spec2.is_surface
     Species.add_known_elements(["Fake"])
