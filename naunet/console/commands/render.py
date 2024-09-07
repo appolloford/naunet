@@ -12,6 +12,9 @@ import tomlkit
 
 from pathlib import Path
 from importlib import util
+
+from cleo.helpers import argument
+from cleo.helpers import option
 from tomlkit.toml_file import TOMLFile
 
 from naunet.templateloader import TemplateLoader
@@ -21,16 +24,15 @@ from .command import Command
 
 
 class RenderCommand(Command):
-    """
-    Render source codes according to the project setting
-
-    render
-        {--f|force : forced to override the existing files}
-        {--patch= : create patch for target code}
-        {--patch-source= : source directory of patch}
-        {--with-pattern : render the jacobian pattern}
-        {--with-summary-py : render with a pymodule having network summary information}
-    """
+    name = "render"
+    description = "Render source codes according to the project setting"
+    options = [
+        option("force", "f", "Force render, override existing files."),
+        option("patch", None, "Create patch files for target code.", flag=False),
+        option("patch-source", None, "Patch source directory.", flag=False),
+        option("with-pattern", None, "Render Jacobian pattern."),
+        option("with-summary-py", None, "Render `summary.py` file."),
+    ]
 
     def __init__(self):
         super(RenderCommand, self).__init__()

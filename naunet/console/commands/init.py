@@ -7,43 +7,142 @@ import re
 import sys
 import urllib.parse
 
+from cleo.helpers import argument
+from cleo.helpers import option
+
 from .command import Command
 from ...species import Species
 from ...configuration import BaseConfiguration
 
 
 class InitCommand(Command):
-    """
-    Initialize Naunet Project directory
-
-    init
-        {--name= : Name of the project}
-        {--description= : Description of the project}
-        {--loading=? : Filename of python modules to be loaded}
-        {--elements=? : List of elements}
-        {--pseudo-elements=? : List of pseudo elements}
-        {--element-replacement=? : Table of elements to be replaced}
-        {--surface-prefix= : The prefix of surface species}
-        {--bulk-prefix= : The prefix of bulk species}
-        {--allowed-species=? : List of species}
-        {--extra-species=? : List of extra required species}
-        {--binding=? : List of binding energy of ice species}
-        {--yield=? : List of photodesorption yields of ice species}
-        {--grain-symbol= : Symbol of dust grain}
-        {--grain-model=? : Type of dust grain model}
-        {--network-files=? : Source of chemical network file}
-        {--file-formats=? : The format of the chemical network}
-        {--heating=? : List of heating processes}
-        {--cooling=? : List of cooling processes}
-        {--shielding=? : List of shielding functions}
-        {--rate-modifier=* : List of reaction rates to be changed}
-        {--ode-modifier=* : List of ODEs to be changed}
-        {--solver= : ODE solver}
-        {--device= : Device}
-        {--method= : Linear solver used in CVode or algorithm in ODEInt}
-        {--render : render template immediately}
-        {--render-force : force render}
-    """
+    name = "init"
+    description = "Initialize Naunet Project directory"
+    options = [
+        option("name", None, "Project name.", flag=False),
+        option("description", None, "Project description.", flag=False),
+        option(
+            "loading",
+            None,
+            "Python module to be loaded.",
+            flag=False,
+            value_required=False,
+        ),
+        option("elements", None, "List of elements.", flag=False, value_required=False),
+        option(
+            "pseudo-elements",
+            None,
+            "List of pseudo elements.",
+            flag=False,
+            value_required=False,
+        ),
+        option(
+            "element-replacement",
+            None,
+            "Table of elements name to be replaced.",
+            flag=False,
+            value_required=False,
+        ),
+        option("surface-prefix", None, "Prefix of surface species.", flag=False),
+        option("bulk-prefix", None, "Prefix of bulk species.", flag=False),
+        option(
+            "allowed-species",
+            None,
+            "List of allowed species.",
+            flag=False,
+            value_required=False,
+        ),
+        option(
+            "extra-species",
+            None,
+            "List of extra required species.",
+            flag=False,
+            value_required=False,
+        ),
+        option(
+            "binding",
+            None,
+            "List of ice species binding energies.",
+            flag=False,
+            value_required=False,
+        ),
+        option(
+            "yield",
+            None,
+            "List of ice species photondesorption yields.",
+            flag=False,
+            value_required=False,
+        ),
+        option("grain-symbol", None, "Dust grain symbol.", flag=False),
+        option(
+            "grain-model",
+            None,
+            "Dust grain model type.",
+            flag=False,
+            value_required=False,
+        ),
+        option(
+            "network-files",
+            None,
+            "Chemical network files.",
+            flag=False,
+            value_required=False,
+        ),
+        option(
+            "file-formats",
+            None,
+            "Chemical network files formats.",
+            flag=False,
+            value_required=False,
+        ),
+        option(
+            "heating",
+            None,
+            "Needed heating processes.",
+            flag=False,
+            value_required=False,
+        ),
+        option(
+            "cooling",
+            None,
+            "Needed cooling processes.",
+            flag=False,
+            value_required=False,
+        ),
+        option(
+            "shielding",
+            None,
+            "Needed shielding functions.",
+            flag=False,
+            value_required=False,
+        ),
+        option(
+            "rate-modifier",
+            None,
+            "Reaction rates to be modified.",
+            flag=False,
+            value_required=False,
+            multiple=True,
+        ),
+        option(
+            "ode-modifier",
+            None,
+            "ODEs to be modified.",
+            flag=False,
+            value_required=False,
+            multiple=True,
+        ),
+        option("solver", None, "ODE solver.", flag=False),
+        option("device", None, "Device.", flag=False),
+        option(
+            "method",
+            None,
+            "Linear solver used in CVode or algorithm in ODEInt.",
+            flag=False,
+        ),
+        option("render", None, "Render code after initialization."),
+        option("render-force", None, "Force render."),
+    ]
 
     def __init__(self):
         super(InitCommand, self).__init__()

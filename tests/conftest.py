@@ -1,6 +1,6 @@
 import pytest
 from pathlib import Path
-from cleo import Application
+from cleo.application import Application
 from naunet.console.commands import (
     ExampleCommand,
     ExtendCommand,
@@ -38,11 +38,15 @@ def datadir():
 @pytest.fixture
 def application():
     app = Application()
-    app.add_commands(
+    commands = [
         ExampleCommand(),
         ExtendCommand(),
         InitCommand(),
         NewCommand(),
         RenderCommand(),
-    )
+    ]
+
+    for command in commands:
+        app.add(command)
+
     return app

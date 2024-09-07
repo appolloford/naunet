@@ -1,20 +1,22 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
+from cleo.helpers import argument
+from cleo.helpers import option
+
 from .command import Command
 from ...species import Species
 from ...configuration import BaseConfiguration
 
 
 class NewCommand(Command):
-    """
-    Create a blank naunet project directory
-
-    new
-        {path : The path to create the project at}
-        {--name= : Name of the project}
-        {--description= : Description of the project}
-    """
+    name = "new"
+    description = "Create a blank naunet project folder"
+    arguments = [argument("path", "Path to create the project.")]
+    options = [
+        option("name", None, "Project name."),
+        option("description", None, "Project description."),
+    ]
 
     def __init__(self):
         super(NewCommand, self).__init__()

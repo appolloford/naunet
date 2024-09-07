@@ -3,7 +3,7 @@ import subprocess
 import pytest
 import tomlkit
 from pathlib import Path
-from cleo import CommandTester
+from cleo.testers.command_tester import CommandTester
 
 GITHUB_ACTIONS = os.getenv("GITHUB_ACTIONS") == "true"
 

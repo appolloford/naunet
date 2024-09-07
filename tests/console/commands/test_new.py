@@ -1,6 +1,6 @@
 import tomlkit
 from pathlib import Path
-from cleo import CommandTester
+from cleo.testers.command_tester import CommandTester
 
 
 def test_command_new(tmp_path, application):

@@ -8,7 +8,7 @@ license = "GPL-3.0-or-later"
 [tool.poetry.dependencies]
 python = "^3.8"
 tomlkit = "^0.7.0"
-cleo = "^0.8.1"
+cleo = "^2.0.1"
 Jinja2 = "^3.0.0"
 tqdm = "^4.58.0"
 lark = "^1.0.0"

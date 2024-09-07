@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
+from cleo.helpers import argument
+from cleo.helpers import option
+from tomlkit.toml_file import TOMLFile
+
 from .command import Command
 from ...species import Species
 from ...reactions.reaction import Reaction
@@ -8,23 +12,41 @@ from ...reactiontype import ReactionType
 
 
 class ExtendCommand(Command):
-    """
-    Extend an existing chemical network
-
-    extend
-        {input : The input filename}
-        {output : The output filename}
-        {--input-format=naunet : The format of the input file}
-        {--output-format=naunet : The format of the output file}
-        {--append-depletion : Append neutral species depletion reactions}
-        {--append-thermal-desorption : Append thermal desorption reaction for surface species}
-        {--append-photon-desorption : Append photon desorption reaction for surface species}
-        {--append-cosmic-ray-desorption : Append cosmic-ray desorption reaction for surface species}
-        {--limit-species= : Limit the reactions only involving the species}
-        {--remove-duplicate : Remove the duplicate reactions from the network}
-        {--remove-species= : Remove all reactions involving the species}
-        {--surface-prefix= : Prefix of surface species}
-    """
+    name = "extend"
+    description = "Extend an existing chemical network"
+    arguments = [
+        argument("input", "The input filename."),
+        argument("output", "The output filename."),
+    ]
+    options = [
+        option(
+            "input-format", None, "Input file format.", flag=False, default="naunet"
+        ),
+        option(
+            "output-format", None, "Output file format.", flag=False, default="naunet"
+        ),
+        option("append-depletion", None, "Append neutral species depletion reactions."),
+        option(
+            "append-thermal-desorption", None, "Append thermal desorption reactions."
+        ),
+        option("append-photon-desorption", None, "Append photon desorption reactions."),
+        option(
+            "append-cosmic-ray-desorption", None, "Append photon desorption reactions."
+        ),
+        option(
+            "reduce-by-species",
+            None,
+            "Keep reactions involving the species.",
+            flag=False,
+        ),
+        option("remove-duplicate", None, "Remove duplicate reactions."),
+        option(
+            "remove-species",
+            None,
+            "Remove reactions involving the species.",
+            flag=False,
+        ),
+    ]
 
     def __init__(self):
         super(ExtendCommand, self).__init__()
@@ -35,9 +57,12 @@ class ExtendCommand(Command):
         informat = self.option("input-format")
         outformat = self.option("output-format")
 
-        if self.option("surface-prefix"):
-            Species.surface_prefix = self.option("surface-prefix")
-        sprefix = Species.surface_prefix
+        config = TOMLFile("naunet_config.toml")
+        content = config.read()
+        chemistry = content["chemistry"]
+        chem_symbol = chemistry["symbol"]
+        # chem_network = chemistry["network"]
+        sprefix = chem_symbol["surface"]
 
         from naunet.network import Network, supported_reaction_class
 

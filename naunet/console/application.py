@@ -1,5 +1,5 @@
 import sys
-from cleo import Application as BaseApplication
+from cleo.application import Application as BaseApplication
 from importlib.metadata import version
 
 from .commands.new import NewCommand

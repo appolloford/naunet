@@ -8,20 +8,27 @@ import sys
 import urllib.parse
 import shutil
 
-from .command import Command
+from cleo.helpers import argument
+from cleo.helpers import option
 from jinja2 import Environment, PackageLoader
+
+from .command import Command
 
 
 class ExampleCommand(Command):
-    """
-    Render source codes according to the project setting
-
-    example
-        {--dry : show the full command only, not create example}
-        {--path= : The path to create the project at, create locally if not assigned}
-        {--select= : select the example}
-        {--render-force : force render}
-    """
+    name = "example"
+    description = "Render source codes according to the project setting"
+    options = [
+        option("dry", None, "Dry run showing the command."),
+        option(
+            "path",
+            None,
+            "Create project in the path. Otherwise the current folder.",
+            flag=False,
+        ),
+        option("select", None, "Index of the target example.", flag=False),
+        option("render-force", None, "Force to render code."),
+    ]
 
     def __init__(self):
         super(ExampleCommand, self).__init__()
