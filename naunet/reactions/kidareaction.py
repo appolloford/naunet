@@ -101,7 +101,7 @@ class KIDAReaction(Reaction):
             self.idxfromfile = int(idx)
             if self.formula < 1 or self.formula > 6:
                 logging.warning(
-                    f"Formula {form} is not valid in reaction {self}, change to formula = 3."
+                    f"Formula {form} is not valid in reaction {self:short}, change to formula = 3."
                 )
                 self.formula = 3
             self.reaction_type = self.formula2type.get(self.formula)
