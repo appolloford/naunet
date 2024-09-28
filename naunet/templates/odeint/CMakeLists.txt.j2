@@ -1,7 +1,7 @@
 # To use CUDA by enabling language
 cmake_minimum_required(VERSION 3.18)
 {% set lang = "CUDA CXX" if general.device == "gpu" else "CXX" %}
-project(NAUNET VERSION {{ general.version }} LANGUAGES {{ lang }})
+project({{ proj_name }} VERSION {{ general.version }} LANGUAGES {{ lang }})
 
 include(CMakePrintHelpers)
 
@@ -39,12 +39,12 @@ set(MAKE_PYTHON OFF CACHE BOOL "")
 set(MAKE_TEST ON CACHE BOOL "")
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-if(MAKE_PYTHON)
-    set(PYMODNAME "pynaunet" CACHE STRING "")
-    find_package(Python REQUIRED COMPONENTS Interpreter Development)
-endif()
-
 add_subdirectory(src)
+
+if(MAKE_PYTHON)
+    find_package(Python3 REQUIRED COMPONENTS Interpreter Development)
+    add_subdirectory(python)
+endif()
 
 if(MAKE_TEST)
     enable_testing()

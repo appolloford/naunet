@@ -1,0 +1,9 @@
+import glob
+from setuptools import find_packages, setup
+
+if __name__ == '__main__':
+    setup(name='pynaunet_model',
+          version='@CMAKE_PROJECT_VERSION@',
+          packages=find_packages(),
+          package_data={'pynaunet_model': ['*.py', '*.so'] },
+    )

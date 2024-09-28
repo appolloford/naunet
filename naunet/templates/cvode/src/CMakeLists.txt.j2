@@ -148,62 +148,6 @@ if(MAKE_STATIC)
 endif()
 
 
-if(MAKE_PYTHON)
-
-    include(FetchContent)
-    FetchContent_Declare(
-        pybind11_sources
-        GIT_REPOSITORY https://github.com/pybind/pybind11.git
-        GIT_TAG v2.11.1
-    )
-    FetchContent_GetProperties(pybind11_sources)
-    if(NOT pybind11_sources_POPULATED)
-        FetchContent_Populate(pybind11_sources)
-        add_subdirectory(
-            ${pybind11_sources_SOURCE_DIR}
-            ${pybind11_sources_BINARY_DIR}
-        )
-    endif()
-
-    add_library(${PYMODNAME} MODULE naunet.cpp)
-    target_compile_definitions(${PYMODNAME}
-        PUBLIC
-            -DPYMODULE
-            -DPYMODNAME=${PYMODNAME}
-    )
-
-    set_target_properties(${PYMODNAME}
-        PROPERTIES
-            {% if general.device == "gpu" -%}
-            CUDA_SEPARABLE_COMPILATION ON
-            {% endif -%}
-            PREFIX "${PYTHON_MODULE_PREFIX}"
-            SUFFIX "${PYTHON_MODULE_EXTENSION}"
-    )
-
-    target_include_directories(
-        ${PYMODNAME}
-            PUBLIC
-                ${CMAKE_SOURCE_DIR}/include
-    )
-
-    target_link_libraries(
-        ${PYMODNAME}
-            PUBLIC
-                pybind11::module
-            PRIVATE
-                ${SUNDIALSLIB}
-                ${OBJTARGETS}
-    )
-
-    install(
-        TARGETS ${PYMODNAME}
-        LIBRARY
-        DESTINATION python
-    )
-
-endif()
-
 install(
     DIRECTORY ${PROJECT_SOURCE_DIR}/include/
     DESTINATION include

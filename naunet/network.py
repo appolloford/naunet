@@ -424,15 +424,14 @@ class Network:
 
     def export(
         self,
+        name: str,
         solver: str = "cvode",
         method: str = "dense",
         device: str = "cpu",
-        path: str | Path = "network_export",
+        prefix: str | Path = "./",
         overwrite: bool = False,
     ) -> None:
-        tl = TemplateLoader(solver, method, device)
-
-        path = Path.cwd() / Path(path)
+        path = Path(prefix) / name
         if not os.path.exists(path):
             os.mkdir(path)
 
@@ -458,7 +457,7 @@ class Network:
         config = NetworkConfiguration(
             path.name,
             self,
-            description="the exported network",
+            description="Exported network",
             solver=solver,
             device=device,
             method=method,
@@ -469,7 +468,7 @@ class Network:
         with open(config_file, "w", encoding="utf-8") as outf:
             outf.write(content)
 
-        for subdir in ["include", "src", "tests"]:
+        for subdir in ["include", "src", "python", "tests"]:
             subpath = path / subdir
 
             if os.path.exists(subpath):
@@ -480,7 +479,8 @@ class Network:
             else:
                 os.mkdir(subpath)
 
-        tl.render(self, path=path)
+        tl = TemplateLoader(solver, method, device)
+        tl.render(name, self, path=path)
         tl.render_tests(path=path)
 
         pkgpath = Path(__file__).parent
@@ -756,7 +756,7 @@ class Network:
         path: str = "./",
     ) -> None:
         tl = TemplateLoader(solver, method, device)
-        tl.render(self, path=path, save=True)
+        tl.render("naunet", self, path=path, save=True)
 
     def where_reaction(self, reaction: Reaction, mode: str = None) -> list[int]:
         """

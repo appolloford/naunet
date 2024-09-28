@@ -42,6 +42,7 @@ class RenderCommand(Command):
 
         content = config.read()
         general = content["general"]
+        name = general["name"]
         loads = general["loads"]
 
         if loads:
@@ -139,10 +140,11 @@ class RenderCommand(Command):
             patch.render(net, path=Path.cwd() / patchname)
             return
 
-        # If not creating patch, check whether include and src folders exist
+        # If not creating patch, check whether include, src, python folders exist
         header_prefix = Path.cwd() / "include"
         source_prefix = Path.cwd() / "src"
-        for prefix in [header_prefix, source_prefix]:
+        python_prefix = Path.cwd() / "python"
+        for prefix in [header_prefix, source_prefix, python_prefix]:
             if prefix.exists():
                 if not os.path.isdir(prefix):
                     raise FileNotFoundError(
@@ -162,7 +164,7 @@ class RenderCommand(Command):
 
         pattern = self.option("with-pattern")
         tl = TemplateLoader(solver=solver, method=method, device=device)
-        tl.render(net, path=Path.cwd(), jac_pattern=pattern)
+        tl.render(name, net, path=Path.cwd(), jac_pattern=pattern)
 
         pkgpath = Path(naunet.__file__).parent
 

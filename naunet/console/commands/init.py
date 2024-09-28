@@ -153,6 +153,8 @@ class InitCommand(Command):
         config_file = Path.cwd() / "naunet_config.toml"
 
         if config_file.exists():
+            # confirm doesn't work in cleo v2.0.1
+            # https://github.com/python-poetry/cleo/issues/333
             overwrite = self.confirm("Project configure file exists. Overwrite?", False)
 
             if not overwrite:

@@ -345,6 +345,7 @@ class TemplateLoader:
     def _render(
         self,
         template: Template,
+        proj_name: str = "",
         info: NetworkInfo = None,
         ode: ODEContent = None,
         renorm: RenormContent = None,
@@ -352,6 +353,7 @@ class TemplateLoader:
         path: Path | str = None,
     ) -> None:
         result = template.render(
+            proj_name=proj_name,
             general=self._general,
             network=info,
             ode=ode,
@@ -369,8 +371,9 @@ class TemplateLoader:
             path = Path(path)
             headerpath = path / "include"
             sourcepath = path / "src"
+            pythonpath = path / "python" / "pynaunet_model"
 
-            for p in [path, headerpath, sourcepath]:
+            for p in [path, headerpath, sourcepath, pythonpath]:
                 if not p.exists():
                     p.mkdir(parents=True)
 
@@ -382,6 +385,7 @@ class TemplateLoader:
 
     def render(
         self,
+        proj_name: str,
         network: Network,
         templates: list[str] = None,
         save: bool = True,
@@ -420,7 +424,7 @@ class TemplateLoader:
 
         for tmplname in templates:
             tmpl = self._env.get_template(f"{solver}/{tmplname}")
-            self._render(tmpl, info, ode, renorm, save, path)
+            self._render(tmpl, proj_name, info, ode, renorm, save, path)
 
         if jac_pattern:
             jacrhs = ode.jac.rhs
