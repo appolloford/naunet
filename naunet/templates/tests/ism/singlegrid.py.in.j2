@@ -35,19 +35,19 @@ naunet_data.Tcr = Tcr
 naunet_data.branch = branch
 {% endblock parameters %}
 {% block initial_abundance %}
-y = np.ones(len(species)) * 1e-40
-y[species.index("H2")]     = 0.5 * nH
-y[species.index("H")]      = 5.0e-5 * nH
-y[species.index("He")]     = 9.75e-2 * nH
-y[species.index("N")]      = 7.5e-5 * nH
-y[species.index("O")]      = 3.2e-4 * nH
-y[species.index("C")]      = 1.4e-4 * nH
-y[species.index("S")]      = 8.0e-8 * nH
-y[species.index("Si")]     = 8.0e-9 * nH
-y[species.index("Na")]     = 2.0e-9 * nH
-y[species.index("Mg")]     = 7.0e-9 * nH
-y[species.index("Fe")]     = 3.0e-9 * nH
-y[species.index("Cl")]     = 4.0e-9 * nH
-y[species.index("F")]      = 2.0e-8 * nH
-y[species.index("GRAIN0")] = 1.3e-12 * nH
+y = np.ones(NSPEC + HAS_THERMAL) * 1e-40
+y[IDX_H2I]     = 0.5 * nH
+y[IDX_HI]      = 5.0e-5 * nH
+y[IDX_HeI]     = 9.75e-2 * nH
+y[IDX_NI]      = 7.5e-5 * nH
+y[IDX_OI]      = 3.2e-4 * nH
+y[IDX_CI]      = 1.4e-4 * nH
+y[IDX_SI]      = 8.0e-8 * nH
+y[IDX_SiI]     = 8.0e-9 * nH
+y[IDX_NaI]     = 2.0e-9 * nH
+y[IDX_MgI]     = 7.0e-9 * nH
+y[IDX_FeI]     = 3.0e-9 * nH
+y[IDX_ClI]     = 4.0e-9 * nH
+y[IDX_FI]      = 2.0e-8 * nH
+y[IDX_GRAIN0I] = 1.3e-12 * nH
 {% endblock initial_abundance %}

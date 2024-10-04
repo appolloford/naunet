@@ -1,31 +1,19 @@
 import os
 import sys
-sys.path.append(os.getenv('PYNAUNET_PATH'))
+sys.path.append(os.getenv('PYNAUNET_MODEL_PATH'))
 
 import numpy as np
 from pathlib import Path
-from tomlkit.toml_file import TOMLFile
 
 from naunet.species import Species
-from @PYMODNAME@ import Naunet, NaunetData
+from pynaunet_model import Naunet, NaunetData
+from pynaunet_model.constants import NELEM, NSPEC, ALL_ELEMENTS, ALL_SPECIES
+from pynaunet_model.constant_indexes import *
 
 def get_element_abund(species, abundance, target):
     speclist = [Species(s) for s in species]
     abund = np.sum([ab * s.element_count.get(target, 0) for s, ab in zip(speclist, abundance)])
     return abund
-
-config_path = Path(os.getenv('NAUNET_CONFIG_PATH'))
-config = TOMLFile(config_path / "naunet_config.toml")
-content = config.read()
-chemistry = content["chemistry"]
-heating = chemistry["thermal"]["heating"]
-cooling = chemistry["thermal"]["cooling"]
-has_thermal = True if heating or cooling else False
-summary = content["summary"]
-species = summary["list_of_species"]
-elements = summary["list_of_elements"]
-nspec = len(species)
-nelem = len(elements)
 
 naunet_solver = Naunet()
 
@@ -34,32 +22,32 @@ nH = 2e4
 {% endblock parameters %}
 
 {% block reference_abundance %}
-y = np.ones(len(species)+has_thermal) * 1e-40
+y = np.ones(NSPEC + HAS_THERMAL) * 1e-40
 # Set your initial abundance here
-# e.g. y[species.index("H2")] = 0.5 * nH
+# e.g. y[IDX_H2I] = 0.5 * nH
 raise RuntimeError("Abundance has not been assigned")
 {% endblock reference_abundance %}
 
-ref = np.array([get_element_abund(species, y, elem) for elem in elements])
-ref /= get_element_abund(species, y, "H")
+ref = np.array([get_element_abund(ALL_SPECIES, y, elem) for elem in ALL_ELEMENTS])
+ref /= get_element_abund(ALL_SPECIES, y, "H")
 print(f"Reference: {ref}")
 
 naunet_solver.SetReferenceAbund(ref)
 naunet_solver.SetReferenceAbund(y, 1)
 
 {% block updated_abundance %}
-y = np.ones(len(species)+has_thermal) * 1e-40
+y = np.ones(NSPEC + HAS_THERMAL) * 1e-40
 raise RuntimeError("Abundance has not been assigned")
 {% endblock updated_abundance %}
 
-upd = np.array([get_element_abund(species, y, elem) for elem in elements])
-upd /= get_element_abund(species, y, "H")
+upd = np.array([get_element_abund(ALL_SPECIES, y, elem) for elem in ALL_ELEMENTS])
+upd /= get_element_abund(ALL_SPECIES, y, "H")
 print(f"Updated: {upd}")
 
 naunet_solver.Renorm(y)
 
-res = np.array([get_element_abund(species, y, elem) for elem in elements])
-res /= get_element_abund(species, y, "H")
+res = np.array([get_element_abund(ALL_SPECIES, y, elem) for elem in ALL_ELEMENTS])
+res /= get_element_abund(ALL_SPECIES, y, "H")
 print(f"Updated: {res}")
 
 if any((res - ref) > 1e-3):

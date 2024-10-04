@@ -7,16 +7,16 @@ naunet_data.nH = nH
 naunet_data.Tgas = tgas
 {% endblock parameters %}
 {% block initial_abundance %}
-y = np.ones(len(species)+has_thermal) * 1e-40
-y[species.index("H")]      = nH
-y[species.index("H+")]     = 1e-4 * nH
-y[species.index("He")]     = 1e-1 * nH
-y[species.index("HD")]     = 1.5e-5 * nH
-y[species.index("H2")]     = 1.5e-5 *nH
-y[species.index("e-")]     = 1e-4 * nH
-if has_thermal:
-    y[nspec]               = tgas # Temperature
+y = np.ones(NSPEC + HAS_THERMAL) * 1e-40
+y[IDX_HI]      = nH
+y[IDX_HII]     = 1e-4 * nH
+y[IDX_HeI]     = 1e-1 * nH
+y[IDX_HDI]     = 1.5e-5 * nH
+y[IDX_H2I]     = 1.5e-5 *nH
+y[IDX_eM]      = 1e-4 * nH
+if HAS_THERMAL:
+    y[NSPEC]               = tgas # Temperature
 {% endblock initial_abundance %}
 {% block temperature %}
-        naunet_data.Tgas = y[nspec]
+        naunet_data.Tgas = y[NSPEC]
 {% endblock temperature %}

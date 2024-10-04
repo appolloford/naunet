@@ -31,7 +31,6 @@ class RenderCommand(Command):
         option("patch", None, "Create patch files for target code.", flag=False),
         option("patch-source", None, "Patch source directory.", flag=False),
         option("with-pattern", None, "Render Jacobian pattern."),
-        option("with-summary-py", None, "Render `summary.py` file."),
     ]
 
     def __init__(self):
@@ -198,58 +197,6 @@ class RenderCommand(Command):
         config_file = Path.cwd() / "naunet_config.toml"
         with open(config_file, "w", encoding="utf-8") as f:
             f.write(tomlkit.dumps(content))
-
-        if self.option("with-summary-py"):
-            with open("summary.py", "w") as outf:
-                outf.write(f"nelem = {len(all_elements)}\n")
-                outf.write(f"nspec = {len(all_species)}\n")
-                outf.write(f"ngas = {len(gas_species)}\n")
-                outf.write(f"nice = {len(ice_species)}\n")
-                outf.write(f"ngrain = {len(grain_species)}\n")
-                outf.write(f"nreac = {len(net.reactions)}\n")
-                outf.write("\n\n")
-
-                speclistlist = [
-                    all_elements,
-                    all_species,
-                    all_alias,
-                    gas_species,
-                    ice_species,
-                    grain_species,
-                ]
-                namelist = [
-                    "all_elements",
-                    "all_species",
-                    "all_alias",
-                    "gas_species",
-                    "ice_species",
-                    "grain_species",
-                ]
-
-                for speclist, name in zip(speclistlist, namelist):
-                    specstr = ",\n    ".join(f"'{x}'" for x in speclist)
-                    if specstr:
-                        outf.write("".join([f"{name} = [\n    ", specstr, ",\n]"]))
-                        outf.write("\n\n")
-
-                for ele in Species.known_elements():
-                    specnatom = [s.element_count.get(ele, 0) for s in net.species]
-                    eledictstr = f",\n    ".join(
-                        f"'{s}': {natom}"
-                        for s, natom in zip(all_species, specnatom)
-                        if natom
-                    )
-                    if eledictstr:
-                        outf.write(
-                            "".join(
-                                [
-                                    f"{ele}_dict = {{\n    ",
-                                    eledictstr,
-                                    f",\n}}",
-                                ]
-                            )
-                        )
-                        outf.write("\n\n")
 
         # progress = self.progress_bar()
         # progress.finish()

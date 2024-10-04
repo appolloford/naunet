@@ -1,0 +1,9 @@
+{% for elem in network.elements %}
+IDX_ELEM_{{ elem.element_count.keys() | first }} = {{ loop.index0 }}
+{% endfor %}
+
+{% for spec in network.species %}
+IDX_{{ spec.alias }} = {{ loop.index0 }}
+{% endfor %}
+
+

@@ -1,4 +1,4 @@
 {% extends "base/cpp/tests/singlegrid.py.in.j2" %}
 {% block initial_abundance %}
-y = np.ones(len(species)+has_thermal) * 1e-40
+y = np.ones(NSPEC + HAS_THERMAL) * 1e-40
 {% endblock initial_abundance %}

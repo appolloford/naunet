@@ -1,0 +1,61 @@
+NELEM = {{ network.elements | length }}
+NSPEC = {{ network.species | length }}
+NGAS = {{ network.species | rejectattr("is_surface") | list | length }}
+NICE = {{ network.species | selectattr("is_surface") | list | length }}
+NGRAIN = {{ network.species | selectattr("is_grain") | list | length }}
+NREAC = {{ network.reactions | length }}
+{% if network.heating | length > 0 or network.cooling | length > 0 %}
+HAS_THERMAL = True
+{% else %}
+HAS_THERMAL = False
+{% endif %}
+
+ALL_ELEMENTS = [
+{% for elem in network.elements %}
+    "{{ elem.name }}",
+{% endfor %}
+]
+
+ALL_SPECIES = [
+{% for spec in network.species %}
+    "{{ spec.name }}",
+{% endfor %}
+]
+
+ALL_ALIAS = [
+{% for spec in network.species %}
+    "{{ spec.alias }}",
+{% endfor %}
+]
+
+ALL_GAS_SPECIES = [
+{% for spec in network.species | rejectattr("is_surface") %}
+    "{{ spec.name }}",
+{% endfor %}
+]
+
+ALL_ICE_SPECIES = [
+{% for spec in network.species | selectattr("is_surface") %}
+    "{{ spec.name }}",
+{% endfor %}
+]
+
+ALL_GRAIN_SPECIES = [
+{% for spec in network.species | selectattr("is_grain") %}
+    "{{ spec.name }}",
+{% endfor %}
+]
+
+# species grouped by elements and the corresponding element count
+TABLE_SPECIES_GROUPED_BY_ELEMENTS = {
+{% for elem in network.elements %}
+    "{{ elem.name }}": {
+{% for spec in network.species %}
+{%- if spec.element_count.get(elem.name, 0) %}
+        "{{ spec.name }}": {{ spec.element_count.get(elem.name) }},
+{% endif -%}
+{%- endfor %}
+    },
+{% endfor %}
+}
+
