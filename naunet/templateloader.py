@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 import os
 from dataclasses import dataclass
+from datetime import datetime
 from importlib.metadata import version
 from pathlib import Path
 from tqdm import tqdm
@@ -57,6 +58,7 @@ class TemplateLoader:
         method: str
         device: str
         version: str
+        project_version: str
 
     @dataclass
     class Jacobian:
@@ -109,7 +111,10 @@ class TemplateLoader:
         self._env.rstrip_blocks = True
 
         self._solver = solver
-        self._general = self.GeneralInfo(method, device, version("naunet"))
+        projver = datetime.now().strftime("%y.%m")
+        self._general = self.GeneralInfo(
+            method, device, version("naunet"), project_version=projver
+        )
 
     def _assign_rates(
         self,
