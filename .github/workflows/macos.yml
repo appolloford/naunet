@@ -87,11 +87,11 @@ jobs:
       - name: Install SUNDIALS
         run: |
           wget https://github.com/LLNL/sundials/releases/download/v6.7.0/sundials-6.7.0.tar.gz
-          tar -zxvf sundials-6.7.0.tar.gz
+          tar -zxf sundials-6.7.0.tar.gz
           mkdir build-sundials && cd build-sundials
           cmake ../sundials-6.7.0 -DCMAKE_INSTALL_PREFIX=/usr/local/sundials \
               -DSUNDIALS_INDEX_SIZE=32 -DENABLE_KLU=ON \
-              -DKLU_INCLUDE_DIR=$(brew --prefix suite-sparse)/include \
+              -DKLU_INCLUDE_DIR=$(brew --prefix suite-sparse)/include/suitesparse \
               -DKLU_LIBRARY_DIR=$(brew --prefix suite-sparse)/lib \
               -DEXAMPLES_ENABLE_C=OFF -DEXAMPLES_INSTALL=OFF
           make -j4 && sudo make install
