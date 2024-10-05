@@ -46,14 +46,14 @@ foreach(name ${TESTTARGETS})
                 OUTPUT_NAME ${targetname}.x
     )
 
+{% if general.method == "rosenbrock4" %}
     # for odeint test
-    if(USE_BOOST)
-        target_include_directories(
-            ${targetname}
-                PRIVATE 
-                    ${Boost_INCLUDE_DIRS}
-        )
-    endif()
+    target_include_directories(
+        ${targetname}
+            PRIVATE 
+                ${Boost_INCLUDE_DIRS}
+    )
+{% endif %}
 
     target_link_libraries(
         ${targetname} 
