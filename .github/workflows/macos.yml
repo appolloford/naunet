@@ -18,7 +18,7 @@ jobs:
   package_install_and_test:
     strategy:
       matrix:
-        os: [macos-13, macos-latest]
+        os: [macos-13, macos-13-xlarge, macos-14, macos-14-large]
         python: ["3.8", "3.9", "3.10"]
 
     runs-on: ${{ matrix.os }}
@@ -56,7 +56,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-13, macos-latest]
+        os: [macos-13, macos-13-xlarge, macos-14, macos-14-large]
 
     runs-on: ${{ matrix.os }}
 
@@ -67,6 +67,9 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v4
+
+      - name: Install pybind11
+        run: brew install pybind11
 
       - name: Install BLAS & LAPACK
         run: brew install openblas lapack
@@ -134,7 +137,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-13, macos-latest]
+        os: [macos-13, macos-13-xlarge, macos-14, macos-14-large]
 
     runs-on: ${{ matrix.os }}
 
