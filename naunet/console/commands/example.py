@@ -12,6 +12,8 @@ from cleo.helpers import argument
 from cleo.helpers import option
 from jinja2 import Environment, PackageLoader
 
+from naunet.templateloader import TemplateLoader
+
 from .command import Command
 
 
@@ -188,18 +190,5 @@ class ExampleCommand(Command):
         else:
             os.mkdir(prefix)
 
-        # get list of test templates
-        testpkgpath = f"templates/tests/{example}"
-        testenv = Environment(loader=PackageLoader("naunet", testpkgpath))
-        tmplnamelist = testenv.list_templates()
-
-        # render tests
-        env = Environment(loader=PackageLoader("naunet"))
-        tmplpath = f"tests/{example}"
-
-        for tmplname in tmplnamelist:
-            tmpl = env.get_template(f"{tmplpath}/{tmplname}")
-
-            dest = path / "tests" / tmplname.replace(".j2", "")
-            with open(dest, "w") as outf:
-                outf.write(tmpl.render())
+        tl = TemplateLoader(solver=solver, method=method, device=device)
+        tl.render_tests(path=Path.cwd(), example=example)

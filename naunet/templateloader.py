@@ -364,8 +364,12 @@ class TemplateLoader:
             ode=ode,
             renorm=renorm,
         )
-        name = template.name.replace(".j2", "")
-        name = name.replace(f"{self._solver}/", "")
+        if "tests" in template.name:
+            basename = Path(template.name).name
+            name = f"tests/{basename}"
+        else:
+            name = template.name.replace(f"{self._solver}/", "")
+        name = name.replace(".j2", "")
 
         cuda_support = ["constants", "fex", "jac", "physics", "rates", "renorm"]
         for substr in cuda_support:
@@ -377,8 +381,9 @@ class TemplateLoader:
             headerpath = path / "include"
             sourcepath = path / "src"
             pythonpath = path / "python" / "pynaunet_model"
+            testpath = path / "tests"
 
-            for p in [path, headerpath, sourcepath, pythonpath]:
+            for p in [path, headerpath, sourcepath, pythonpath, testpath]:
                 if not p.exists():
                     p.mkdir(parents=True)
 
@@ -462,13 +467,22 @@ class TemplateLoader:
             if tmpl.startswith(solver)
         ]
 
-    def render_tests(self, path: Path | str) -> None:
+    def render_tests(self, path: Path | str, example: str = None) -> None:
         path = Path(path)
 
-        testpkgpath = f"templates/base/cpp/tests"
-        testenv = Environment(loader=PackageLoader("naunet", testpkgpath))
+        # get list of test templates
+        if example:
+            testtmplpath = f"tests/{example}"
+        else:
+            testtmplpath = "base/cpp/tests"
+        testenv = Environment(
+            loader=PackageLoader("naunet", f"templates/{testtmplpath}")
+        )
         tmplnamelist = testenv.list_templates()
 
+        # new env which does not trim block
+        env = Environment(loader=PackageLoader("naunet"))
+
         for tmplname in tmplnamelist:
-            tmpl = testenv.get_template(tmplname)
-            self._render(tmpl, save=True, path=path / "tests")
+            tmpl = env.get_template(f"{testtmplpath}/{tmplname}")
+            self._render(tmpl, save=True, path=path)
